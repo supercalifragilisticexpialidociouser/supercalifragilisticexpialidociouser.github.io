@@ -20,6 +20,8 @@ Java EE：Java Enterprise Edition。
 
 Java ME：Java Micro Edition。
 
+<!--more-->
+
 # 入门
 
 ## 开发工具
@@ -40,8 +42,6 @@ Java ME：Java Micro Edition。
 > 类路径中`.`表示包含当前目录。
 >
 > 如果没有显式提供类路径，则会自动提供一个含`.`目录的默认类路径。
-
-<!--more-->
 
 #### 交互式环境——JShell
 
@@ -2313,17 +2313,19 @@ vaTest();
 可变长度参数必须是方法的最后一个参数：
 
 ```java
-int doIt(int a, int b, double c, int ... vals) {}
+int doIt(int a, int b, double c, int... vals) {}
 ```
+
+可将最后一个参数是数组的方法重新定义为可变参数方法，而不会破坏任何已经存在的代码。
 
 此外，一个方法最多只能有一个可变长度参数。
 
 可变参数方法也可以重载：
 
 ```java
-void vaTest(int ... v) {}
-void vaTest(boolean ... v) {}
-void vaTest(String msg, int ... v) {}
+void vaTest(int... v) {}
+void vaTest(boolean... v) {}
+void vaTest(String msg, int... v) {}
 void vaTest(int v) {}  //只提供一个int参数时，匹配这个方法
 ```
 

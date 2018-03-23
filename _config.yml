@@ -6,7 +6,7 @@
 title: 人见人爱，花见花开，车见爆胎
 subtitle: 一个程序猿的笔记
 description:
-keywords: note programming
+keywords: "note,programming,学习,笔记,编程,开发,IT,技术" 
 author: 周千涵
 language: zh-CN
 timezone: Asia/Shanghai
@@ -36,7 +36,7 @@ external_link: true # Open external links in new tab
 filename_case: 0
 render_drafts: false
 post_asset_folder: true
-relative_link: true
+relative_link: false
 future: true
 highlight:
   enable: true
@@ -85,3 +85,8 @@ deploy:
 # Next theme
 theme_config:
   scheme: Mist
+  footer:
+    powered: false
+    theme:
+      enable: false
+      version: false
