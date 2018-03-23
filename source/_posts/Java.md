@@ -41,6 +41,8 @@ Java ME：Java Micro Edition。
 >
 > 如果没有显式提供类路径，则会自动提供一个含`.`目录的默认类路径。
 
+<!--more-->
+
 #### 交互式环境——JShell
 
 
@@ -240,7 +242,7 @@ int x6 = 0x_52;
 
 ### 整数类型
 
-![Java整型](resources/Java/Java整型.png)
+![Java整型](Java/Java整型.png)
 
 `long`类型数值要带一个后缀`L` 或`l` ( 例如`4000000000L`)。没有后缀的整数字面量默认是`int`类型。
 
@@ -250,7 +252,7 @@ int x6 = 0x_52;
 
 ### 浮点类型
 
-![Java浮点类型](resources/Java/Java浮点类型.png)
+![Java浮点类型](Java/Java浮点类型.png)
 
 `float` 类型的数值有一个后缀`F` 或`f` ( 例如， `3.14F`)。没有后缀的浮点数值（如`3.14` ) 默认为`double` 类型。`double` 类型字面量也可以在后面添加后缀D 或d ( 例如，`3.14D`)。
 
@@ -473,7 +475,7 @@ int[] luckyNumbers = smallPrimes;
 luckyNumbers[5] = 12; // now smallPrimes[5] is also 12
 ```
 
-![数组赋值](resources/Java/数组赋值.png)
+![数组赋值](Java/数组赋值.png)
 
 如果希望将一个数组的所有值复制到一个新的数组中去，就要使用`java.util.Arrays.copyof()`方法：
 
@@ -512,7 +514,7 @@ Arrays.sort(a);  // 现在数组a是排好序的了。
 
 在Java中，多维数组实际上是数组的数组。
 
-![数组的数组](resources/Java/数组的数组.png)
+![数组的数组](Java/数组的数组.png)
 
 ### 创建数组
 
@@ -623,7 +625,7 @@ for (int[] row : towD)
     …
 ```
 
-![二维数组概念视图](resources/Java/二维数组概念视图.png)
+![二维数组概念视图](Java/二维数组概念视图.png)
 
 #### 打印数组
 
@@ -653,7 +655,7 @@ for (int[] row : twoD)
 System.out.println(Arrays.deepToString(twoD));  //[[0], [1, 2], [3, 4, 5], [6, 7, 8, 9]]
 ```
 
-![不规则数组](resources/Java/不规则数组.png)
+![不规则数组](Java/不规则数组.png)
 
 # 字符串
 
@@ -987,7 +989,7 @@ Size s = Size.MEDIUM;  //不需要带参数
 
 ## 算术表达式
 
-![算术运算符](resources/Java/算术运算符.png)
+![算术运算符](Java/算术运算符.png)
 
 算术运算符的操作数必须是数值类型或`char`类型。
 
@@ -1034,7 +1036,7 @@ public static strictfp void main(String[] args)
 
 ## 关系表达式
 
-![关系运算符](resources/Java/关系运算符.png)
+![关系运算符](Java/关系运算符.png)
 
 关系运算的结果为布尔类型，但只有`==`和`!=`可操作布尔型操作数。
 
@@ -1042,9 +1044,9 @@ public static strictfp void main(String[] args)
 
 ## 逻辑表达式
 
-![逻辑运算符](resources/Java/逻辑运算符.png)
+![逻辑运算符](Java/逻辑运算符.png)
 
-![逻辑运算](resources/Java/逻辑运算.png)
+![逻辑运算](Java/逻辑运算.png)
 
 ### “短路”逻辑运算
 
@@ -1114,11 +1116,11 @@ x = x^y;       //x=(x^y)^x
 
 ## 位运算表达式
 
-![位运算符](resources/Java/位运算符.png)
+![位运算符](Java/位运算符.png)
 
 ### 位逻辑运算
 
-![位逻辑运算](resources/Java/位逻辑运算.png)
+![位逻辑运算](Java/位逻辑运算.png)
 
 > 利用`&` 并结合使用适当的`2` 的幂， 可以把其他位掩掉， 而只保留其中的某一位。例如， 如果`n` 是一个整数变量， 而且用二进制表示的`n` 从右边数第4 位为`1`，则
 >
@@ -1277,7 +1279,7 @@ if (yourSales >= target) {
 }
 ```
 
-![if](resources/Java/if.png)
+![if](Java/if.png)
 
 > 注意：`if(…) int i = 1;`是非法的，而要使用：
 >
@@ -1310,7 +1312,7 @@ if (yourSales >= 2 * target) {
 }
 ```
 
-![if-else-if](resources/Java/if-else-if.png)
+![if-else-if](Java/if-else-if.png)
 
 ### 多分支语句
 
@@ -1364,7 +1366,7 @@ switch (choice) {
 }
 ```
 
-![switch](resources/Java/switch.png)
+![switch](Java/switch.png)
 
 > 如果在`case` 分支语句的末尾没有`break` 语句， 那么就会接着执行下一个`case` 分支语句。
 >
@@ -1424,7 +1426,7 @@ while循环的一般形式：
 while (条件表达式) 语句
 ```
 
-![while](resources/Java/while.png)
+![while](Java/while.png)
 
 > 如果循环条件的值一开始就为`false`, 则while 循环体一次也不执行。
 
@@ -1451,7 +1453,7 @@ do {
 } while (input.equals("N"))；
 ```
 
-![do-while](resources/Java/do-while.png)
+![do-while](Java/do-while.png)
 
 
 
@@ -1485,7 +1487,7 @@ for (int i = 1; i <= 10; i++)
   System.out.println(i);
 ```
 
-![for](resources/Java/for.png)
+![for](Java/for.png)
 
 > 在循环中，检测两个浮点数是否相等需要格外小心。下面的for 循环：
 >
@@ -1677,7 +1679,7 @@ Java的运算符都是内置的，不能自定义新的运算符，也不能重�
 
 ### 优先级
 
-![优先级和结合性](resources/Java/优先级和结合性.png)
+![优先级和结合性](Java/优先级和结合性.png)
 
 > JDK 8 中添加的箭头运算符（`->`），它的优先级高于赋值运算符，但低于条件运算符。
 
@@ -1794,7 +1796,7 @@ Date birthday = deadline; //现在birthday和deadline都引用同一个Date对�
 deadline = null; //这时，deadline与原来的Date对象“脱钩”，但birthday仍然引用着这个Date对象。
 ```
 
-![引用同一个对象的对象变量](resources/Java/引用同一个对象的对象变量.png)
+![引用同一个对象的对象变量](Java/引用同一个对象的对象变量.png)
 
 > 当将一个对象变量赋值给另一个对象变量时，不是创建对象的副本，而是创建引用的副本。
 
@@ -2262,7 +2264,7 @@ double percent = 10;
 tripleValue(percent);  //percent 的值还是10
 ```
 
-![值参数传递](resources/Java/值参数传递.png)
+![值参数传递](Java/值参数传递.png)
 
 引用类型参数传递示例：
 
@@ -2275,7 +2277,7 @@ harry = new Employee(…) ;
 tripleSalary(harry) ;  //现在该雇员工资提升了3倍
 ```
 
-![引用参数传递](resources/Java/引用参数传递.png)
+![引用参数传递](Java/引用参数传递.png)
 
 ##### 实例方法的隐式参数
 
@@ -3120,7 +3122,7 @@ b = b * 2;  //报错！不能将右侧的int类型结果赋值给左侧的byte�
 
 在表达式中，所有操作数自动转换为它们之中精度最大的类型。
 
-![数值类型之间的转换](resources/Java/数值类型之间的转换.png)
+![数值类型之间的转换](Java/数值类型之间的转换.png)
 
 实线箭头表示无精度损失的自动转换。虚线箭头表示可能有精度损失的转换，即需要强制转换。
 
