@@ -81,3 +81,7 @@ deploy:
   type: git
   repo: git@github.com:supercalifragilisticexpialidociouser/supercalifragilisticexpialidociouser.github.io.git
   branch: master
+
+# Next theme
+theme_config:
+  scheme: Mist
