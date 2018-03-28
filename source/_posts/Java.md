@@ -3036,6 +3036,146 @@ System.out.println(i5== i6); //输出“false”
 
 # 命名空间——包
 
+Java的包（package）既是一种命名机制，也是一种可见性控制机制。
+
+## 定义包
+
+创建包只需要将`package`命令作为Java源文件中的第一条语句，则该文件中声明的所有类都属于指定的包。例如，下面代码创建了一个名为`foo`的包：
+
+```java
+package foo;
+```
+
+如果一个源文件中没有显式的`package`语句，则该文件中声明的所有类都属于**默认包**。默认包没有名称。
+
+Java使用文件系统目录来存储包。例如，对于所有声明为属于`foo`包的类来说，它们的`.class`文件必须存储在类路径下的`foo`目录中。
+
+多个源文件可以包含相同的`package`语句，这样它们都属于相同的包。
+
+可以创建层次化的包。为此，简单地使用句点分隔每个包的名称：
+
+```java
+package foo.bar;
+```
+
+这些层次化的包，在文件系统中表现为嵌套的目录（例如：`foo/bar/`）。
+
+从编译器的角度来看， 嵌套的包之间是互相独立的。例如，`java.util` 包与`java.util.jar` 包毫无关系。每一个都拥有独立的类集合。
+
+## 包的定位——CLASSPATH
+
+Java运行时是通过CLASSPATH来在文件系统中定位包的。也就是说，存储包的完整目录结构要位于CLASSPATH指定的目录或路径中（也称为基目录）。
+
+CLASSPATH包括：
+
+- 当前工作目录（没有显式设置CLASSPATH下）；
+
+- 通过`CLASSPATH`环境变量指定的目录或路径；例如：（等号右边的`.`表示当前工作目录）
+
+  ```
+  CLASSPATH=.:$JAVA_HOME/lib:$JAVA_HOME/lib/tools.jar
+  ```
+
+  注意：在Windows下使用`;`分隔多个路径，而在Linux下使用`:`分隔。
+
+- 通过`java`和`javac`的`-classpath`或`-cp`选项指定的目录或路径。（推荐方式）例如：
+
+  ```bash
+  $ java -cp /home/i/ws foo.bar.Hello
+  ```
+
+  上面`java`命令指定了CLASSPATH，可以在任何路径处执行。
+
+  ```bash
+  $ cd /home/i/ws
+  $ java -cp . foo.bar.Hello
+  ```
+
+  上面的`java`命令必须是在`/home/i/ws`路径处执行，且该目录中包含`foo/bar/Hello.class`字节码文件。如果没有显式设置任何CLASSPATH，上面命令中的`-cp`选项可以省略，默认就表示当前工作目录。
+
+  与`java`不同，`javac`在编译源文件时，不检查目录结构：
+
+  ```bash
+  $ javac -cp .:/mylib /home/i/ws/foo/bar/Hello.java  （可在任何位置执行）
+  $ javac /home/i/ws/foo/bar/Hello.java  （如果Hello.java不依赖其他包，甚至可以不用指定CLASSPATH）
+
+  $ cd /home/i
+  $ javac Hello.java  （甚至Hello.java可以不放在包对应的foo/bar目录中）
+  ```
+
+  从Java SE 6 开始，可以在类路径中使用通配符：
+
+  ```
+  .:/home/user/foo/'*'   （Linux）
+  .:c:\foo\*   （Windows）
+  ```
+
+  另外，由于运行时库文件（ `rt.jar` 和在`jre/lib` 与`jre/lib/ext`目录下的一些其他的JAR 文件） 会被自动地搜索， 所以不必将它们显式地列在类路径中。
+
+## 导入包
+
+Java采用两种方式访问另一个包中的公有类：
+
+- 在每个类名之前添加完整的包名。例如，
+
+  ```java
+  java.time.LocalDate today = java.time.LocalDate.now();
+  ```
+
+- 使用`import`语句导入公有类，被导入的公有类只需要使用简单名，而不需要写出完整的限定名。
+
+`import` 语句可以导入一个特定的类或者整个包。`import` 语句应该位于源文件的顶部（但位于`package`语句的后面）。
+
+> 在C++ 中，必须使用`#include` 将外部特性的声明加载进来， 这是因为C++ 编译器无法查看任何文件的内部， 除了正在编译的文件以及在头文件中明确包含的文件。
+>
+> 而Java编译器可以查看其他文件的内部， 只要告诉它到哪里去查看就可以了。另外，Java中`import`不是必须的，只要显式给出限定名。
+>
+> 在Java中， `package`与`import` 语句更类似于C++ 中的`namespace` 和`using` 指令。
+
+### 导入整个包
+
+```java
+import java.time.*;  //星号只能位于最后一个点号之后
+//import java.time*; //错误
+//import java.*.*;   //错误
+
+LocalDate today = LocalDate.now()；
+```
+
+导入包有可能会引起名字冲突。例如，
+
+```java
+import java.util.*;
+import java.sql.*;
+```
+
+这两个包都有一个`Date`类，如果使用简单名访问`Date`类就会报错。这种情况应该使用导入类语法或者使用完全限定名。
+
+Java隐式地为所有程序导入`java.lang`包。这相当于在所有程序 的开头添加下面代码：
+
+```java
+import java.lang.*;
+```
+
+### 导入一个类
+
+```java
+import java.time.LocalDate;
+
+LocalDate today = LocalDate.now()；
+```
+
+### 导入静态成员
+
+```java
+import static java.time.LocalDate.*;   //导入LocalDate的所有静态成员
+import static java.time.LocalDate.now; //只导入now静态方法
+
+LocalDate today = now();
+```
+
+
+
 # 作用域和可见性
 
 作用域决定了对象对程序其他部分的可见性，并且也决定了这些对象的生存期。在作用域中声明的变量或常量，对于作用域之外定义的代码是不可见的（即不可访问）。实际上，作用域规则为封装提供了基础。
@@ -3066,6 +3206,8 @@ class ScopeErr {
 ```
 
 ## 类作用域
+
+![类成员访问](Java/类成员访问.png)
 
 虽然在同一个块作用域中声明两个同名的变量或常量是非法的，但是局部变量或常量（包括参数）可以和类的字段重名，并且它们会屏蔽同名的字段。这时，如果要访问字段，则该字段要加`this.`前缀以示区别。
 
