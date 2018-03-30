@@ -7,7 +7,7 @@ title: 人见人爱，花见花开，车见爆胎
 subtitle: 一个程序猿的笔记
 description:
 keywords: "note,programming,学习,笔记,编程,开发,IT,技术" 
-author: 周千涵（supremeadministrator@supercalifragilisticexpialidociouser.com）
+author: 周千涵
 language: zh-CN
 timezone: Asia/Shanghai
 
@@ -94,6 +94,8 @@ theme_config:
     theme:
       enable: false
       version: false
+  social:
+    E-Mail: mailto:supremeadministrator@supercalifragilisticexpialidociouser.com || envelope
   post_meta:
     item_text: true
     created_at: true
