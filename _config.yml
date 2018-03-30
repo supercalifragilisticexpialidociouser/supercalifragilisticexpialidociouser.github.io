@@ -7,13 +7,13 @@ title: 人见人爱，花见花开，车见爆胎
 subtitle: 一个程序猿的笔记
 description:
 keywords: "note,programming,学习,笔记,编程,开发,IT,技术" 
-author: 周千涵
+author: 周千涵（supremeadministrator@supercalifragilisticexpialidociouser.com）
 language: zh-CN
 timezone: Asia/Shanghai
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://supercalifragilisticexpialidocious.org
+url: http://blog.supercalifragilisticexpialidociouser.com
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
@@ -86,7 +86,20 @@ deploy:
 theme_config:
   scheme: Mist
   footer:
+    icon:
+      name: user
+      animated: false
+      color: "#808080"
     powered: false
     theme:
       enable: false
       version: false
+  post_meta:
+    item_text: true
+    created_at: true
+    updated_at: true
+    updated_diff: false
+    categories: true
+  post_copyright:
+    enable: true
+    license: <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a>
