@@ -657,6 +657,8 @@ System.out.println(Arrays.deepToString(twoD));  //[[0], [1, 2], [3, 4, 5], [6, 7
 
 ![不规则数组](Java/不规则数组.png)
 
+## Arrays类
+
 # 字符串
 
 在很多语言中，包括C/C++，字符串是作为字符数组实现的。然而，在Java中不是如此。在Java中，字符串实际上是一个对象（`String`类的实例）。
@@ -3065,11 +3067,11 @@ class Employee implements Comparable<Employee> {
 
 ### 默认方法
 
-在JDK8之前，接口是不能定义任何实现的。从JDK8开始，可以在接口实例方法中添加默认实现。
+在JDK8之前，接口是不能定义任何方法实现的。从JDK8开始，可以在接口实例方法中添加默认实现，即默认方法。当然，这些默认方法无法引用实例字段——接口没有实例。
 
 ## 接口字段
 
-在接口中声明的字段，隐式地被标识为`public`、`final`和`static`。
+在接口中声明的字段，隐式地被标识为`public`、`final`和`static`。因此，接口中不可能出现实例字段。
 
 ## 嵌套接口
 
@@ -3082,6 +3084,16 @@ class Employee implements Comparable<Employee> {
 ## 映射/字典
 
 ## 集
+
+## Collections类
+
+## 对象的比较
+
+### Comparable接口
+
+### Comparator接口
+
+### 包装器类的`compare`静态方法
 
 # 命名空间——包
 
