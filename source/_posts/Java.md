@@ -1036,6 +1036,16 @@ z = x++;  //z=43, x=44。相当于：z = x; x = x + 1;
 public static strictfp void main(String[] args)
 ```
 
+### 大数值
+
+如果基本的整数和浮点数精度不能够满足需求， 那么可以使用`java.math` 包中的两个很有用的类： `Biglnteger` 和`BigDecimaL` 这两个类可以处理包含任意长度数字序列的数值。`Biglnteger` 类实现了任意精度的整数运算， `BigDecimal` 实现了任意精度的浮点数运算。
+
+使用静态的`valueOf` 方法可以将普通的数值转换为大数值：
+
+```java
+BigInteger a = BigInteger.valueOf(100);
+```
+
 ## 关系表达式
 
 ![关系运算符](Java/关系运算符.png)
@@ -1043,6 +1053,27 @@ public static strictfp void main(String[] args)
 关系运算的结果为布尔类型，但只有`==`和`!=`可操作布尔型操作数。
 
 `==`和`!=`在比较对象时，只是比较对象的引用，而不是对象本身。要比较对象本身要用`equals()`（注：从`Object`对象继承下来的`equals`方法默认也是比较对象引用的，需要重载它才能使它比较对象的本身。它在一些预定义的类中已被重载为比较对象的本身，如`Integer`、`String`等。
+
+### 对象的比较
+
+#### Comparable接口
+
+#### Comparator接口
+
+```java
+class LengthComparator implements Comparator<String> {
+  public int compare(String first, String second) {
+  	return first.length() - second.length()；
+  }
+}
+
+String[] friends = { "Peter", "Paul", "Mary" };
+Arrays.sort(friends, new LengthComparator());
+```
+
+
+
+#### 包装器类的`compare`静态方法
 
 ## 逻辑表达式
 
@@ -3050,7 +3081,7 @@ System.out.println(i5== i6); //输出“false”
 要将类声明为实现某个接口， 需要使用关键字`implements`：
 
 ```java
-class Employee implements Comparable<Employee> {
+class Employee implements Comparable<Employee>, Cloneable {
   public int compareTo(Employee other) {
     return Double.compare(salary, other.salary);
   }
@@ -3059,21 +3090,207 @@ class Employee implements Comparable<Employee> {
 
 一个类可以实现（implement）—个或多个接口，多个接口之间使用逗号分隔。
 
-## 方法
+当一个类实现了某个接口时，它必须实现这个接口中的所有抽象方法。否则，这个类就必须声明为抽象类。
+
+## 扩展接口
+
+接口可以扩展其他接口：
+
+```java
+public interface Moveable {
+	void move(double x, double y);
+}
+
+public interface Powered extends Moveable {
+	double milesPerGallon();
+  double SPEED.LIHIT = 95; // a public static final constant
+}
+```
+
+
+
+## 接口方法
 
 接口中的所有方法自动地属于`public`。因此，在接口中声明方法时，不必提供关键字`public`。不过，在实现接口时，必须把方法显式声明为`public`; 否则，编译器将认为这个方法的访问属性是包可见性。
 
 ### 静态方法
 
+在Java SE 8 中，允许在接口中增加静态方法。
+
+在JDK8之前，通常是在接口中声明抽象方法，而将静态方法放到伴随类中。例如标准库中：
+
+- Collection（接口）和Collections（实用工具类）
+- Path（接口）和Paths（实用工具类）
+
+在JDK8中，伴随类将不再需要。
+
 ### 默认方法
 
-在JDK8之前，接口是不能定义任何方法实现的。从JDK8开始，可以在接口实例方法中添加默认实现，即默认方法。当然，这些默认方法无法引用实例字段——接口没有实例。
+在JDK8之前，接口是不能定义任何方法实现的。从JDK8开始，可以在接口实例方法中添加默认实现，即默认方法。当然，这些默认方法无法引用实例字段——接口没有实例。默认方法可以调用任何其他方法。
+
+默认方法必须用`default` 修饰符标记：
+
+```java
+public interface MouseListener {
+  default void mousedieked(MouseEvent event) {}
+  default void mousePressed(MouseEvent event) {}
+  default void mouseReleased(MouseEvent event) {}
+  default void mouseEntered(MouseEvent event) {}
+  default void mouseExited(MouseEvent event) {}
+}
+```
+
+> 在JDK8之前，很多接口都有相应的伴随类，这个伴随类中实现了相应接口的部分或所有方法， 如`Collection`/`AbstractCollection` 或`MouseListener`/`MouseAdapter`。在JavaSE 8 中， 这个技术已经过时。现在可以直接在接口中实现方法。
+
+#### 接口演化
+
+默认方法的一个重要用法是**接口演化**（interface evolution）。
+
+假设很久以前你提供了这样一个类：
+
+```java
+public class Bag implements Collection {…}
+```
+
+后来， 在JavaSE 8 中， `Collection`接口增加了一个`stream` 方法。假设`stream` 方法不是一个默认方法。那么`Bag` 类将不能编译， 因为它没有实现这个新方法。将`stream`方法实现为一个默认方法就可以解决这两个问题，甚至都不需要重新编译。因此，添加默认方法不会破坏现有代码。
+
+#### 解决默认方法冲突
+
+如果先在一个接口中将一个方法定义为默认方法，然后又在超类或另一个接口中定义了同样的方法，则：
+
+1. 超类优先。如果超类提供了一个具体方法，则同名而且有相同参数类型的默认方法会被忽略。
+
+2. 接口冲突。如果一个超接口提供了一个默认方法，另一个接口提供了一个同名而且参数类型（不论是否是默认参数）相同的方法，则在实现类中必须显式重写这个方法来解决冲突（即由程序员来解决这个二义性）。
+
+   ```java
+   interface Named {
+   	default String getName() { return getClass().getName() + "_" + hashCode(); }
+   }
+
+   interface Person {
+     String getName();
+     …
+   }
+
+   class Student implements Person, Named {
+   	public String getName() { 
+       return Person.super.getName();  //使用Person的默认实现
+     }
+   }
+   ```
+
+   也就是说，当多个超接口提供了签名相同的方法时，只要至少有一个超接口提供了默认实现，则实现类就必须显式重写这个方法来解决二义性。否则，所有超接口都没有提供默认实现，则不存在冲突，不需要显式重写。
 
 ## 接口字段
 
 在接口中声明的字段，隐式地被标识为`public`、`final`和`static`。因此，接口中不可能出现实例字段。
 
+## 标记接口
+
+标记接口（tagging interface）是不包含任何方法的接口，它唯一的作用就是允许在类型检查中使用`instanceof`。
+
+## 应用接口
+
+接口不是类，尤其不能使用`new` 运算符实例化一个接口。
+
+然而，尽管不能构造接口的对象，却能声明接口的变量：
+
+```java
+Comparable x;
+```
+
+接口变量必须引用实现了接口的类对象：
+
+```java
+x = new Employee(…); // OK provided Employee implements Comparable
+```
+
+可以使用`instance` 检查一个对象是否实现了某个特定的接口：
+
+```java
+if (anObject instanceof Comparable) { … }
+```
+
+### 接口与回调
+
+```java
+class TinePrinter implements ActionListener {
+  public void actionPerformed(ActionEvent event) {
+    System.out.println("At the tone, the time is " + new Date())；
+    Toolkit.getDefaultToolkit().beep();
+  }
+}
+
+ActionListener listener = new TimePrinter();
+Timer t = new Timer(10000, listener);
+t.start();
+```
+
+
+
+### 对象克隆
+
+`Object`中的`clone`方法默认是浅克隆且是`protected`，要实现深克隆，需要实现`Cloneable`接口，并将`clone`重写为`public`。
+
+```java
+class Employee implements Cloneable {
+	// raise visibility level to public, change return type
+	public Employee clone() throws CloneNotSupportedException {
+		// call Object, clone0
+    Employee cloned = (Employee) super.clone();
+    // clone mutable fields
+    cloned.hireDay = (Date) hireDay.clone() ;
+    return cloned;
+  }
+  …
+}
+```
+
+> 所有数组类型都有一个`public` 的`clone` 方法， 而不是`protected`。 可以用这个方法建立一个新数组， 包含原数组所有元素的副本。例如：
+>
+> ```java
+> int[] luckyNumbers = { 2, 3, 5, 7, 11, 13 };
+> int[] cloned = luckyNumbers.clone();
+> cloned[5] = 12; // doesn't change luckyNumbers[5]
+> ```
+
+另一种克隆对象的机制是对象串行化。它很容易实现，而且也很安全，但效率不高。
+
 ## 嵌套接口
+
+可以将接口定义在类或另一个接口中，这种接口称为嵌套接口。
+
+嵌套接口可以被声明为`public`、`private`或`protected`。
+
+```java
+class A {
+  // 嵌套接口
+  public interface NestedIF {
+    boolean isNotNegative(int x);
+  }
+}
+
+class B implements A.NestedIF {
+  public boolean isNotNegative(int x) {
+    return x < 0 ? false : true;
+  }
+}
+
+class NestedIFDemo {
+  public static void main(String[] args) {
+    A.NestedIF nif = new B();
+    if (nif.isNotNegative(10)) …
+  }
+}
+```
+
+
+
+## 接口与抽象类
+
+一个类至多只能继承一个抽象类，但可以实现多个接口。
+
+Java不支持多继承，而接口可以提供多继承的大多数好处，同时还能避免多继承的复杂性和低效性。
 
 # 泛型
 
@@ -3086,14 +3303,6 @@ class Employee implements Comparable<Employee> {
 ## 集
 
 ## Collections类
-
-## 对象的比较
-
-### Comparable接口
-
-### Comparator接口
-
-### 包装器类的`compare`静态方法
 
 # 命名空间——包
 
@@ -3433,16 +3642,6 @@ if (p2 instanceof Student) {
 # 异常处理
 
 # 断言
-
-# 大数值
-
-如果基本的整数和浮点数精度不能够满足需求， 那么可以使用`java.math` 包中的两个很有用的类： `Biglnteger` 和`BigDecimaL` 这两个类可以处理包含任意长度数字序列的数值。`Biglnteger` 类实现了任意精度的整数运算， `BigDecimal` 实现了任意精度的浮点数运算。
-
-使用静态的`valueOf` 方法可以将普通的数值转换为大数值：
-
-```java
-BigInteger a = BigInteger.valueOf(100);
-```
 
 # 正则表达式
 
