@@ -3226,8 +3226,6 @@ Timer t = new Timer(10000, listener);
 t.start();
 ```
 
-
-
 ### 对象克隆
 
 `Object`中的`clone`方法默认是浅克隆且是`protected`，要实现深克隆，需要实现`Cloneable`接口，并将`clone`重写为`public`。
@@ -3640,6 +3638,104 @@ if (p2 instanceof Student) {
 # 输入和输出
 
 # 异常处理
+
+异常是**运行时**错误。
+
+## 异常类型
+
+![1523253170218](Java/Java异常层次结构.png)
+
+Java中所有异常类型都是内置类`Throwable`的子类。
+
+`Exception`表示应当由应用程序捕获的异常。其中`RuntimeException`表示由程序错误导致的异常（例如：访问空指针、数组访问越界等）；其他的异常则表示程序本身没有问题，而是由外部环境（通常是不可预测的原因）导致的异常（例如：打开一个不存在的文件等）。
+
+`Error`类表示在常规环境下不希望由应用程序捕获的异常。它是由Java运行时系统使用，以指示运行时环境本身出现了某些错误。例如：堆栈溢出。
+
+Java 语言规范将派生于`Error` 类或`RuntimeException` 类的所有异常称为免检（unchecked）异常，所有其他的异常称为受检（checked）异常。
+
+> C++ 有两个基本的异常类， 一个是`runtime_error` ，另一个是`logic_error`。`logic_error` 类相当于Java 中的`RuntimeException`，它表示程今中的逻辑错误；`runtime_error` 类是所有由于不可预测的原因所引发的异常的基类。它相当于Java 中的非`RuntimeException` 异常。
+
+## 声明受检异常
+
+方法必须在其首部，通过`throws`关键字声明所有可能抛出并且不在当前方法中捕获的**受检异常**。否则，会产生编译时错误。例如：
+
+```java
+public Image loadlmage(String s) throws FileNotFoundException, EOFException {…}
+```
+
+而抛出免检异常，不管在当前方法是否捕获，都不需要使用`throws`声明（虽然声明了也不会报错）。
+
+如果在子类中重写了超类的一个方法，子类重写方法中声明的受检异常不能比超类方法中声明的异常更通用（也就是说，子类重写方法中可以抛出更特定的异常，或者根本不抛出任何异常）。特别地，如果超类方法没有抛出任何受检异常，子类重写方法也不能抛出任何受检异常。
+
+> Java 中的`throws` 说明符与C++ 中的`throw` 说明符基本类似，但有一点重要的区别。在C++ 中，`throw` 说明符在运行时执行， 而不是在编译时执行。也就是说， C++编译器将不处理任何异常声明。但是，如果函数抛出的异常没有出现在`throw`列表中，就会调用`unexpected` 函数， 这个函数的默认处理方式是终止程序的执行。
+> 另外，在C++ 中，如果没有给出`throw` 说明， 函数可能会抛出任何异常。而在Java中， 没有`throws` 说明符的方法将不能抛出任何受检异常。
+
+## 抛出异常
+
+如果遇到了无法处理的情况， 那么Java 的方法可以通过`throw`语句抛出一个异常。
+
+```java
+String readData(Scanner in) throws EOFException {
+  …
+  while (…）{
+    if (Mn.hasNext()) { // EOF encountered
+      if (n < len)
+        throw new EOFException();
+    }
+    …
+  }
+  return s;
+}
+```
+
+一个方法抛出的受检异常，可以是throws声明的异常类实例，也可以是其子孙类的实例。
+
+一旦方法抛出了异常，这个方法就不可能返回值给调用者。它会将异常抛给调用者，由调用者决定是继续抛出，还是捕获处理。
+
+> 在C++ 与Java 中， 抛出异常的过程基本相同， 只有一点微小的差别。在Java 中， 只能抛出`Throwable` 子类的对象， 而在C++ 中， 却可以抛出任何类型的值。
+
+## 监视异常
+
+为了防止并处理异常，首先，应该将可能会抛出异常的代码放入`try`块中监视起来：
+
+```java
+try {
+  受监视的代码
+}
+```
+
+一旦受监视的代码中抛出异常，程序控制就会从`try`块中转移出来，并被`catch`块捕获并处理。
+
+> `try`块的花括号是必须的，即使只包含一条语句。
+>
+> `try`块不能单独使用，总是与`catch`块或`finally`块一起出现。
+
+## 捕获异常
+
+如果某个异常发生的时候没有在任何地方进行捕获，那该异常会由Java运行时系统提供的默认处理程序捕获并处理。默认处理程序会显示一个描述异常的字符中，输出异常发生点的堆栈踪迹并终止程序。
+
+```java
+public void read(String filename) {
+  try {
+    InputStream in = new FileInputStream(filename);
+    int b;
+    while ((b = in.read()) != -1) {
+    	…
+    }
+  }
+  catch (IOException exception) {
+  	exception.printStackTrace();
+  }
+}
+```
+
+捕获的异常就不会继续往外抛了。因此，已被捕获的受检异常就不能再用`throws`声明了。
+
+> 通常，应该捕获那些知道如何处理的异常，而将那些不知道怎样处理的异常继续进行传递。
+
+### 捕获多个异常
+
+在一个try 语句块中可以捕获多个异常类型，并对不同类型的异常做出不同的处理。
 
 # 断言
 
