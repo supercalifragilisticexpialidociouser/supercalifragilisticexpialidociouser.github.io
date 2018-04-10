@@ -3712,7 +3712,7 @@ try {
 
 ## 捕获异常
 
-如果某个异常发生的时候没有在任何地方进行捕获，那该异常会由Java运行时系统提供的默认处理程序捕获并处理。默认处理程序会显示一个描述异常的字符中，输出异常发生点的堆栈踪迹并终止程序。
+当`try`块监视到有异常发生时，将由`catch`块负责捕获异常并处理。
 
 ```java
 public void read(String filename) {
@@ -3729,13 +3729,277 @@ public void read(String filename) {
 }
 ```
 
+如果某个异常发生的时候没有在任何地方进行捕获，那该异常会由Java运行时系统提供的默认处理程序捕获并处理。默认处理程序会显示一个描述异常的字符中，输出异常发生点的堆栈踪迹并终止程序。
+
 捕获的异常就不会继续往外抛了。因此，已被捕获的受检异常就不能再用`throws`声明了。
 
 > 通常，应该捕获那些知道如何处理的异常，而将那些不知道怎样处理的异常继续进行传递。
 
+### 异常对象
+
+异常对象可能包含与异常本身有关的信息，可以使用`e.getMessage()`得到详细的错误信息（如果有的话)。
+
+使用`e.getClass().getName()`得到异常对象的实际类型。
+
 ### 捕获多个异常
 
-在一个try 语句块中可以捕获多个异常类型，并对不同类型的异常做出不同的处理。
+在一个try 语句块中可以捕获多个异常类型，并对不同类型的异常做出不同的处理。例如：
+
+```java
+try {
+	//code that might throw exceptions
+} catch (FileNotFoundException e) {
+	//emergencyactionfor missingfiles
+} catch (UnknownHostException e) {
+	//emergency actionfor unknown hosts
+} catch (IOException e) {
+	//emergencyactionfor all other I/O problems
+}
+```
+
+当抛出异常时，按顺序检查每条`catch`语句，并执行类型和异常能够匹配的第一条`catch`子句。执行了一条`catch`语句之后，会忽略其他`catch`语句，并继续执行try-catch语句之后的代码。
+
+当使用多条`catch`语句时，捕获异常子类的`catch`语句必须位于所有捕获超类的`catch`语句之前，也就是说，越具体的异常类顺序要越靠前。因为使用了某个超类的`catch`语句会捕获这个超类及其所有子类的异常。这样，位于超类之后的子类异常`catch`语句，永远也不会到达。而在Java中，不可到达的代码被认为是错误。
+
+从JDK 7开始，同一条`catch`子句可以捕获多个异常类型（称为多重捕获，multi-catch）：
+
+```java
+try {
+  //code that might throw exceptions
+} catch (FileNotFoundException | UnknownHostException e) {
+  //emergency action for missing files and unknown hosts
+} catch (IOException e) {
+  //emergency action for all other I/O problems
+}
+```
+
+只有当捕获的异常类型彼此之间不存在子类关系时才需要这个特性。
+
+每个多重捕获异常参数都被隐含声明为`final` （如果愿意，也可以显式指定`final`，但这不是必需的）。因此，在`catch`块中不能为它们赋予新值。
+
+## 嵌套的try-catch语句
+
+try-catch或try-catch-finally语句是可以互相嵌套的。内层的`try`块抛出异常时，先与内层的`catch`块匹配。如果没有找到匹配的`catch`块，则再到外层try-catch中查找。这个过程会一直继续下去，直到找到一条匹配的`catch`语句。如果没有打到任何匹配的`catch`语句，则Java运行时系统会交由默认处理程序捕获并处理。
+
+```java
+class NestTry {
+  public static void main(String[] args) {
+    try {
+      int a = args.length;
+      //如果没有提供命令行参数，那么下面语句将产生除0异常。
+      int b = 42 / a;
+      System.out.println("a = " + a);
+      try {
+        //如果提供了一个命令行参数，那么下面语句将产生除0异常。
+        if (a==1) a = a/(a-a);
+        //如果提供了二个命令行参数，那么下面语句将产生数组越界异常。
+        if (a==2) {
+          int[] c = {1};
+          c[42] = 99;
+        }
+      } catch (ArrayIndexOutOfBoundsException e) {
+        System.out.println("Array index out-of-bounds: " + e);
+      }
+    } catch (ArithmeticException e) {
+      System.out.println("Divide by 0: " + e);
+    }
+  }
+}
+```
+
+当在一个方法的try-catch语句中，调用另一个包含try-catch语句的方法时，也属于try-catch嵌套。
+
+## 异常链
+
+在`catch`子句中可以主动抛出异常，这样做的目的通常是改变异常的类型。
+
+```java
+try {
+  //access the database
+} catch (SQLException e) {
+  Throwable se = new ServletException ("database error")；
+  se.initCause(e);
+  throw se;
+}
+```
+
+在后果新抛出异常时，可以使用`initCause`方法将原始异常保存在新异常中。对于每个异常对象至多只能调用一次`initCause`方法。另外，有些异常的构造器可以接收并设置原始异常，则通过构造器设置了原始异常后，就不能再使用`initCause`方法进行设置。
+
+当捕获到异常时，可以使用下面语句重新得到它包含的原始异常：
+
+```java
+Throwable e = se.getCause();
+```
+
+在一个方法中发生了受检异常，但不允许抛出它（例如子类重写超类，但超类方法没有声明可抛出的受检异常）。这时，我们就可以利用异常链技术，将这个受检异常包装成一个免检异常，再抛出。
+
+下面的代码在JDK7之前存在一个问题：
+
+```java
+public void updateRecordO throws SQLException {
+  try {
+    //access the database
+  } catch (Exception e) {
+    logger.log(level, message, e);
+    throw e;
+  }
+}
+```
+
+Java 编译器查看`catch` 块中的`throw` 语句，然后查看`e` 的类型，会指出这个方法可以抛出任何`Exception` 而不只是`SQLException`。现在这个问题已经有所改进。编译器会跟踪到`e`来自`try` 块。假设这个`try` 块中仅有的已检査异常是`SQLException` 实例。另外，假设`e` 在`catch` 块中未改变， 将外围方法声明为`throws SQLException` 就是合法的。
+
+## `finally`子句
+
+try-catch可以带一个`finally`子句，组成try-catch-finally语句。
+
+不管`try`块或`catch`块中是否有异常抛出，`finally`子句都会执行。例如：
+
+```java
+try {
+  //1
+  //可能抛出异常的代码
+  //2
+} catch (IOException e) {
+  //3
+  //可能抛出异常的代码
+  //4
+} finally {
+  //5
+}
+//6
+```
+
+1. 代码没有抛出异常的执行流：1、2、5、6。
+2. try块中抛出异常，而catch块中没有抛出异常：1、3、4、5、6。
+3. try块中抛出异常，且catch块中也抛出异常：1、3、5、返回到调用者。
+4. try块中抛出异常，但没有找到匹配的catch块：1、5、返回到调用者。
+
+`finally`子句总是在方法返回之前执行。如果`finally`子句中也有一个`return`语句，则这个返回值将会覆盖原来的返回值：
+
+```java
+public static int f(int n) {
+  try {
+    int r = n * n;
+    return r;
+  } finally {
+    if (n == 2) return 0;
+  }
+}
+
+//这个方法最终返回0。
+```
+
+
+`try` 语句可以只跟有`finally` 子句，而没有`catch` 子句，即try-finally语句。实际上，`catch`子句和`finally`子句都是可选的。但是，每条`try`语句至少需要一条`catch`子句或`finally`子句。
+
+事实上，将try-catch-finally拆分为嵌套的try-catch和try-finally，可以提高代码的清晰度：
+
+```java
+InputStream in = …;
+try {
+  try {
+    //code that might throw exceptions
+  } finally {
+    in.close();
+  }
+} catch (IOException e) {
+  //show error message
+}
+```
+
+内层的`try` 语句块只有一个职责，就是确保关闭输入流。外层的`try` 语句块也只有一个职责， 就是确保报告出现的错误。这种设计方式不仅清楚，而且还具有一个功能，就是将会报告`finally` 子句中出现的错误。
+
+`finally`子句中也会抛出异常，这时，在`try`块或`catch`块中抛出的异常将会丢失，只会抛出`finally`子句中抛出的异常。可以使用如下代码，避免丢失`try`块或`catch`块中抛出的异常：
+
+```java
+InputStream in = …;
+Exception ex = null ;
+try {
+  try {
+    //code that might throw exceptions
+  } catch (Exception e) {
+    ex = e;
+    throw e;
+  }
+} finally {
+  try {
+    in.close()；
+  } catch (Exception e) {
+    if (ex = null) throw e;
+  }
+}
+```
+
+幸运的是，JDK 7中提供了带资源的try语句，使得关闭资源的处理容易多了。
+
+## 带资源的try语句
+
+对于以下代码模式，假设资源实现了`AutoCloseable`接口：
+
+```java
+//open a resource
+try {
+  //work with the resource
+} finally {
+  //close the resource
+}
+```
+
+现在可以使用更简单的带资源的try语句来替换：
+
+```java
+try (/*open a resource*/) {
+	//work with the resource
+}
+```
+
+在`try` 块退出时，会自动调用资源的`close()`方法释放资源。
+
+如果`try` 块抛出异常， 而且`close` 方法也抛出异常，带资源的`try` 语句可以很好地处理这种情况。原来的异常会重新抛出，而`close`方法抛出的异常，会通过`try` 块抛出的异常的`addSuppressed` 方法增加到“被抑制”异常列表中。后续可以通过调用`getSuppressed` 方法，获得从`close` 方法抛出并“被抑制”的异常列表。
+
+例如：
+
+```java
+try (Scanner in = new Scanner(new FileInputStream("/usr/share/dict/words")), "UTF-8") {
+  while (in.hasNext())
+  	System.out.println(in.next());
+}
+```
+
+还可以指定多个资源。例如：
+
+```java
+try (Scanner in = new Scanner(new FileInputStream("/usr/share/dict/words"), "UTF-8");
+     PrintWriter out = new PrintWriter("out.txt")) {
+  while (in.hasNext())
+  	out.println(in.next().toUpperCase());
+}
+```
+
+带资源的try 语句自身也可以有`catch` 子句和一个`finally` 子句。这些子句会在关闭资源之后执行。
+
+## 创建自己的异常类
+
+当内置的异常类没法满足需要时，创建自己的异常类就是一件顺理成章的事情了。我们需要做的只是定义一个派生于`Throwable` 的类或者它的子孙类， 最常见的是派生于`Exception` 类。
+
+习惯上，定义的异常类应该包含两个构造器，一个是默认的构造器，另一个是带有详细描述信息的构造器。
+
+```java
+class FileFormatException extends IOException {
+  public FileFormatException() {}
+  public FileFormatException(String gripe) {
+    super(gripe);
+  }
+}
+```
+
+## 异常的最佳实践
+
+异常处理不能代替简单的测试。因为与执行简单测试相比，捕获异常所花费的时间大大超过了前者。
+
+不要压制异常。
+
+不要羞于传递异常。
 
 # 断言
 
