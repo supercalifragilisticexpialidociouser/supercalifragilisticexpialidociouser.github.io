@@ -3290,6 +3290,78 @@ class NestedIFDemo {
 
 Java不支持多继承，而接口可以提供多继承的大多数好处，同时还能避免多继承的复杂性和低效性。
 
+## 代理
+
+利用代理（proxy）可以在运行时创建一个实现了一组给定接口的新类，这种功能只有在编译时无法确定需要实现哪个接口时才有必要使用。
+
+通过反射机制，调用`newInstance`方法也可以构造一个类的实例，但不能实例化一个接口。
+
+所有的代理类都扩展于`Proxy` 类。一个代理类只有一个实例域—调用处理器，它定义在`Proxy` 的超类中。
+
+### 调用处理器
+
+代理类是通过调用处理器（invocation handler）来间接实现给定接口的方法的。无论何时调用代理对象的方法（包括代理类所实现的接口的全部方法，以及Object类中的全部方法），都会转为对调用处理器的invoke 方法的调用。
+
+调用处理器是实现了`InvocationHandler` 接口的类对象。在这个接口中只有一个方法：
+
+```java
+Object invoke(Object proxy, Method method, Object[] args);
+```
+
+proxy：代理对象；
+
+method：被调用的代理对象方法；
+
+args：原始的调用参数。
+
+```java
+class TraceHandler implements InvocationHandler {
+  private Object target ;
+  public TraceHandler (Object t) {
+    target = t;
+  }
+  public Object invoke(Object proxy, Method m, Object[] args)
+    throws Throwable {
+    …
+    // invoke actual method
+    return m.invoke(target, args);
+  }
+}
+```
+
+所有的代理类都重写了`Object` 类中的方法`toString`、`equals` 和`hashCode`。如同所有的代理方法一样， 这些方法仅仅调用了调用处理器的`invoke`。`Object` 类中的其他方法（如`clone`和`getClass` ）没有被重新定义。
+
+### 创建代理对象
+
+要想创建一个代理对象， 需要使用`Proxy` 类的`newProxylnstance` 方法。这个方法有三个参数：
+
+- 一个类加栽器（ class loader)。`null` 表示使用默认的类加载器。
+- 一个Class 对象数组， 每个元素都是代理类要实现的接口。
+- 一个调用处理器。
+
+```java
+Object value = …;
+// construct wrapper
+InvocationHandler handler = new TraceHandler(value);
+// construct proxy for one or more interfaces
+Class[] interfaces = new Class[] {Comparable.class};
+Object proxy = Proxy.newProxylnstance(null, interfaces, handler);
+```
+
+Java虚拟机将为代理类生成一个以`$Proxy`开头的类名。
+
+对于特定的类加载器和给定的一组接口来说，只能有一个代理类。也就是说，如果使用同一个类加载器和接口数组调用两次`newProxylustance` 方法的话，那么只能够得到同一个类的两个对象，也可以利用`getProxyClass` 方法获得这个类：
+
+```java
+Class proxyClass = Proxy.getProxyClass(null, interfaces);
+```
+
+代理类一定是`public` 和`final`。
+
+代理类所要实现的接口如果不是`public`的，则代理类与这些接口要属于同一个包。
+
+可以通过调用`Proxy` 类中的`isProxyClass` 方法检测一个特定的`Class` 对象是否代表一个代理类。
+
 # 泛型
 
 # 集合类型
@@ -4002,6 +4074,56 @@ class FileFormatException extends IOException {
 不要羞于传递异常。
 
 # 断言
+
+断言的一般形式：
+
+```java
+assert 条件;
+
+assert 条件 : 表达式;
+```
+
+当`条件`的结果为`false`时，抛出`AssertionError`异常。
+
+`表达式`部分被传递给`AssertionError`的构造器，这个值 被转换成相应的字符串格式。并且如果断言失败，将会显示该字符串。`AssertionError` 对象并不存储`表达式`的值。因此，不可能在以后得到它。
+
+断言失败是致命的、不可恢复的错误。断言检查只用于开发和测试阶段。
+
+> C 语言中的`assert` 宏将断言中的条件转换成一个字符串。当断言失败时，这个字符串将会被打印出来。例如，若`assert(x>=0)` 失败，那么将打印出失败条件`x>=0`。在Java 中，条件并不会自动地成为错误报告中的一部分。如果希望看到这个条件，就必须将它以字符串的形式传递给`AssertionError` 对象：`assert x >= 0 :"x >= 0" `。
+
+## 启用和禁用断言
+
+断言与异常不一样的地方是，断言可以通过运行参数启用和禁用。例如，在测试阶段启用断言，在正式发布时禁用断言，从而不会增加程序的负担。
+
+在默认情况下， 断言被禁用。可以在运行程序时用`-enableassertions` 或`-ea` 选项启用：
+
+```bash
+$ java -enableassertions MyApp
+```
+
+在启用或禁用断言时不必重新编译程序。启用或禁用断言是类加载器（class loader）的功能。当断言被禁用时，类加载器将跳过断言代码，因此，不会降低程序运行的速度。
+
+也可以在某个类或整个包中使用断言， 例如：
+
+```java
+$ java -ea:MyClass -ea:com.mycompany.mylib... MyApp
+```
+
+> 注意：三个点是代码的组成部分。表示指定包及其子包。
+
+这条命令将开启`MyClass` 类以及在`com.mycompany.mylib` 包和它的子包中的所有类的断言。
+
+选项`-ea` 将开启默认包中的所有类的断言。
+
+也可以用选项`-disableassertions` 或`-da` 禁用某个特定类和包的断言：
+
+```bash
+$ java -ea:... -da:MyClass MyApp
+```
+
+然而， 启用和禁用所有断言的`-ea` 和`-da` 开关不能应用到那些没有类加载器的“系统类”上。对于这些系统类来说， 需要使用`-enablesystemassertions`或`-esa` 选项启用断言，使用`-disablesystemassertions`或`-dsa`禁用系统类的断言。
+
+# 日志
 
 # 正则表达式
 
