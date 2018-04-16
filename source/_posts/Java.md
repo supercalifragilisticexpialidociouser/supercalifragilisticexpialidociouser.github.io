@@ -1,10 +1,8 @@
 ---
 title: Java
 date: 2018-03-22 17:13:48
-tags:
+tags: [8]
 ---
-
-*Java 8*
 
 # 简介
 

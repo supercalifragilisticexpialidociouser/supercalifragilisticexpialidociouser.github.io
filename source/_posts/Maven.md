@@ -1,10 +1,10 @@
 ---
 title: Maven
 date: 2018-03-23 09:59:24
-tags:
+tags: [3.5.2]
 ---
 
-*Apache Maven 3.5.2*
+**
 
 Maven是一个项目管理工具。
 
