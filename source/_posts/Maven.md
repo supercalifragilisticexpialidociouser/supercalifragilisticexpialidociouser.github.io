@@ -30,7 +30,13 @@ Maven是一个项目管理工具。
 + 环境变量`MAVEN_OPTS` ；
 + 配置文件`M2_HOME/conf/settings.xml`。
 
-环境变量`MAVEN_OPTS`通常用于设置一些用于启动JVM的参数，例如：`-Xms256m -Xmx1024m`（用于避免在较大项目中，需要大量内存，而造成的`java.lang.OutOfMemeoryError`错误）。
+环境变量`MAVEN_OPTS`通常用于设置一些用于启动JVM的参数，例如：`-Xms256m -Xmx1024m`（用于避免在较大项目中，需要大量内存，而造成的`java.lang.OutOfMemeoryError`错误）。例如：
+
+```bash
+$ export MAVEN_OPTS=-Xmx1024m
+```
+
+
 
 具体的配置参见：[Maven Local Settings Model Website](http://maven.apache.org/maven-settings/settings.html)
 

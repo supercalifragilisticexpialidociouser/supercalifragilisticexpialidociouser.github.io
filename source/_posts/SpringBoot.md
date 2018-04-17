@@ -4,17 +4,27 @@ date: 2018-04-16 09:39:49
 tags: [2.0.1]
 ---
 
+# 简介
+
 Spring Boot简化了Spring应用的开发，不需要什么配置就可以运行Spring应用。
 
-Spring Boot 要求 Java 8及以上版本。
+Spring Boot项目可以直接被打包成一个可执行的jar包，并且内嵌了Tomcat、Jetty和Undertow支持。因此，不再需要单独下载这些Servlet容器。当然，也可以打包成传统的war包。
 
-Spring Boot可以直接将应用打包成一个可执行的jar，并且内嵌了Tomcat、Jetty和Undertow。因此，不再需要单独下载这些Servlet容器。
+## 系统要求
+
+Spring Boot 要求 Java 8及以上版本。
 
 # 入门
 
 ## 创建项目
 
-### POM
+创建一个普通的Java项目。
+
+### 添加Spring Boot依赖
+
+这里使用Maven来管理项目依赖。
+
+`pom.xml`：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -25,12 +35,12 @@ Spring Boot可以直接将应用打包成一个可执行的jar，并且内嵌了
 	<groupId>com.example</groupId>
 	<artifactId>demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
+	<packaging>jar</packaging><!-- 打包成jar包 -->
 
 	<name>demo</name>
 	<description>Demo project for Spring Boot</description>
 
-	<parent>
+	<parent><!-- 继承Spring Boot的parent POM -->
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.0.1.RELEASE</version>
@@ -44,12 +54,12 @@ Spring Boot可以直接将应用打包成一个可执行的jar，并且内嵌了
 	</properties>
 
 	<dependencies>
-		<dependency><!-- Web支持 -->
+		<dependency><!-- Web应用依赖 -->
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-		<dependency>
+		<dependency><!-- 测试依赖 -->
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
@@ -58,7 +68,7 @@ Spring Boot可以直接将应用打包成一个可执行的jar，并且内嵌了
 
 	<build>
 		<plugins>
-			<plugin>
+			<plugin><!-- Spring Boot 插件。创建可执行JAR必需 -->
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
@@ -66,6 +76,8 @@ Spring Boot可以直接将应用打包成一个可执行的jar，并且内嵌了
 	</build>
 </project>
 ```
+
+Spring Boot提供了大量的“Starters”，实得添加相关特性到项目变得非常容易。这里我们添加了两个“Starters”，分别用于提供开发Web应用支持和测试支持。
 
 `spring-boot-starter-parent`也可以通过导入方式来使用，而不是继承Parent POM方式：
 
@@ -86,9 +98,13 @@ Spring Boot可以直接将应用打包成一个可执行的jar，并且内嵌了
 
 导入方式只会导入依赖管理，而不会导入插件管理。
 
+> `spring-boot-starter-parent` 中`spring-boot-maven-plugin`包含了 `<executions>`，并绑定到 `repackage`目标。如果采用导入方式，则需要自己配置`spring-boot-maven-plugin`。
+
 使用导入方式时，如果要覆盖spring boot中的依赖时，要将该依赖的定义放在`spring-boot-dependencies`之前。
 
 ### 启动类
+
+启动类是使用`@SpringBootApplication`标注的类，并且它有一个`main`方法。
 
 启动类使得项目可以打包成可执行的Jar，并使用内嵌的Servlet容器（默认是Tomcat）来作为HTTP运行时。而不是打包成war，部署到外部Servlet容器中。
 
@@ -101,21 +117,37 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class DemoApplication {
 	public static void main(String[] args) {
-		SpringApplication.run(DemoApplication.class, args);
+		SpringApplication.run(DemoApplication.class, args); //启动应用，并将主组件和命令行参数传给它
 	}
 }
 ```
 
-> 建议将启动类放在项目的最高层次包中（例如本例中的`com.example.demo`），这样Spring Boot默认从启动类开始自动搜索其下所有层次的类。
+> 建议将启动类放在项目的最高层次包中（例如本例中的`com.example.demo`），这样Spring Boot默认从启动类开始自动搜索所在包及其下所有层次包中的类。
 >
-> @SpringBootApplication相当于是下列标注的组合：
+> 不建议将启动类放在默认包（即没有显式使用package声明）中，这样会导致扫描所有jar的所有类。
 >
-> - @Configuration：应用程序上下文配置类；
-> - @EnableAutoConfiguration：自动配置；
-> - @EnableWebMvc：通常不需要该标注。因为，只要类路径中包含Spring MVC，就会自动启用，并自动安装`DispatcherServlet`；
-> - @ComponentScan：告诉Spring去扫描其他组件、配置和服务。
+> `@SpringBootApplication`相当于是下列标注的组合：
+>
+> - `@Configuration`：应用程序配置类，用于替代传统基于XML的配置；
+>
+> - `@EnableAutoConfiguration`：基于依赖关系，自动配置Spring；
+>
+> - `@ComponentScan`：告诉Spring去哪里自动扫描其他组件、配置和服务。如果没有使得这个标注，则必须使用`@Import`标注显式列出要扫描的组件：
+>
+>   ```java
+>   @Configuration
+>   @EnableAutoConfiguration
+>   @Import({ MyConfig.class, MyAnotherConfig.class })
+>   public class Application {
+>   	public static void main(String[] args) {
+>       SpringApplication.run(Application.class, args);
+>   	}
+>   }
+>   ```
 
-### 创建简单的控制器
+## 编码
+
+这里编写个简单的控制器：
 
 ```java
 package com.example.demo.hello;
@@ -138,7 +170,7 @@ public class HelloController {
 
 ## 运行
 
-在STS中，直接右击启动类，选择以`Java Application`方式或者`Spring Boot App`方式运行。
+在STS中，如果打包类型是jar，则可以直接右击启动类，选择以`Java Application`方式或者`Spring Boot App`方式运行。而不需要借助任何IDE特定的插件或扩展。
 
 也可以手工打包成可执行Jar，然后以`java -jar`方式运行。例如：
 
@@ -156,13 +188,32 @@ $ mvn spring-boot:run
 
 可以按`Ctrl-C`关闭应用。
 
+> 有时运行一个Web应用两次会出现端口占用情况，如果使得STS，可以使用它的`Relaunch`按钮来运行应用，而不是使用`Run`按钮来运行。`Relaunch`可以确保在运行应用之前，任何已经运行的实例被关闭。
+
 ## 调试
 
 与调试普通`Java Application`一样。
 
-## 使用热部署
+### 远程调试
 
-Spring Boot 提供了 spring-boot-devtools，它能在修改类或者配置文件（包括pom.xml）时，自动重新加载Spring Boot项目。这样就避免了手工重启项目。
+首先，在远程服务器上，以调试模式运行应用。例如：
+
+```bash
+$ java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=8000,suspend=n \
+       -jar target/demo-0.0.1-SNAPSHOT.jar
+```
+
+然后，在Eclipse中新建`Remote Java Application`，`Host`处输入远程服务器的IP，`Port`处输入上面的`8000`。
+
+最后，象正常那样设置断点，点`Debug`按钮进行调试。
+
+> 远程服务器上的应用应该与Eclipse中的项目基于完全相同的代码。
+
+## 热部署
+
+Spring Boot 提供了 spring-boot-devtools，它能在类路径中的任何文件（例如：类或者配置文件，包括pom.xml）被修改时，自动重新加载Spring Boot项目。这样就避免了手工重启项目。
+
+> 注意：有些资源，例如静态资源、视图模板等的修改，是不需要重启应用的。
 
 要使用热部署只需要在`pom.xml`中添加如下依赖：
 
@@ -170,9 +221,15 @@ Spring Boot 提供了 spring-boot-devtools，它能在修改类或者配置文�
 <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-devtools</artifactId>
-  <optional>true</optional>
+  <optional>true</optional><!--避免传递依赖到其他模块 -->
 </dependency>
 ```
+
+> devtools只适用于通过IDE或通过`mvn spring-boot:run`方式运行的情况。如果是通过`java -jar`方式运行可执行JAR时，则devtools自动被移除。也就是说，在打包生成的可执行JAR中将不会包含devtools。
+>
+> 如果需要热拔插，可以使用 [JRebel](https://zeroturnaround.com/software/jrebel/)。
+
+Spring Boot支持的许多库使用缓存来改善性能。例如，模板引擎。然而，在开发阶段，缓存也会带来麻烦，例如它会阻止我们看到最新的改变。因此，devtools默认禁用缓存。
 
 ## 打包
 
@@ -182,7 +239,7 @@ Spring Boot 提供了 spring-boot-devtools，它能在修改类或者配置文�
 $ mvn clean package
 ```
 
-打包后，会在`target`目录下生成两个文件，例如：`demo-0.0.1-SNAPSHOT.jar`和`demo-0.0.1-SNAPSHOT.jar.original`。前者是可执行的jar。
+打包后，会在`target`目录下生成两个文件，例如：`demo-0.0.1-SNAPSHOT.jar`和`demo-0.0.1-SNAPSHOT.jar.original`。前者是可执行的jar，后者是未被Spring Boot重打包的原始JAR。
 
 ## 常用工具
 
@@ -190,15 +247,19 @@ $ mvn clean package
 
 Spring Tool Suite（STS）：一个基于Eclipse的IDE，可以很方便地开发Spring Boot项目。
 
-Spring Boot CLI：是Spring Boot 命令行工具，通过它也可以很方便地开发Spring Boot项目。
+Spring Boot CLI：是Spring Boot 命令行工具，它可以运行Groovy脚本，通过它也可以很方便地开发Spring Boot项目。
 
 # Spring Boot CLI
+
+## 安装
 
 下载并解压就可以使用了。可以将`bin`目录加到`PATH`环境变量中。
 
 查看版本：`spring --version`。
 
 Spring Boot CLI在`Bash`和`Zsh` Shell中，可以支持自动补全，只要按`Tab`键。
+
+
 
 # MVC
 
