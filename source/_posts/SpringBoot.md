@@ -14,6 +14,16 @@ Spring Boot项目可以直接被打包成一个可执行的jar包，并且内嵌
 
 Spring Boot 要求 Java 8及以上版本。
 
+## 常用工具
+
+[Spring Initializr](https://start.spring.io/)：一个可以生成Spring Boot项目的在线生成器。
+
+Spring Tool Suite（STS）：一个基于Eclipse的IDE，可以很方便地开发Spring Boot项目。
+
+Spring Boot CLI：是Spring Boot 命令行工具，它可以运行Groovy脚本，通过它也可以很方便地开发Spring Boot项目。
+
+构建工具：Maven、Gradle或Ant。
+
 # 入门
 
 ## 创建项目
@@ -54,7 +64,7 @@ Spring Boot 要求 Java 8及以上版本。
 	</properties>
 
 	<dependencies>
-		<dependency><!-- Web应用依赖 -->
+		<dependency><!-- Web应用依赖，包括Spring MVC和Spring自己的Restful支持 -->
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
@@ -132,7 +142,7 @@ public class DemoApplication {
 >
 > - `@EnableAutoConfiguration`：基于依赖关系，自动配置Spring；
 >
-> - `@ComponentScan`：告诉Spring去哪里自动扫描其他组件、配置和服务。如果没有使得这个标注，则必须使用`@Import`标注显式列出要扫描的组件：
+> - `@ComponentScan`：告诉Spring去哪里自动扫描其他组件、配置和服务，并将它们自动注册为Spring Beans。如果没有使得这个标注，则必须使用`@Import`标注显式列出要扫描的组件：
 >
 >   ```java
 >   @Configuration
@@ -209,11 +219,23 @@ $ java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=8000,suspend=n \
 
 > 远程服务器上的应用应该与Eclipse中的项目基于完全相同的代码。
 
-## 热部署
 
-Spring Boot 提供了 spring-boot-devtools，它能在类路径中的任何文件（例如：类或者配置文件，包括pom.xml）被修改时，自动重新加载Spring Boot项目。这样就避免了手工重启项目。
 
-> 注意：有些资源，例如静态资源、视图模板等的修改，是不需要重启应用的。
+## 打包
+
+如果使用Maven，则可以使用下列命令将项目打包成Jar：
+
+```bash
+$ mvn clean package
+```
+
+打包后，会在`target`目录下生成两个文件，例如：`demo-0.0.1-SNAPSHOT.jar`和`demo-0.0.1-SNAPSHOT.jar.original`。前者是可执行的jar，后者是未被Spring Boot重打包的原始JAR。
+
+
+
+# 热部署
+
+Spring Boot 提供了 spring-boot-devtools，它能在类路径中的任何文件（例如：类或者配置文件，包括pom.xml）被修改时，自动**热重启**Spring Boot项目，并触发浏览器刷新（即**热加载**，Live Reload）。
 
 要使用热部署只需要在`pom.xml`中添加如下依赖：
 
@@ -227,27 +249,114 @@ Spring Boot 提供了 spring-boot-devtools，它能在类路径中的任何文�
 
 > devtools只适用于通过IDE或通过`mvn spring-boot:run`方式运行的情况。如果是通过`java -jar`方式运行可执行JAR时，则devtools自动被移除。也就是说，在打包生成的可执行JAR中将不会包含devtools。
 >
-> 如果需要热拔插，可以使用 [JRebel](https://zeroturnaround.com/software/jrebel/)。
+> 如果需要热拔插，可以使用 [JRebel](https://zeroturnaround.com/software/jrebel/)。当使用JRebel时，热重启将被禁用，然而热加载仍可用。
 
 Spring Boot支持的许多库使用缓存来改善性能。例如，模板引擎。然而，在开发阶段，缓存也会带来麻烦，例如它会阻止我们看到最新的改变。因此，devtools默认禁用缓存。
 
-## 打包
+## 热重启
 
-如果使用Maven，则可以使用下列命令将项目打包成Jar：
+Spring Boot使用两个类加载器来实现热重启机制。不会改变的资源（例如第三方库）被加载进基础类加载器，而项目中正在开发的资源被加载到重启类加载器中。当热重启时，只有重启类加载器被抛弃，并重新创建一个新的重启类加载器。而基础类加载器保持不变。
 
-```bash
-$ mvn clean package
+如果需要指定哪些资源要加载到基础类加载器，哪些要加载到重启加载器，则需要创建一个属性文件：`META-INF/spring-devtools.properties` 。在这个属性文件中，以`restart.exclude` 为前缀的属性指定的资源是要被加载到基础类加载器中的，而以`restart.include`为前缀的属性指定的资源是则要被加载到重启类加载器中的：
+
+```properties
+restart.exclude.companycommonlibs=/mycorp-common-[\\w-]+\.jar
+restart.include.projectcommon=/mycorp-myproj-[\\w-]+\.jar
 ```
 
-打包后，会在`target`目录下生成两个文件，例如：`demo-0.0.1-SNAPSHOT.jar`和`demo-0.0.1-SNAPSHOT.jar.original`。前者是可执行的jar，后者是未被Spring Boot重打包的原始JAR。
+所有类路径上（包括第三方Jar）的`META-INF/spring-devtools.properties` 都会被加载。
 
-## 常用工具
+### 不需要重启的资源
 
-[Spring Initializr](https://start.spring.io/)：一个可以生成Spring Boot项目的在线生成器。
+有些资源，例如静态资源、视图模板等的修改，是不需要重启应用的。默认情况下，在`/META-INF/maven`、 `/META-INF/resources`、 `/resources`、 `/static`、`/public`或 `/templates`中的资源发生改变时，不会触发应用热重启，只会触发一个热加载。
 
-Spring Tool Suite（STS）：一个基于Eclipse的IDE，可以很方便地开发Spring Boot项目。
+也可以通过 `spring.devtools.restart.exclude` 来定制哪些资源发生改变时不需要热重启。例如，只有 `/static`、`/public`中的资源不需要热重启：
 
-Spring Boot CLI：是Spring Boot 命令行工具，它可以运行Groovy脚本，通过它也可以很方便地开发Spring Boot项目。
+```properties
+spring.devtools.restart.exclude=static/**,public/**
+```
+
+如果你希望保持默认情况，同时添加一些额外的不需要热重启，则需要使用 `spring.devtools.restart.additional-exclude`属性来配置。
+
+### 监听非类路径上的资源
+
+默认情况下，devtools只监听类路径上的资源的修改，并依此做出热重启决定。可以使用`spring.devtools.restart.additional-paths` 属性，来添加一些不在类路径上的路径，从而使得devtools可以监听这些路径上的资源的变化。
+
+### 禁用重启
+
+在`application.properties` 上配置 `spring.devtools.restart.enabled`属性为`false`，只会禁止devtools监听资源，但仍会初始化重启类加载器。
+
+如果要完全禁用热重启功能，则必须在`SpringApplication.run(…)`调用之前，将系统属性`spring.devtools.restart.enabled` 设置为`false`：
+
+```java
+public static void main(String[] args) {
+	System.setProperty("spring.devtools.restart.enabled", "false");
+	SpringApplication.run(MyApp.class, args);
+}
+```
+
+### 使用触发文件
+
+如果使用IDE，会持续编译被修改的文件，你可能想只在特定的时间触发应用热重启。这时，可以使用触发文件。可以使用`spring.devtools.restart.trigger-file` 指定一个文件为触发文件，只有当这个文件发生修改时，才会触发应用热重启。
+
+触发文件可以手工更新，也可以通过IDE插件来自动更新。
+
+> 你可以将`spring.devtools.restart.trigger-file` 配置在全局配置中，这样，所有项目都有相同行为。
+
+## 热加载
+
+ `spring-boot-devtools`包含了一个内嵌的热加载服务器，它在监听的资源发生变化时，能触发浏览器进行刷新。
+
+要禁用热加载，可以将`spring.devtools.livereload.enabled`属性设置为`false`。
+
+> 一次只能运行一个热加载服务器。
+
+## devtools的全局配置
+
+devtools的全局配置文件位于：`~/.spring-boot-devtools.properties`。可以在全局配置文件中，配置一些本机上所有项目都适用的配置：
+
+```properties
+spring.devtools.reload.trigger-file=.reloadtrigger
+```
+
+## 远程支持
+
+devtools不仅支持本地应用，也支持远程应用。
+
+# 配置
+
+Spring Boot偏爱基于Java的配置，而不是基于XML的配置。
+
+标注有`@Configuration`的类就是Spring Boot的配置类。
+
+不需要将所有配置全部集中在一个配置类中，可以将配置分散在多个配置类中。然后，通过`@ComponentScan`可以自动装配这些配置，也可以通过`@import`来自己指定要导入的其他配置类。
+
+如果要导入基于XML的配置文件，则使用`@ImportResource`标注。
+
+## 自动配置
+
+将`@EnableAutoConfiguration`标注在配置类上，允许Spring Boot根据依赖关系，自动配置Spring应用。例如，如果hsqldb的JAR在你的类路径上，则Spring Boot会自动配置这个JAR与Spring集成。
+
+自动配置是非侵入的，在任何时候，你都可以用自己的配置覆盖自动配置。
+
+如果希望知道自动配置都配置了什么，可以带上`--debug`选项来启动应用。
+
+`@EnableAutoConfiguration` 还可以禁止某些组件的自动配置：
+
+```java
+@Configuration
+@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
+public class MyConfiguration {
+}
+```
+
+如果要禁止自动配置的类不在类路径上，则要使用`excludeName` 代替`exclude`。
+
+另外，也可以使用 `spring.autoconfigure.exclude`来配置禁止自动配置的组件。
+
+
+
+> 由于`application.properties` 或 `application.yml`配置文件（也包括`application-xxx.properties`和`application-xxx.yml`）支持Spring风格的插值表达式（${…}），因此Maven filtering的插值表达式被改成使用`@…@`。可以通过`resource.delimiter`属性来自定义Maven插值表达式的定界符。
 
 # Spring Boot CLI
 
@@ -259,11 +368,11 @@ Spring Boot CLI：是Spring Boot 命令行工具，它可以运行Groovy脚本�
 
 Spring Boot CLI在`Bash`和`Zsh` Shell中，可以支持自动补全，只要按`Tab`键。
 
+# 集成
 
+## MVC
 
-# MVC
-
-## 引入依赖
+### 引入依赖
 
 要在Spring Boot中集成Spring MVC框架，只需要加入下面依赖：
 
@@ -274,7 +383,7 @@ Spring Boot CLI在`Bash`和`Zsh` Shell中，可以支持自动补全，只要按
 </dependency>
 ```
 
-## Web应用的目录结构
+### Web应用的目录结构
 
 视图模板文件默认位于`resources/templates`目录下。例如：
 
@@ -295,7 +404,7 @@ public String foo() {
 
 则Spring Boot将会定位到`static/css/ztree.css`。
 
-## 控制器
+### 控制器
 
 Spring MVC的控制器不需要继承任何类或接口，只需要标注上`@Controller`即可。并且，使用`@RequestMapping`将HTTP请求映射到指定的方法。
 
@@ -317,7 +426,7 @@ public class FooController {
 
 控制器方法返回值默认是视图的名称。如果希望返回内容本身，而不是视图名称，则需要在方法上加上`@ResponseBody`。这时，如果返回值是字符串类型，则直接返回这个字符串；否则，默认使用Jackson将返回值序列化为JSON字符串后输出。
 
-### URL映射
+#### URL映射
 
 `@RequestMapping`的属性：
 
@@ -328,7 +437,7 @@ public class FooController {
 - params：请求参数；
 - headers：请求的HTTP头。
 
-#### 路径参数
+##### 路径参数
 
 ```java
 @RequestMapping(value="/get/{id}.json")
@@ -339,7 +448,7 @@ public @ResponseBody User getById(@PathVariable("id") Long id) {
 
 则访问路径是`/get/1.json`，时将调用`getById`方法，并且参数`id`的值为`1`。
 
-#### Ant路径表达式
+##### Ant路径表达式
 
 `*`匹配任意多个字符（除了路径分隔符”/“），`**`匹配任意路径，`?`匹配单个字符。
 
@@ -351,7 +460,7 @@ public @ResponseBody User getById(@PathVariable("id") Long id) {
 
 如果一个请求有多个`@RequestMapping`能够匹配，则更具体的匹配优先。另外，有通配符的低于无通配符的，有`**`的低于有`*`的。
 
-#### 插值
+##### 插值
 
 在URL映射中，可以使用`${…}`的插值，来获取系统配置或环境变量：
 
@@ -359,5 +468,5 @@ public @ResponseBody User getById(@PathVariable("id") Long id) {
 @RequestMapping("/${query.all}.json")
 ```
 
-#### 请求方法
+##### 请求方法
 
