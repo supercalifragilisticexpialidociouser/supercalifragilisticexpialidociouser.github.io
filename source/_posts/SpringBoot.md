@@ -16,7 +16,7 @@ Spring Boot 要求 Java 8及以上版本。
 
 ## 常用工具
 
-[Spring Initializr](https://start.spring.io/)：一个可以生成Spring Boot项目的在线生成器。
+[Spring Initializr](https://start.spring.io/)：一个Spring Boot项目的在线生成器。
 
 Spring Tool Suite（STS）：一个基于Eclipse的IDE，可以很方便地开发Spring Boot项目。
 
@@ -134,7 +134,7 @@ public class DemoApplication {
 
 > 建议将启动类放在项目的最高层次包中（例如本例中的`com.example.demo`），这样Spring Boot默认从启动类开始自动搜索所在包及其下所有层次包中的类。
 >
-> 不建议将启动类放在默认包（即没有显式使用package声明）中，这样会导致扫描所有jar的所有类。
+> 不建议将启动类放在默认包（即没有显式使用`package`声明）中，这样会导致扫描所有jar的所有类。
 >
 > `@SpringBootApplication`相当于是下列标注的组合：
 >
@@ -182,19 +182,19 @@ public class HelloController {
 
 在STS中，如果打包类型是jar，则可以直接右击启动类，选择以`Java Application`方式或者`Spring Boot App`方式运行。而不需要借助任何IDE特定的插件或扩展。
 
-也可以手工打包成可执行Jar，然后以`java -jar`方式运行。例如：
-
-```bash
-$ java -jar target/demo-0.0.1-SNAPSHOT.jar
-```
-
-还可以使用Spring Boot插件来运行：
+也可以使用Spring Boot插件来运行：
 
 ```bash
 $ mvn spring-boot:run
 ```
 
-然后，打开浏览器，访问：<http://localhost:8080/say>，就可以看到结果了。
+在生产环境中，通常是打包成可执行Jar，然后以`java -jar`方式运行。例如：
+
+```bash
+$ java -jar target/demo-0.0.1-SNAPSHOT.jar
+```
+
+应用成功启动后，打开浏览器，访问：<http://localhost:8080/say>，就可以看到结果了。
 
 可以按`Ctrl-C`关闭应用。
 
@@ -358,6 +358,83 @@ public class MyConfiguration {
 
 > 由于`application.properties` 或 `application.yml`配置文件（也包括`application-xxx.properties`和`application-xxx.yml`）支持Spring风格的插值表达式（${…}），因此Maven filtering的插值表达式被改成使用`@…@`。可以通过`resource.delimiter`属性来自定义Maven插值表达式的定界符。
 
+
+
+# SpringApplication
+
+`SpringApplication`类提供了方便的方式来管理Spring Boot应用的生命周期。
+
+## 启动应用
+
+通常Spring Boot应用的`main`方法，会将启动应用的工作委托给`SpringApplication.run` 方法。例如：
+
+```java
+public static void main(String[] args) {
+	SpringApplication.run(MySpringConfiguration.class, args);
+}
+```
+
+### FailureAnalyzers
+
+如果应用启动失败，可以注册一个`FailureAnalyzers`实现，以提供一个专用错误日志和一个修复问题的具体行为。
+
+## 定制应用
+
+## Web环境
+
+`SpringApplication`会根据依赖关系自动创建合适的`ApplicationContext`：
+
+- 如果类路径中存在Spring MVC，则使用`AnnotationConfigServletWebServerApplicationContext` ；
+- 如果类路径中存在Spring WebFlux，则使用 `AnnotationConfigReactiveWebApplicationContext`；
+- 否则，使用`AnnotationConfigApplicationContext` 。
+
+也可以通过调用`setWebApplicationType(WebApplicationType)`方法来显式指定Web应用的类型，或者通过调用`setApplicationContextClass(…)`来对`ApplicationContext` 类型进行完全控制。
+
+> 在JUnit单元测试中使用`SpringApplication` 时，经常这样调用：`setWebApplicationType(WebApplicationType.NONE)` 。
+
+## 访问应用参数
+
+可以通过注入一个`org.springframework.boot.ApplicationArguments` bean的方式，来访问传递给`SpringApplication.run(…)`的参数。
+
+ `ApplicationArguments`接口既提供了原始的`String[]`参数，也可提供经过解析的option和non-option参数：
+
+```java
+@Component
+public class MyBean {
+	@Autowired
+	public MyBean(ApplicationArguments args) {
+		boolean debug = args.containsOption("debug");
+		List<String> files = args.getNonOptionArgs();
+		// if run with "--debug logfile.txt": debug=true, files=["logfile.txt"]
+	}
+}
+```
+
+Spring Boot也注册了一个 `CommandLinePropertySource`，使得可以将应用参数通过`@Value`注入字段。
+
+## 应用事件和监听器
+
+## ApplicationRunner和CommandLineRunner
+
+如果需要在`SpringApplication.run`方法执行完成后执行一些特定代码，可以实现 `ApplicationRunner` 或 `CommandLineRunner` 接口。它们作用是一样的，区别在于提供应用参数的方式不同：
+
+`CommandLineRunner` 以字符串数组的方式提供应用参数，而 `ApplicationRunner`以`ApplicationArguments`方式提供应用参数。
+
+```java
+@Component
+public class MyBean implements CommandLineRunner {
+	public void run(String... args) {
+		// Do something...
+	}
+}
+```
+
+可以实现多个 `CommandLineRunner` 或 `ApplicationRunner` beans。如果要指定这些Beans的执行顺序，则可以实现`org.springframework.core.Ordered` 接口，或者使用`org.springframework.core.annotation.Order` 标注。
+
+## 退出应用
+
+## 启用管理特性
+
 # Spring Boot CLI
 
 ## 安装
@@ -368,9 +445,11 @@ public class MyConfiguration {
 
 Spring Boot CLI在`Bash`和`Zsh` Shell中，可以支持自动补全，只要按`Tab`键。
 
-# 集成
+# 日志集成
 
-## MVC
+# Web集成
+
+## MVC集成
 
 ### 引入依赖
 
@@ -470,3 +549,18 @@ public @ResponseBody User getById(@PathVariable("id") Long id) {
 
 ##### 请求方法
 
+## WebFlux集成
+
+## Jersey（JAX-RS）集成
+
+## 内嵌Sevlet容器
+
+# 安全集成
+
+# 关系数据库集成
+
+# NoSQL集成
+
+# 缓存集成
+
+# 消息系统集成
