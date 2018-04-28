@@ -256,6 +256,73 @@ Angular开发中使用了两种类型的模块：
 - JavaScript模块：一个.js文件就是一个模块。通过`export`导出变量，通过`import`导入变量。
 - Angular模块：用于描述应用或一组相关功能。每个应用都有一个根模块（Root module），它为Angular提供启动应用所需的信息。Angular模块通过`@NgModule`装饰器来声明。
 
+# 路由
+
+告诉Angular每个URL映射到组件的映射称为URL路由，简称路由。
+
+## 定义路由
+
+最简单的创建路由的方式就是在根模块的`@NgModule`装饰器中定义路由：
+
+```typescript
+@NgModule({
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    BrowserModule,
+    RoutingModule.forRoot([
+      {path: 'store', component: StoreComponent},
+      {path: 'cart', component: CartDetailComponent},
+      {path: 'checkout', component: CheckoutComponent},
+      {path: '**', redirectTo: '/store'}
+    ])
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+```
+
+## `<router-outlet>`元素
+
+当使用路由功能时，`<router-outlet>`元素相当于一个占位符，它指定了当前URL对应的组件的显示位置。
+
+## 应用程序导航
+
+URL路由功能依赖浏览器提供的JavaScript API，因此用户无法简单地将目标URL输入到浏览器地址栏中进行导航。相反，导航必须由应用程序执行，具体的实现方法是在组件或其他构造块中编写JavaScript代码，或者向模板中的HTML元素添加属性。
+
+在代码中导航，可以使用`Router`的`navigateByUrl()`方法：
+
+```typescript
+export class StoreComponent {
+  …
+  constructor(private router: Router) {}
+  …
+  addProductToCart(product: Product) {
+    …
+    this.router.navigateByUrl('/cart');
+  }
+}
+```
+
+在模板中，可通过向元素添加`routerLink`属性来实现导航：
+
+```html
+<button [disabled]='cart.itemCount == 0' routerLink='/cart'>购物车</button>
+```
+
+要在模板中使用`routerLink`属性，必须将`RouterModule`导入所在模块：
+
+```typescript
+@NgModule({
+  imports: [RouterModule, …],
+  …
+})
+```
+
+
+
 # Angular Material
 
 ## 安装
