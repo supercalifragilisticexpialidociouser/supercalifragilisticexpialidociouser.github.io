@@ -24,6 +24,14 @@ Spring Boot CLI：是Spring Boot 命令行工具，它可以运行Groovy脚本�
 
 构建工具：Maven、Gradle或Ant。
 
+> 使用[Spring Initializr](https://start.spring.io/)或者STS生成的项目中，已经带有一个[Maven Wrapper](https://github.com/takari/maven-wrapper) （即项目根目录下的`mvnw`和`mvnw.cmd`文件）或 [Gradle Wrapper](http://gradle.org/docs/current/userguide/gradle_wrapper.html) 。Wrapper的用法与原来的Maven或Gradle一样。例如：原来Maven的`mvn clean install`，在Wrapper中则是`./mvnw clean install`。
+>
+> Wrapper的主要作用是保证所有构建这个项目的人，都使用同一版本的Maven或Gradle。当执行Wrapper命令时，如果发现当前用户的Maven或Gradle版本和期望的版本不一致，那么就下载期望的版本，然后用期望的版本来执行命令。 
+>
+> 在开发Spring Boot项目时，Wrapper不是必需使用的。完全可以使用原来的Maven或Gradle命令。
+
+[JHipster](https://www.jhipster.tech/)：是一个生成、开发和部署Spring Boot + Angular/React的Web应用和Spring微服务的开发平台。 
+
 # 入门
 
 ## 创建项目
@@ -230,8 +238,6 @@ $ mvn clean package
 ```
 
 打包后，会在`target`目录下生成两个文件，例如：`demo-0.0.1-SNAPSHOT.jar`和`demo-0.0.1-SNAPSHOT.jar.original`。前者是可执行的jar，后者是未被Spring Boot重打包的原始JAR。
-
-
 
 # 热部署
 
