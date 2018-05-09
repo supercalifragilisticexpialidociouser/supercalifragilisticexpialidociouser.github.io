@@ -10,6 +10,8 @@ Spring Boot简化了Spring应用的开发，不需要什么配置就可以运行
 
 Spring Boot项目可以直接被打包成一个可执行的jar包，并且内嵌了Tomcat、Jetty和Undertow支持。因此，不再需要单独下载这些Servlet容器。当然，也可以打包成传统的war包。
 
+<!--more-->
+
 ## 系统要求
 
 Spring Boot 要求 Java 8及以上版本。
