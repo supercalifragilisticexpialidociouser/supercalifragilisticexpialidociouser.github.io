@@ -122,7 +122,7 @@ platformBrowserDynamic().bootstrapModule(AppModule)
 
 ### 组件
 
-Angular组件负责管理模板，并为其提供所需的数据和逻辑。
+Angular组件是一个带`@Component`装饰器的类。它负责管理模板，并为其提供所需的数据和逻辑。
 
 例如：`src/app/app.component.ts`：
 
@@ -138,6 +138,10 @@ export class AppComponent {
   title = 'app';
 }
 ```
+
+`selector`告诉Angular如何在HTML文档中应用该组件。
+
+`templateUrl`或`template`定义了组件将显示的内容的模板。其中，前者指定模板文件的位置，后者直接定义内联模板。
 
 要创建组件，可以使用命令：
 
@@ -258,6 +262,13 @@ Angular开发中使用了两种类型的模块：
 - JavaScript模块：一个.js文件就是一个模块。通过`export`导出变量，通过`import`导入变量。
 - Angular模块：用于描述应用或一组相关功能。每个应用都有一个根模块（Root module），它为Angular提供启动应用所需的信息。Angular模块通过`@NgModule`装饰器来声明。
 
+## Angular模块
+
+Angular模块有两种类型：
+
+- 根模块（root module）：用于向Angular描述应用程序，主要包括：运行应用程序所需的功能模块、应该加载哪些自定义功能以及根组件的名称。
+- 功能模块（feature module）：用于把相关的应用程序功能归集起来，使应用程序更易于管理。
+
 # 路由
 
 告诉Angular每个URL映射到组件的映射称为URL路由，简称路由。
@@ -330,6 +341,12 @@ export class StoreComponent {
 # 指令
 
 # 组件
+
+
+
+## 根组件
+
+根组件由根模块的`@Component`装饰器的`bootstrap`属性指定。
 
 # 表单
 
