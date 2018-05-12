@@ -1,14 +1,14 @@
 ---
-title: Angular
+lstitle: Angular
 date: 2018-04-26 10:34:40
-tags: [5.2.0]
+tags: [6.0.0]
 ---
 
 # 准备开发环境
 
 ## 安装Node.js
 
-下载安装Node.js 8.11.1
+下载安装Node.js 10.0.0
 
 ## 安装angular-cli
 
@@ -28,7 +28,7 @@ $ npm install -g @angular/cli
 
 ### 升级angular-cli
 
-v1.7.4
+v6.0.1
 
 全局包升级：
 
@@ -49,7 +49,7 @@ $ npm install
 
 ## 安装Git
 
-v2.16.2
+v2.17.0
 
 # 入门
 
@@ -64,6 +64,8 @@ $ ng new myng --style=scss
 上面的命令执行时，会自动安装依赖，不需要再手动执行`npm install`。如果需要在创建项目时，略过安装依赖，则可以执行：`ng new myng --style=scss --skip-install`。
 
 项目的源码放在`myng/src`目录中，可以使用`--source-dir`指定自己的源码目录名，默认为`src`。
+
+如果希望在项目中使用路由，则可以加上`--routing`选项。
 
 ## 启动服务器
 
@@ -321,13 +323,25 @@ export class StoreComponent {
 })
 ```
 
+# 数据绑定
 
+# 模板
 
-# Angular Material
+# 指令
 
-## 安装
+# 组件
 
-### 安装 Angular Material和Angular CDK
+# 表单
+
+# 管道
+
+# UI
+
+## Angular Material
+
+### 安装
+
+#### 安装 Angular Material和Angular CDK
 
 ```bash
 $ npm install --save @angular/material @angular/cdk
@@ -348,7 +362,7 @@ export class PizzaPartyAppModule { }
 
 > 注意：Material模块的导入要放在BrowerModule模块导入之后。
 
-### 安装 Animations
+#### 安装 Animations
 
 某些Material组件依赖于 Angular animations。（使用angular-cli，默认已经安装。）
 
@@ -400,7 +414,7 @@ import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 export class PizzaPartyAppModule { }
 ```
 
-### 导入主题
+#### 导入主题
 
 打开`src/styles.scss`，添加如下代码：
 
@@ -416,7 +430,7 @@ export class PizzaPartyAppModule { }
 
 
 
-### 添加手势支持
+#### 添加手势支持
 
 ```bash
 $ npm install --save hammerjs
@@ -428,13 +442,13 @@ $ npm install --save hammerjs
 import 'hammerjs';
 ```
 
-### 添加Material图标支持（可选）
+#### 添加Material图标支持（可选）
 
 为了让`mat-icon`组件使用上 [Material Design Icons](https://material.io/icons/)，可以添加Material图标支持。
 
 > 注意：`mat-icon`可以支持任意字体或svg图标，Material Icons只是它的一个选项之一。
 
-#### 方法一：
+##### 方法一：
 
 打开`index.html`，添加：
 
@@ -442,12 +456,12 @@ import 'hammerjs';
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 ```
 
-#### 方法二：
+##### 方法二：
 
 安装Material Icon：
 
 ```bash
-npm install material-design-icons
+npm install material-design-icons --save
 ```
 
 在`src/styles.scss`中加入：
@@ -456,7 +470,7 @@ npm install material-design-icons
 @import '~material-design-icons/iconfont/material-icons.css';
 ```
 
-#### 使用Material图标
+##### 使用Material图标
 
 ```html
 <i class="material-icons">face<i>
@@ -470,7 +484,7 @@ npm install material-design-icons
 <i class="material-icons">&#xE87C;</i>
 ```
 
-#### 使用其他图标集
+##### 使用其他图标集
 
 例如，
 
@@ -486,9 +500,9 @@ npm install material-design-icons
 
    ​
 
-# 使用Bootstrap
+## 使用Bootstrap
 
-## 安装Bootstrap
+### 安装Bootstrap
 
 ```bash
 $ npm install bootstrap --save
@@ -498,9 +512,9 @@ $ npm install bootstrap --save
 >
 > 本文使用Bootstrap 4.1.0
 
-## 配置
+### 配置
 
-### 使用CSS
+#### 使用CSS
 
 修改`.angular-cli.json`文件中的`apps`下的`styles`：
 
@@ -515,7 +529,7 @@ $ npm install bootstrap --save
 
 > 修改了`.angular-cli.json`文件后，必须重启项目（`ng serve`）。
 
-### 使用SCSS
+#### 使用SCSS
 
 在`src/`目录下创建一个`_variables.scss`文件。
 
@@ -526,5 +540,14 @@ $ npm install bootstrap --save
 @import '../node_modules/bootstrap/scss/bootstrap';
 ```
 
-# 使用json-server+faker+jsonwebtoke虚拟后端服务
+## 动画
 
+# 服务
+
+## 使用json-server+faker+jsonwebtoke模拟后端服务
+
+# Reactive Extensions
+
+# 异步HTTP请求
+
+# 测试
