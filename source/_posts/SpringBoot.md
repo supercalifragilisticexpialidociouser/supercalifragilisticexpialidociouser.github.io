@@ -42,10 +42,10 @@ Spring Boot CLI：是Spring Boot 命令行工具，它可以运行Groovy脚本�
 
 > 创建Spring Boot项目更方便的方式是使用STS IDE或者[Spring Initializr](https://start.spring.io/)在线生成项目。
 >
-> [Spring Initializr](https://start.spring.io/)除了在线使用外，也可以在命令行，通过`curl http://start.spring.io/...`命令来使用：
+> [Spring Initializr](https://start.spring.io/)除了在线使用外，也可以在命令行，通过`curl https://start.spring.io/...`命令来使用：
 >
 > ```bash
-> $ curl http://start.spring.io/
+> $ curl https://start.spring.io/starter.zip\?name\=demo\&groupId\=com.example\&artifactId\=deroject+for+Spring+Boot\&packageName\=com.example.demo\&type\=maven-project\&packaging\=jar\&.0.2.RELEASE\&dependencies\=web --output demo.zip
 > ```
 >
 > 
