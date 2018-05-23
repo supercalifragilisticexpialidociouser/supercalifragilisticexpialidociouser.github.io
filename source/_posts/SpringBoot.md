@@ -1,7 +1,7 @@
 ---
 title: SpringBoot
 date: 2018-04-16 09:39:49
-tags: [2.0.1]
+tags: [2.0.2]
 ---
 
 # 简介
@@ -14,7 +14,7 @@ Spring Boot项目可以直接被打包成一个可执行的jar包，并且内嵌
 
 ## 系统要求
 
-Spring Boot 要求 Java 8及以上版本。
+Spring Boot 2 要求 Java 8及以上版本。
 
 ## 常用工具
 
