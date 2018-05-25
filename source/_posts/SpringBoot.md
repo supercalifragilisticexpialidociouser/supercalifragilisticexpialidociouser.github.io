@@ -267,13 +267,15 @@ Spring Boot 提供了 spring-boot-devtools，它能在类路径中的任何文�
 
 > devtools只适用于通过IDE或通过`mvn spring-boot:run`方式运行的情况。如果是通过`java -jar`方式运行可执行JAR时，则devtools自动被移除。也就是说，在打包生成的可执行JAR中将不会包含devtools。
 >
-> 如果需要热拔插，可以使用 [JRebel](https://zeroturnaround.com/software/jrebel/)。当使用JRebel时，热重启将被禁用，然而热加载仍可用。
+> devtools依赖于应用上下文的shutdown钩子，如果禁用了shutdown钩子（`SpringApplication.setRegisterShutdownHook(false)`），则devtools将不能正常工作。
+>
+> 如果需要热拔插（Hot Swapping），可以使用 [JRebel](https://zeroturnaround.com/software/jrebel/)。当使用JRebel时，热重启将被禁用，然而热加载仍可用。
 
-Spring Boot支持的许多库使用缓存来改善性能。例如，模板引擎。然而，在开发阶段，缓存也会带来麻烦，例如它会阻止我们看到最新的改变。因此，devtools默认禁用缓存。
+Spring Boot支持的许多库使用缓存来改善性能。例如，模板引擎。然而，在开发阶段，缓存也会带来麻烦，例如它会阻止我们看到最新的改变。因此，devtools默认禁用缓存（是否应用缓存，通常是在`application.yml`中配置的，但devtools会自动应用一些合理的开发时配置。具体参见 [DevToolsPropertyDefaultsPostProcessor](https://github.com/spring-projects/spring-boot/tree/v2.0.2.RELEASE/spring-boot-project/spring-boot-devtools/src/main/java/org/springframework/boot/devtools/env/DevToolsPropertyDefaultsPostProcessor.java) ）。
 
 ## 热重启
 
-Spring Boot使用两个类加载器来实现热重启机制。不会改变的资源（例如第三方库）被加载进基础类加载器，而项目中正在开发的资源被加载到重启类加载器中。当热重启时，只有重启类加载器被抛弃，并重新创建一个新的重启类加载器。而基础类加载器保持不变。
+Spring Boot使用两个类加载器来实现热重启（Automatic Restart）机制。不会改变的资源（例如第三方库）被加载进基础类加载器，而项目中正在开发的资源被加载到重启类加载器中。当热重启时，只有重启类加载器被抛弃，并重新创建一个新的重启类加载器。而基础类加载器保持不变。
 
 如果需要指定哪些资源要加载到基础类加载器，哪些要加载到重启加载器，则需要创建一个属性文件：`META-INF/spring-devtools.properties` 。在这个属性文件中，以`restart.exclude` 为前缀的属性指定的资源是要被加载到基础类加载器中的，而以`restart.include`为前缀的属性指定的资源是则要被加载到重启类加载器中的：
 
@@ -340,6 +342,46 @@ spring.devtools.reload.trigger-file=.reloadtrigger
 ## 远程支持
 
 devtools不仅支持本地应用，也支持远程应用。
+
+devtools远程支持包括两部分：服务端（运行在远程服务器中的应用）和客户端（运行在IDE中的相同应用）。
+
+远程应用通常是采用`java -jar`方式运行的，默认是不包含devtools。为了让devtools支持远程应用，你需要确保devtools被打包到jar包中，这可通过在`pom.xml`中配置`spring-boot-maven-plugin`实现：
+
+```xml
+<build>
+	<plugins>
+		<plugin>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-maven-plugin</artifactId>
+			<configuration>
+				<excludeDevtools>false</excludeDevtools>
+			</configuration>
+		</plugin>
+	</plugins>
+</build>
+```
+
+然后，需要设置一下 `spring.devtools.remote.secret` 属性：
+
+```properties
+spring.devtools.remote.secret=mysecret
+```
+
+这样，将应用部署到远程服务器后，就自动启用了devtools。
+
+在IDE中运行的远程客户端需要将main class指定为`org.springframework.boot.devtools.RemoteSpringApplication` ，并在与运程服务端相同的类路径下用它来启动客户端。
+
+例如，我们有一个应用`my-app`被部署到云上。在本地的Eclipse上可以作如下配置，启动`my-app`的远程客户端：
+
+1. Select `Run Configurations…` from the `Run` menu.
+2. Create a new `Java Application` “launch configuration”.
+3. Browse for the `my-app` project.
+4. Use `org.springframework.boot.devtools.RemoteSpringApplication` as the main class.
+5. Add `https://myapp.cfapps.io` to the `Program arguments` (or whatever your remote URL is).
+
+### 远程更新
+
+
 
 # 配置
 
