@@ -2880,16 +2880,16 @@ $ mvn install
 
 如果仓库X可以提供仓库Y存储的所有内容，那么就可以认为X是Y的一个镜像。
 
-如果中央仓库比较慢，则可以选择相对较快的其他镜像仓库来代替。只要在`settings.xml`中配置这些镜像仓库：
+例如，Maven中央仓库通常会比较慢，这时可以选择相对较快的其他镜像仓库来代替。在国内建议使用阿里云提供的镜像仓库。只要在`settings.xml`中配置这些镜像仓库：
 
 ```xml
 <settings>
   ...
   <mirrors>
     <mirror>
-      <id>UK</id>  <!--镜像ID，可以随便取，但必须是唯一的-->
-      <name>UK Central</name>
-      <url>http://uk.maven.org/maven2</url>  <!--镜像仓库的URL-->
+      <id>alimaven</id>  <!--镜像ID，可以随便取，但必须是唯一的-->
+      <name>Aliyun Maven</name>
+      <url>http://maven.aliyun.com/nexus/content/groups/public/</url>  <!--镜像仓库的URL-->
       <mirrorOf>central</mirrorOf>  <!--被镜像的仓库ID-->
     </mirror>
   </mirrors>
@@ -2897,7 +2897,7 @@ $ mvn install
 </settings>
 ```
 
-`mirrorOf`用来指定该镜像仓库是用于作为哪个仓库的镜像使用。这里，`central`是中央仓库的ID。因此，这里ID为`UK`的仓库被配置为中央仓库的镜像，任何对于中央仓库的请求都会转到该镜像。
+`mirrorOf`用来指定该镜像仓库是用于作为哪个仓库的镜像使用。这里，`central`是中央仓库的ID。因此，这里ID为`alimaven`的仓库被配置为中央仓库的镜像，任何对于中央仓库的请求都会转到该镜像。
 
 对于一个远程仓库，最多只能配置一个镜像仓库。但是多个远程仓库可以配置同一个镜像仓库。
 

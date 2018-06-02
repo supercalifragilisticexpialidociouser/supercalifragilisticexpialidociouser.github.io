@@ -239,6 +239,25 @@ $ java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=8000,suspend=n \
 
 > 远程服务器上的应用应该与Eclipse中的项目基于完全相同的代码。
 
+## 测试
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+public class HelloControllerTest {
+  @Autowired
+  private MockMvc mockMvc;
+  
+  @Test
+  public void testSay() throws Exception {
+    mockMvc.perform(MockMvcRequestBuilders.get("/say").accept(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk())
+      .andExpect(content().string(equalTo("Hello World!")));
+  }
+}
+```
+
 
 
 ## 打包
@@ -418,6 +437,173 @@ public class MyConfiguration {
 
 > 由于`application.properties` 或 `application.yml`配置文件（也包括`application-xxx.properties`和`application-xxx.yml`）支持Spring风格的插值表达式（${…}），因此Maven filtering的插值表达式被改成使用`@…@`。可以通过`resource.delimiter`属性来自定义Maven插值表达式的定界符。
 
+## 应用属性
+
+### 应用属性的加载顺序
+
+Spring Boot按下列顺序加载应用属性，顺序靠前的应用属性优先：
+
+1. Devtools全局配置的属性（位于`~/.spring-boot-devtools.properties`）。
+
+2. 在测试代码中，`@TestPropertySource`指定的应用属性。
+
+3. 在测试代码中，由`@SpringBootTest`标注的`properties`设定的属性。
+
+4. 通过命令行参数指定的应用属性。（例如：`java -jar app.jar --PROPERTY_NAME="PROPERTY_VALUE"`）
+
+5. 由`SPRING_APPLICATION_JSON`环境变量或`spring.application.json` 系统属性指定应用属性。
+   例如，可通过如下方式设置`spring.application.json` 系统属性：
+
+   ```bash
+   $ java -Dspring.application.json='{"acme":{"name":"test"}}' -jar myapp.jar
+   $ java -jar myapp.jar --spring.application.json='{"acme":{"name":"test"}}'
+   ```
+
+   这设置了应用属性`acme.name`的值为`test`。
+   在UN*X shell中，环境变量也可以通过命令行来指定：
+
+   ```bash
+   $ SPRING_APPLICATION_JSON='{"acme":{"name":"test"}}' java -jar myapp.jar
+   ```
+
+6. 通过`ServletConfig` 初始参数定义应用属性。
+
+7. 通过`ServletContext` 初始参数定义应用属性。
+
+8. 来自`java:comp/env`的JNDI属性定义应用属性。（例如：`java:comp/env/spring.application.json`、`java:comp/env/acme.name`等）
+
+9. 通过Java系统属性（可以通过`System.getProperties()`获得）指定的应用属性。
+
+10. 通过操作系统环境变量指定的应用属性。（例如，通过环境变量`ACME_NAME`定义了应用属性`acme.name`，即将应用属性的小写字母转换为大写字母，并将`.`替换为`_`）
+
+11. 通过`random.*`配置的随机属性。（由`RandomValuePropertySource` 产生）
+    例如：
+
+    ```properties
+    my.secret=${random.value}
+    my.number=${random.int}
+    my.bignumber=${random.long}
+    my.uuid=${random.uuid}
+    my.number.less.than.ten=${random.int(10)}
+    my.number.in.range=${random.int[1024,65536]}
+    ```
+
+    randon.int的语法格式：
+
+    ```
+    random.int OPEN VALUE [, MAX] CLOSE
+    ```
+
+    `OPEN`和`CLOSE`可以是任意字符，`VALUE`和`MAX`是整数。如果存在`MAX`，则`VALUE`是最小值（包含），`MAX`是最大值（不包含）。
+
+12. 位于当前应用Jar包之外，针对不同PROFILE环境的应用属性文件（application-PROFILE.properties或application-PROFILE.yml）中指定的应用属性。
+
+13. 位于当前应用Jar包之内，针对不同PROFILE环境的应用属性文件（application-PROFILE.properties或application-PROFILE.yml）中指定的应用属性。
+
+14. 位于当前应用Jar包之外的应用属性文件（application.properties或application.yml）。
+
+15. 位于当前应用Jar包之内的应用属性文件（application.properties或application.yml）。
+
+16. 在`@Configuration`标注的类中，通过`@PropertySource`定义的应用属性。
+
+17. 应用默认属性（通过`SpringApplication.setDefaultProperties`设定）。
+
+#### 应用属性文件
+
+`SpringApplication`默认从下列位置加载应用属性文件（按优先级从高到低）：
+
+1. 当前目录的`config`子目录（即`file:./config/`）；
+2. 当前目录（`file:./`）；
+3. 类路径中的`/config`包中（`classpath:/config`）；
+4. 类路径的根中（`classpath:/`）。
+
+应用属性文件既可以是传统的Java属性文件（.properties），也可以是YAML文件（.yml或.yaml），只要类路径中包含[SnakeYAML](http://www.snakeyaml.org/) （已经默认包含在`spring-boot-starter`中）。
+
+如果不喜欢应用属性文件名的`application`部分，可以通过环境变量`SPRING_CONFIG_NAME`或系统属性`spring.config.name`来自己指定一个名字：
+
+```bash
+$ java -jar myproject.jar --spring.config.name=myproject
+```
+
+还可以通过环境变量`SPRING_CONFIG_LOCATION`或系统属性`spring.config.location`来自己指定应用属性文件的位置，它的值是一个逗号分隔的目录（必须以`/`结尾）或文件列表（靠后的优先级高）。如果是目录，将与`spring.config.name`一起组成应用属性文件的完整路径（应用属性文件既可以是特定`PROFILE`环境的，也可以是不特定的）。而如果是文件，则只当作是不特定PROFILE环境的应用属性文件（这时，任何PROFILE特定的应用属性文件都不可用）。
+
+```bash
+$ java -jar myproject.jar --spring.config.location=classpath:/default.properties,classpath:/override.properties
+```
+
+使用`spring.config.location`配置应用属性文件位置后，将不会再从默认位置加载应用属性位置。如果既从自定义位置加载，又可以从默认位置加载。则要使用环境变量`SPRING_CONFIG_ADDITIONAL-LOCATION`或系统属性`spring.config.additional-location`：
+
+```bash
+$ … --spring.config.additional-location=classpath:/custom-config/,file:./custom-config/
+```
+
+这时，将从下列位置加载（注意：自定义位置优先于默认位置）：
+
+1. `file:./custom-config/`
+2. `classpath:custom-config/`
+3. `file:./config/`
+4. `file:./`
+5. `classpath:/config/`
+6. `classpath:/`
+
+##### PROFILE特定的应用属性文件
+
+如果没有显式激活PROFILE，则默认激活`default` PROFILE，即加载`application-default.properties`或`application-default.yml`。
+
+PROFILE特定的应用属性文件与标准应用属性文件（application.properties或application.yml）加载自相同的位置。
+
+### 在应用属性中使用SpEL
+
+```properties
+app.name=MyApp
+app.description=${app.name} is a Spring Boot application
+```
+
+
+
+### 获取应用属性
+
+可以通过`@Value`将指定应用属性注入你的Bean中。
+
+application.properties：
+
+```properties
+acme.name=test
+```
+
+MyBean.java：
+
+```java
+@Component
+public class MyBean {
+    @Value("${acme.name}")
+    private String name;
+
+    // ...
+}
+```
+
+
+
+### 常用配置
+
+#### HTTP端口
+
+Spring Boot应用默认的HTTP端口号是`8080`，可以通过属性`server.port`或环境变量`SERVER_PORT`来自定义HTTP端口号。例如：
+
+```properties
+server.port=18080
+```
+
+#### SSL配置
+
+```properties
+server.port=8443
+server.ssl.key-store=classpath:keystore.jks
+server.ssl.key-store-password=secret
+server.ssl.key-password=another-secret
+```
+
 
 
 # SpringApplication
@@ -439,6 +625,18 @@ public static void main(String[] args) {
 如果应用启动失败，可以注册一个`FailureAnalyzers`实现，以提供一个专用错误日志和一个修复问题的具体行为。
 
 ## 定制应用
+
+### 定制Banner
+
+略
+
+### 定制SpringApplication
+
+略
+
+### Fluent Builder API
+
+略
 
 ## Web环境
 
@@ -474,6 +672,27 @@ Spring Boot也注册了一个 `CommandLinePropertySource`，使得可以将应�
 
 ## 应用事件和监听器
 
+除了Spring框架事件外，`SpringApplication`也会发出一些额外的应用事件。
+
+当应用启动时，应用事件按下列顺序依次发出：
+
+1. An `ApplicationStartingEvent` is sent at the start of a run but before any processing, except for the registration of listeners and initializers.
+2. An `ApplicationEnvironmentPreparedEvent` is sent when the `Environment` to be used in the context is known but before the context is created.
+3. An `ApplicationPreparedEvent` is sent just before the refresh is started but after bean definitions have been loaded.
+4. An `ApplicationStartedEvent` is sent after the context has been refreshed but before any application and command-line runners have been called.
+5. An `ApplicationReadyEvent` is sent after any application and command-line runners have been called. It indicates that the application is ready to service requests.
+6. An `ApplicationFailedEvent` is sent if there is an exception on startup.
+
+由于有些事件是在`ApplicationContext`创建之前就发生了，因此，这些事件的监听器不能作为一个`@Bean`的方式被注册。而是，要是使用``SpringApplication.addListeners(…)` 或  `SpringApplicationBuilder.listeners(…)` 来注册。如果希望这些监听器被自动注册，而不管`ApplicationContext`是否已经创建，则可以添加`META-INF/spring.factories` 文件，然后使用`org.springframework.context.ApplicationListener` 配置你的监听器：
+
+```properties
+org.springframework.context.ApplicationListener=com.example.project.MyListener
+```
+
+Application events are sent by using Spring Framework’s event publishing mechanism. Part of this mechanism ensures that an event published to the listeners in a child context is also published to the listeners in any ancestor contexts. As a result of this, if your application uses a hierarchy of `SpringApplication` instances, a listener may receive multiple instances of the same type of application event.
+
+To allow your listener to distinguish between an event for its context and an event for a descendant context, it should request that its application context is injected and then compare the injected context with the context of the event. The context can be injected by implementing `ApplicationContextAware` or, if the listener is a bean, by using `@Autowired`.
+
 ## ApplicationRunner和CommandLineRunner
 
 如果需要在`SpringApplication.run`方法执行完成后执行一些特定代码，可以实现 `ApplicationRunner` 或 `CommandLineRunner` 接口。它们作用是一样的，区别在于提供应用参数的方式不同：
@@ -493,7 +712,11 @@ public class MyBean implements CommandLineRunner {
 
 ## 退出应用
 
+略
+
 ## 启用管理特性
+
+略
 
 # Spring Boot CLI
 
@@ -506,6 +729,8 @@ public class MyBean implements CommandLineRunner {
 Spring Boot CLI在`Bash`和`Zsh` Shell中，可以支持自动补全，只要按`Tab`键。
 
 # 日志集成
+
+默认显示`INFO`日志消息。
 
 # Web集成
 
@@ -522,96 +747,45 @@ Spring Boot CLI在`Bash`和`Zsh` Shell中，可以支持自动补全，只要按
 </dependency>
 ```
 
-### Web应用的目录结构
+### 静态内容
 
-视图模板文件默认位于`resources/templates`目录下。例如：
+默认情况，Spring MVC的静态资源将位于类路径中的下列目录之一：
+
+- /META-INF/resources/
+- /resources/
+- /static/
+- /public/
+
+视图模板文件默认位于`/resources/templates`目录下。例如：
 
 ```java
 @RequestMapping("/foo")
 public String foo() {
-  return "/admin/foo.btl";
+  return "/admin/foo.btl";  //视图路径也可以不以“/”开始，效果是一样的。return "admin/foo";
 }
 ```
 
-上面代码中视图将会定位到`templates/admin/foo.ftl`。
+上面代码中视图将会定位到`/resources/templates/admin/foo.ftl`。
 
-视图模板文件中引用的静态资源文件，将默认放在`resources/static`目录下。假如，`foo.ftl`中有如下引用：
+FreeMarker视图默认的后缀是`.ftl`，Thymeleaf视图默认的后缀是`.html`。默认后缀可以省略。
+
+视图模板文件中引用的静态资源文件，将默认放在`/resources/static`目录下。假如，`foo.ftl`中有如下引用：
 
 ```html
 <link href="/css/ztree.css" rel="stylesheet"/>
 ```
 
-则Spring Boot将会定位到`static/css/ztree.css`。
+则Spring Boot将会定位到`/resources/static/css/ztree.css`。
 
-### 控制器
+资源默认是映射到`/**`路径，可以通过`spring.mvc.static-path-pattern`来自定义映射路径。例如：
 
-Spring MVC的控制器不需要继承任何类或接口，只需要标注上`@Controller`即可。并且，使用`@RequestMapping`将HTTP请求映射到指定的方法。
-
-`@RequestMapping`既可只作用在方法上，也可以同时作用在方法和类上：
-
-```java
-@Controller
-@RequestMapping("/foo")
-public class FooController {
-  @RequestMapping("/bar")
-  public String bar(Model model) {
-    model.addAttribute("name", "Mary");
-    return "/bar.ftl";
-  }
-}
+```properties
+spring.mvc.static-path-patter=/resources/**
 ```
 
-则对`/foo/bar`的请求，将交由`FooController.bar`方法处理。
+则上例中的`/resources/static/css/ztree.css`将映射为`/resources/css/ztree.css`。
 
-控制器方法返回值默认是视图的名称。如果希望返回内容本身，而不是视图名称，则需要在方法上加上`@ResponseBody`。`@ResponseBody`用于将控制器的方法返回值，通过相应的`HttpMessageConverter`转换为指定格式后，写入`Response`对象的body。默认情况下，如果返回值是字符串类型，则直接返回这个字符串；否则，默认使用Jackson将返回值序列化为JSON字符串后输出。
 
-如果需要的是一个RESTful风格的控制器，则需要使用`@RestController`标注，它相当于`@Controller`+`@ResponseBody`，用于返回JSON格式数据。
-
-#### URL映射
-
-`@RequestMapping`的属性：
-
-- value：请求的URL路径，支持URL模板、正则表达式；
-- method：HTTP请求方法，有GET、POST等；
-- consumes：接受的媒体类型。对应HTTP的`Content-Type`；
-- produces：响应的媒体类型。对应HTTP的`Accept`；
-- params：请求参数；
-- headers：请求的HTTP头。
-
-另外，根据请求方法的不同，还可以使用`@GetMapping`、`@PostMapping`、`@PutMapping`、`@DeleteMapping`和`@PatchMapping`等简便标注代替。
-
-##### 路径参数
-
-```java
-@RequestMapping(value="/get/{id}.json")
-public @ResponseBody User getById(@PathVariable("id") Long id) {
-  …
-}
-```
-
-则访问路径是`/get/1.json`，时将调用`getById`方法，并且参数`id`的值为`1`。
-
-##### Ant路径表达式
-
-`*`匹配任意多个字符（除了路径分隔符”/“），`**`匹配任意路径，`?`匹配单个字符。
-
-```java
-@RequestMapping("/user/*.html")  //匹配：/user/1.html、/user/abc.html，但不匹配：/user/add/1.html
-@RequestMapping("/**/1.html")  //匹配：/1.html、/user/1.html、/user/add/1.html
-@RequestMapping("/user/?.html")  //匹配：/user/1.html，但不匹配：/user/abc.html
-```
-
-如果一个请求有多个`@RequestMapping`能够匹配，则更具体的匹配优先。另外，有通配符的低于无通配符的，有`**`的低于有`*`的。
-
-##### 插值
-
-在URL映射中，可以使用`${…}`的插值，来获取系统配置或环境变量：
-
-```java
-@RequestMapping("/${query.all}.json")
-```
-
-##### 请求方法
 
 ## WebFlux集成
 
