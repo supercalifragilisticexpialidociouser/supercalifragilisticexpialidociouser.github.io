@@ -433,10 +433,6 @@ public class MyConfiguration {
 
 另外，也可以使用 `spring.autoconfigure.exclude`来配置禁止自动配置的组件。
 
-
-
-> 由于`application.properties` 或 `application.yml`配置文件（也包括`application-xxx.properties`和`application-xxx.yml`）支持Spring风格的插值表达式（${…}），因此Maven filtering的插值表达式被改成使用`@…@`。可以通过`resource.delimiter`属性来自定义Maven插值表达式的定界符。
-
 ## 应用属性
 
 ### 应用属性的加载顺序
@@ -480,12 +476,12 @@ Spring Boot按下列顺序加载应用属性，顺序靠前的应用属性优先
     例如：
 
     ```properties
-    my.secret=${random.value}
-    my.number=${random.int}
-    my.bignumber=${random.long}
-    my.uuid=${random.uuid}
-    my.number.less.than.ten=${random.int(10)}
-    my.number.in.range=${random.int[1024,65536]}
+    my.secret=${random.value}  #随机字符串
+    my.number=${random.int}  #随机整数
+    my.bignumber=${random.long}  #随机长整数
+    my.uuid=${random.uuid}  #随机UUID
+    my.number.less.than.ten=${random.int(10)}  #10以内（包含）的随机整数
+    my.number.in.range=${random.int[1024,65536]}  #[1024..65536)之间的随机整数
     ```
 
     randon.int的语法格式：
@@ -508,7 +504,7 @@ Spring Boot按下列顺序加载应用属性，顺序靠前的应用属性优先
 
 17. 应用默认属性（通过`SpringApplication.setDefaultProperties`设定）。
 
-#### 应用属性文件
+### 应用属性文件
 
 `SpringApplication`默认从下列位置加载应用属性文件（按优先级从高到低）：
 
@@ -516,8 +512,6 @@ Spring Boot按下列顺序加载应用属性，顺序靠前的应用属性优先
 2. 当前目录（`file:./`）；
 3. 类路径中的`/config`包中（`classpath:/config`）；
 4. 类路径的根中（`classpath:/`）。
-
-应用属性文件既可以是传统的Java属性文件（.properties），也可以是YAML文件（.yml或.yaml），只要类路径中包含[SnakeYAML](http://www.snakeyaml.org/) （已经默认包含在`spring-boot-starter`中）。
 
 如果不喜欢应用属性文件名的`application`部分，可以通过环境变量`SPRING_CONFIG_NAME`或系统属性`spring.config.name`来自己指定一个名字：
 
@@ -546,24 +540,84 @@ $ … --spring.config.additional-location=classpath:/custom-config/,file:./custo
 5. `classpath:/config/`
 6. `classpath:/`
 
-##### PROFILE特定的应用属性文件
+#### 使用YAML格式的应用属性文件
+
+应用属性文件既可以是传统的Java属性文件（.properties），也可以是YAML文件（.yml或.yaml），只要类路径中包含[SnakeYAML](http://www.snakeyaml.org/) （已经默认包含在`spring-boot-starter`中）。
+
+Spring 两个方便的类来处理加载YAML文档，`YamlPropertiesFactoryBean` 将YAML加载为`Properties`，而`YamlMapFactoryBean` 将YAML加载为`Map`。
+
+下列形式的YAML应用属性文件：
+
+```yaml
+environments:
+	dev:
+		url: http://dev.example.com
+		name: Developer Setup
+	prod:
+		url: http://another.example.com
+		name: My Cool App
+```
+
+将转化为等价的properties文件：
+
+```
+environments.dev.url=http://dev.example.com
+environments.dev.name=Developer Setup
+environments.prod.url=http://another.example.com
+environments.prod.name=My Cool App
+```
+
+YAML的列表：
+
+```yaml
+my:
+  servers:
+    - dev.example.com
+    - another.example.com
+```
+
+将转化为带索引的properties：
+
+```
+my.servers[0]=dev.example.com
+my.servers[1]=another.example.com
+
+# 或者使用单个逗号分隔的值
+my.servers=dev.example.com,another.example.com
+```
+
+YAML应用属性文件的缺点是：不能使用`@PropertySource`标注加载。这种情况只能使用properties文件。
+
+#### PROFILE特定的应用属性文件
 
 如果没有显式激活PROFILE，则默认激活`default` PROFILE，即加载`application-default.properties`或`application-default.yml`。
 
 PROFILE特定的应用属性文件与标准应用属性文件（application.properties或application.yml）加载自相同的位置。
 
-### 在应用属性中使用SpEL
+### 在应用属性中使用PlaceHolder
 
 ```properties
 app.name=MyApp
 app.description=${app.name} is a Spring Boot application
 ```
 
+> 由于`application.properties` 或 `application.yml`配置文件（也包括`application-xxx.properties`和`application-xxx.yml`）支持PlaceHolder方式的插值表达式（${…}），因此Maven filtering的插值表达式被改成使用`@…@`。可以通过`resource.delimiter`属性来自定义Maven插值表达式的定界符。
 
+### 自定义属性
+
+除了可以设置Spring预定义的应用属性外，也可以定义一些我们的自定义属性：
+
+```properties
+book.name=SpringCloudInAction
+```
+
+自定义属性与预定义属性一样，也可以使用`@Value`和`@ConfigurationProperties`注入Bean。
 
 ### 获取应用属性
 
-可以通过`@Value`将指定应用属性注入你的Bean中。
+#### @Value
+
+可以通过`@Value`将单个应用属性注入你的Bean中。
 
 application.properties：
 
@@ -583,7 +637,89 @@ public class MyBean {
 }
 ```
 
+> 使用`@Value`只能注入单个值，而不能注入复合值（例如集合、对象）。当复合值的元素是简单类型时，可以注入这些元素：
+>
+> application.yml：
+>
+> ```yaml
+> my:
+>   servers:
+>     - dev.example.com
+>     - another.example.com
+> ```
+>
+> MyBean.java：
+>
+> ```java
+> @Component
+> public class MyBean {
+>     @Value("${my.servers[1]}")
+>     private String secondServer;
+> 
+>     // ...
+> }
+> ```
+>
+> 
+>
+> 使用`@Value`只能注入的Bean字段可以不需要定义getters和setters。
 
+#### @ConfigurationProperties
+
+可以通过`@ConfigurationProperties`将多个应用属性注入到Bean中。
+
+application.yml：
+
+```yml
+my:
+  enabled: true
+  remote-address: address.example.com
+  security:
+  	username: jo
+  	password: 123456
+    roles:
+      - admin
+      - user
+```
+
+Config.java：
+
+```java
+@ConfigurationProperties(prefix="my")
+public class Config {
+  private boolean enabled;
+  private InetAddress remoteAddress;
+  private final Security security = new Security();
+  
+  public boolean isEnabled() { ... }
+  public void setEnabled(boolean enabled) { ... }
+  
+  public InetAddress getRemoteAddress() { ... }
+	public void setRemoteAddress(InetAddress remoteAddress) { ... }
+
+  public Security getSecurity() { ... }
+  
+  public static class Security {
+		private String username;
+		private String password;
+		private List<String> roles = new ArrayList<>(Collections.singleton("USER")); //也可以使用“Set”集合类
+
+		public String getUsername() { ... }
+		public void setUsername(String username) { ... }
+    
+		public String getPassword() { ... }
+		public void setPassword(String password) { ... }
+
+		public List<String> getRoles() { ... }
+		public void setRoles(List<String> roles) { ... }
+	}
+}
+```
+
+> 通常getters和setters是必须的，但setters在下列情况下可以省略：
+>
+> - 已经显式初始化的Maps。
+> - 
 
 ### 常用配置
 
@@ -604,7 +740,38 @@ server.ssl.key-store-password=secret
 server.ssl.key-password=another-secret
 ```
 
+## Profiles
 
+### 单个多Profiles的YAML文档
+
+使用YAML作为应用属性文件时，除了可以像上面那样，为每个Profile分别创建一个独立的YAML文件外，也可以将多个Profiles创建在同一个YAML文件中。使用`---`来分割不同Profiles，并使用`spring.profiles`属性来标识每个Profiles：
+
+```
+server:
+	address: 192.168.1.100
+---
+spring:
+  profiles: default
+  security:
+    user:
+      password: weak
+---
+spring:
+	profiles: development
+server:
+	address: 127.0.0.1
+---
+spring:
+	profiles: production
+server:
+	address: 192.168.1.120
+```
+
+未被显式标识的Profile的优先级比显式标识的Profile低，并且不管激活哪个Profile，未被显式标识的Profile中的应用属性**总会**被设置。这也是未被显式标识Profile与默认Profile不同的地方。
+
+默认Profile（`default`）只在没有显式激活任何Profiles时，其中的应用属性才会被设置。
+
+Spring profiles designated by using the `spring.profiles` element may optionally be negated by using the `!` character. If both negated and non-negated profiles are specified for a single document, at least one non-negated profile must match, and no negated profiles may match.
 
 # SpringApplication
 
