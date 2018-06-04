@@ -431,7 +431,7 @@ public class MyConfiguration {
 
 如果要禁止自动配置的类不在类路径上，则要使用`excludeName` 代替`exclude`。
 
-另外，也可以使用 `spring.autoconfigure.exclude`来配置禁止自动配置的组件。
+另外，也可以使用 `spring.autoconfigure.exclude`属性来配置禁止自动配置的组件。
 
 ## 应用属性
 
@@ -462,15 +462,15 @@ Spring Boot按下列顺序加载应用属性，顺序靠前的应用属性优先
    $ SPRING_APPLICATION_JSON='{"acme":{"name":"test"}}' java -jar myapp.jar
    ```
 
-6. 通过`ServletConfig` 初始参数定义应用属性。
+6. 通过`ServletConfig` 初始参数设定的应用属性。
 
-7. 通过`ServletContext` 初始参数定义应用属性。
+7. 通过`ServletContext` 初始参数设定的应用属性。
 
-8. 来自`java:comp/env`的JNDI属性定义应用属性。（例如：`java:comp/env/spring.application.json`、`java:comp/env/acme.name`等）
+8. 来自`java:comp/env`的JNDI属性设定的应用属性。（例如：`java:comp/env/spring.application.json`、`java:comp/env/acme.name`等）
 
-9. 通过Java系统属性（可以通过`System.getProperties()`获得）指定的应用属性。
+9. 通过Java系统属性（可以通过`System.getProperties()`获得）设定的应用属性。
 
-10. 通过操作系统环境变量指定的应用属性。（例如，通过环境变量`ACME_NAME`定义了应用属性`acme.name`，即将应用属性的小写字母转换为大写字母，并将`.`替换为`_`）
+10. 通过操作系统环境变量设定的应用属性。
 
 11. 通过`random.*`配置的随机属性。（由`RandomValuePropertySource` 产生）
     例如：
@@ -637,7 +637,7 @@ public class MyBean {
 }
 ```
 
-> 使用`@Value`只能注入单个值，而不能注入复合值（例如集合、对象）。当复合值的元素是简单类型时，可以注入这些元素：
+> 使用`@Value`只能注入单个值，而不能注入复合值（例如集合、对象）。但是，当复合值的元素是简单类型时，可以注入这些元素：
 >
 > application.yml：
 >
@@ -660,9 +660,7 @@ public class MyBean {
 > }
 > ```
 >
-> 
->
-> 使用`@Value`只能注入的Bean字段可以不需要定义getters和setters。
+> 使用`@Value`注入的Bean字段可以不需要定义getters和setters。
 
 #### @ConfigurationProperties
 
@@ -689,7 +687,7 @@ Config.java：
 public class Config {
   private boolean enabled;
   private InetAddress remoteAddress;
-  private final Security security = new Security();
+  private final Security security = new Security(); //被显式初始化，可以不需要setter
   
   public boolean isEnabled() { ... }
   public void setEnabled(boolean enabled) { ... }
@@ -719,7 +717,130 @@ public class Config {
 > 通常getters和setters是必须的，但setters在下列情况下可以省略：
 >
 > - 已经显式初始化的Maps。
-> - 
+>
+> - 通过索引方式访问的集合或数组：
+>
+>   ```yaml
+>   my:
+>     servers:
+>       - dev.example.com
+>       - another.example.com
+>   ```
+>
+>   或者：
+>
+>   ```properties
+>   my.servers[0]=dev.example.com
+>   my.servers[1]=another.example.com
+>   ```
+>
+>   但是，集合或数组配置成逗号分隔的单个属性时，必须要有setter：
+>
+>   ```properties
+>   my.servers=dev.example.com,another.example.com
+>   ```
+>
+>   可以使用`@ConfigurationProperties `以集合或数组方式注入：
+>
+>   ```java
+>   @ConfigurationProperties(prefix="my")
+>   public class MyProperties {
+>     private List<String> servers;
+>   
+>     public void setServers(List<String> ss) {
+>       this.servers = ss;
+>     }
+>     
+>     public List<String> getServers() {
+>       return this.servers;
+>     }
+>   }
+>   ```
+>
+>   如果使用`@Value`注入，只能将上述`my.servers`属性整个以`String`方式注入（可以不需要setter），而不能使用索引：
+>
+>   ```java
+>   @Value("${my.servers}")
+>   private String servers;
+>   
+>   //而不使用索引
+>   //@Value("${my.servers[0]}")
+>   //private String firstServers;
+>   ```
+>
+> - 如果内嵌的POJO字段被显式初始化（象`Config.java`中的`Security`  字段那样），则可以不需要setter。
+
+`@ConfigurationProperties`只是完成将应用属性注入到类中，但还不能将该类通过`@Autowired`注入给其他Bean。还需要在被`@Configuration`修饰的类上通过`@EnableConfigurationProperties`将该类注册为一个Bean：
+
+```java
+@Configuration
+@EnableConfigurationProperties(MyProperties.class) //可以罗列多个类
+public class MyConfiguration {
+}
+```
+
+通过上面方式注册的`@ConfigurationProperties `的Bean，有一个形如`PREFIX-FULLY_QUALIFIED_NAME_OF_THEN_BEAN`名称。其中PREFIX是`@ConfigurationProperties `中的`prefix`参数。
+
+例如：`my-jo.springboot.web.MyProperties`。如果`@ConfigurationProperties `没指定`prefix`，则为`jo.springboot.web.MyProperties`。
+
+也可以直接在`MyProperties`上使用`@Component`，将它注册为一个Bean，而不需要在`@Configuration`类上使用`@EnableConfigurationProperties`标注了：
+
+```java
+@Component
+@ConfigurationProperties(prefix="acme")
+public class MyProperties {
+	// ... 
+}
+```
+
+`@ConfigurationProperties `除了可以标注在类上外，也可以标注在`@Bean public`的方法上，这在将应用属性绑定到不受自己控制的第三方组件时特别有用：
+
+```java
+@ConfigurationProperties(prefix = "another")
+@Bean
+public AnotherComponent anotherComponent() {
+	...
+}
+```
+
+##### 应用属性名与Bean属性名的映射规则
+
+例如：
+
+```java
+@ConfigurationProperties(prefix="acme.my-project.person")
+public class OwnerProperties {
+	private String firstName;
+
+	public String getFirstName() {
+		return this.firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+}
+```
+
+则下面的应用属性名都可以被使用：
+
+```properties
+acme.my-project.person.first-name  #Kebab风格（推荐。小写，以“-”分隔）
+acme.myProject.person.firstName    #标准驼峰风格
+acme.my_project.person.first_name  #下划线风格
+ACME_MYPROJECT_PERSON_FIRSTNAME    #大写风格
+```
+
+> `prefix`参数值只能使用Kebab风格。
+
+不同属性源的映射规则：
+
+| Property Source       | Simple                                                       | List                                                         |
+| --------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Properties Files      | Camel case, kebab case, or underscore notation               | Standard list syntax using `[索引]` or comma-separated values |
+| YAML Files            | Camel case, kebab case, or underscore notation               | Standard YAML list syntax or comma-separated values          |
+| Environment Variables | Upper case format with underscore as the delimiter. `_` should not be used within a property name | Numeric values surrounded by underscores, such as `MY_ACME_1_OTHER 相当于 my.acme[1].other` |
+| System properties     | Camel case, kebab case, or underscore notation               | Standard list syntax using `[ ]` or comma-separated values   |
 
 ### 常用配置
 
@@ -772,6 +893,66 @@ server:
 默认Profile（`default`）只在没有显式激活任何Profiles时，其中的应用属性才会被设置。
 
 Spring profiles designated by using the `spring.profiles` element may optionally be negated by using the `!` character. If both negated and non-negated profiles are specified for a single document, at least one non-negated profile must match, and no negated profiles may match.
+
+### 复杂类型属性的重写
+
+当复杂类型属性出现在多个profiles中时，重写是以整个替换方式进行。
+
+AcmeProperties.java：
+
+```java
+@ConfigurationProperties("acme")
+public class AcmeProperties {
+	private final List<MyPojo> list = new ArrayList<>();
+  private final Map<String, MyPojo> map = new HashMap<>();
+
+	public List<MyPojo> getList() {
+		return this.list;
+	}
+
+  public Map<String, MyPojo> getMap() {
+		return this.map;
+	}
+}
+```
+
+MyPojo.java：
+
+```java
+public class MyPojo {
+  private String name;
+  private String description;
+  
+  ... //getters和setters
+}
+```
+
+application.yml：
+
+```yaml
+acme:
+  list:
+    - name: my name
+      description: my description
+  map:
+    key1:
+      name: my name 1
+      description: my description 1
+---
+spring:
+  profiles: dev
+acme:
+  list:
+    - name: my another name
+  map:
+    key1:
+      name: dev name 1
+    key2:
+      name: dev name 2
+      description: dev description 2
+```
+
+如果`dev` profile没有被激活，这时`AcmeProperties.list`  只包含一个`name`为`my name`的`MyPojo`实例，`AcmeProperties.map`  包含一个键为`key1`、`name`为`my name 1`的`MyPojo`实例。如果`dev` profile被激活，这时`AcmeProperties.list`  仍只包含一个`name`为`my another name`的`MyPojo`实例，`AcmeProperties.map`  包含两个`MyPojo`实例，一个键为`key1`、`name`为`dev name 1`，另一个键为`key2`、`name`为`dev name 2`。
 
 # SpringApplication
 
