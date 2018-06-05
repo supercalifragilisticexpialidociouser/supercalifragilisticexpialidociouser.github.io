@@ -588,12 +588,6 @@ my.servers=dev.example.com,another.example.com
 
 YAML应用属性文件的缺点是：不能使用`@PropertySource`标注加载。这种情况只能使用properties文件。
 
-#### PROFILE特定的应用属性文件
-
-如果没有显式激活PROFILE，则默认激活`default` PROFILE，即加载`application-default.properties`或`application-default.yml`。
-
-PROFILE特定的应用属性文件与标准应用属性文件（application.properties或application.yml）加载自相同的位置。
-
 ### 在应用属性中使用PlaceHolder
 
 ```properties
@@ -842,6 +836,109 @@ ACME_MYPROJECT_PERSON_FIRSTNAME    #大写风格
 | Environment Variables | Upper case format with underscore as the delimiter. `_` should not be used within a property name | Numeric values surrounded by underscores, such as `MY_ACME_1_OTHER 相当于 my.acme[1].other` |
 | System properties     | Camel case, kebab case, or underscore notation               | Standard list syntax using `[ ]` or comma-separated values   |
 
+##### 校验
+
+Spring Boot总是会去校验`@ConfigurationProperties`  类，而不管它是否有标注`@Validated`。
+
+```java
+@ConfigurationProperties(prefix="acme")
+@Validated
+public class AcmeProperties {
+	@NotNull
+	private InetAddress remoteAddress;
+
+	@Valid
+	private final Security security = new Security();
+
+	// ... getters and setters
+
+	public static class Security {
+		@NotEmpty
+		public String username;
+
+		// ... getters and setters
+
+	}
+}
+```
+
+>  `@Validated`也可以标注在`@Bean`方法上。
+
+还可以自己实现一个`Validator`，并将它注册为名叫`configurationPropertiesValidator`的Bean。注册它的`@Bean`方法应该要声明为`static`。例如，参见： [property validation sample](https://github.com/spring-projects/spring-boot/tree/v2.0.2.RELEASE/spring-boot-samples/spring-boot-sample-property-validation) 。
+
+##### @ConfigurationProperties vs. @Value
+
+| Feature                                                      | `@ConfigurationProperties` | `@Value` |
+| ------------------------------------------------------------ | -------------------------- | -------- |
+| [Relaxed binding](https://docs.spring.io/spring-boot/docs/2.0.2.RELEASE/reference/htmlsingle/#boot-features-external-config-relaxed-binding) | Yes                        | No       |
+| [Meta-data support](https://docs.spring.io/spring-boot/docs/2.0.2.RELEASE/reference/htmlsingle/#configuration-metadata) | Yes                        | No       |
+| `SpEL` evaluation                                            | No                         | Yes      |
+
+### 属性转换
+
+在将应用属性绑定到Bean中时，Spring Boot会尝试进行合适的类型转换。如果需要，也可以自定义类型转换。
+
+#### 转换时间长度
+
+Spring Boot可以将下列形式的应用属性自动转换为Bean的`java.time.Duration`  属性：
+
+- 以`long`表示的时间长度（默认单位是毫秒，可以使用`@DurationUnit`来自己指定时间单位）。
+
+- 标准的ISO-8601格式的时间长度（参见[`java.util.Duration`](https://docs.oracle.com/javase/8/docs/api//java/time/Duration.html#parse-java.lang.CharSequence-)），例如：
+
+  ```
+  "PT20.345S" -- parses as "20.345 seconds"
+  "PT15M"     -- parses as "15 minutes" (where a minute is 60 seconds)
+  "PT10H"     -- parses as "10 hours" (where an hour is 3600 seconds)
+  "P2D"       -- parses as "2 days" (where a day is 24 hours or 86400 seconds)
+  "P2DT3H4M"  -- parses as "2 days, 3 hours and 4 minutes"
+  "P-6H3M"    -- parses as "-6 hours and +3 minutes"
+  "-P6H3M"    -- parses as "-6 hours and -3 minutes"
+  "-P-6H+3M"  -- parses as "+6 hours and -3 minutes"
+  ```
+
+- 带时间单位的格式（例如：`10s`表示10秒）。可以使用的时间单位有：
+
+  + `ns`纳秒。
+  + `ms`毫秒。
+  + `s`秒。
+  + `m`分钟。
+  + `h`小时。
+  + `d`天。
+
+例如：
+
+```java
+@ConfigurationProperties("app.system")
+public class AppSystemProperties {
+	@DurationUnit(ChronoUnit.SECONDS)
+	private Duration sessionTimeout = Duration.ofSeconds(30);
+	private Duration readTimeout = Duration.ofMillis(1000);
+
+	public Duration getSessionTimeout() {
+		return this.sessionTimeout;
+	}
+
+	public void setSessionTimeout(Duration sessionTimeout) {
+		this.sessionTimeout = sessionTimeout;
+	}
+
+	public Duration getReadTimeout() {
+		return this.readTimeout;
+	}
+
+	public void setReadTimeout(Duration readTimeout) {
+		this.readTimeout = readTimeout;
+	}
+}
+```
+
+
+
+#### 自定义转换
+
+自定义转换可以通过提供一个`ConversionService` Bean（Bean名为`conversionService`）或者提供一个自定义的属性编辑器（通过`CustomEditorConfigurer` Bean）或者提供一个自定义的`Converters`（标注上`@ConfigurationPropertiesBinding` ）。
+
 ### 常用配置
 
 #### HTTP端口
@@ -862,6 +959,18 @@ server.ssl.key-password=another-secret
 ```
 
 ## Profiles
+
+Spring Profiles提供了一种方式去将你的应用属性分成多个部分，并且使得它们只在某些环境中可用。
+
+### PROFILE特定的应用属性文件
+
+PROFILE特定的应用属性文件只在该PROFILE被激活时，才会生效。
+
+PROFILE特定的应用属性文件的命名规则：`application-PROFILE.properties`或`application-PROFILE.yml`。
+
+如果没有显式激活PROFILE，则默认激活`default` PROFILE，即加载`application-default.properties`或`application-default.yml`。
+
+PROFILE特定的应用属性文件与标准应用属性文件（application.properties或application.yml）加载自相同的位置。
 
 ### 单个多Profiles的YAML文档
 
@@ -888,15 +997,43 @@ server:
 	address: 192.168.1.120
 ```
 
-未被显式标识的Profile的优先级比显式标识的Profile低，并且不管激活哪个Profile，未被显式标识的Profile中的应用属性**总会**被设置。这也是未被显式标识Profile与默认Profile不同的地方。
+### 未被显式声明的Proflie和默认Profile
+
+未被显式声明的Profile的优先级比显式声明的Profile低，并且不管激活哪个Profile，未被显式声明的Profile中的应用属性**总会**被设置。这也是未被显式声明Profile与默认Profile不同的地方。
 
 默认Profile（`default`）只在没有显式激活任何Profiles时，其中的应用属性才会被设置。
 
 Spring profiles designated by using the `spring.profiles` element may optionally be negated by using the `!` character. If both negated and non-negated profiles are specified for a single document, at least one non-negated profile must match, and no negated profiles may match.
 
+### 激活Profiles
+
+可以通过`spring.profiles.active`应用属性来激活Profiles。
+
+例如，可以在`application.properties`中配置它们：
+
+```properties
+spring.profiles.active=dev,hsqldb  #可以一次激活多个Profiles
+```
+
+也可以使用命令行参数`--spring.profiles.active=dev,hsqldb`。
+
+还可以使用`spring.profiles.include`应用属性（可者通过在`SpringApplication.run`运行之前，调用`SpringApplication.setAdditionalProfiles()`方法）来指定，当某个Profile激活时，也一起激活的Profiles。
+
+```yaml
+---
+my.property: fromyamlfile
+---
+spring.profiles: prod
+spring.profiles.include:
+  - proddb
+  - prodmq
+```
+
+这样，当设置`--spring.profiles.active=prod`激活`prod` profile时，也会一起激活`proddb`和`prodmy` profiles。
+
 ### 复杂类型属性的重写
 
-当复杂类型属性出现在多个profiles中时，重写是以整个替换方式进行。
+当复杂类型属性出现在多个profiles中时，重写是以整体替换方式进行。
 
 AcmeProperties.java：
 
@@ -953,6 +1090,32 @@ acme:
 ```
 
 如果`dev` profile没有被激活，这时`AcmeProperties.list`  只包含一个`name`为`my name`的`MyPojo`实例，`AcmeProperties.map`  包含一个键为`key1`、`name`为`my name 1`的`MyPojo`实例。如果`dev` profile被激活，这时`AcmeProperties.list`  仍只包含一个`name`为`my another name`的`MyPojo`实例，`AcmeProperties.map`  包含两个`MyPojo`实例，一个键为`key1`、`name`为`dev name 1`，另一个键为`key2`、`name`为`dev name 2`。
+
+### @Profile
+
+上面的配置profile，要么是通过文件名（例如：`application-PROFILE.yml`），要么是通过属性`spring.profiles`。而`@Profile`提供了通过标注来配置profile的方法。
+
+任何`@Component`和`@Configuration`都可以被标注上`@Profile`，这样，它们就只能在该Profile被激活时，才会被加载。
+
+```java
+@Configuration
+@Profile("production")
+public class ProductionConfiguration {
+	// ...
+}
+```
+
+`@Profile`还可以标注在`@Bean`方法上：
+
+```java
+@Bean
+@Profile({"dev", "test"})
+public DataSource devDataSource() {…}
+```
+
+`@Profile`还可以通过`!`来表示取反。例如：`@Profile("!test") `。
+
+
 
 # SpringApplication
 
@@ -1065,6 +1228,8 @@ public class MyBean implements CommandLineRunner {
 ## 启用管理特性
 
 略
+
+# 应用监控：Actuator
 
 # Spring Boot CLI
 
