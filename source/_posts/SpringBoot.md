@@ -1229,7 +1229,7 @@ public class MyBean implements CommandLineRunner {
 
 略
 
-# 应用监控：Actuator
+# Actuator
 
 # Spring Boot CLI
 
@@ -1241,13 +1241,15 @@ public class MyBean implements CommandLineRunner {
 
 Spring Boot CLI在`Bash`和`Zsh` Shell中，可以支持自动补全，只要按`Tab`键。
 
-# 日志集成
+# 部署
+
+# 日志
 
 默认显示`INFO`日志消息。
 
-# Web集成
+# Web
 
-## MVC集成
+## MVC
 
 ### 引入依赖
 
@@ -1300,18 +1302,34 @@ spring.mvc.static-path-patter=/resources/**
 
 
 
-## WebFlux集成
+## WebFlux
 
-## Jersey（JAX-RS）集成
+## Jersey（JAX-RS）
+
+## WebSocket
+
+## Web服务
 
 ## 内嵌Sevlet容器
 
-# 安全集成
+# 安全
 
-# 关系数据库集成
+# 关系数据库
 
-# NoSQL集成
+# NoSQL
 
-# 缓存集成
+## Hazelcast
 
-# 消息系统集成
+# 校验
+
+# 缓存
+
+# 消息系统
+
+# 发送邮件
+
+# 分布式事务
+
+# 调度器
+
+# Spring集成
