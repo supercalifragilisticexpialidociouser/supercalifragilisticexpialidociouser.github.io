@@ -258,8 +258,6 @@ public class HelloControllerTest {
 }
 ```
 
-
-
 ## 打包
 
 如果使用Maven，则可以使用下列命令将项目打包成Jar：
@@ -418,7 +416,23 @@ Spring Boot偏爱基于Java的配置，而不是基于XML的配置。
 
 自动配置是非侵入的，在任何时候，你都可以用自己的配置覆盖自动配置。
 
-如果希望知道自动配置都配置了什么，可以带上`--debug`选项来启动应用。
+如果希望知道自动配置都配置了什么，可以启用“debug”模式或“trace”模式。
+
+命令行：
+
+```bash
+$ java -jar springTest.jar --debug
+$ java -jar springTest.jar --trace
+```
+
+应用属性文件：
+
+```yaml
+debug: true
+trace: true
+```
+
+> 启用“debug”模式或“trace”模式后，核心`Logger`（包含嵌入式容器、hibernate、spring）会输出`DEBUG`或`TRACE`级别内容，但是你**自己应用的日志并不会输出为`DEBUG`或`TRACE`级别**。 
 
 `@EnableAutoConfiguration` 还可以禁止某些组件的自动配置：
 
@@ -500,7 +514,7 @@ Spring Boot按下列顺序加载应用属性，顺序靠前的应用属性优先
 
 15. 位于当前应用Jar包之内的应用属性文件（application.properties或application.yml）。
 
-16. 在`@Configuration`标注的类中，通过`@PropertySource`定义的应用属性。
+16. 在`@Configuration`标注的类中，通过`@PropertySource`加载的应用属性。
 
 17. 应用默认属性（通过`SpringApplication.setDefaultProperties`设定）。
 
@@ -539,6 +553,84 @@ $ … --spring.config.additional-location=classpath:/custom-config/,file:./custo
 4. `file:./`
 5. `classpath:/config/`
 6. `classpath:/`
+
+#### @PropertySource
+
+`@PropertySource`标注可以从自己指定的`.properties`文件中加载的应用属性。
+
+foo/bar.properties：
+
+```properties
+demo.url = 1.2.3.4
+demo.db = helloTest
+```
+
+BarProperties.java：
+
+```java
+@Configuration  
+@PropertySource(value={"classpath:foo/bar.properties"}, ignoreResourceNotFound=false, encoding="UTF-8", name="bar.properties")
+public class BarProperties {}
+```
+
+`ignoreResourceNotFound`表示指定属性文件不存在时是否报错，默认为`false`，即报错。
+
+`value`值是需要加载的属性文件，可以一次性加载多个。
+
+`name`值在Spring Boot环境中必须是唯一。
+
+注意：`@PropertySource`标注只负责加载properties文件，而将加载到的属性注入到Bean中仍需要使用`@Value`、`@ConfigurationProperties` 或`Environment`标注。两者可结合起来使用：
+
+使用`@Value`：
+
+```java
+@Configuration  
+@PropertySource("classpath:${my.placeholder:default/path}/bar.properties")
+public class BarProperties {
+  @Value("${demo.url}")  
+  private String mongodbUrl;
+  
+  @Value("${demo.db}")  
+  private String defaultDb;
+}
+```
+
+使用`@ConfigurationProperties`：
+
+```java
+@Configuration  
+@PropertySource({"classpath:foo/bar.properties", "file:/my/abc.properties"})
+@ConfigurationProperties(prefix = "demo")
+public class BarProperties {
+  private String url;
+  private String db;
+  …
+}
+```
+
+使用`Environment`：
+
+```java
+@Configuration  
+@PropertySources({
+  @PropertySource("classpath:foo/bar.properties"),
+  @PropertySource("file:/my/abc.properties")
+})
+public class BarProperties {
+  @Autowired
+  private Environment env;
+  
+  @Bean
+  public TestBean testBean() {
+    TestBean testBean = new TestBean();
+    testBean.setMongodbUrl(env.getProperty("demo.url"));
+    testBean.setDefaultDb(env.getProperty("demo.db"));
+    return testBean;
+  }
+}
+```
+
+
 
 #### 使用YAML格式的应用属性文件
 
@@ -789,13 +881,60 @@ public class MyProperties {
 
 `@ConfigurationProperties `除了可以标注在类上外，也可以标注在`@Bean public`的方法上，这在将应用属性绑定到不受自己控制的第三方组件时特别有用：
 
-```java
-@ConfigurationProperties(prefix = "another")
-@Bean
-public AnotherComponent anotherComponent() {
-	...
-}
+application.yml：
+
+```yaml
+server:  
+  port: 8080  
+  
+spring:   
+  redis:   
+    dbIndex: 0  
+    hostName: 192.168.58.133  
+    password: nmamtf  
+    port: 6379  
+    timeout: 0  
+    poolConfig:   
+      maxIdle: 8  
+      minIdle: 0  
+      maxActive: 8  
+      maxWait: -1  
 ```
+
+RedisConfig.java：
+
+```java
+@Configuration    
+@EnableAutoConfiguration  
+public class RedisConfig {  
+  @Bean    
+  @ConfigurationProperties(prefix="spring.redis.poolConfig")    
+  public JedisPoolConfig getRedisConfig(){    
+    JedisPoolConfig config = new JedisPoolConfig();  
+    return config;    
+  }    
+
+  @Bean    
+  @ConfigurationProperties(prefix="spring.redis")    
+  public JedisConnectionFactory getConnectionFactory(){    
+    JedisConnectionFactory factory = new JedisConnectionFactory();    
+    factory.setUsePool(true);  
+    JedisPoolConfig config = getRedisConfig();    
+    factory.setPoolConfig(config);    
+    return factory;    
+  }    
+
+  @Bean    
+  public RedisTemplate<?, ?> getRedisTemplate(){    
+    RedisTemplate<?,?> template = new StringRedisTemplate(getConnectionFactory());    
+    return template;    
+  }       
+}  
+```
+
+> 注意：其中`JedisConnectionFactory`中包含`dbIndex`、`hostName`、`password`、`port`、`timeout`、`poolConfig`几个成员变量。`JedisPoolConfig`包含`maxIdle`、`minIdle`、`maxActive`、`maxWait`几个成员变量。 
+
+`@ConfigurationProperties`可以通过属性`ignoreInvalidFields`来决定是否忽略非法字段（默认为`false`，表示出现非法字段会报错），还可以通过属性`ignoreUnknownFields`来决定是否忽略未知字段（默认为`true`）。
 
 ##### 应用属性名与Bean属性名的映射规则
 
@@ -866,13 +1005,17 @@ public class AcmeProperties {
 
 还可以自己实现一个`Validator`，并将它注册为名叫`configurationPropertiesValidator`的Bean。注册它的`@Bean`方法应该要声明为`static`。例如，参见： [property validation sample](https://github.com/spring-projects/spring-boot/tree/v2.0.2.RELEASE/spring-boot-samples/spring-boot-sample-property-validation) 。
 
-##### @ConfigurationProperties vs. @Value
+##### @ConfigurationProperties 与 @Value 的比较
 
 | Feature                                                      | `@ConfigurationProperties` | `@Value` |
 | ------------------------------------------------------------ | -------------------------- | -------- |
 | [Relaxed binding](https://docs.spring.io/spring-boot/docs/2.0.2.RELEASE/reference/htmlsingle/#boot-features-external-config-relaxed-binding) | Yes                        | No       |
 | [Meta-data support](https://docs.spring.io/spring-boot/docs/2.0.2.RELEASE/reference/htmlsingle/#configuration-metadata) | Yes                        | No       |
 | `SpEL` evaluation                                            | No                         | Yes      |
+
+#### 通过`Environment`获取应用属性
+
+参见“@PropertySource”。
 
 ### 属性转换
 
@@ -1245,7 +1388,197 @@ Spring Boot CLI在`Bash`和`Zsh` Shell中，可以支持自动补全，只要按
 
 # 日志
 
-默认显示`INFO`日志消息。
+## 引入依赖
+
+Spring Boot默认使用 [Apache Commons Logging](https://commons.apache.org/logging) 作为它的通用日志接口，日志系统的具体实现，则留给用户选择。只要类路径中包含某个日志系统的库文件，该日志系统就会变得可用。
+
+可以使用**系统属性**`org.springframework.boot.logging.LoggingSystem`  强制使用指定日志系统，它的值是`LoggingSystem`实现类的完全限定名。如果要完全禁用Spring Boot的日志配置，可以将该系统属性设置为`none`。
+
+> 日志系统在`ApplicationContext` 创建之前被初始化，因此，通过`@PropertySource`标注加载的日志属性是无法控制（启用或禁用）日志系统的。唯一的方法是通过系统属性来控制日志系统。
+>
+> Java Util Logging 在“executable jar ”中会有问题，尽量不使用它。
+
+### 引入Logback
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-logging</artifactId>
+</dependency>
+```
+
+实际开发中我们不需要直接添加该依赖。 因为， Spring Boot 的 “Starters” 默认采用Logback记录日志（你会发现`spring-boot-starter`其中包含了 `spring-boot-starter-logging`），并用`INFO`级别（包括`ERROR`、`WARN`和`INFO`日志）输出到控制台。 
+
+### 引入Log4j2
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter</artifactId>
+  <exclusions>
+    <exclusion>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-logging</artifactId>
+    </exclusion>
+  </exclusions>
+</dependency>
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-log4j2</artifactId>
+</dependency>
+```
+
+
+
+## 使用
+
+```java
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class LoggerTests {
+	private static final Logger logger = LoggerFactory.getLogger(LoggerTests.class);
+  
+	@Test
+	public void test1() {
+    logger.info("info...");
+    logger.debug("debug...");
+    logger.error("error...");
+	}
+}
+```
+
+## 日志输出格式
+
+默认输出格式：
+
+- Date and Time: Millisecond precision and easily sortable.
+- Log Level: `ERROR`, `WARN`, `INFO`, `DEBUG`, or `TRACE`.
+- Process ID.
+- A `---` separator to distinguish the start of actual log messages.
+- Thread name: Enclosed in square brackets (may be truncated for console output).
+- Logger name: This is usually the source class name (often abbreviated).
+- The log message.
+
+```
+2014-03-05 10:57:51.112  INFO 45469 --- [           main] org.apache.catalina.core.StandardEngine  : Starting Servlet Engine: Apache Tomcat/7.0.52
+2014-03-05 10:57:51.253  INFO 45469 --- [ost-startStop-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+
+```
+
+
+
+## 输出到文件
+
+| `logging.file` | `logging.path` | Description                                               |
+| -------------- | -------------- | --------------------------------------------------------- |
+| *(none)*       | *(none)*       | 输出到控制台。                                            |
+| `my.log`       | *(none)*       | 输出到 `my.log` 文件。指定的文件可以是绝对或相对路径。    |
+| *(none)*       | `/var/log`     | 输出到 `/var/log/spring.log` 文件。可以是绝对或相对路径。 |
+
+> 两者同时设置，则只有`logging.file`生效。
+
+默认情况，当日志文件达到10MB时，会将日志文件归档，并产生新的日志文件。
+
+日志文件大小限制可以通过`logging.file.max-size`属性设置。
+
+归档的日志文件默认是永久保存，也可以通过`logging.file.max-history`属性来设置保存期限。
+
+## 日志级别设置
+
+可以通过如下形式的应用属性来设置日志级别：
+
+```properties
+logging.level.LOGGER_NAME=LEVEL
+```
+
+LEVEL可以取：`TRACE`、`DEBUG`、`INFO`、`WARN`、`ERROR`、`FATAL`或`OFF`。 
+
+> Logback没有`FATAL`级别，它会被映射到`ERROR`。
+
+根日志记录器可以使用`logging.level.root`来配置。
+
+例如：
+
+```properties
+logging.level.root=WARN
+logging.level.org.springframework.web=DEBUG
+logging.level.org.hibernate=ERROR
+```
+
+或者：
+
+```yaml
+logging:
+  level:
+    root: WARN
+    org.springframework.web: DEBUG
+    level.org.hibernate: ERROR
+```
+
+## 日志应用属性与系统属性的对应
+
+| Spring Environment                  | System Property                 | Comments                                                     |
+| ----------------------------------- | ------------------------------- | ------------------------------------------------------------ |
+| `logging.exception-conversion-word` | `LOG_EXCEPTION_CONVERSION_WORD` | The conversion word used when logging exceptions.            |
+| `logging.file`                      | `LOG_FILE`                      | If defined, it is used in the default log configuration.     |
+| `logging.file.max-size`             | `LOG_FILE_MAX_SIZE`             | Maximum log file size (if LOG_FILE enabled). (Only supported with the default Logback setup.) |
+| `logging.file.max-history`          | `LOG_FILE_MAX_HISTORY`          | Maximum number of archive log files to keep (if LOG_FILE enabled). (Only supported with the default Logback setup.) |
+| `logging.path`                      | `LOG_PATH`                      | If defined, it is used in the default log configuration.     |
+| `logging.pattern.console`           | `CONSOLE_LOG_PATTERN`           | The log pattern to use on the console (stdout). (Only supported with the default Logback setup.) |
+| `logging.pattern.dateformat`        | `LOG_DATEFORMAT_PATTERN`        | Appender pattern for log date format. (Only supported with the default Logback setup.) |
+| `logging.pattern.file`              | `FILE_LOG_PATTERN`              | The log pattern to use in a file (if `LOG_FILE` is enabled). (Only supported with the default Logback setup.) |
+| `logging.pattern.level`             | `LOG_LEVEL_PATTERN`             | The format to use when rendering the log level (default `%5p`). (Only supported with the default Logback setup.) |
+| `PID`                               | `PID`                           | The current process ID (discovered if possible and when not already defined as an OS environment variable). |
+
+## 使用日志系统自己的配置
+
+ 使用应用属性文件只能简单配置日志系统，在Spring Boot项目中，可以提供日志系统自己的配置文件。
+
+这些配置文件默认放在类路径的根，或者通过应用属性`logging.config`来指定日志配置文件。
+
+默认各日志系统的配置文件名如下：
+
+| Logging System          | Customization                                                |
+| ----------------------- | ------------------------------------------------------------ |
+| Logback                 | `logback-spring.xml`, `logback-spring.groovy`, `logback.xml`, or `logback.groovy` |
+| Log4j2                  | `log4j2-spring.xml` or `log4j2.xml`                          |
+| JDK (Java Util Logging) | `logging.properties`                                         |
+
+> 推荐使用带`-spring`的配置文件名，否则，Spring可能无法完全控制日志的初始化。因为，那些日志系统的默认配置文件名（例如：`logback.xml`），会在应用上下文创建之前就加载了。而使用带`-spring`的配置文件名或由`logging.config` 指定的配置文件，则会在应用上下文创建过程中加载。
+>
+
+如果要在日志配置文件中使用占位符，要使用 [Spring Boot’s syntax](https://docs.spring.io/spring-boot/docs/2.0.2.RELEASE/reference/htmlsingle/#boot-features-external-config-placeholders-in-properties)  ，而不要使用日志系统自己的语法。
+
+使用Logback时，属性名与它的默认值之间的分隔符应该使用`:`，而不是使用`:-`。
+
+### Logback扩展
+
+Logback的配置文件的`<configuration>`元素中，可以使用`<springProfile>`来基于Spring profile来配置日志：
+
+```xml
+<configuration>
+  <springProfile name="staging">
+    <!-- configuration to be enabled when the "staging" profile is active -->
+  </springProfile>
+
+  <springProfile name="dev, staging">
+    <!-- configuration to be enabled when the "dev" or "staging" profiles are active -->
+  </springProfile>
+
+  <springProfile name="!production">
+    <!-- configuration to be enabled when the "production" profile is not active -->
+  </springProfile>
+</configuration>
+```
+
+
 
 # Web
 
