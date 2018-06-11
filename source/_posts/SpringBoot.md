@@ -216,7 +216,7 @@ $ java -jar target/demo-0.0.1-SNAPSHOT.jar
 
 应用成功启动后，打开浏览器，访问：<http://localhost:8080/say>，就可以看到结果了。
 
-可以按`Ctrl-C`关闭应用。
+可以按`Ctrl-C` 停止应用。
 
 > 有时运行一个Web应用两次会出现端口占用情况，如果使得STS，可以使用它的`Relaunch`按钮来运行应用，而不是使用`Run`按钮来运行。`Relaunch`可以确保在运行应用之前，任何已经运行的实例被关闭。
 
@@ -1390,7 +1390,7 @@ Spring Boot CLI在`Bash`和`Zsh` Shell中，可以支持自动补全，只要按
 
 ## 引入依赖
 
-Spring Boot默认使用 [Apache Commons Logging](https://commons.apache.org/logging) 作为它的通用日志接口，日志系统的具体实现，则留给用户选择。只要类路径中包含某个日志系统的库文件，该日志系统就会变得可用。
+Spring Boot内部日志都是使用 [Apache Commons Logging](https://commons.apache.org/logging) 作为通用日志接口（自己的日志可以选择Slf4j或Commons Logging），日志系统的具体实现，则留给用户选择。只要类路径中包含某个日志系统的库文件，该日志系统就会变得可用。
 
 可以使用**系统属性**`org.springframework.boot.logging.LoggingSystem`  强制使用指定日志系统，它的值是`LoggingSystem`实现类的完全限定名。如果要完全禁用Spring Boot的日志配置，可以将该系统属性设置为`none`。
 
@@ -1407,7 +1407,9 @@ Spring Boot默认使用 [Apache Commons Logging](https://commons.apache.org/logg
 </dependency>
 ```
 
-实际开发中我们不需要直接添加该依赖。 因为， Spring Boot 的 “Starters” 默认采用Logback记录日志（你会发现`spring-boot-starter`其中包含了 `spring-boot-starter-logging`），并用`INFO`级别（包括`ERROR`、`WARN`和`INFO`日志）输出到控制台。 
+实际开发中我们不需要直接添加该依赖。 因为， Spring Boot 的 “Starters” 默认都采用Logback记录日志（你会发现`spring-boot-starter`其中包含了 `spring-boot-starter-logging`），并用`INFO`级别（包括`ERROR`、`WARN`和`INFO`日志）输出到控制台。 
+
+这个Starter也会引入Slf4j，可以用来代替Common Logging来作为通用日志接口。
 
 ### 引入Log4j2
 
@@ -1428,7 +1430,7 @@ Spring Boot默认使用 [Apache Commons Logging](https://commons.apache.org/logg
 </dependency>
 ```
 
-
+这个Starter也会引入Slf4j，可以用来代替Common Logging来作为通用日志接口。
 
 ## 使用
 
@@ -1541,9 +1543,7 @@ logging:
 
  使用应用属性文件只能简单配置日志系统，在Spring Boot项目中，可以提供日志系统自己的配置文件。
 
-这些配置文件默认放在类路径的根，或者通过应用属性`logging.config`来指定日志配置文件。
-
-默认各日志系统的配置文件名如下：
+这些配置文件默认放在类路径的根，默认各日志系统的配置文件名如下：
 
 | Logging System          | Customization                                                |
 | ----------------------- | ------------------------------------------------------------ |
@@ -1554,7 +1554,13 @@ logging:
 > 推荐使用带`-spring`的配置文件名，否则，Spring可能无法完全控制日志的初始化。因为，那些日志系统的默认配置文件名（例如：`logback.xml`），会在应用上下文创建之前就加载了。而使用带`-spring`的配置文件名或由`logging.config` 指定的配置文件，则会在应用上下文创建过程中加载。
 >
 
-如果要在日志配置文件中使用占位符，要使用 [Spring Boot’s syntax](https://docs.spring.io/spring-boot/docs/2.0.2.RELEASE/reference/htmlsingle/#boot-features-external-config-placeholders-in-properties)  ，而不要使用日志系统自己的语法。
+也可以通过应用属性`logging.config`来指定自己的日志配置文件：
+
+```properties
+logging.config=classpath:logging-config.xml
+```
+
+如果要在日志配置文件中使用占位符，要使用 [Spring Boot’s syntax](https://docs.spring.io/spring-boot/docs/2.0.2.RELEASE/reference/htmlsingle/#boot-features-external-config-placeholders-in-properties) ，而不要使用日志系统自己的语法。
 
 使用Logback时，属性名与它的默认值之间的分隔符应该使用`:`，而不是使用`:-`。
 
@@ -1578,6 +1584,74 @@ Logback的配置文件的`<configuration>`元素中，可以使用`<springProfil
 </configuration>
 ```
 
+> 要使用Spring的Logback扩展，日志配置文件名必须是带`-spring`的，例如：`logback-spring.xml`。
+
+### 日志配置文件示例
+
+#### Logback
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration
+               xmlns="http://ch.qos.logback/xml/ns/logback"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://ch.qos.logback/xml/ns/logback https://raw.githubusercontent.com/enricopulatzo/logback-XSD/master/src/main/xsd/logback.xsd">
+  <property name="LOG_HOME" value="tp/log"/>
+  
+  <!-- 输出到控制台 -->
+  <appender name="consoleLog" class="ch.qos.logback.core.ConsoleAppender" >
+    <!-- 输出的格式 -->
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}:  %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- 输出到文件 -->
+  <appender name="infoFileLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <filter class="ch.qos.logback.classic.filter.LevelFilter">
+      <level>ERROR</level>
+      <onMatch>DENY</onMatch>
+      <onMismatch>ACCEPT</onMismatch>
+    </filter>
+    <!-- 配置滚动的策略 -->
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- 日志名称的格式 -->
+      <fileNamePattern>${LOG_HOME}/logback.info.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <!-- 保存的最长时间：天数 -->
+      <MaxHistory>30</MaxHistory>
+    </rollingPolicy>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}:  %msg%n</pattern>
+    </encoder>
+  </appender>
+  
+  <appender name="errorFileLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>ERROR</level>
+    </filter>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_HOME}/logback.error.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <MaxHistory>30</MaxHistory>
+    </rollingPolicy>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}:  %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- 各子日志的配置 -->
+  <logger name="ws.log.logback.LogbackTest" additivity="false" level="DEBUG">
+    <appender-ref ref="consoleLog" />
+  </logger>
+  
+  <!-- root日志配置 -->
+  <root level="info">
+    <appender-ref ref="consoleLog" />
+    <appender-ref ref="infoFileLog" />
+    <appender-ref ref="errorFileLog" />
+  </root>
+</configuration>
+```
+
 
 
 # Web
@@ -1594,6 +1668,79 @@ Logback的配置文件的`<configuration>`元素中，可以使用`<springProfil
   <artifactId>spring-boot-starter-web</artifactId>
 </dependency>
 ```
+
+默认内嵌Tomcat。
+
+### Spring MVC的自动配置
+
+Spring Boot为Spring MVC提供了如下自动配置：
+
+- 引入`ContentNegotiatingViewResolver` 和`BeanNameViewResolver`  beans。
+- 静态资源支持（包括WebJars支持）。
+- 自动注册 `Converter`、`GenericConverter`和`Formatter` beans。
+- `HttpMessageConverters`  支持。
+- 自动注册 `MessageCodesResolver` 。
+- 静态`index.html`支持。
+- 自制`Favicon`支持。
+- 自动应用`ConfigurableWebBindingInitializer` bean。
+
+如果你想保留Spring Boot MVC自动配置的特性，同时还想加一些MVC额外的配置（例如，拦截器、格式化器等），你可以添加自己的`@Configuration`类，并实现`WebMvcConfigurer` 接口，但是**不能**标注`@EnableWebMvc`。
+
+如果你想完全控制Spring MVC，则你可以添加自己的`@Configuration`类，并标注上`@EnableWebMvc`。
+
+### HttpMessageConverters
+
+Spring MVC使用`HttpMessageConverter`  接口来转换HTTP请求和响应。字符串默认以`UTF-8`编码。
+
+如果需要添加或重写转换器，则可以使用Spring Boot的`HttpMessageConverters`  类（注意：末尾多了个`s`）：
+
+```java
+import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
+import org.springframework.context.annotation.*;
+import org.springframework.http.converter.*;
+
+@Configuration
+public class MyConfiguration {
+	@Bean
+	public HttpMessageConverters customConverters() {
+		HttpMessageConverter<?> additional = ...
+		HttpMessageConverter<?> another = ...
+		return new HttpMessageConverters(additional, another);
+	}
+}
+```
+
+### 定制JSON的序列化和反序列化
+
+如果使用Jackson去序列化和反序列化JSON数据，则可以通过实现自己的`JsonSerializer` 和`JsonDeserializer`  类来定制JSON的序列化和反序列化过程。
+
+定制序列化器和反序列化器，通常通过 [registered with Jackson through a module](http://wiki.fasterxml.com/JacksonHowToCustomDeserializers) ，但是Spring Boot提供了一个`@JsonComponent` 标注来简化这项工作。
+
+你能使用`@JsonComponent` 直接标注在`JsonSerializer` 和`JsonDeserializer` 实现上，也可以将它标注在一个包含序列化器和反序列化器内部类的类上：
+
+```java
+import java.io.*;
+import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.databind.*;
+import org.springframework.boot.jackson.*;
+
+@JsonComponent
+public class Example {
+	public static class Serializer extends JsonSerializer<SomeObject> {
+		// ...
+	}
+
+	public static class Deserializer extends JsonDeserializer<SomeObject> {
+		// ...
+	}
+}
+```
+
+`@JsonComponent` 包含了`@Component`。
+
+另外，Spring Boot还提供了[`JsonObjectSerializer`](https://github.com/spring-projects/spring-boot/tree/v2.0.2.RELEASE/spring-boot-project/spring-boot/src/main/java/org/springframework/boot/jackson/JsonObjectSerializer.java) 和[`JsonObjectDeserializer`](https://github.com/spring-projects/spring-boot/tree/v2.0.2.RELEASE/spring-boot-project/spring-boot/src/main/java/org/springframework/boot/jackson/JsonObjectDeserializer.java)  基础实现类。
+
+### MessageCodesResolver
 
 ### 静态内容
 
@@ -1637,13 +1784,31 @@ spring.mvc.static-path-patter=/resources/**
 
 ## WebFlux
 
+### 引入依赖
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-webflux</artifactId>
+</dependency>
+<dependency>
+  <groupId>io.projectreactor</groupId>
+  <artifactId>reactor-test</artifactId>
+  <scope>test</scope>
+</dependency>
+```
+
+默认内嵌Netty。
+
 ## Jersey（JAX-RS）
 
 ## WebSocket
 
 ## Web服务
 
-## 内嵌Sevlet容器
+## 内嵌HTTP服务器
+
+Spring Boot应用可以内嵌Tomcat、Jetty、Undertow或Netty HTTP服务器。
 
 # 安全
 
@@ -1659,7 +1824,7 @@ spring.mvc.static-path-patter=/resources/**
 
 # 消息系统
 
-# 发送邮件
+# 收发邮件
 
 # 分布式事务
 
