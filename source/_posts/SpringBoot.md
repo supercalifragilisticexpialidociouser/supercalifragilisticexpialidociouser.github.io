@@ -1740,11 +1740,15 @@ public class Example {
 
 另外，Spring Boot还提供了[`JsonObjectSerializer`](https://github.com/spring-projects/spring-boot/tree/v2.0.2.RELEASE/spring-boot-project/spring-boot/src/main/java/org/springframework/boot/jackson/JsonObjectSerializer.java) 和[`JsonObjectDeserializer`](https://github.com/spring-projects/spring-boot/tree/v2.0.2.RELEASE/spring-boot-project/spring-boot/src/main/java/org/springframework/boot/jackson/JsonObjectDeserializer.java)  基础实现类。
 
-### MessageCodesResolver
+### ？MessageCodesResolver
+
+Spring MVC有一个策略，用于从绑定的错误产生用来渲染错误信息的错误码：`MessageCodesResolver`。如果设置`spring.mvc.message-codes-resolver.format`属性为`PREFIX_ERROR_CODE`或`POSTFIX_ERROR_CODE`，Spring Boot会为你创建一个`MessageCodesResolver`（参见：[`DefaultMessageCodesResolver.Format`](https://docs.spring.io/spring/docs/5.0.6.RELEASE/javadoc-api/org/springframework/validation/DefaultMessageCodesResolver.Format.html)）。 
 
 ### 静态内容
 
-默认情况，Spring MVC的静态资源将位于类路径中的下列目录之一：
+#### 资源映射
+
+默认情况，Spring MVC的静态资源将位于类路径或`ServletContext`的根中的下列目录之一：
 
 - /META-INF/resources/
 - /resources/
@@ -1775,12 +1779,94 @@ FreeMarker视图默认的后缀是`.ftl`，Thymeleaf视图默认的后缀是`.ht
 资源默认是映射到`/**`路径，可以通过`spring.mvc.static-path-pattern`来自定义映射路径。例如：
 
 ```properties
-spring.mvc.static-path-patter=/resources/**
+spring.mvc.static-path-pattern=/resources/**
 ```
 
 则上例中的`/resources/static/css/ztree.css`将映射为`/resources/css/ztree.css`。
 
+可以通过`spring.resources.static-locations`  属性自定义静态资源的位置，这样默认位置将不可用：
 
+```properties
+spring.resources.static-locations=classpath:/foo/**,file:/bar/**
+```
+
+> ServletContext的根`/`自动加入`static-locations`中。
+
+如果只是希望增加静态资源位置，而不是覆盖默认位置，默认位置仍有效，则可以提供自己的`WebMvcConfigurer` 配置类，并重写`addResourceHandlers`  方法，添加自己的资源映射：
+
+```java
+@Configuration
+public class MyWebAppConfigurer 
+  	extends WebMvcConfigurerAdapter {
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry.addResourceHandler("/myres/**").addResourceLocations("classpath:/myres/", "file:/myres2/");
+    super.addResourceHandlers(registry);
+  }
+}
+```
+
+> 如果我们的应用打包成jar形式，则不要使用`src/main/webapp`目录，它只在war形式的包中可用。
+
+另外，任何映射到`/webjars/**`下的资源，都将从Webjars格式的jar中提取。例如：
+
+```html
+<script type="text/javascript" src="${pageContext.request.contextPath }/webjars/jquery/2.1.4/jquery.js"></script>
+```
+
+要实现上述对jQuery的访问，只需要添加jQuery的Webjars依赖：
+
+```xml
+<dependency>
+  <groupId>org.webjars</groupId>
+  <artifactId>jquery</artifactId>
+  <version>2.1.4</version>
+</dependency>
+```
+
+在实际开发中，可能会遇到升级版本号的情况，如果我们有100多个页面，几乎每个页面上都有按上面引入`jquery.js` 那么我们要把版本号更换为`3.0.0`，一个一个替换显然不是最好的办法。 如何来解决？按如下方法处理即可。
+
+首先在`pom.xml` 中添加依赖：
+
+```xml
+<dependency>
+  <groupId>org.webjars</groupId>
+  <artifactId>webjars-locator-core</artifactId>
+</dependency>
+```
+
+这样就可以忽略webjars的版本号了：
+
+```html
+<script type="text/javascript" src="${pageContext.request.contextPath }/webjars/jquery/jquery.js"></script>
+```
+
+#### 缓存问题
+
+当我们的资源内容发生改变时，由于浏览器缓存，用户本地的资源还是旧资源。防止这种情况最常见的方法是对资源名进行哈希处理。
+
+例如，只要配置如下属性：
+
+```properties
+spring.resources.chain.strategy.content.enabled=true
+spring.resources.chain.strategy.content.paths=/**
+```
+
+则只要资源内容发生变化，它的名字将被哈希化：`<link href="/css/spring-2a2d595e6ed9a0b24f027f2b63b134d6.css"/>` 。
+
+这种处理是由`ResourceUrlEncodingFilter`  来完成的，Spring  Boot自动为Thymeleaf和FreeMarker配置了该过滤器，而JSP要手动配置。
+
+还有一种方式来解决缓存问题，就是在URL中加上版本号。这只需要配置如下：
+
+```properties
+spring.resources.chain.strategy.fixed.enabled=true
+spring.resources.chain.strategy.fixed.paths=/js/lib/
+spring.resources.chain.strategy.fixed.version=v12
+```
+
+这样，`/js/lib/`下的资源，将通过`/v12/js/lib/…`来访问。
+
+以上两种解决缓存问题的方法可以同时使用。
 
 ## WebFlux
 
