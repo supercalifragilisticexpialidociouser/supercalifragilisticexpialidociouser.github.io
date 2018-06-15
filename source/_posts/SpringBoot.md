@@ -527,6 +527,8 @@ Spring Boot按下列顺序加载应用属性，顺序靠前的应用属性优先
 3. 类路径中的`/config`包中（`classpath:/config`）；
 4. 类路径的根中（`classpath:/`）。
 
+> 当前目录是指执行`java -jar`命令时所在的目录。
+
 如果不喜欢应用属性文件名的`application`部分，可以通过环境变量`SPRING_CONFIG_NAME`或系统属性`spring.config.name`来自己指定一个名字：
 
 ```bash
@@ -1748,14 +1750,14 @@ Spring MVC有一个策略，用于从绑定的错误产生用来渲染错误信�
 
 #### 资源映射
 
-默认情况，Spring MVC的静态资源将位于类路径或`ServletContext`的根中的下列目录之一：
+默认情况，Spring MVC的静态资源将位于类路径或`ServletContext`的根中的下列路径之一：
 
 - /META-INF/resources/
-- /resources/
+- /resources/（注意：`src/main/resources`是类路径的根，这里的`/resources/`应该位于它下面）
 - /static/
 - /public/
 
-视图模板文件默认位于`/resources/templates`目录下。例如：
+由Spring Boot自动配置的模板引擎，它的视图模板文件默认位于`classpath:/templates`目录下。例如：
 
 ```java
 @RequestMapping("/foo")
@@ -1764,17 +1766,17 @@ public String foo() {
 }
 ```
 
-上面代码中视图将会定位到`/resources/templates/admin/foo.ftl`。
+上面代码中视图将会定位到`src/main/resources/templates/admin/foo.ftl`。
 
 FreeMarker视图默认的后缀是`.ftl`，Thymeleaf视图默认的后缀是`.html`。默认后缀可以省略。
 
-视图模板文件中引用的静态资源文件，将默认放在`/resources/static`目录下。假如，`foo.ftl`中有如下引用：
+视图模板文件中引用的静态资源文件，将默认放在`classpath:/static`目录下。假如，`foo.ftl`中有如下引用：
 
 ```html
 <link href="/css/ztree.css" rel="stylesheet"/>
 ```
 
-则Spring Boot将会定位到`/resources/static/css/ztree.css`。
+则Spring Boot将会定位到``src/main/resources/static/css/ztree.css`。
 
 资源默认是映射到`/**`路径，可以通过`spring.mvc.static-path-pattern`来自定义映射路径。例如：
 
@@ -1782,7 +1784,7 @@ FreeMarker视图默认的后缀是`.ftl`，Thymeleaf视图默认的后缀是`.ht
 spring.mvc.static-path-pattern=/resources/**
 ```
 
-则上例中的`/resources/static/css/ztree.css`将映射为`/resources/css/ztree.css`。
+则上例中的``src/main/resources/static/css/ztree.css`将映射为`/resources/css/ztree.css`。
 
 可以通过`spring.resources.static-locations`  属性自定义静态资源的位置，这样默认位置将不可用：
 
@@ -1867,6 +1869,184 @@ spring.resources.chain.strategy.fixed.version=v12
 这样，`/js/lib/`下的资源，将通过`/v12/js/lib/…`来访问。
 
 以上两种解决缓存问题的方法可以同时使用。
+
+### 欢迎页面
+
+Spring Boot的欢迎页面既可以是静态的，也可以是模板化的。
+
+Spring Boot首先在静态资源所在的位置处查找名为`index.html`的静态欢迎页面，如果没找到，则继续查找名为`index`的模板文件作为欢迎页面。
+
+### 定制网站图标
+
+Spring Boot自动从静态资源所在位置或类路径根下查找名为`favicon.ico`的文件作为网站图标。
+
+### 路径匹配和内容协商机制
+
+在HTTP请求映射时，Spring Boot默认禁用后缀模式匹配。例如，请求`GET /projects/spring-boot.json`  不会匹配映射`@GetMapping("/projects/spring-boot")` 。
+
+以往使用这种后缀模式匹配的原因是，许多HTTP客户端并不发送合适的“Accept”请求头。
+
+现在处理HTTP客户端不发送合适的“Accept”请求头的更好的方式是使用查询参数`format=…`。例如：请求`GET /projects/spring-boot?format=json` 可以匹配 `@GetMapping("/projects/spring-boot")`  。为了使用这种查询参数的方式，要做如下配置：
+
+```properties
+spring.mvc.contentnegotiation.favor-parameter=true
+
+# We can change the parameter name, which is "format" by default:
+# spring.mvc.contentnegotiation.parameter-name=myparam
+
+# We can also register additional file extensions/media types with:（从而可以使用“format=markdown”查询参数，从而响应“text/markdown”类型内容）
+spring.mvc.contentnegotiation.media-types.markdown=text/markdown
+```
+
+当然，Spring Boot仍然支持后缀模式，只需要做如下配置：
+
+```properties
+spring.mvc.contentnegotiation.favor-path-extension=true
+
+# You can also restrict that feature to known extensions only
+# spring.mvc.pathmatch.use-registered-suffix-pattern=true
+
+# We can also register additional file extensions/media types with:（从而以“.adoc”为后缀的路径，将响应“text/asciidoc”类型内容）
+# spring.mvc.contentnegotiation.media-types.adoc=text/asciidoc
+```
+
+### ？ConfigurableWebBindingInitializer
+
+Spring MVC使用`WebBindingInitializer`为特定请求初始化`WebDataBinder`。 如果您创建自己的`ConfigurableWebBindingInitializer` Bean，Spring Boot会自动配置Spring MVC以使用它。 
+
+### 模板引擎
+
+Spring MVC支持各种模板引擎技术。其中，Spring Boot 对如下模板引擎提供了自动配置支持：
+
+- [FreeMarker](https://freemarker.org/docs/)
+- [Groovy](http://docs.groovy-lang.org/docs/next/html/documentation/template-engines.html#_the_markuptemplateengine)
+- [Thymeleaf](http://www.thymeleaf.org/)
+- [Mustache](https://mustache.github.io/)
+
+> 尽管Spring Boot也支持JSP，但应该避免使用，因为它在内嵌Servlet容器中会有问题。
+
+在Spring Boot 项目中，可通过添加下列依赖之一，来启用相应模板引擎：
+
+```xml
+<!-- Freemarker依赖 -->
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-freemarker</artifactId>
+</dependency>
+
+<!-- Groovy模板引擎依赖 -->
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-groovy-templates</artifactId>
+</dependency>
+
+<!-- Thymeleaf依赖 -->
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+
+<!-- Mustache依赖 -->
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-mustache</artifactId>
+</dependency>
+```
+
+
+
+### 错误处理
+
+默认情况下，Spring Boot使用`BasicErrorController`自动提供了两个`/error`映射（一个响应JSON，另一个响应HTML），用于处理所有错误。
+
+#### 定制错误视图
+
+如果要定制响应的HTML视图（默认是一个“Whitelabel”错误视图），只需创建一个名为`error`的视图既可。`error`视图文件可以是静态HTML（放在静态资源目录中），也可以是模板文件。
+
+默认错误视图的URL是`/error`，我们可以通过应用属性`error.path`来定制错误视图的URL。
+
+Spring Boot还允许我们为指定的状态码提供定制的错误页面。只需将错误视图文件放到`/error/`目录下，错误视图文件名必须是具体的状态码，或带有`x`掩码的状态码。
+
+例如，为`404`状态码映射一个静态HTML文件，为所有`5xx`错误映射一个FreeMarker模板：
+
+```
+src/
+ +- main/
+     +- java/
+     |   + <source code>
+     +- resources/
+         +- public/
+             +- error/
+             |   +- 404.html
+             +- <other public assets>
+         +- templates/
+             +- error/
+             |   +- 5xx.ftl
+             +- <other templates>
+```
+
+
+
+#### 定制错误视图内容
+
+如果要定制错误视图所展示的内容，可以注册一个类型为`ErrorAttributes`  的Bean。该Bean为错误视图提供数据，并会继续沿用已存在的错误处理机制。
+
+下面代码是`ErrorMvcAutoConfiguration` 为Spring Boot自动配置的`ErrorAttributes`  Bean：
+
+```java
+@Bean
+@ConditionalOnMissingBean(value = ErrorAttributes.class, search = SearchStrategy.CURRENT)
+public DefaultErrorAttributes errorAttributes() {
+  return new DefaultErrorAttributes(
+    this.serverProperties.getError().isIncludeException());
+}
+```
+
+下面是自定义`ErrorAttributes`  Bean的例子：
+
+```java
+@Bean
+public DefaultErrorAttributes errorAttributes() {
+  return new DefaultErrorAttributes() {
+    @Override
+    public Map<String, Object> getErrorAttributes (RequestAttributes requestAttributes,
+                                                   boolean includeStackTrace) {
+      Map<String, Object> errorAttributes = super.getErrorAttributes(requestAttributes, includeStackTrace);
+      errorAttributes.remove("error");
+      errorAttributes.remove("exception");
+      return errorAttributes;
+    }
+  };
+}
+```
+
+另外，也可以定义一个标注`@ControllerAdvice`的类，它将为指定的控制器或指定的异常类型返回自定义的JSON文档。例如：
+
+```java
+@ControllerAdvice(basePackageClasses = AcmeController.class)
+public class AcmeControllerAdvice extends ResponseEntityExceptionHandler {
+	@ExceptionHandler(YourException.class)
+	@ResponseBody
+	ResponseEntity<?> handleControllerException(HttpServletRequest request, Throwable ex) {
+		HttpStatus status = getStatus(request);
+		return new ResponseEntity<>(new CustomErrorType(status.value(), ex.getMessage()), status);
+	}
+
+	private HttpStatus getStatus(HttpServletRequest request) {
+		Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
+		if (statusCode == null) {
+			return HttpStatus.INTERNAL_SERVER_ERROR;
+		}
+		return HttpStatus.valueOf(statusCode);
+	}
+}
+```
+
+这样，如果与 `AcmeController` 在同一包中的某个控制器抛出了`YourException`异常，则错误视图将收到`handleControllerException` 方法返回的JSON格式的`CustomErrorType`  数据，以替代`ErrorAttributes`  为错误视图提供数据。
+
+#### 定制错误处理
+
+如果要完全替换默认的行为，则可以注册一个自己的错误控制器（`@Controller` ），并且它要实现`ErrorController`接口或者直接扩展`BasicErrorController`类。
 
 ## WebFlux
 
