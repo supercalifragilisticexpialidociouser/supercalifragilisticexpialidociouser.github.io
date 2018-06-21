@@ -1376,6 +1376,95 @@ public class MyBean implements CommandLineRunner {
 
 # Actuator
 
+Spring Boot Actuator为构建的应用提供一系列用于监控和管理的附加功能。
+
+您可以选择使用HTTP端点或JMX来管理和监控您的应用程序。 
+
+## 启用Actuator
+
+要启用Acturator，只需要加入如下依赖：
+
+```xml
+<dependencies>
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-actuator</artifactId>
+	</dependency>
+</dependencies>
+```
+
+加入Actuator依赖后，启动应用，就会发现Actuator根据应用依赖和配置，为我们自动创建了许多用于监控和管理的端点。通过这些端点，我们可以实时获取应用的各项监控指标。
+
+## Acturator端点
+
+Acturator提供的内置端点可分成三类：
+
+- 应用配置类：可获取应用程序中加载的应用配置、环境变量、自动化配置报告等。
+- 度量指标类：获取应用程序运行过程中用于监控的度量指标，比如内存信息、线程池信息、HTTP请求统计等。
+- 操作控制类：提供了对应用的关闭等操作功能。
+
+技术无关的端点：
+
+| ID               | Description                                                  | Enabled by default |
+| ---------------- | ------------------------------------------------------------ | ------------------ |
+| `auditevents`    | 公布当前应用程序的审计事件信息。                             | Yes                |
+| `beans`          | 显示应用程序中所有Spring bean的完整列表。                    | Yes                |
+| `conditions`     | Shows the conditions that were evaluated on configuration and auto-configuration classes and the reasons why they did or did not match. | Yes                |
+| `configprops`    | Displays a collated list of all `@ConfigurationProperties`.  | Yes                |
+| `env`            | Exposes properties from Spring’s `ConfigurableEnvironment`.  | Yes                |
+| `flyway`         | Shows any Flyway database migrations that have been applied. | Yes                |
+| `health`         | Shows application health information.                        | Yes                |
+| `httptrace`      | Displays HTTP trace information (by default, the last 100 HTTP request-response exchanges). | Yes                |
+| `info`           | Displays arbitrary application info.                         | Yes                |
+| `loggers`        | Shows and modifies the configuration of loggers in the application. | Yes                |
+| `liquibase`      | Shows any Liquibase database migrations that have been applied. | Yes                |
+| `metrics`        | Shows ‘metrics’ information for the current application.     | Yes                |
+| `mappings`       | Displays a collated list of all `@RequestMapping` paths.     | Yes                |
+| `scheduledtasks` | Displays the scheduled tasks in your application.            | Yes                |
+| `sessions`       | Allows retrieval and deletion of user sessions from a Spring Session-backed session store. Not available when using Spring Session’s support for reactive web applications. | Yes                |
+| `shutdown`       | Lets the application be gracefully shutdown.                 | No                 |
+| `threaddump`     | Performs a thread dump.                                      | Yes                |
+
+Spring MVC、Spring WebFlux或Jersey等框架专用的端点：
+
+| ID           | Description                                                  | Enabled by default |
+| ------------ | ------------------------------------------------------------ | ------------------ |
+| `heapdump`   | Returns a GZip compressed `hprof` heap dump file.            | Yes                |
+| `jolokia`    | Exposes JMX beans over HTTP (when Jolokia is on the classpath, not available for WebFlux). | Yes                |
+| `logfile`    | Returns the contents of the logfile (if `logging.file` or `logging.path` properties have been set). Supports the use of the HTTP `Range` header to retrieve part of the log file’s content. | Yes                |
+| `prometheus` | Exposes metrics in a format that can be scraped by a Prometheus server. | Yes                |
+
+### 启用或禁用端点
+
+每个端点都可以启用或禁用。这控制着端点是否被创建，并且它的bean是否存在于应用程序上下文中。
+
+默认情况下，除`shutdown` 以外的所有端点均已启用。 
+
+可以通过`management.endpoint.端点ID.enabled`  属性来启用或禁用指定端点：
+
+```properties
+management.endpoint.shutdown.enabled=true
+```
+
+`management.endpoints.enabled-by-default`用于启用或禁用所有端点：
+
+```properties
+management.endpoints.enabled-by-default=false
+management.endpoint.info.enabled=true
+```
+
+> 禁用的端点将从应用程序上下文中完全删除。如果您只想更改端点公布的技术，请改为使用`include`和`exclude`属性。 
+
+### 公布端点
+
+要远程访问端点，还必须通过JMX或HTTP进行公布。
+
+通过HTTP公布的端点，将被映射到`/actuator/端点ID`的URL上。例如，`health`端点被映射到`/actuator/health`上。
+
+### 自定义端点
+
+除了内置端点外，还允许您添加自己的端点。
+
 # Spring Boot CLI
 
 ## 安装
@@ -1660,7 +1749,7 @@ Logback的配置文件的`<configuration>`元素中，可以使用`<springProfil
 
 ## MVC
 
-### 引入依赖
+### 启用Spring MVC
 
 要在Spring Boot中集成Spring MVC框架，只需要加入下面依赖：
 
@@ -2270,7 +2359,7 @@ public class UserHandler {
 
 可以根据需要定义任意数量的`RouterFunction` Bean，以模块化路由器的定义。如果您需要应用优先级，则可以排序它们。 
 
-### 引入依赖
+### 启用WebFlux
 
 ```xml
 <dependency>
@@ -2367,6 +2456,18 @@ public class CustomErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
 ```
 
 > 您还可以直接继承`DefaultErrorWebExceptionHandler`并覆盖特定的方法。 
+
+### WebFilter
+
+Spring WebFlux提供了一个`WebFilter`接口，可以实现过滤HTTP请求-响应交换。
+
+如果过滤器的顺序很重要，可以实现`Ordered`或使用`@Order` 标注。 Spring Boot可以为你自动配置WebFilter。当它这样做时，将使用下表中显示的顺序： 
+
+| Web Filter                              | Order                            |
+| --------------------------------------- | -------------------------------- |
+| `MetricsWebFilter`                      | `Ordered.HIGHEST_PRECEDENCE + 1` |
+| `WebFilterChainProxy` (Spring Security) | `-100`                           |
+| `HttpTraceWebFilter`                    | `Ordered.LOWEST_PRECEDENCE - 10` |
 
 ## Jersey（JAX-RS）
 
