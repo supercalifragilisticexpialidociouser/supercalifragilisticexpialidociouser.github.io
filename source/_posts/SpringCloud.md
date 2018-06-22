@@ -81,6 +81,8 @@ Spring Cloud Commons是一组用于不同Spring Cloud实现（如Spring Cloud Ne
 
 Spring Cloud Eureka是基于Netflix Eureka做了二次封装，主要负责完成微服务架构中的服务治理功能（即微服务实例的自动化注册和发现）。
 
+![服务治理架构](SpringCloud/服务治理架构.png)
+
 服务注册：每个服务单元（Eureka客户端）向注册中心登记自己提供的服务，并周期性地发送心跳来更新它有服务租约，未及时更新服务租约的服务被认为是不可用的，将从服务清单中剔除，从而达到排除故障服务的效果。
 
 服务注册中心会维护类似下面的一个服务清单：
@@ -118,20 +120,6 @@ pom.xml：
     <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
   </dependency>
 </dependencies>
-```
-
-### 启用服务注册中心
-
-通过标注`@EnableEurekaServer`来启用服务注册中心：
-
-```java
-@SpringBootApplication
-@EnableEurekaServer
-public class Application {
-  public static void main(String[] args) {
-    new SpringApplicationBuilder(Application.class).web(true).run(args);
-  }
-}
 ```
 
 ### 配置注册中心
@@ -188,9 +176,21 @@ eureka:
 
 如果您在知道自己的主机名的机器上运行（默认情况下，它使用`java.net.InetAddress`查找），则不需要`eureka.instance.hostname`。 
 
-默认情况下，使用主机名来向注册中心注册。如果Java无法确定主机名，则将使用IP地址来注册。也可以显式设置使用IP地址来注册，只要设置`eureka.instance.preferIpAddress=true`（默认是`false`）。
-
 您可以将多个对等端添加到系统，并且只要它们两两至少通过一个边相互连接，就可以在它们之间同步注册。
+
+### 启用服务注册中心
+
+通过标注`@EnableEurekaServer`来启用服务注册中心：
+
+```java
+@SpringBootApplication
+@EnableEurekaServer
+public class Application {
+  public static void main(String[] args) {
+    new SpringApplicationBuilder(Application.class).web(true).run(args);
+  }
+}
+```
 
 ### 启动注册中心
 
@@ -202,9 +202,13 @@ Eureka提供的HTTP端点在 `/eureka/*` 下。
 
 ## Eureka客户端
 
-Eureka客户端使得Spring Boot应用可以向注册中心发布自己提供的服务。
+Eureka客户端使得Spring Boot应用可以向注册中心发布自己提供的服务（服务提供者），并且从注册中心发现并消费服务（服务消费者）。
 
-### 引入依赖
+Eureka客户端可以同时是服务消费者和服务提供者。
+
+### 服务提供者
+
+#### 引入依赖
 
 pom.xml：
 
@@ -228,49 +232,134 @@ pom.xml：
 </dependencies>
 ```
 
-### 启用DiscoveryClient
+只要在类路径中包含了`spring-cloud-starter-netflix-eureka-client`，Spring Boot应用程序将自动向Eureka服务器注册。 从而该应用就成了服务提供者。
+
+#### 配置Eureka客户端
+
+application.properties：
+
+```properties
+spring.application.name=hello-app
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
+```
+
+在对等模式下，defaultZone可以设置为：`eureka.client.serviceUrl.defaultZone=http://peer1/eureka/,http://peer2/eureka/`
+
+实际上，服务提供者只需要注册到一个注册中心，注册信息会被自动同步到相连的其他注册中心。这样，服务提供者的注册信息就可以通过这些注册中心中的任一台获得。
+
+默认情况下，使用主机名来向注册中心注册。如果Java无法确定主机名，则使用IP地址来注册。也可以显式设置使用IP地址来注册，只要设置`eureka.instance.preferIpAddress=true`（默认是`false`）。
+
+#### 服务下线
+
+当服务实例进行正常的关闭操作时，它会触发一个服务下线的REST请求给Eureka服务注册中心，告诉服务注册中心：”我要下线了“。服务注册中心在接收到下线请求后，将该服务的状态置为”下线“（DOWN），并把该下线事件传播出去。
+
+### 服务消费者
+
+服务消费者主要完成两个目标：发现服务和消费服务。其中发现服务由Eureka客户端完成，而服务消费则由Ribbon完成。
+
+#### 引入依赖
+
+要将一个Spring Boot应用变成一个服务消费者，需要添加如下依赖：
+
+pom.xml：
+
+```xml
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-dependencies</artifactId>
+      <version>Finchley.RELEASE</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
+<dependencies>
+  <dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+  </dependency>
+</dependencies>
+```
+
+#### 配置Eureka客户端
+
+application.properties：
+
+```properties
+spring.application.name=ribbon-consumer
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
+```
+
+#### 启用服务发现和客户端负载均衡
+
+接下来在应用主类中注册一个`RestTemplate` Bean，并通过`@LoadBalanced` 标注开启客户端负载均衡。
+
+Application.java：
 
 ```java
 @SpringBootApplication
 @EnableDiscoveryClient
 public class Application {
+  @Bean
+  @LoadBalanced
+  RestTemplate restTemplate() {
+    return new RestTemplate();
+  }
+  
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}
 }
 ```
 
-> `@EnableDiscoveryClient`不是必需的。只要在类路径上存在`DiscoveryClient`实现，Spring Boot应用程序就会向注册中心注册。 
+> `@EnableDiscoveryClient`不是必需的。只要在类路径上存在`DiscoveryClient`实现，Spring Boot应用程序就会向注册中心注册实例、服务续约、取消租约和查询服务功能。
 
-### 配置Eureka客户端
-
-application.properties：
-
-```properties
-spring.application.name=hello
-eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
-```
-
-在对等模式下，defaultZone可以设置为：`eureka.client.serviceUrl.defaultZone=http://peer1/eureka/,http://peer2/eureka/`
-
-### 注入DiscoveryClient
-
-在控制器中注入`DiscoveryClient`对象：
+#### 服务发现和消费
 
 ```java
 @RestController
-public class HelloController {
+public class ConsumerController {
   @Autowired
-  private DiscoveryClient client;
+  private RestTemplate restTemplate;
   
-  @RequestMapping(value="/hello", method=RequestMethod.GET)
-  public String index() {
-    …
+  @RequestMapping(value="/ribbon-consumer", method=RequestMethod.GET)
+  public String helloConsumer() {
+    // 这里访问的是一个服务名，而不是具体的地址。
+    return restTemplate.getForEntity("http://hello-app/hello", String.class).getBody();
   }
 }
 ```
 
+## 配置详解
 
+### 注册中心配置
+
+| 配置参数                               | 默认值 | 说明                                                         |
+| -------------------------------------- | ------ | ------------------------------------------------------------ |
+| eureka.server.enable-self-preservation | false  | 值为`true`时，Eureka 会统计15分钟之内心跳失败的比例如果低于85%将会触发保护机制，这时将不会剔除服务提供者。值为`false`时，服务注册中心会将不可用的实例正确剔除。 |
+
+### 服务实例配置
+
+| 配置参数                                             | 默认值  | 说明                                                         |
+| ---------------------------------------------------- | ------- | ------------------------------------------------------------ |
+| eureka.instance.prefer-ip-address                    | false   | 不使用主机名来定义注册中心的地址，而使用IP地址的形式，如果设置了eureka.instance.ip-address 属性，则使用该属性配置的IP，否则自动获取除环路IP外的第一个IP地址 |
+| eureka.instance.ip-address                           |         | IP地址                                                       |
+| eureka.instance.hostname                             |         | 设置当前实例的主机名称。                                     |
+| eureka.instance.appname                              |         | 服务名，默认取 spring.application.name 配置值，如果没有则为 unknown。同一服务有多个实例时，服务名是相同的。 |
+| eureka.instance.lease-renewal-interval-in-seconds    | 30      | 定义服务续约任务（心跳）的调用间隔，单位：秒                 |
+| eureka.instance.lease-expiration-duration-in-seconds | 90      | 定义服务失效的时间，单位：秒                                 |
+| eureka.instance.status-page-url-path                 | /info   | 状态页面的URL，相对路径，默认使用 HTTP 访问，如果需要使用 HTTPS则需要使用绝对路径配置 |
+| eureka.instance.status-page-url                      |         | 状态页面的URL，绝对路径                                      |
+| eureka.instance.health-check-url-path                | /health | 健康检查页面的URL，相对路径，默认使用 HTTP 访问，如果需要使用 HTTPS则需要使用绝对路径配置 |
+| eureka.instance.health-check-url                     |         | 健康检查页面的URL，绝对路径                                  |
+
+### 服务注册配置
 
 # 客户端负载均衡：Spring Cloud Ribbon
 
