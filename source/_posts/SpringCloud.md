@@ -156,6 +156,8 @@ application.yml：
 ---
 spring:
   profiles: peer1
+server:
+	port: 1111
 eureka:
   instance:
     hostname: peer1
@@ -166,6 +168,8 @@ eureka:
 ---
 spring:
   profiles: peer2
+server:
+	port: 1112
 eureka:
   instance:
     hostname: peer2
@@ -204,11 +208,9 @@ Eureka提供的HTTP端点在 `/eureka/*` 下。
 
 Eureka客户端使得Spring Boot应用可以向注册中心发布自己提供的服务（服务提供者），并且从注册中心发现并消费服务（服务消费者）。
 
-Eureka客户端可以同时是服务消费者和服务提供者。
+Eureka客户端可以同时既是服务消费者又是服务提供者。
 
-### 服务提供者
-
-#### 引入依赖
+### 引入依赖
 
 pom.xml：
 
@@ -232,9 +234,11 @@ pom.xml：
 </dependencies>
 ```
 
-只要在类路径中包含了`spring-cloud-starter-netflix-eureka-client`，Spring Boot应用程序将自动向Eureka服务器注册。 从而该应用就成了服务提供者。
+只要在类路径中包含了`spring-cloud-starter-netflix-eureka-client`，Spring Boot应用程序将自动向Eureka服务器注册。 
 
-#### 配置Eureka客户端
+> `spring-cloud-starter-netflix-eureka-client`和`spring-cloud-starter-netflix-eureka-server`实际上已经包含了`spring-cloud-starter-netflix-ribbon`依赖。
+
+### 配置Eureka客户端
 
 application.properties：
 
@@ -245,58 +249,43 @@ eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
 
 在对等模式下，defaultZone可以设置为：`eureka.client.serviceUrl.defaultZone=http://peer1/eureka/,http://peer2/eureka/`
 
-实际上，服务提供者只需要注册到一个注册中心，注册信息会被自动同步到相连的其他注册中心。这样，服务提供者的注册信息就可以通过这些注册中心中的任一台获得。
+实际上，Eureka客户端只需要注册到一个注册中心，注册信息会被自动同步到相连的其他注册中心。这样，Eureka客户端的注册信息就可以通过这些注册中心中的任一台获得。
 
 默认情况下，使用主机名来向注册中心注册。如果Java无法确定主机名，则使用IP地址来注册。也可以显式设置使用IP地址来注册，只要设置`eureka.instance.preferIpAddress=true`（默认是`false`）。
 
-#### 服务下线
+### 启用Eureka客户端（可选）
+
+Application.java：
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+public class Application {
+	public static void main(String[] args) {
+		SpringApplication.run(Application.class, args);
+	}
+}
+```
+
+> `@EnableDiscoveryClient`不是必需的。只要在类路径上存在`DiscoveryClient`实现，Spring Boot应用程序就会向注册中心注册实例、服务续约、取消租约和查询服务功能。
+
+### 启动服务
+
+按正常方式启动这个Spring Boot应用。
+
+在浏览器中访问：http://localhost:8080/hello （假设该服务提供者提供了一个`/hello`服务）
+
+### 服务下线
 
 当服务实例进行正常的关闭操作时，它会触发一个服务下线的REST请求给Eureka服务注册中心，告诉服务注册中心：”我要下线了“。服务注册中心在接收到下线请求后，将该服务的状态置为”下线“（DOWN），并把该下线事件传播出去。
 
-### 服务消费者
+### 服务消费
 
 服务消费者主要完成两个目标：发现服务和消费服务。其中发现服务由Eureka客户端完成，而服务消费则由Ribbon完成。
 
-#### 引入依赖
+Spring cloud有两种服务调用方式，一种是ribbon+restTemplate，另一种是feign（默认集成了Ribbon）。
 
-要将一个Spring Boot应用变成一个服务消费者，需要添加如下依赖：
-
-pom.xml：
-
-```xml
-<dependencyManagement>
-  <dependencies>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-dependencies</artifactId>
-      <version>Finchley.RELEASE</version>
-      <type>pom</type>
-      <scope>import</scope>
-    </dependency>
-  </dependencies>
-</dependencyManagement>
-<dependencies>
-  <dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-  </dependency>
-  <dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-  </dependency>
-</dependencies>
-```
-
-#### 配置Eureka客户端
-
-application.properties：
-
-```properties
-spring.application.name=ribbon-consumer
-eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
-```
-
-#### 启用服务发现和客户端负载均衡
+#### ribbon+restTemplate
 
 接下来在应用主类中注册一个`RestTemplate` Bean，并通过`@LoadBalanced` 标注开启客户端负载均衡。
 
@@ -318,9 +307,7 @@ public class Application {
 }
 ```
 
-> `@EnableDiscoveryClient`不是必需的。只要在类路径上存在`DiscoveryClient`实现，Spring Boot应用程序就会向注册中心注册实例、服务续约、取消租约和查询服务功能。
-
-#### 服务发现和消费
+ConsumerController.java：
 
 ```java
 @RestController
@@ -335,6 +322,65 @@ public class ConsumerController {
   }
 }
 ```
+
+> 服务名不区分大小写，因此`hello-app`和`HELLO-APP`都是可以的。
+
+#### feign
+
+引入feign依赖：
+
+```xml
+<dependency>
+  <groupId>org.springframework.cloud</groupId>
+  <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+```
+
+启用Feign：
+
+Application.java：
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClients
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(ServiceFeignApplication.class, args);
+    }
+}
+```
+
+定义一个feign接口，通过@ FeignClient（“服务名”），来绑定某个服务提供者。 
+
+HelloService.java：
+
+```java
+@FeignClient("hello-app")
+public interface HelloService {
+    @GetMapping("/hello")
+    String sayHello();
+}
+```
+
+在Web层的控制器，对外暴露一个”/hi”的API接口，通过上面定义的Feign客户端HelloService来消费服务。 
+
+HiController.java：
+
+```java
+@RestController
+public class HiController {
+  @Autowired
+  HelloService helloService;
+  
+  @GetMapping("/hi")
+  public String sayHi(){
+    return helloService.sayHello();
+  }
+}
+```
+
+
 
 ## 配置详解
 
