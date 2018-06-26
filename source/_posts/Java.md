@@ -22,7 +22,7 @@ Java ME：Java Micro Edition。
 
 # 入门
 
-## 开发工具
+## 开发环境
 
 ### 核心套件——JDK
 
