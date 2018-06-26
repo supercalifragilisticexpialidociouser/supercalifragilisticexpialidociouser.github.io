@@ -247,9 +247,19 @@ spring.application.name=hello-app
 eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
 ```
 
-在对等模式下，defaultZone可以设置为：`eureka.client.serviceUrl.defaultZone=http://peer1/eureka/,http://peer2/eureka/`
+在对等模式下，`defaultZone`可以设置为逗号分隔的多个注册中心地址：
+
+```properties
+eureka.client.serviceUrl.defaultZone=http://peer1/eureka/,http://peer2/eureka/
+```
 
 实际上，Eureka客户端只需要注册到一个注册中心，注册信息会被自动同步到相连的其他注册中心。这样，Eureka客户端的注册信息就可以通过这些注册中心中的任一台获得。
+
+如果注册中心需要安全认证，则可以写成：
+
+```properties
+eureka.client.serviceUrl.defaultZone=http://用户名:密码@localhost:8761/eureka/
+```
 
 默认情况下，使用主机名来向注册中心注册。如果Java无法确定主机名，则使用IP地址来注册。也可以显式设置使用IP地址来注册，只要设置`eureka.instance.preferIpAddress=true`（默认是`false`）。
 
@@ -269,7 +279,7 @@ public class Application {
 
 > `@EnableDiscoveryClient`不是必需的。只要在类路径上存在`DiscoveryClient`实现，Spring Boot应用程序就会向注册中心注册实例、服务续约、取消租约和查询服务功能。
 
-### 启动服务
+### 启动应用
 
 按正常方式启动这个Spring Boot应用。
 
@@ -283,7 +293,7 @@ public class Application {
 
 服务消费者主要完成两个目标：发现服务和消费服务。其中发现服务由Eureka客户端完成，而服务消费则由Ribbon完成。
 
-Spring cloud有两种服务调用方式，一种是ribbon+restTemplate，另一种是feign（默认集成了Ribbon）。
+Spring cloud有两种服务调用方式，一种是ribbon+restTemplate，另一种是feign（默认集成了Ribbon）。两者都集成了Ribbon，都具有客户端负载均衡能力。
 
 #### ribbon+restTemplate
 
@@ -351,7 +361,7 @@ public class Application {
 }
 ```
 
-定义一个feign接口，通过@ FeignClient（“服务名”），来绑定某个服务提供者。 
+定义一个feign接口，通过@ FeignClient（“服务名”），来绑定某个服务提供者。 然后，再使用Spring MVC的标注（例如`@GetMappint`）来将该服务提供者提供的REST接口绑定到指定方法上。这样，后续只要调用该方法，就相当向该服务提供者提供的REST接口发起了请求。
 
 HelloService.java：
 
@@ -386,11 +396,15 @@ public class HiController {
 
 ### 注册中心配置
 
+参见`org.springframework.cloud.netflix.eureka.server.EurekaServerConfigBean`。
+
 | 配置参数                               | 默认值 | 说明                                                         |
 | -------------------------------------- | ------ | ------------------------------------------------------------ |
-| eureka.server.enable-self-preservation | false  | 值为`true`时，Eureka 会统计15分钟之内心跳失败的比例如果低于85%将会触发保护机制，这时将不会剔除服务提供者。值为`false`时，服务注册中心会将不可用的实例正确剔除。 |
+| eureka.server.enable-self-preservation | false  | 是否启用注册中心的保护机制。值为`true`时，Eureka 会统计15分钟之内心跳失败的比例如果低于85%将会触发保护机制，这时将不会剔除服务提供者。值为`false`时，服务注册中心会将不可用的实例正确剔除。 |
 
 ### 服务实例配置
+
+参见：`org.springframework.cloud.netflix.eureka.EurekaInstanceConfigBean`。
 
 | 配置参数                                             | 默认值  | 说明                                                         |
 | ---------------------------------------------------- | ------- | ------------------------------------------------------------ |
@@ -407,9 +421,33 @@ public class HiController {
 
 ### 服务注册配置
 
+参见：`org.springframework.cloud.netflix.eureka.EurekaClientConfigBean`。
+
+| 配置参数                                                  | 默认值                                     | 说明                                         |
+| --------------------------------------------------------- | ------------------------------------------ | -------------------------------------------- |
+| eureka.client.serviceUrl                                  | defalutZone: http://localhost:8761/eureka/ | 指定注册中心。配置值是一个`HashMap`类型。    |
+| eureka.client.enabled                                     | true                                       | 启用Eureka客户端。                           |
+| eureka.client.registryFetchIntervalSeconds                | 30                                         | 从注册中心获取注册信息的时间间隔。单位为秒。 |
+| eureka.client.instanceInfoReplicationIntervalSeconds      | 30                                         | 更新实例信息到注册中心的时间间隔。单位为秒。 |
+| eureka.client.eurekaServiceUrlPollIntervalSeconds         |                                            |                                              |
+| eureka.client.eurekaServerReadTimeoutSeconds              |                                            |                                              |
+| eureka.client.eurekaServerConnectTimeoutSeconds           |                                            |                                              |
+| eureka.client.eurekaServerTotalConnections                |                                            |                                              |
+| eureka.client.eurekaServerTotalConnectionsPerHost         |                                            |                                              |
+| eureka.client.eurekaConnectionIdleTimeoutSeconds          |                                            |                                              |
+| eureka.client.heartbeatExecutorThreadPoolSize             |                                            |                                              |
+| eureka.client.heartbeatExecutorExponentialBackOffBound    |                                            |                                              |
+| eureka.client.cacheRefreshExecutorThreadPoolSize          |                                            |                                              |
+| eureka.client.cacheRefreshExecutorExponentialBackOffBound |                                            |                                              |
+| eureka.client.useDnsForFetchingServiceUrls                |                                            |                                              |
+| eureka.client.registerWithEureka                          |                                            |                                              |
+| eureka.client.preferSameZoneEureka                        |                                            |                                              |
+| eureka.client.filterOnlyUpInstances                       |                                            |                                              |
+| eureka.client.fetchRegistry                               |                                            |                                              |
+
 # 客户端负载均衡：Spring Cloud Ribbon
 
-# 服务容错保护：Spring Cloud Hystrix
+# 断路器：Spring Cloud Hystrix
 
 # 声明式服务调用：Spring Cloud Feign
 
