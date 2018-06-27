@@ -423,27 +423,28 @@ public class HiController {
 
 参见：`org.springframework.cloud.netflix.eureka.EurekaClientConfigBean`。
 
-| 配置参数                                                  | 默认值                                     | 说明                                         |
-| --------------------------------------------------------- | ------------------------------------------ | -------------------------------------------- |
-| eureka.client.serviceUrl                                  | defalutZone: http://localhost:8761/eureka/ | 指定注册中心。配置值是一个`HashMap`类型。    |
-| eureka.client.enabled                                     | true                                       | 启用Eureka客户端。                           |
-| eureka.client.registryFetchIntervalSeconds                | 30                                         | 从注册中心获取注册信息的时间间隔。单位为秒。 |
-| eureka.client.instanceInfoReplicationIntervalSeconds      | 30                                         | 更新实例信息到注册中心的时间间隔。单位为秒。 |
-| eureka.client.eurekaServiceUrlPollIntervalSeconds         |                                            |                                              |
-| eureka.client.eurekaServerReadTimeoutSeconds              |                                            |                                              |
-| eureka.client.eurekaServerConnectTimeoutSeconds           |                                            |                                              |
-| eureka.client.eurekaServerTotalConnections                |                                            |                                              |
-| eureka.client.eurekaServerTotalConnectionsPerHost         |                                            |                                              |
-| eureka.client.eurekaConnectionIdleTimeoutSeconds          |                                            |                                              |
-| eureka.client.heartbeatExecutorThreadPoolSize             |                                            |                                              |
-| eureka.client.heartbeatExecutorExponentialBackOffBound    |                                            |                                              |
-| eureka.client.cacheRefreshExecutorThreadPoolSize          |                                            |                                              |
-| eureka.client.cacheRefreshExecutorExponentialBackOffBound |                                            |                                              |
-| eureka.client.useDnsForFetchingServiceUrls                |                                            |                                              |
-| eureka.client.registerWithEureka                          |                                            |                                              |
-| eureka.client.preferSameZoneEureka                        |                                            |                                              |
-| eureka.client.filterOnlyUpInstances                       |                                            |                                              |
-| eureka.client.fetchRegistry                               |                                            |                                              |
+| 配置参数                                                    | 默认值                                     | 说明                                           |
+| ----------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------- |
+| eureka.client.serviceUrl                                    | defalutZone: http://localhost:8761/eureka/ | 指定注册中心。配置值是一个`HashMap`类型。      |
+| eureka.client.enabled                                       | true                                       | 启用Eureka客户端。                             |
+| eureka.client.registryFetchIntervalSeconds                  | 30                                         | 从注册中心获取注册信息的时间间隔。单位为秒。   |
+| eureka.client.instanceInfoReplicationIntervalSeconds        | 30                                         | 更新实例信息到注册中心的时间间隔。单位为秒。   |
+| eureka.client.initialInstanceInfoReplicationIntervalSeconds | 40                                         |                                                |
+| eureka.client.eurekaServiceUrlPollIntervalSeconds           | 300                                        | 轮询Eureka服务端地址更改的时间间隔。单位为秒。 |
+| eureka.client.eurekaServerReadTimeoutSeconds                | 8                                          | 读取Eureka服务器信息的超时时间。单位为秒。     |
+| eureka.client.eurekaServerConnectTimeoutSeconds             | 5                                          | 连接Eureka服务器的超时时间。单位为秒。         |
+| eureka.client.eurekaServerTotalConnections                  | 200                                        | 所有Eureka服务端的连接总数。                   |
+| eureka.client.eurekaServerTotalConnectionsPerHost           | 50                                         | 每个Eureka服务端的连接总数。                   |
+| eureka.client.eurekaConnectionIdleTimeoutSeconds            | 30                                         | 连接闲置时间。单位为秒。                       |
+| eureka.client.heartbeatExecutorThreadPoolSize               | 2                                          | 心跳连接池的初始化线程数。                     |
+| eureka.client.heartbeatExecutorExponentialBackOffBound      | 10                                         | 心跳超时重试延迟时间的最大乘数值。             |
+| eureka.client.cacheRefreshExecutorThreadPoolSize            | 2                                          | 缓存刷新线程池的初始化线程数。                 |
+| eureka.client.cacheRefreshExecutorExponentialBackOffBound   | 10                                         | 缓存刷新重试延迟时间的最大乘数值。             |
+| eureka.client.useDnsForFetchingServiceUrls                  | false                                      | 使用DNS来获取Eureka服务端的serviceUrl。        |
+| eureka.client.registerWithEureka                            | true                                       | 是否要将自身的实例信息注册到Eureka服务端。     |
+| eureka.client.preferSameZoneEureka                          | true                                       | 是否偏好使用处于相同Zone的Eureka服务端。       |
+| eureka.client.filterOnlyUpInstances                         | true                                       | 获取实例时是否过滤，仅保留UP状态的实例。       |
+| eureka.client.fetchRegistry                                 | true                                       | 是否从Eureka服务端获取注册信息。               |
 
 # 客户端负载均衡：Spring Cloud Ribbon
 
