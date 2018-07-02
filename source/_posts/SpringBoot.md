@@ -20,8 +20,6 @@ Spring Boot 2 要求 Java 8及以上版本。
 
 [Spring Initializr](https://start.spring.io/)：一个Spring Boot项目的在线生成器。
 
-Spring Tool Suite（STS）：一个基于Eclipse的IDE，可以很方便地开发Spring Boot项目。
-
 Spring Boot CLI：是Spring Boot 命令行工具，它可以运行Groovy脚本，通过它也可以很方便地开发Spring Boot项目。
 
 构建工具：Maven、Gradle或Ant。
@@ -31,6 +29,10 @@ Spring Boot CLI：是Spring Boot 命令行工具，它可以运行Groovy脚本�
 > Wrapper的主要作用是保证所有构建这个项目的人，都使用同一版本的Maven或Gradle。当执行Wrapper命令时，如果发现当前用户的Maven或Gradle版本和期望的版本不一致，那么就下载期望的版本，然后用期望的版本来执行命令。 
 >
 > 在开发Spring Boot项目时，Wrapper不是必需使用的。完全可以使用原来的Maven或Gradle命令。
+
+VSCode + Java Extension Pack + Spring Boot Extension Pack：轻量级开发环境。
+
+Spring Tool Suite（STS）：一个基于Eclipse的IDE，可以很方便地开发Spring Boot项目。
 
 [JHipster](https://www.jhipster.tech/)：是一个生成、开发和部署Spring Boot + Angular/React的Web应用和Spring微服务的开发平台。 
 
@@ -73,7 +75,7 @@ Spring Boot CLI：是Spring Boot 命令行工具，它可以运行Groovy脚本�
 	<parent><!-- 继承Spring Boot的parent POM -->
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.0.1.RELEASE</version>
+		<version>2.0.3.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -118,7 +120,7 @@ Spring Boot提供了大量的“Starters”，实得添加相关特性到项目�
       <!-- Import dependency management from Spring Boot -->
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-dependencies</artifactId>
-      <version>2.0.1.RELEASE</version>
+      <version>2.0.3.RELEASE</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -175,7 +177,7 @@ public class DemoApplication {
 >   }
 >   ```
 
-## 编码
+## 编程
 
 这里编写个简单的控制器：
 
