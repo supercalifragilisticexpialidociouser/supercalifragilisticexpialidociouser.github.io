@@ -168,8 +168,8 @@ Kubernetes用于协调一个高可用的计算机集群，这些计算机连接�
 
 Kubernetes集群包含两种类型的资源： 
 
-- **Master**节点负责管理集群。 例如，调度应用程序，维护应用程序的所需状态，扩展应用程序以及推出新更新。 
-- **Node**节点是运行容器应用的工作器，它对应一个虚拟机或物理机（具体取决于集群）。每个Node都有一个Kubelet，它是一个管理Node并与Kubernetes Master通信的代理。Node还应具有用于处理容器操作的工具，例如Docker或rkt。 
+- **Master**节点（控制节点）负责管理集群。 例如，调度应用程序，维护应用程序的所需状态，扩展应用程序以及推出新更新。 
+- **Node**节点（运行节点）是运行容器应用的工作器，它对应一个虚拟机或物理机（具体取决于集群）。每个Node都有一个Kubelet，它是一个管理Node并与Kubernetes Master通信的代理。Node还应具有用于处理容器操作的工具，例如Docker或rkt。 
 
 Kubernetes集群可以部署在虚拟机或物理机上。一个应对生产流量的Kubernetes集群应至少有三个节点。
 
@@ -266,3 +266,23 @@ Minikube是一种轻量级Kubernetes实现，可在本地计算机上创建VM并
 ```bash
 $ minikube version
 ```
+
+# 运行应用
+
+Kubernetes支持两种创建资源的方式：
+
+- 用kubectl命令直接创建。例如：
+
+  ```bash
+  $ kubectl run foo --image=foo:1.0.0 --replicas=2
+  ```
+
+  在命令行中通过形如`--属性名=属性值`的参数指定资源的属性。
+
+- 通过将资源属性写入到YAML格式的配置文件中，并用`kubectl apply`命令来创建。例如：
+
+  ```bash
+  $ kubectl apply -f foo.yml
+  ```
+
+  
