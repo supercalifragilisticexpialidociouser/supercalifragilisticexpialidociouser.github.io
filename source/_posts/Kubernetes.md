@@ -255,7 +255,7 @@ Kubernetes默认创建了两个命名空间：
 - default：默认命名空间。创建资源时如果不指定命名空间，将被放到default命名空间。
 - kube-system：Kubernetes自己创建的系统资源将放到这个命名空间。
 
-# 部署
+# 安装
 
 ## Minikube
 
@@ -267,11 +267,27 @@ Minikube是一种轻量级Kubernetes实现，可在本地计算机上创建VM并
 $ minikube version
 ```
 
-# 运行应用
+# 集群管理
 
-Kubernetes支持两种创建资源的方式：
+出于安全考虑，默认配置下Kubernetes不会将Pod调度到Master节点。如果希望将Master节点（例如：`k8s-master`）也当作Node使用，可以执行下列命令：
 
-- 用kubectl命令直接创建。例如：
+```bash
+$ kubectl taint node k8s-master node-role.kubernetes.io/master-
+```
+
+如果要恢复Master节点不参与Pod调度，则执行：
+
+```bash
+$ kubectl taint node k8s-master node-role.kubernetes.io/master="":NoSchedule
+```
+
+
+
+# 应用部署
+
+## 创建部署
+
+- 用kubectl命令直接创建：
 
   ```bash
   $ kubectl run foo --image=foo:1.0.0 --replicas=2
@@ -279,10 +295,82 @@ Kubernetes支持两种创建资源的方式：
 
   在命令行中通过形如`--属性名=属性值`的参数指定资源的属性。
 
-- 通过将资源属性写入到YAML格式的配置文件中，并用`kubectl apply`命令来创建。例如：
+- 通过将资源属性写入到YAML格式的定义文件中，并用`kubect`命令带`-f`选项来创建：
 
   ```bash
+  $ kubectl create -f foo.yml
+  或
   $ kubectl apply -f foo.yml
   ```
 
-  
+
+## YAML部署定义文件
+
+## 删除部署
+
+```bash
+$ kubectl delete deployments foo
+或者
+$ kubectl delete -f foo.yml
+```
+
+删除部署也会删除关联的Pod实例。 
+
+## 查询部署
+
+列出`myns`命名空间下所有的部署：
+
+```bash
+$ kubectl get deployments -n myns
+```
+
+查询名叫`foo`的部署：
+
+```bash
+$ kubectl get deployments/foo
+```
+
+## 查看部署详情
+
+```bash
+$ kubectl describe deployments/foo
+```
+
+## 伸缩
+
+改变YAML文件中`replicas`属性的数量，然后再执行`kubectl apply -f`。
+
+## 故障转移
+
+模拟`k8s-node2`出现故障（关闭该节点）：
+
+```bash
+root@k8s-node2:~# halt -h
+```
+
+等待一段时间，Kubernetes会检查到`k8s-node2`不可用。假设原来在`k8s-node2`上运行2个Pods实例，则这些Pods将被标记为`Unknown`状态，并在`k8s-node1` 上新创建2个Pods实例，维持总副本数不变。
+
+当`k8s-node2`恢复后，`Unknown`状态的Pods会被删除，不过已经运行的Pods不会重新调度回`k8s-node2`。
+
+## 用标签控制Pod的位置
+
+默认配置下，Kubernetes会将Pods调度到任何可用的Node。不过有些情况我们希望将Pods部署到指定Node，比如将大量磁盘I/O的Pods部署到配置了SSD的Node上。Kubernetes是通过标签（label）来实现该功能的。
+
+首先，给指定Node加一个标签（这里是`disktype=ssd`）：
+
+```bash
+$ kubectl label nodes/k8s-node1 disktype=ssd
+```
+
+然后，编辑部署定义文件的属性`nodeSelector`：
+
+```yaml
+spec:
+	temlate:
+    spec:
+			nodeSelector:
+				disktype: ssd
+```
+
+重新通过命令`kubectl apply -f`应用这个定义文件。
+
