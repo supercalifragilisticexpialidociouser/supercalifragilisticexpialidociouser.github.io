@@ -164,6 +164,8 @@ $ kubectl rollout undo deployments/kubernetes-bootcamp
 
 Kubernetes用于协调一个高可用的计算机集群，这些计算机连接起来作为一个单元工作。 
 
+![arch](Kubernetes/arch.png)
+
 ## Kubernetes集群
 
 Kubernetes集群包含两种类型的资源： 
@@ -188,7 +190,7 @@ Node可以包含多个pod，Kubernetes master会自动处理在群集中的节�
 Pod是一个Kubernetes抽象，表示紧密相关的一组（一个或多个）应用程序容器（如Docker或rkt），以及这些容器的一些共享资源。 这些资源包括：
 
 - 共享存储——Kubernetes中存储卷是在Pod级别中设置的，而不是容器级别。 
-- 网络——共享Pod的集群IP地址（ClusterIP） 和端口空间，Kubernetes集群中的每个Pod都有一个唯一的集群IP地址。而容器之间能直接通过localhost来发现和通信。 
+- 网络——Kubernetes集群中的每个Pod都有一个唯一的IP地址，Pod中的容器共享这个IP地址 和端口空间。而同一个Pod的容器之间能直接通过localhost来发现和通信。 
 - 有关如何运行每个容器的信息，例如容器映像版本或要使用的特定端口 
 
 Pod模拟一个特定于应用程序的“逻辑主机”，并且可以包含相对紧密耦合的不同应用程序容器。 
@@ -219,7 +221,7 @@ Kubernetes通常不会直接创建Pods，而是通过控制器（Controller）�
 - StatefuleSet：能够保证Pod的每个副本在整个生命周期中名称是不变的，并且保证副本按照固定的顺序启动、更新或删除。
 - Job：用到运行结束就删除的应用，常用于一次性的任务。其他控制中的Pod通常是长期持续运行，除非手动删除。
 
-## 服务——访问Pod
+## 服务——发现Pod
 
 在K8s中Pod的实例是动态变化的，IP也不是固定的。这就给访问者带来了困难，而服务就是为了解决这个困难的。
 
