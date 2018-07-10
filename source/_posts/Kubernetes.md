@@ -269,6 +269,18 @@ Minikube是一种轻量级Kubernetes实现，可在本地计算机上创建VM并
 $ minikube version
 ```
 
+## kubeadm
+
+参见：[Creating Highly Available Clusters with kubeadm](https://kubernetes.io/docs/setup/independent/high-availability/)
+
+## 定制安装
+
+参见：[follow-me-install-kubernetes-cluster](https://github.com/opsnull/follow-me-install-kubernetes-cluster)
+
+## 使用Photon OS
+
+Photon OS是一个专注于容器的精简Linux操作系统。它的完全安装中已经包含Kubernetes和Mesos。
+
 # 集群管理
 
 出于安全考虑，默认配置下Kubernetes不会将Pod调度到Master节点。如果希望将Master节点（例如：`k8s-master`）也当作Node使用，可以执行下列命令：
