@@ -283,7 +283,7 @@ Photon OS是一个专注于容器的精简Linux操作系统。它的完全安装
 
 # 集群管理
 
-出于安全考虑，默认配置下Kubernetes不会将Pod调度到Master节点。如果希望将Master节点（例如：`k8s-master`）也当作Node使用，可以执行下列命令：
+???出于安全考虑，默认配置下Kubernetes不会将Pod调度到Master节点。如果希望将Master节点（例如：`k8s-master`）也当作Node使用，可以执行下列命令：
 
 ```bash
 $ kubectl taint node k8s-master node-role.kubernetes.io/master-
@@ -309,7 +309,7 @@ $ kubectl taint node k8s-master node-role.kubernetes.io/master="":NoSchedule
 
   在命令行中通过形如`--属性名=属性值`的参数指定资源的属性。
 
-- 通过将资源属性写入到YAML格式的定义文件中，并用`kubect`命令带`-f`选项来创建：
+- 通过将资源属性写入到YAML格式或JSON格式的定义文件中，并用`kubect`命令带`-f`选项来创建：
 
   ```bash
   $ kubectl create -f foo.yml
@@ -318,7 +318,7 @@ $ kubectl taint node k8s-master node-role.kubernetes.io/master="":NoSchedule
   ```
 
 
-## YAML部署定义文件
+## 部署定义文件
 
 ## 删除部署
 
