@@ -802,7 +802,51 @@ circulararea.o circle.o: %.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 ```
 
+如果一个目标和显式规则（有目标列表的规则）没有命令脚本，make会尝试对该目标使用隐式规则。
+
+对于同一个目标，可能存在许多隐式规则可以匹配它。make会根据哪个依赖有效，或者应用哪个规则可以生成有效的依赖，从隐式规则列表中挑选出第一个规则。
+
+如果make生成了在makefile中没有被提及的任何中间文件，这些中间文件都会在达成相应目标后被删除。
+
+例如：makefile
+
+```makefile
+%: %.o
+	cc -o $@ $^
+%.o: %.c
+	cc -c -o $@ $<
+```
+
+则，
+
+```bash
+$ ls
+Makefile square.c
+$ make -r square
+cc -c -o square.o square.c
+cc -o square square.o
+rm square.o
+$ ls
+Makefile square square.c
+```
+
+根据目标，make找到了Makefile中的两个隐式规则以及有效的源文件，并采用间接的方法构建了目标，然后自动地清理中间目标文件（`square.o`），因为这个中间文件没有在Makefile或命令行中被提及。
+
 ### 内置规则
+
+make为一些常见的操作（例如，将C源代码编译成目标文件）定义了许多内置规则（以及所使用的预定义变量），可以运行`make -p` 命令，它不会构建项目，而只是显示make的内置规则和变量。
+
+自己在makefile中定义的规则优先级高于内置规则。
+
+可以在makefile中重写内置规则和变量。
+
+如果要禁用内置规则，则需要使用`-r`选项：
+
+```bash
+$ make -r foo
+```
+
+
 
 ### 目标是链接库成员
 
