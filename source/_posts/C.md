@@ -927,9 +927,21 @@ $ ar -rv libcircularmath.a circulararea.o
 
 ### 伪目标
 
-并非生成的文件名的目标，称为伪目标（phony target）。
+并非将要生成的文件名的目标，称为伪目标（phony target）。
 
-没有依赖的伪目标，不管是普通规则，还是双冒号规则，它的命令脚本总会被执行。
+没有依赖的伪目标，只要被调用，不管是普通规则，还是双冒号规则，它的命令脚本总会被执行。
+
+另外，作为`.PHONY`的依赖的目标总是伪目标，而不管是否存在文件名与它对应。例如：
+
+```makefile
+.PHONY: bin
+bin: circle
+	$(MKDIR) $@
+	$(CP) $< $@/
+	$(CHMOD) 600 $@/$<
+```
+
+
 
 ## 变量
 
@@ -1102,15 +1114,67 @@ endif
 
 ### 自定义函数
 
-### 函数调用
+可以使用`define` 命令和`:=` 赋值运算符来自定义函数，类似于变量或宏。
 
-函数调用的一般格式：
+函数体中可以包含带编号的形参引用。例如，`$1`表示第一个参数、`$2`表示第二个参数等等。
 
 ```makefile
-$(函数名 参数1[, …, 参数N])
+# 一个条件式的赋值作为提醒，用户可能在命令行定义“STATIC=1”或“STATIC=yes”
+STATIC ?=
+
+# 一个生成库模块名的函数
+define getmodulename
+	$(if $2, $1, $(addsuffix .so, $(basename $1)))
+endef
+
+all: circle
+
+circle: circle.o $(call getmodulename, circulararea.o, $(STATIC))
+	$(CC) -o $@ $^
+	
+ifndef STATIC
+%.so: %.o
+	$(CC) -shared -o $@ $<
+endif
 ```
 
+### 函数调用
+
+内置函数调用的一般格式：
+
+```makefile
+$(内置函数名 参数1[, …, 参数N])
+```
+
+自定义函数调用的一般格式：
+
+```makefile
+$(call 自定义函数名[, 参数1, …, 参数N])
+```
+
+> `call`是一个内置函数。
+
 ## 指令
+
+### 条件
+
+没有定义的变量与定义成空的变量是相同的含义。
+
+`ifdef`
+
+`ifndef`
+
+`ifeq`
+
+`ifneq`
+
+### include
+
+### override
+
+### export/unexport
+
+### vpath
 
 ## CMake
 
