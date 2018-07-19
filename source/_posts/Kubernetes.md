@@ -36,6 +36,12 @@ $ kubectl get nodes
 >
 > 可在kubctl后带上`--help`选项，以获取相应帮助。例如，`kubectl get nodes --help`。
 
+要查看Kubernetes集群上部署的所有资源可用：
+
+```bash
+$ kubectl get all --all-namespaces
+```
+
 ## 部署应用
 
 一旦运行了Kubernetes集群，就可以在其上部署容器化应用程序。为此，您需要创建Kubernetes Deployment配置。
@@ -138,11 +144,23 @@ $ kubectl scale deployments/kubernetes-bootcamp --replicas=2
 
 ![rollingupdates1](Kubernetes/rollingupdates1.svg)
 
+### 更新
+
 使用下列命令将应用的镜像版本从`v1`升级到`v2`：
 
 ```bash
 $ kubectl set image deployments/kubernetes-bootcamp kubernetes-bootcamp=jocatalin/kubernetes-bootcamp:v2
 ```
+
+如果使用YAML定义文件，则只需要修改YAML文件，然后再次运行下列命令，就会触发滚动更新：
+
+```bash
+$ kubectl apply -f kubernetes-bootcamp.yaml --record
+```
+
+> `--record`的作用是将当前命令记录到revision记录中，这样我们就可以知道每个revision对应的是哪个定义文件。
+>
+> 通过`kubectl rollout history deployments/kubernetes-bootcamp`可以查看revision历史记录。
 
 在更新期间，服务只会将网络流量负载均衡到可用的Pod上。 
 
@@ -152,13 +170,42 @@ $ kubectl set image deployments/kubernetes-bootcamp kubernetes-bootcamp=jocatali
 
 ![rollingupdates4](Kubernetes/rollingupdates4.svg)
 
+可以通过`maxSurge`和`maxUnavailable`字段来控制副本替换的数量：
+
+- `maxSurge`：控制滚动更新过程中副本总数超过DESIRED的上限。`maxSurge`可以取整数值，也可以是百分数（**向上**取整），默认值为`25%`。
+- `maxUnavailable`：控制滚动更新过程中，不可用的副本的上限。`maxUnavailable`可以取整数值，也可以是百分数（**向下**取整），默认值为`25%`。
+
+`maxSurge`影响新副本创建的速度，`maxUnavailable`影响旧副本销毁的速度。
+
+例如：
+
+```yaml
+spec:
+	strategy:
+		rollingUpdate:
+			maxSurge: 35%
+			maxUnavailable: 3
+```
+
+### 回滚
+
+每次更新应用时，Kubernetes都会记录下当前的配置，保存为一个revision（修订版），这样就可以回滚到某个revision。
+
+默认配置下，Kubernetes只会保留最近的几个revision，可以在Deployment定义文件中通过`revisionHistoryLimit`属性增加revision数量。
+
 如果在滚动更新过程中，出现错误，要回滚到更新之前的状态，可以执行：
 
 ```bash
 $ kubectl rollout undo deployments/kubernetes-bootcamp
 ```
 
-更新已进行版本控制，您可以恢复到之前已知的任何部署状态。 
+您可以恢复到之前已保留的任何revision：
+
+```bash
+$ kubectl rollout undo deployments/kubernetes-bootcamp --to-revision=2
+```
+
+ 
 
 # 架构
 
@@ -257,6 +304,10 @@ Kubernetes默认创建了两个命名空间：
 - default：默认命名空间。创建资源时如果不指定命名空间，将被放到default命名空间。
 - kube-system：Kubernetes自己创建的系统资源将放到这个命名空间。
 
+在使用`kubectl`工具管理kubernetes资源时，可用`-n 命名空间`选项来指定资源的命名空间。没有为资源显式指定命名空间，则属于`default`命名空间。
+
+可用`--all-namespaces`选项表示所有命名空间。
+
 # 安装
 
 ## Minikube
@@ -283,18 +334,6 @@ Photon OS是一个专注于容器的精简Linux操作系统。它的完全安装
 
 # 集群管理
 
-???出于安全考虑，默认配置下Kubernetes不会将Pod调度到Master节点。如果希望将Master节点（例如：`k8s-master`）也当作Node使用，可以执行下列命令：
-
-```bash
-$ kubectl taint node k8s-master node-role.kubernetes.io/master-
-```
-
-如果要恢复Master节点不参与Pod调度，则执行：
-
-```bash
-$ kubectl taint node k8s-master node-role.kubernetes.io/master="":NoSchedule
-```
-
 
 
 # 应用部署
@@ -317,13 +356,16 @@ $ kubectl taint node k8s-master node-role.kubernetes.io/master="":NoSchedule
   $ kubectl apply -f foo.yml
   ```
 
+### 部署定义文件
 
-## 部署定义文件
+一个YAML格式的定义文件，可以定义多个资源，用`---`分割。
 
 ## 删除部署
 
 ```bash
 $ kubectl delete deployments foo
+或者
+$ kubectl delete deployments/foo
 或者
 $ kubectl delete -f foo.yml
 ```
@@ -350,9 +392,13 @@ $ kubectl get deployments/foo
 $ kubectl describe deployments/foo
 ```
 
-## 伸缩
+## 伸缩部署
 
-改变YAML文件中`replicas`属性的数量，然后再执行`kubectl apply -f`。
+改变YAML文件中`replicas`属性的数量，然后再执行`kubectl apply -f`。或者使用如下命令：
+
+```bash
+$ kubectl scale deployments/foo --replicas=4
+```
 
 ## 故障转移
 
@@ -376,6 +422,12 @@ root@k8s-node2:~# halt -h
 $ kubectl label nodes/k8s-node1 disktype=ssd
 ```
 
+查看节点的标签：
+
+```bash
+$ kubectl get nodes --show-labels
+```
+
 然后，编辑部署定义文件的属性`nodeSelector`：
 
 ```yaml
@@ -386,5 +438,648 @@ spec:
 				disktype: ssd
 ```
 
-重新通过命令`kubectl apply -f`应用这个定义文件。
+重新执行命令`kubectl apply -f`应用这个定义文件。
+
+# 存储管理
+
+容器中的磁盘文件是短暂的， 当一个Container崩溃时，kubelet将重新启动它，但文件将丢失 —— 容器以干净状态启动。此外，在Pod中一起运行的容器，通常需要在这些容器之间共享文件。 Kubernetes的卷（Volume）解决了这两个问题。 
+
+从本质上讲，Kubernetes的卷只是一个目录，可能包含一些数据，这点与Docker的卷类似。当卷被挂载到Pod时，Pod中的所有容器都可以访问这个卷。该目录是如何形成的，支持它的介质以及它的内容由所使用的卷类型决定。 另外，Kubernetes
+
+> Kubernetes 卷的类型详见：https://kubernetes.io/docs/concepts/storage/
+
+卷不能挂载其他卷或具有到其他卷的硬链接。 Pod中的每个容器必须独立指定各自的卷的挂载路径。 
+
+卷的使用分两步：首先，使用`.spec.volumes` 字段定义卷。然后，使用`.spec.containers.volumeMounts` 字段为Pod中的每个容器挂载相应的卷。
+
+## emptyDir卷
+
+emptyDir类型的卷是宿主节点上的一个目录（初始总是空的），它的生命周期与Pod一致。当Pod从节点上删除时，卷的内容也会被删除。但如果只是容器被销毁而Pod还在，则卷将保留。因此，emptyDir卷不具备持久性，它只适用于Pod中的容器需要临时共享存储空间的场景。
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pd
+spec:
+  containers:
+  - image: k8s.gcr.io/test-webserver
+    name: test-container
+    volumeMounts:
+    - mountPath: /cache
+      name: cache-volume
+  volumes:
+  - name: cache-volume
+    emptyDir: {}
+```
+
+> 不能指定emptyDir卷在节点上的位置，可以通过`docker inspect`命令查看容器中卷实际挂载目录。通常是`/var/lib/kubelet/pods/…`这样的目录。
+
+## hostPath卷
+
+hostPath卷与emptyDir卷一个，也是宿主节点上的一个目录，只不过emptyDir卷无法指定目录，而hostPath卷可以自己指定目录（必须是已存在的目录）。另外，当Pod被销毁后，hostPath卷还是会保留。
+
+hostPath卷的缺点是，它的实际位置在宿主节点上，增加了Pod与节点的耦合，一旦宿主节点崩溃，hostPath卷将无法访问。
+
+hostPath卷通常适用于那些需要访问Kubernetes或Docker内部数据的应用。
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pd
+spec:
+  containers:
+  - image: k8s.gcr.io/test-webserver
+    name: test-container
+    volumeMounts:
+    - mountPath: /test-pd
+      name: test-volume
+  volumes:
+  - name: test-volume
+    hostPath:
+      # directory location on host
+      path: /data
+      # this field is optional
+      type: Directory
+```
+
+## 云存储卷
+
+Kubernetes支持使用AWS、GCE、Azure等公有云上的云硬盘作为卷。
+
+例如：AWS Elastic Block Store
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-ebs
+spec:
+  containers:
+  - image: k8s.gcr.io/test-webserver
+    name: test-container
+    volumeMounts:
+    - mountPath: /test-ebs
+      name: test-volume
+  volumes:
+  - name: test-volume
+    # This AWS EBS volume must already exist.
+    awsElasticBlockStore:
+      volumeID: <volume-id>
+      fsType: ext4
+```
+
+## 分布式存储卷
+
+Kubernetes卷可以使用主流的分布式存储，例如Ceph、GlusterFS等。
+
+分布式存储最大特点是不依赖Kubernetes，与Kubernetes集群是分离的，数据被持久化后，即使整个Kubernetes集群崩溃也不会受损。
+
+例如：Cephfs
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cephfs
+spec:
+  containers:
+  - name: cephfs-rw
+    image: kubernetes/pause
+    volumeMounts:
+    - mountPath: "/mnt/cephfs"
+      name: cephfs
+  volumes:
+  - name: cephfs
+    cephfs:
+      monitors:
+      - 10.16.154.78:6789
+      - 10.16.154.82:6789
+      - 10.16.154.83:6789
+      # by default the path is /, but you can override and mount a specific path of the filesystem by using the path attribute
+      # path: /some/path/in/side/cephfs
+      user: admin
+      secretRef:
+        name: ceph-secret
+      readOnly: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ceph-secret
+data:
+  key: QVFCMTZWMVZvRjVtRXhBQTVrQ1FzN2JCajhWVUxSdzI2Qzg0SEE9PQ==
+```
+
+## PersistentVolume和PersistentVolumeClaim
+
+详见：https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+
+PersistentVolume（PV）是外部存储系统中的一块存储空间，由存储系统管理员创建和维护。与卷一样，PV具有持久性，生命周期独立于Pod。
+
+PersistentVolumeClaim（PVC）是对PV的申请（Claim），用于将PersistentVolume挂载到Pod中 。PVC通常由用户（开发人员）创建和维护。需要为Pod分配存储资源时，用户可以创建一个PVC，指明存储资源的容量大小、访问模式等要求，Kubernetes会查找并提供满足条件的PV。
+
+有个PVC，用户只需要告诉Kubernetes需要什么样的存储资源，而不必关心真正的空间从哪里分配、如何访问等底层细节信息。这些存储Provider的底层信息交给存储系统管理员来处理，从而实现了用户与系统管理员的职责分离。
+
+Kubernetes支持多种类型的PV，例如AWS EBS、Ceph等。
+
+PV有两种供应方式：静态和动态。
+
+### 静态供应
+
+静态供应PV是指，我们提前创建PV，然后再通过PVC申请PV。
+
+下面以NFS为例：
+
+Persistent Volume：mysql-pv.yml
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv
+spec:
+  capacity:
+    storage: 5Gi    # PV的容量
+  volumeMode: Filesystem
+  accessModes:    # 访问模式。有：ReadWriteOnce、ReadOnlyMany、ReadWriteMany三种。
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain    # 回收策略。Retain：手动回收。Recycle：自动清除PV中的数据。Delete：自动删除Storage Provider上的对应存储资源。
+  storageClassName: slow   # 为PV设置一个分类
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /nfsdata/mysql-pv
+    server: 172.17.0.2
+```
+
+创建PV：
+
+```bash
+$ kubectl apply -f pv0003.yml
+```
+
+Persistent Volume Claim：mysql-pvc.yml
+
+```yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 8Gi
+  storageClassName: slow
+  selector:
+    matchLabels:   # 请求的PV必须具有此标签
+      release: "stable"
+    matchExpressions:
+      - {key: environment, operator: In, values: [dev]}
+```
+
+创建PVC：
+
+```bash
+$ kubectl apply -f myclaim.yml
+```
+
+可以通过命令`kubectl get pvc`和`kubectl get pv`的输出看到`mysql-pvc`已经绑定到`mysql-pv`了。
+
+接下来，就可以在容器中使用该存储了：（PVC必须与使用它的Pod存在于同一命名空间中 ）
+
+```yaml
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: mysql
+spec:
+	selector:
+		matchLabels:
+			app: mysql
+	template:
+		metadata:
+			labels:
+				app: mysql
+		spec:
+      containers:
+        - name: mysql
+          image: mysql:5.6
+          env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: password
+          ports:
+          - containerPort: 3306
+            name: mysql
+          volumeMounts:
+          - mountPath: "/var/lib/mysql"
+            name: mysql-persistent-storage
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+---
+kind: Service
+apiVersion: v1
+metadata:
+	name: mysql
+spec:
+	ports:
+	- port: 3306
+	selector:
+		app: mysql
+```
+
+### 动态供应
+
+动态供应PV是指，如果没有满足PVC条件的PV时，会动态创建PV。
+
+动态供应是通过StorageClass实现的，StorageClass定义了如何创建PV。
+
+> 详见：https://kubernetes.io/docs/concepts/storage/storage-classes/
+
+为启用基于StorageClass的动态供应，群集管理员需要在API服务器上启用DefaultStorageClass的 [admission controller](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#defaultstorageclass) 。 也就是说，`kube-apiserver.service` 文件中，配置`--enable-admission-plugins`参数的值中包含`DefaultStorageClass`。例如：
+
+```shell
+…
+--enable-admission-plugins=Initializers,NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
+…
+```
+
+首先，系统管理员创建StorageClass：
+
+```yaml
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: standard
+provisioner: kubernetes.io/aws-ebs
+parameters:
+	type: gp2
+reclaimPolicy: Retain  # 支持Delete和Retain两种，默认是Delete。
+mountOptions:
+  - debug
+```
+
+然后，在PVC申请PV时，只需要指定StorageClass、容量以及访问模式即可：
+
+```yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mypvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+  storageClassName: standard
+```
+
+
+
+### 回收PV
+
+当不需要使用PV时，可以删除PVC回收PV：
+
+```bash
+$ kubectl delete pvc/myclaim
+```
+
+当PVC被删除后，如果`persistentVolumeReclaimPolicy`为`Recycle`或`Delete`时，Kubernetes会启动一个新的Pod——recycler-for-mysql-pvc，这个Pod的作用就是清除PV `mysql-pv`的数据。此时，`mysql-pv`的状态为“Released”，表示已经解除了与`mysql-pvc`的绑定，正在清除数据，不过此时还不可用。当数据清除完毕，`mysql-pv`的状态重新变为“Available”，此时可以被新的PVC申请。
+
+如果`persistentVolumeReclaimPolicy`为`Retain`时，Kubernetes不会启动用于清除数据的Pod，`mysql-pv`中的数据得到保留，但其PV状态会一直处于“Released”，不能被其他PVC申请。这时，如果删除了PV`mysql-pv`，只是删除了`mysql-pv`对象，存储空间中的数据仍然不会被删除。重新创建`mysql-pv`后，它的状态将变为“Available”，此时可以被新的PVC申请。
+
+# 服务
+
+## DNS访问服务
+
+在集群中，除了可以通过集群IP访问服务外，Kubernetes还提供了更为方便的DNS访问。
+
+要使用DNS访问服务，要先安装kube-dns组件，它是一个DNS服务器。
+
+每当有新的服务被创建，kube-dns会添加该服务的DNS记录。集群中的Pods可以通过`服务名.命名空间名` 域名形式访问服务。例如：
+
+```bash
+$ wget httpd-svc.default:8080
+```
+
+如果Pods与服务在同一个命名空间中，可以省略`.命名空间名`部分，直接使用服务名进行访问。
+
+> 服务的完整域名，可以进入它对应的Pod中，查看`/etc/resolv.conf`文件。例如：`httpd-svc.default.svc.cluster.local`。
+
+## 服务对Pods的负载均衡
+
+服务通过标签与一组Pods关联，会将外部流量负载均衡到它所关联的每一个Pod。
+
+## 对外公布服务
+
+### ClusterIP方式
+
+默认情况下，Kubernetes服务的公布类型是`ClusterIP`，即通过集群内部的IP对外公布服务，这种方式公布的服务，只有集群内的节点和Pod可以访问。
+
+### NodePort方式
+
+通过集群节点的静态端口对外提供服务，集群外部可以通过`节点IP:节点端口号`访问服务。
+
+httpd-svc.yml：
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+	name: httpd-svc
+spec:
+	type: NodePort
+	selector:
+		run: httpd
+	ports:
+	- protocol: TCP
+		nodePort: 30000      （节点上监听的端口。如果未设置，则默认是随机产生一个端口号）
+		port: 8080           （服务集群IP上监听的端口）
+		targetPort: 80       （目标Pods上监听的端口）
+```
+
+创建NodePort类型的服务：
+
+```bash
+$ kubectl apply -f httpd-svc.yml
+```
+
+也可以直接使用`kubectl expose --type="NodePort"`命令为已有部署创建NodePort服务。
+
+如果使用`kubectl get services/httpd-svc`，就会发现有一个“EXTERNAL-IP”，它就是节点的IP。
+
+这种方式发布的服务，实际上并不是高可用的，因为它是通过某个节点IP来访问的。
+
+### LoadBalancer方式
+
+
+
+### ExternalName方式
+
+
+
+# 配置管理
+
+## 敏感信息
+
+敏感信息使用Secret管理。
+
+Secret会以密文的方式存储数据，避免了直接在配置文件中保存敏感信息。
+
+Secret会以卷的形式被挂载到Pod，容器可通过文件的方式使用Secret中的敏感数据。此外，容器也可以环境变量的方式使用这些数据。
+
+### 创建Secret
+
+#### 通过`--from-literal`
+
+```bash
+$ kubectl create secret generic mysecret --from-literal=username=admin --from-literal=password=123456
+```
+
+每个`--from-literal`定义一条信息。
+
+每条信息的值的内容使用明文，创建secret时，会自动使用base64编码。
+
+#### 通过`--from-file`
+
+```bash
+$ echo -n admin > ./username
+$ echo -n 123456 > ./password
+$ kubectl create secret generic mysecret --from-file=./username --from-file=./password
+```
+
+每个文件内容对应一条信息，文件名就是键，文件内容是值。
+
+每文件的内容使用明文，创建secret时，会自动使用base64编码。
+
+#### 通过`--from-env-file`
+
+```bash
+$ cat << EOF > env.txt
+username=admin
+password=123456
+EOF
+$ kubectl create secret generic mysecret --from-env-file=env.txt
+```
+
+文件`env.txt`中每行对应一条信息。
+
+每条信息的值的内容使用明文，创建secret时，会自动使用base64编码。
+
+#### 通过YAML文件定义
+
+首先，必须自己手动将敏感信息使用base64编码：
+
+```bash
+$ echo -n admin | base64
+YWRtaW4=
+$ echo -n 123456 | base64
+MTIzNDU2
+```
+
+然后，使用上面编码的信息创建`mysecret.yml`：
+
+```yaml
+kind: Secret
+apiVersion: v1
+metadata:
+	name: mysecret
+data:
+	username: YWRtaW4=
+	password: MTIzNDU2
+```
+
+最后，调用命令创建`mysecret`：
+
+```bash
+$ kubectl apply -f mysecret.yml
+```
+
+### 查看Secret
+
+查看Secret：
+
+```bash
+$ kubectl get secret/mysecret
+```
+
+查看Secret详情：
+
+```bash
+$ kubectl describe secret/mysecret
+```
+
+输出的结果中，只会显示敏感信息占用的字节数，不会显示敏感信息内容。
+
+编辑Secret：
+
+```bash
+$ kubectl edit secret/mysecret
+```
+
+在编辑界面可以看到经过base64编码后的敏感信息。
+
+可自行通过下列命令解码：
+
+```bash
+$ echo -n YWRtaW4= | base64 --decode
+admin
+$ echo -n MTIzNDU2 | base64 --decode
+123456
+```
+
+### 使用Secret
+
+#### 通过卷的方式使用
+
+在Pod的定义文件中将Secret配置成卷：mypod.yml
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+	name: mypod
+spec:
+	containers:
+	- name: mypod
+	  image: busybox
+	  args:
+	  	- /bin/sh
+	  	- -c
+	  	- sleep 10; touch /tmp/healthy; sleep 30000
+	  volumeMounts:
+	  - name: foo
+	    mountPath: "/etc/foo"
+	    readOnly: true
+	volumes:
+	- name: foo
+	  secret:
+	  	secretName: mysecret
+```
+
+Kubernetes会在`mountPath`指定的路径`/etc/foo`下为每条敏感信息创建一个文件，文件名就是信息条目的键（这里是`/etc/foo/username`和`/etc/foo/password`），值是以明文（自动使用base64解码）存放在文件中的内容。
+
+```bash
+$ kubectl apply -f mypod.yml
+$ kubectl exec -it mypod sh
+/ # ls /etc/foo
+password username
+/ # cat /etc/foo/username
+admin
+/ # cat /etc/foo/password
+123456
+```
+
+我们也可以自定义存放数据的文件名：
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+	name: mypod
+spec:
+	containers:
+	- name: mypod
+	  image: busybox
+	  args:
+	  	- /bin/sh
+	  	- -c
+	  	- sleep 10; touch /tmp/healthy; sleep 30000
+	  volumeMounts:
+	  - name: foo
+	    mountPath: "/etc/foo"
+	    readOnly: true
+	volumes:
+	- name: foo
+	  secret:
+	  	secretName: mysecret
+	  	items:
+	  	- key: username
+	  	  path: my-group/my-username
+	  	- key: password
+	  	  path: my-group/my-password
+```
+
+以卷方式使用的Secret支持动态更新，即Secret更新后，所有使用该Secret的容器中的数据也会更新。
+
+#### 通过环境变量方式使用
+
+## 普通信息
+
+普通信息使用ConfigMap管理。
+
+# 作业管理
+
+# 健康检查
+
+## 默认健康检查机制
+
+Kubernetes默认健康检查机制：当容器进程（由Dockerfile的CMD或ENTRYPOINT指定）返回值为非零时，则认为容器发生故障，Kubernetes就会根据`restartPolicy` 设置重启容器。
+
+## Liveness探测
+
+Liveness探测让用户可以自定义判断容器是否健康的条件。如果探测失败，Kubernetes就会根据`restartPolicy` 设置重启容器。
+
+Liveness探测是在YAML定义文件中由`livenessProbe`设置的。
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    test: liveness
+  name: liveness-http
+spec:
+  containers:
+  - name: liveness
+    image: k8s.gcr.io/liveness
+    args:
+    - /server
+    livenessProbe:
+      httpGet:
+        scheme: HTTPS     （默认是HTTP）
+        path: /healthz
+        port: 8080
+        httpHeaders:
+        - name: X-Custom-Header
+          value: Awesome
+      initialDelaySeconds: 3
+      periodSeconds: 3
+```
+
+为了执行探测，kubelet向Container中运行的服务器发送HTTP GET请求并侦听端口8080。如果服务器的`/healthz`路径的处理程序返回成功代码（任何大于或等于200且小于400的代码表示成功，任何其他代码表示失败），则kubelet认为Container是活动的并且健康。如果处理程序返回失败代码，则kubelet会终止Container并重新启动它。 
+
+`initialDelaySeconds 10`表示在开始执行第一次Liveness探测之前等待10秒，通常根据应用的启动时间来设置。
+
+`periodSeconds 5`表示第5秒执行一次Liveness探测。Kubernetes如果连续执行3次Liveness探测均失败，则会杀掉容器，重建并重启容器。
+
+详细使用方式，参见：https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+
+## Readiness探测
+
+Readiness探测可自定义Kubernetes什么时候可以将容器加入到Service负载均衡池中，对外提供服务。
+
+Readiness的配置方式同Liveness，唯一的区别是使用`readinessProbe`字段代替`livenessProbe` 字段。例如：
+
+```yaml
+readinessProbe:
+  exec:
+    command:
+    - cat
+    - /tmp/healthy
+  initialDelaySeconds: 5
+  periodSeconds: 5
+```
+
+通过`cat`命令检查`/tmp/healthy`文件是否存在。如果命令执行成功，返回值为零，则认为本次Readiness探测成功；否则，返回值为非零，本次Readiness探测失败。
+
+Liveness探测和Readiness探测是独立执行的，二者之间没有依赖，因此，可以单独使用，也可以同时使用。
 
