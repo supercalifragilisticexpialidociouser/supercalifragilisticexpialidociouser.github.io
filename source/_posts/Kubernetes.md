@@ -830,7 +830,7 @@ $ kubectl apply -f httpd-svc.yml
 
 ## 敏感信息
 
-敏感信息使用Secret管理。
+敏感信息使用Secret管理。（详见：https://kubernetes.io/docs/concepts/configuration/secret/）
 
 Secret会以密文的方式存储数据，避免了直接在配置文件中保存敏感信息。
 
@@ -874,7 +874,7 @@ $ kubectl create secret generic mysecret --from-env-file=env.txt
 
 每条信息的值的内容使用明文，创建secret时，会自动使用base64编码。
 
-#### 通过YAML文件定义
+#### 通过YAML或JSON文件定义
 
 首先，必须自己手动将敏感信息使用base64编码：
 
@@ -908,7 +908,7 @@ $ kubectl apply -f mysecret.yml
 查看Secret：
 
 ```bash
-$ kubectl get secret/mysecret
+$ kubectl get secret/mysecret -o yaml
 ```
 
 查看Secret详情：
@@ -978,7 +978,7 @@ admin
 123456
 ```
 
-我们也可以自定义存放数据的文件名：
+我们也可以自定义存放数据的文件名和位置：
 
 ```yaml
 apiVersion: v1
@@ -1012,9 +1012,264 @@ spec:
 
 #### 通过环境变量方式使用
 
+在Pod的定义文件中，将Secret的信息读取到环境变量：mypod.yml
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+	name: mypod
+spec:
+	containers:
+	- name: mypod
+	  image: busybox
+	  args:
+	  	- /bin/sh
+	  	- -c
+	  	- sleep 10; touch /tmp/healthy; sleep 30000
+	  env:
+	  - name: SECRET_USERNAME
+	    valueFrom:
+	    	secretKeyRef:
+	    		name: mysecret
+	    		key: username
+	  - name: SECRET_PASSWORD
+	    valueFrom:
+	    	secretKeyRef:
+	    		name: mysecret
+	    		key: password
+```
+
+通过环境变量读取Secret很方便，但无法支持Secret动态更新。
+
 ## 普通信息
 
-普通信息使用ConfigMap管理。
+普通信息使用ConfigMap管理。（详见：https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/）
+
+ConfigMap的创建和使用方式与Secret非常类似，主要不同是ConfigMap的数据以明文形式存放。
+
+### 创建ConfigMap
+
+#### 通过`--from-literal`
+
+```bash
+$ kubectl create configmap myconfigmap --from-literal=config1=xxx --from-literal=config2=yyy
+```
+
+#### 通过`--from-file`
+
+```bash
+$ echo -n xxx > ./config1
+$ echo -n yyy > ./config2
+$ kubectl create configmap myconfigmap --from-file=./config1 --from-file=./config2
+$ kubectl get configmap/myconfigmap -o yaml
+apiVersion: v1
+data:
+  config1: xxx
+  config2: yyy
+kind: ConfigMap
+metadata:
+  creationTimestamp: 2018-07-20T03:21:10Z
+  name: myconfigmap
+  namespace: default
+  resourceVersion: "311435"
+  selfLink: /api/v1/namespaces/default/configmaps/myconfigmap
+  uid: f2c0f646-8bcb-11e8-a64f-005056b1d7ee
+```
+
+`--from-file`指定的文件，也可以包含多行信息：
+
+```bash
+$ cat << EOF > ui.properties
+> color.good=purple
+> color.bad=yellow
+> allow.textmode=true
+> how.nice.to.look=fairlyNice
+> EOF
+$ kubectl create configmap ui-config --from-file=./ui.properties
+$ kubectl get configmap/ui-config -o yaml
+apiVersion: v1
+data:
+  ui.properties: |    # 只要有一个文件包含多条信息，就会生成默认以文件名命名的键，整个文件内容（不管内容格式）为值。注意：行尾的“|”符号。
+    color.good=purple  # 由于是整个文件内容原封不动照搬，因此这里有等号。
+    color.bad=yellow
+    allow.textmode=true
+    how.nice.to.look=fairlyNice
+kind: ConfigMap
+metadata:
+  creationTimestamp: 2018-07-20T03:02:52Z
+  name: ui-config
+  namespace: default
+  resourceVersion: "310013"
+  selfLink: /api/v1/namespaces/default/configmaps/ui-config
+  uid: 6455dfa6-8bc9-11e8-a64f-005056b1d7ee
+```
+
+可以为加载的文件自定义键：
+
+```bash
+$ cat << EOF > logging.conf
+> class: logging.handlers.RotatingFileHandler
+> formatter: precise
+> level: INFO
+> filename: %hostname-%timestamp.log
+> EOF
+$ kubectl create configmap logging-conf --from-file=logging=./logging.conf
+$ kubectl get configmap/logging-conf -o yaml
+apiVersion: v1
+data:
+  logging: |
+    class: logging.handlers.RotatingFileHandler
+    formatter: precise
+    level: INFO
+    filename: %hostname-%timestamp.log
+kind: ConfigMap
+metadata:
+  creationTimestamp: 2018-07-20T04:15:03Z
+  name: logging-conf
+  namespace: default
+  resourceVersion: "315620"
+  selfLink: /api/v1/namespaces/default/configmaps/logging-conf
+  uid: 7a0ed236-8bd3-11e8-a64f-005056b1d7ee
+```
+
+如果`--from-file`的值是一个目录，则会加载该目录下所有文件：
+
+```bash
+$ mkdir bar
+$ cd bar
+$ echo -n example.com > ./baseurl
+$ mv ui.properties bar/
+$ kubectl create configmap my-config --from-file=bar
+$ kubectl get configmap/my-config -o yaml
+apiVersion: v1
+data:
+  baseurl: |
+    example.com
+  ui.properties: |
+    color.good=purple
+    color.bad=yellow
+    allow.textmode=true
+    how.nice.to.look=fairlyNice
+kind: ConfigMap
+metadata:
+  creationTimestamp: 2018-07-20T03:38:21Z
+  name: my-config
+  namespace: default
+  resourceVersion: "312775"
+  selfLink: /api/v1/namespaces/default/configmaps/my-config
+  uid: 59b12c48-8bce-11e8-a64f-005056b1d7ee
+```
+
+#### 通过`--from-env-file`
+
+```bash
+$ cat << EOF > env.txt
+config1=xxx
+config2=yyy
+EOF
+$ kubectl create configmap myconfigmap --from-env-file=env.txt
+```
+
+当在同一个命令行中，使用多个`--from-env-file`时，只有最后一个有效。
+
+#### 通过YAML或JSON文件定义
+
+创建ConfigMap的YAML定义文件：myconfigmap.yml
+
+```yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+	name: myconfigmap
+data:
+	config1: xxx   # 使用明文存储
+	config2: yyy
+```
+
+### 使用ConfigMap
+
+#### 通过卷的方式使用
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+	name: mypod
+spec:
+	containers:
+	- name: mypod
+	  image: busybox
+	  args:
+	  	- /bin/sh
+	  	- -c
+	  	- sleep 10; touch /tmp/healthy; sleep 30000
+	  volumeMounts:
+	  - name: foo
+	    mountPath: "/etc/foo"
+	    readOnly: true
+	volumes:
+	- name: foo
+	  configMap:
+	  	name: logging-conf
+```
+
+则：
+
+```bash
+$ kubectl apply -f mypod.yml
+$ ls /etc/foo
+logging.conf
+$ cat /etc/foo/logging.conf
+class: logging.handlers.RotatingFileHandler
+formatter: precise
+level: INFO
+filename: %hostname-%timestamp.log
+```
+
+还可以自定义存放数据的文件名和位置：
+
+```yaml
+	volumes:
+	- name: foo
+	  configMap:
+	  	name: logging-conf
+	  	items:
+	  	- key: logging.conf
+	  	  path: myapp/logging.conf
+```
+
+
+
+#### 通过环境变量方式使用
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+	name: mypod
+spec:
+	containers:
+	- name: mypod
+	  image: busybox
+	  args:
+	  	- /bin/sh
+	  	- -c
+	  	- sleep 10; touch /tmp/healthy; sleep 30000
+	  env:
+	  - name: CONFIG1
+	    valueFrom:
+	    	secretKeyRef:
+	    		name: myconfigmap
+	    		key: config1
+	  - name: CONFIG2
+	    valueFrom:
+	    	secretKeyRef:
+	    		name: myconfigmap
+	    		key: config2
+```
+
+
 
 # 作业管理
 
@@ -1083,3 +1338,265 @@ readinessProbe:
 
 Liveness探测和Readiness探测是独立执行的，二者之间没有依赖，因此，可以单独使用，也可以同时使用。
 
+# 包管理
+
+Helm之于Kubernetes好比yum之于RHEL，或者apt-get之于Ubuntu，Helm 可以理解为 Kubernetes 的包管理工具 。 
+
+## Helm架构
+
+Helm的基本概念：
+
+- Chart：Helm的应用打包格式（类似于apt、yum的软件安装包），它由一系列文件组成，这些文件描述了Kubernetes部署应用时所需要的资源。通常将整个chart打包成tar包，而且标注上版本信息，便于Helm部署。
+- Repository：Chart的存储库。
+- Release：Chart的运行实例，当Chart被安装到Kubernetes集群，就会生成一个Release。Chart可以多次安装到同一个集群，每次安装都是一个新的Release。例如，如果需要在集群上安装两个MySQL，则可以在群集中运行两个MySQL的Chart，这将运行两个MySQL的Release。
+
+Helm包括两个组件，Helm客户端和Tiller服务端。 
+
+Helm客户端是终端用户使用的命令行工具。Tiller服务端运行在Kubernetes集群中，它会处理Helm客户端的请求，与Kubernetes API Server交互。简单地讲，Helm客户端负责管理Chart，Tiller服务端负责管理Release。
+
+![Helm架构](Kubernetes/Helm架构.jpg)
+
+## 安装Helm
+
+### Helm客户端安装
+
+通常将Helm客户端安装在能够执行`kubectl`命令的节点上。
+
+下载相应版本Helm：https://github.com/helm/helm/releases
+
+例如：
+
+```bash
+$ wget https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz
+$ tar -zxvf helm-v2.9.1-linux-amd64.tar.gz
+$ mv linux-amd64/helm /usr/local/bin/helm
+$ helm help
+```
+
+### Tiller服务器安装
+
+Tiller是Helm的服务器部分，通常在您的Kubernetes集群内部运行。但是为了开发，它也可以在本地运行，并配置为与远程Kubernetes集群通信。
+
+安装Tiller只需要：
+
+```bash
+$ helm init
+```
+
+Tiller本身也是作为容器化应用运行在Kubernetes集群上。 
+
+上面的默认安装，将Tiller安装在`kubectl config view`或`kubectl config current-context`所指定的集群内，并且安装在`kube--system `命名空间中。可以使用`--kube-context `选项指定特定的集群，使用`--tiller-namespace `选项指定要安装到哪个命名空间，使用`--tiller-image `选项指定Tiller的特定镜像。
+
+默认情况下，安装Tiller时，它没有启用身份验证。 
+
+可以使用`kubectl get`命令来查看Tiller的Pod、Service、Deployment等信息。
+
+#### 基于角色的访问控制
+
+如果您的群集启用了基于角色的访问控制（RBAC），则可能需要先配置服务帐户和规则，然后才能继续使用Helm完成各种操作。
+
+##### 管理整个集群资源
+
+首先，要为Tiller创建一个服务帐户：
+
+```bash
+$ kubectl create serviceaccount tiller --namespace kube-system
+```
+
+然后，将服务帐户`tiller`绑定到集群角色`cluster-admin`：
+
+```bash
+$ kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+```
+
+上面两步，也可以使用YAML定义文件创建：rbac-config.yaml 
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tiller
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: tiller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: tiller
+    namespace: kube-system
+```
+
+然后，执行：
+
+```bash
+$ kubectl create -f rbac-config.yaml
+```
+
+创建完成服务帐户和集群角色绑定后，如果这时Tiller服务器还没安装，则使用下列命令安装Tiller服务器：
+
+```bash
+$ helm init --service-account tiller
+```
+
+如果已经安装过Tiller服务器，则需要将服务帐户添加到`tiller-deploy`中：
+
+```bash
+$ kubectl patch deployments/tiller-deploy -n kube-system -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+```
+
+##### 限制Tiller只管理某个命名空间的资源
+
+在上面的示例中，我们为Tiller提供了对整个群集的管理访问权限。您根本不需要授予Tiller `cluster-admin `访问权限。您可以指定Role和RoleBinding来将Tiller的范围限制到特定的命名空间，而不是指定ClusterRole或ClusterRoleBinding。
+
+假设，我们希望Tiller只能管理`tiller-world`命名空间下的所有资源，则在该命名空间下创建一个服务帐户：
+
+```bash
+$ kubectl create serviceaccount tiller --namespace tiller-world
+```
+
+然后，定义一个角色，允许Tiller管理`tiller-world`中的所有资源。例如：role-tiller.yaml 
+
+```yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: tiller-manager
+  namespace: tiller-world
+rules:
+- apiGroups: ["", "batch", "extensions", "apps"]
+  resources: ["*"]
+  verbs: ["*"]
+```
+
+ 创建`tiller-manager`角色：
+
+```bash
+$ kubectl create -f role-tiller.yaml
+```
+
+接着将`tiller-manager`角色与之前创建的服务帐户`tiller`绑定：rolebinding-tiller.yaml 
+
+```yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: tiller-binding
+  namespace: tiller-world
+subjects:
+- kind: ServiceAccount
+  name: tiller
+  namespace: tiller-world
+roleRef:
+  kind: Role
+  name: tiller-manager
+  apiGroup: rbac.authorization.k8s.io
+```
+
+创建`tiller-binding`绑定：
+
+```bash
+$ kubectl create -f rolebinding-tiller.yaml
+```
+
+之后，可以使用该服务帐户和命名空间安装Tiller服务器：
+
+```bash
+$ helm init --service-account tiller --tiller-namespace tiller-world
+```
+
+在安装Chart时，也要指定命名空间：
+
+```bash
+$ helm install nginx --tiller-namespace tiller-world --namespace tiller-world
+```
+
+##### 准许Tiller对其他命名资源的管理
+
+假设，我们在命名空间`myorg-system`中安装Tiller，并允许Tiller在命名空间`myorg-users`中部署资源。
+
+
+
+#### 升级Tiller
+
+```bash
+$ helm init --upgrade
+```
+
+#### 卸载Tiller
+
+由于Tiller将其数据存储在Kubernetes ConfigMaps中，因此您可以安全地删除并重新安装Tiller，而无需担心丢失任何数据。删除Tiller的推荐方法是使用`kubectl delete deployment tiller-deploy --namespace kube-system`，或更简洁的`helm reset`。 
+
+## 使用Helm
+
+### 查找可用的Chart
+
+查看当前可安装的Chart：
+
+```bash
+$ helm search
+```
+
+关键字搜索Chart：
+
+```bash
+$ helm search mysql
+```
+
+### 查看Chart详情
+
+```bash
+$ helm inspect stable/mariadb
+```
+
+### 安装Chart
+
+例如安装mysql：
+
+```bash
+$ helm repo update              # Make sure we get the latest list of charts
+$ helm install stable/mysql
+```
+
+helm会自动为新创建的Release提供一个名字。如果希望自己指定Release名字，则可以加上`--name`选项：
+
+```bash
+$ helm install stable/mysql --name mysql-release
+```
+
+### 查看已安装的Release
+
+列出所有Release：
+
+```bash
+$ helm ls
+或者
+$ helm list
+```
+
+查看Release的状态：
+
+```bash
+$ helm status mysql--release
+```
+
+### 删除Release
+
+```bash
+$ helm delete mysql--release
+```
+
+## Chart详解
+
+## Chart存储库
+
+Helm安装时已经默认配置好了两个存储库：stable和local。stable是官方存储库，local是用户本地存储库。
+
+用户可以通过`helm repo add`添加更多存储库，比如企业私有存储库等。
+
+可以通过`helm repo list`查看已经配置好的所有存储库。
