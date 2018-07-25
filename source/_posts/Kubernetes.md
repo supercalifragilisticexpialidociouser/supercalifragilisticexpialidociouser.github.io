@@ -1373,6 +1373,13 @@ $ mv linux-amd64/helm /usr/local/bin/helm
 $ helm help
 ```
 
+为了提高使用命令行的效率，建议安装helm的bash命令补全脚本：
+
+```bash
+$ helm completion bash > .helmrc
+$ echo "source .helmrc" >> .bashrc
+```
+
 ### Tiller服务器安装
 
 Tiller是Helm的服务器部分，通常在您的Kubernetes集群内部运行。但是为了开发，它也可以在本地运行，并配置为与远程Kubernetes集群通信。
@@ -1391,9 +1398,17 @@ Tiller本身也是作为容器化应用运行在Kubernetes集群上。
 
 可以使用`kubectl get`命令来查看Tiller的Pod、Service、Deployment等信息。
 
+> 安装过程中，会从`gcr.io/kubernetes-helm/tiller`拉取镜像。如果由于网络问题无法访问镜像地址，则可以通过`-i`或`--tiller-image`选项自己指定tiller镜像。例如：
+>
+> ```bash
+> $ helm init --upgrade -i fishead/gcr.io.kubernetes-helm.tiller:v2.9.1
+> ```
+>
+> 如果是首次安装，可以省略`--upgrade`选项。
+
 #### 基于角色的访问控制
 
-如果您的群集启用了基于角色的访问控制（RBAC），则可能需要先配置服务帐户和规则，然后才能继续使用Helm完成各种操作。
+如果您的群集启用了基于角色的访问控制（RBAC），则可能需要先配置服务帐户和角色，然后才能继续使用Helm完成各种操作。
 
 ##### 管理整个集群资源
 
@@ -1530,9 +1545,128 @@ $ helm init --upgrade
 
 #### 卸载Tiller
 
-由于Tiller将其数据存储在Kubernetes ConfigMaps中，因此您可以安全地删除并重新安装Tiller，而无需担心丢失任何数据。删除Tiller的推荐方法是使用`kubectl delete deployment tiller-deploy --namespace kube-system`，或更简洁的`helm reset`。 
+由于Tiller将其数据存储在Kubernetes ConfigMaps中，因此您可以安全地删除并重新安装Tiller，而无需担心丢失任何数据。删除Tiller的推荐方法是使用`kubectl delete deployment tiller-deploy --namespace kube-system`，或更简洁的`helm reset`（如果已经有Releases被安装，或者Tiller未安装成功，则还要加上`-f`选项）。 
+
+### 使用TLS/SSL保护Helm
+
+#### 为Tiller创建证书
+
+创建证书签名请求：
+
+```bash
+$ cat > tiller-csr.json <<EOF
+{
+  "CN": "tiller-server",
+  "hosts": [
+    "127.0.0.1",
+    "172.16.160.121",
+    "172.16.160.122",
+    "172.16.160.123"
+  ],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "CN",
+      "ST": "Fujian",
+      "L": "Xiamen",
+      "O": "k8s",
+      "OU": "Maks"
+    }
+  ]
+}
+EOF
+```
+
+生成证书和私钥：
+
+```bash
+$ cfssl gencert -ca=/etc/kubernetes/cert/ca.pem \
+  -ca-key=/etc/kubernetes/cert/ca-key.pem \
+  -config=/etc/kubernetes/cert/ca-config.json \
+  -profile=kubernetes tiller-csr.json | cfssljson -bare tiller
+```
+
+#### 为Helm客户端创建证书
+
+创建证书签名请求：
+
+```bash
+$ cat > helm-csr.json <<EOF
+{
+  "CN": "helm-client",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "CN",
+      "ST": "Fujian",
+      "L": "Xiamen",
+      "O": "k8s",
+      "OU": "Maks"
+    }
+  ]
+}
+EOF
+```
+
+生成证书和私钥：
+
+```bash
+$ cfssl gencert -ca=/etc/kubernetes/cert/ca.pem \
+  -ca-key=/etc/kubernetes/cert/ca-key.pem \
+  -config=/etc/kubernetes/cert/ca-config.json \
+  -profile=kubernetes helm-csr.json | cfssljson -bare helm
+```
+
+#### 使用SSL配置安装Tiller
+
+```bash
+$ helm init --tiller-tls --tiller-tls-cert ./tiller.pem --tiller-tls-key ./tiller-key.pem --tiller-tls-verify --tls-ca-cert ca.pem --service-account tiller
+```
+
+#### 使用SSL配置Helm客户端
+
+方式一：每条helm命令都带上SSL配置。例如：
+
+```bash
+$ helm ls --tls --tls-ca-cert ca.pem --tls-cert helm.pem --tls-key helm-key.pem
+```
+
+方式二：
+
+将Helm证书和私钥复制到`$HELM_HOME`（通常为`~/.helm`）下：
+
+```bash
+$ cp ca.pem $HELM_HOME/ca.pem
+$ cp helm.pem $HELM_HOME/cert.pem
+$ cp helm-key.pem $HELM_HOME/key.pem
+```
+
+这样，每条helm命令只要带上`--tls`选项（启用TLS/SSL）即可：
+
+```bash
+$ helm ls --tls
+```
+
+如果在执行Helm命令时，出现“unable to do port forwarding: socat not found”，则表示缺少socat软件包。执行下列命令安装（CentOS）：
+
+```bash
+$ yum install socat
+```
 
 ## 使用Helm
+
+### 查看帮助
+
+```bash
+$ helm --help
+$ helm init -h
+```
 
 ### 查找可用的Chart
 
@@ -1592,6 +1726,14 @@ $ helm delete mysql--release
 ```
 
 ## Chart详解
+
+Chart是Helm的应用打包格式，它由一系列文件组成，通常整个Chart被打成tar包。这些文件描述了Kubernetes部署应用时所需要的资源，比如 Service、Deployment、PersistentVolumeClaim、Secret、ConfigMap等。
+
+Chart可以非常简单，只用于部署一个服务；也可以非常复杂，部署整个应用。
+
+### Chart目录结构
+
+一旦安装了某个Chart，就可以在`~/.helm/cache/archive/`中找到Chart的tar包。
 
 ## Chart存储库
 
