@@ -1703,6 +1703,8 @@ helm会自动为新创建的Release提供一个名字。如果希望自己指定
 $ helm install stable/mysql --name mysql-release
 ```
 
+一旦安装了某个Chart，就可以在`~/.helm/cache/archive/`中找到该Chart的tar包。
+
 ### 查看已安装的Release
 
 列出所有Release：
@@ -1716,16 +1718,16 @@ $ helm list
 查看Release的状态：
 
 ```bash
-$ helm status mysql--release
+$ helm status mysql-release
 ```
 
 ### 删除Release
 
 ```bash
-$ helm delete mysql--release
+$ helm delete mysql-release
 ```
 
-## Chart详解
+## Charts
 
 Chart是Helm的应用打包格式，它由一系列文件组成，通常整个Chart被打成tar包。这些文件描述了Kubernetes部署应用时所需要的资源，比如 Service、Deployment、PersistentVolumeClaim、Secret、ConfigMap等。
 
@@ -1733,12 +1735,38 @@ Chart可以非常简单，只用于部署一个服务；也可以非常复杂，
 
 ### Chart目录结构
 
-一旦安装了某个Chart，就可以在`~/.helm/cache/archive/`中找到Chart的tar包。
+```
+mychart/
+├── charts/              # 可选：包含该Chart所依赖的其他Chart的目录
+├── Chart.yaml           # 包含该Chart信息的YAML文件
+├── LICENSE              # 可选：包含该Chart许可信息的文本文件
+├── README.md            # 可选：一个人类可读的README文件
+├── requirements.yaml    # 可选：列出该Chart依赖的YAML文件。在安装过程中，依赖的Charts也会被一起安装
+├── templates            # 包含Kubernetes manifest文件的模板
+│   ├── deployment.yaml
+│   ├── _helpers.tpl     # 包含子模板的定义
+│   ├── ingress.yaml
+│   ├── NOTES.txt        # 可选：该Chart的简易使用文档
+│   └── service.yaml
+└── values.yaml          # 包含该Chart默认配置值
+```
 
-## Chart存储库
+除了上述列出的文件外，其他任何文件或目录将保留原样。
+
+### 开发自己的Charts
+
+#### 创建Chart
+
+```bash
+$ helm create mychart
+```
+
+
+
+### Chart存储库
 
 Helm安装时已经默认配置好了两个存储库：stable和local。stable是官方存储库，local是用户本地存储库。
 
 用户可以通过`helm repo add`添加更多存储库，比如企业私有存储库等。
 
-可以通过`helm repo list`查看已经配置好的所有存储库。
+可以通过`helm repo list`查看已经配置好的所有存储库。（Chart存储库的位置是`~/.helm/repository/` 下）
