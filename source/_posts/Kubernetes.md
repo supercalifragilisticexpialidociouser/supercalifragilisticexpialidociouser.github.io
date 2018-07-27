@@ -1,5 +1,5 @@
 ---
-title: Kubernetes
+ctitle: Kubernetes
 date: 2018-07-03 08:21:46
 tags: [1.11]
 ---
@@ -7,6 +7,8 @@ tags: [1.11]
 # 简介
 
 Kubernetes是一个容器编排引擎，它是Google Omega（之前叫Borg）的开源版本。
+
+<!--more-->
 
 # 入门
 
@@ -1736,12 +1738,11 @@ Chart可以非常简单，只用于部署一个服务；也可以非常复杂，
 ### Chart目录结构
 
 ```
-mychart/
 ├── charts/              # 可选：包含该Chart所依赖的其他Chart的目录
 ├── Chart.yaml           # 包含该Chart信息的YAML文件
 ├── LICENSE              # 可选：包含该Chart许可信息的文本文件
 ├── README.md            # 可选：一个人类可读的README文件
-├── requirements.yaml    # 可选：列出该Chart依赖的YAML文件。在安装过程中，依赖的Charts也会被一起安装
+├── requirements.yaml    # 可选：列出该Chart依赖的YAML文件
 ├── templates            # 包含Kubernetes manifest文件的模板
 │   ├── deployment.yaml
 │   ├── _helpers.tpl     # 包含子模板的定义
@@ -1760,6 +1761,64 @@ mychart/
 ```bash
 $ helm create mychart
 ```
+
+Chart.yaml：
+
+```yaml
+apiVersion: The chart API version, always "v1" (required)
+name: The name of the chart (required)
+version: A SemVer 2 version (https://semver.org/，required)
+kubeVersion: A SemVer range of compatible Kubernetes versions (optional)
+description: A single-sentence description of this project (optional)
+keywords:
+  - A list of keywords about this project (optional)
+home: The URL of this project's home page (optional)
+sources:
+  - A list of URLs to source code for this project (optional)
+maintainers: # (optional)
+  - name: The maintainer's name (required for each maintainer)
+    email: The maintainer's email (optional for each maintainer)
+    url: A URL for the maintainer (optional for each maintainer)
+engine: gotpl # The name of the template engine (optional, defaults to gotpl)
+icon: A URL to an SVG or PNG image to be used as an icon (optional).
+appVersion: The version of the app that this contains (optional). This needn't be SemVer.
+deprecated: Whether this chart is deprecated (optional, boolean)
+tillerVersion: The version of Tiller that this chart requires. This should be expressed as a SemVer range: ">2.0.0" (optional)
+```
+
+#### Chart依赖
+
+在Helm中，一个Chart可能依赖于任意多的其他Charts。这些依赖项可以通过`requirements.yaml`文件动态链接，或者将依赖的Charts复制到`charts/`目录并手动管理。 推荐使用`requirements.yaml`文件来声明依赖项。
+
+在安装过程中，依赖的Charts也会被一起安装。
+
+##### 使用`requirements.yaml`文件管理依赖
+
+requirements.yaml：
+
+```yaml
+dependencies:
+  - name: apache
+    version: 1.2.3
+    repository: http://example.com/charts    # Note that you must also use "helm repo add" to add that repo locally.
+  - name: mysql
+    version: 3.2.1
+    repository: http://another.example.com/charts
+```
+
+一旦配置了依赖项，就可以运行 `helm dependency update` ，它将根据`requirements.yaml` 上的配置，将所有依赖的Charts下载到`charts/` 目录中。 
+
+```
+├── charts/
+│   ├── apache-1.2.3.tgz
+│   └── mysql-3.2.1.tgz
+```
+
+
+
+#### 打包Chart
+
+存储库中的包名：`Chart名称-版本.tgz`。 例如：`nginx-1.2.3.tgz`。
 
 
 

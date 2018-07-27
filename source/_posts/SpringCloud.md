@@ -18,6 +18,8 @@ Spring Cloud是建立在Spring Boot基础之上，并添加了一些系统中所
 >
 > 将文件解压缩到您使用的JRE / JDK x64 / x86版本的`JDK_HOME/jre/lib/security`文件夹中。 
 
+<!--more-->
+
 # 应用上下文服务：Spring Cloud Context
 
 Spring Cloud Context为Spring云应用程序的`ApplicationContext`提供实用程序和特殊服务（bootstrap上下文、加密、刷新范围和环境端点）。 
