@@ -208,7 +208,11 @@ C代码是区分大小写的。
 \Uxxxxxxxx
 ```
 
+`\uxxxx`等价于`\U0000xxxx`。
+
 通用字符名可以用于标识符、字符常量、字符串字面量，但是不得用于表示基本字符集内的字符。
+
+当采用通用字符名指定一个字符时，编译器会将其存储（转换）为当前实现版本所使用的字符集对应的编码。
 
 #### 特殊字符转义序列
 
@@ -617,6 +621,15 @@ C程序的顶层结构包含：
 
 ![C语言保留字](C/C语言保留字.png)
 
+## 标识符
+
+C语言有四种标识符的命名空间：
+
+- 标签名（label）
+- 标识（tag）：用来标识结构、联合与枚举类型
+- 结构或联合中的成员名称
+- 普通标识符
+
 ## 注释
 
 ```c
@@ -668,6 +681,42 @@ int main(int argc, char *argv[]) {
 
 ### 整数类型
 
+有符号整型：
+
+| 类型             | 同义词                                                |
+| ---------------- | ----------------------------------------------------- |
+| int              | signed、signed int                                    |
+| short            | short int、signed short、signed short int             |
+| long             | long int、signed long、signed long int                |
+| long long（C99） | long long int、signed long long、signed long long int |
+
+无符号整型：
+
+| 类型                      | 同义词                 |
+| ------------------------- | ---------------------- |
+| unsigned int              | unsigned               |
+| unsigned short            | unsigned short int     |
+| unsigned long             | unsigned long int      |
+| unsigned long long（C99） | unsigned long long int |
+
+整型的存储空间大小和取值范围：
+
+| 类型               | 存储空间大小 | 最小值               | 最大值               |
+| ------------------ | ------------ | -------------------- | -------------------- |
+| char               | 1个字节      | -128或0              | 127或255             |
+| signed char        | 1个字节      | -128                 | 127                  |
+| unsigned char      | 1个字节      | 0                    | 255                  |
+| int                | 2个或4个字节 | -32768或-2147483648  | 32767或2147483647    |
+| unsigned int       | 2个或4个字节 | 0                    | 65535或4294967295    |
+| short              | 2个字节      | -32768               | 32767                |
+| unsigned short     | 2个字节      | 0                    | 65535                |
+| long               | 4个字节      | -2147483648          | 2147483647           |
+| unsigned long      | 4个字节      | 0                    | 4294967295           |
+| long long          | 8个字节      | -9223372036854775808 | 9223372036854775807  |
+| unsigned long long | 8个字节      | 0                    | 18446744073709551615 |
+
+> 可以在`limits.h`头文件中找到所采用编译器中整数类型的取值范围，它们定义为宏，例如宏`INT_MIN`、`INT_MAX`和`UINT_MAX`等。
+
 ### 浮点类型
 
 ### 复数浮点类型
@@ -678,7 +727,9 @@ C语言中的字符类型实际上都是整数类型，可以对它们做算术�
 
 ### 单字节字符
 
-`char`类型表示单字节字符。
+`char`类型表示单字节字符。它可以是`signed char`的同义词，也可以是`unsigned char`的同义词，这由所采用的编译器实现版本决定。严格地说，`char`、`signed char`和`unsigned char`是三种不同的数据类型。
+
+如果程序会用到的字符值包括小于0或大于127的情况，则应该使用`signed char`和`unsigned char`，而不是`char`。
 
 ### 宽字符
 
@@ -702,7 +753,24 @@ C语言中没有专门的多字节字符类型，而是使用`char`数组或`cha
 
 C语言提供了一些标准函数，来在宽字符与多字节字符之间转换。
 
+`wctomb()`用于将宽字符转换为多字节字符：
+
+```c
+wchar_t wc = L'\x3B1';    // Greek lowercase alpha
+char mbStr[10] = "";
+int nBytes = 0;  // 多字节字符所需要的字节数量
+mBytes = wctomb(mbStr, wc);  // mbStr = "\xCE\xB1"
+if(nBytes < 0)
+  puts("Not a valid multibyte character in your locale.");
+```
+
+
+
 ## 布尔类型
+
+C99引入了无符号整数类型`_Bool`用来表示布尔类型。布尔值真被定义为`1`，假被定义为`0`。
+
+如果程序中包含`stdbool.h`头文件，则可以使用标识符`bool`、`true`和`false`。宏`bool`是`_Bool`类型的同义词，符号常量`true`值为`1`，`false`值为`0`。
 
 ## 空类型
 
@@ -732,6 +800,8 @@ char *str8 = u8"This is a Unicode string using UTF-8 encoding.";
 
 
 # 枚举类型
+
+基本类型和枚举类型统称算术类型（arithmetic type）。
 
 # 表达式
 
@@ -785,6 +855,22 @@ char *str8 = u8"This is a Unicode string using UTF-8 encoding.";
 
 ### 函数声明
 
+### `__func__`
+
+预定义标识符`__func__`，可以在任何函数中使用它来获取该函数的名称（字符串）。
+
+```c
+#include <stdio.h>
+int test_func(char *s) {
+  if (s==NULL) {
+    fprintf(stderr, "%s: received null pointer argument\n", __func__);
+    return -1;
+  }
+}
+```
+
+
+
 ## 运算符
 
 ### 优先级
@@ -793,7 +879,11 @@ char *str8 = u8"This is a Unicode string using UTF-8 encoding.";
 
 # 指针
 
+算术类型和指针类型统称标量类型（scalar type）。
+
 # 结构
+
+数组和结构统称聚合类型（aggregate type）。指针和聚合类型也称为派生类型。
 
 # 联合
 
@@ -809,6 +899,24 @@ char *str8 = u8"This is a Unicode string using UTF-8 encoding.";
 
 # 作用域和可见性
 
+## 作用域
+
+C语言有四种作用域：
+
+- 文件作用域：如果声明标识符的地方位于所有语句块和参数列表之外，则该标识符就具有文件作用域。文件作用域的标识符在声明后直到翻译单元结束的任何地方可以访问。
+- 块作用域：除标签之外，在语句块内声明的标识符具有块作用域。这样的标识符只能在从其声明处到包含该声明的最小语句块结尾处的范围内可以访问。在一个函数定义头部的参数名称，也具有块作用域，其在整个函数体内都有效。
+  块作用域可以嵌套。
+- 函数原型作用域：函数原型中参数名具有函数原型作用域。这些参数名在原型外没有意义，通常只用注释。
+- 函数作用域：一个标签的作用域一定是该标签所在的整个函数体内，即使它被放在嵌套语句块内。例如，可以使用`goto`语句，在同一个函数体内，从任意点跳到某个标签处。
+
+标识符的作用域通常从声明之后开始，但是结构、联合、枚举的类型名称，以及枚举常量的名称是个例外：当它们出现在声明中时，它们的作用域就立刻开始，因此它们可以在声明中被本身再次引用。
+
+### 标识符屏蔽
+
+内层块作用域中声明的标识符屏蔽外层块作用域或文件作用域中声明的同名标识符。
+
+函数原型中的参数名屏蔽外层块作用域或文件作用域中声明的同名标识符。
+
 # 内存管理
 
 # 类型系统
@@ -820,6 +928,14 @@ char *str8 = u8"This is a Unicode string using UTF-8 encoding.";
 
 
 ## 类型推断
+
+## sizeof
+
+`sizeof(类型)` 表示获取指定类型的空间大小。
+
+`sizeof 表达式` 或`sizeof(表达式)` 表示获取指定表达式类型的空间大小。
+
+`sizeof`的结果类型是`size_t`，它是作为一个无符号整数类型（如`unsigned long`）定义在头文件`stddef.h`、`stdio.h`以及其他头文件中。
 
 # 别名
 
