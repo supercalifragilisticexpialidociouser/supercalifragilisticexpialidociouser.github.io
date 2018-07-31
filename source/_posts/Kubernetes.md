@@ -1723,6 +1723,10 @@ $ helm list
 $ helm status mysql-release
 ```
 
+### 更新Release
+
+### 回滚Release
+
 ### 删除Release
 
 ```bash
@@ -1754,7 +1758,7 @@ Chart可以非常简单，只用于部署一个服务；也可以非常复杂，
 
 除了上述列出的文件外，其他任何文件或目录将保留原样。
 
-### 开发自己的Charts
+### 定制Charts
 
 #### 创建Chart
 
@@ -1792,7 +1796,7 @@ tillerVersion: The version of Tiller that this chart requires. This should be ex
 
 在安装过程中，依赖的Charts也会被一起安装。
 
-##### 使用`requirements.yaml`文件管理依赖
+##### 使用`requirements.yaml`文件管理依赖（推荐）
 
 requirements.yaml：
 
@@ -1806,7 +1810,7 @@ dependencies:
     repository: http://another.example.com/charts
 ```
 
-一旦配置了依赖项，就可以运行 `helm dependency update` ，它将根据`requirements.yaml` 上的配置，将所有依赖的Charts下载到`charts/` 目录中。 
+一旦配置了依赖项，就可以运行 `helm dependency update` ，它将根据`requirements.yaml` 上的配置，自动将所有依赖的Charts下载到`charts/` 目录中。 
 
 ```
 ├── charts/
@@ -1814,7 +1818,73 @@ dependencies:
 │   └── mysql-3.2.1.tgz
 ```
 
+##### 通过`charts/`目录手动管理依赖
 
+直接将Chart需要的依赖Charts复制到`charts/`即可。依赖Charts可以是Chart存档（如foo-1.2.3.tgz）或解压缩的Chart目录。但它的名称不能以`_`或`..`开头，Chart加载器会忽略这些文件。 
+
+要将依赖项下载到`charts/`目录中，可使用`helm fetch`命令。
+
+#### values.yaml
+
+#### Chart的模板
+
+Chart的所有模板文件保存在`templates/`目录中，Helm通过这些模板文件来创建Kubernetes的资源定义文件。
+
+在Chart模板文件中使用形如`{{…}}`的Go模板语言来编写。
+
+下面是一个`ReplicationController`的模板文件：
+
+```yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: deis-database
+  namespace: deis
+  labels:
+    heritage: deis
+spec:
+  replicas: 1
+  selector:
+    app: deis-database
+  template:
+    metadata:
+      labels:
+        app: deis-database
+    spec:
+      serviceAccount: deis-database
+      containers:
+        - name: deis-database
+          image: {{.Values.imageRegistry}}/postgres:{{.Values.dockerTag}}
+          imagePullPolicy: {{.Values.pullPolicy}}
+          ports:
+            - containerPort: 5432
+          env:
+            - name: DATABASE_STORAGE
+              value: {{default "minio" .Values.storage}}
+```
+
+有下面三种方式为模板提供值：
+
+- 通过`values.yaml`为模板中的变量提供默认值。
+
+- 使用`-f`选项，为命令`helm install`或`helm upgrade`指定一个为模板中的变量提供值的YAML文件。它将覆盖`values.yaml`中的同名定义。例如：
+
+  ```bash
+  $ helm install -f myvalues.yaml -f override.yaml ./redis
+  ```
+
+  如果在同一条命令中，多次使用`-f`指定YAML文件，则越后面的指定的优先级越高。
+
+- 通过使用`--set`或`--set-string`选项来为模板中的单个变量提供值：
+
+  ```bash
+  $ helm install --set-string long_int=1234567890 ./redis
+  $ helm upgrade --set foo=bar --set foo=newbar redis ./redis
+  ```
+
+`--set-string`选项强制参数值是字符串。
+
+如果在同一条命令中，多次使用`--set`或`--set-string`选项指定YAML文件，则越后面的指定的优先级越高。
 
 #### 打包Chart
 
