@@ -1758,9 +1758,7 @@ Chart可以非常简单，只用于部署一个服务；也可以非常复杂，
 
 除了上述列出的文件外，其他任何文件或目录将保留原样。
 
-### 定制Charts
-
-#### 创建Chart
+### 创建Chart
 
 ```bash
 $ helm create mychart
@@ -1790,13 +1788,13 @@ deprecated: Whether this chart is deprecated (optional, boolean)
 tillerVersion: The version of Tiller that this chart requires. This should be expressed as a SemVer range: ">2.0.0" (optional)
 ```
 
-#### Chart依赖
+### Chart依赖
 
 在Helm中，一个Chart可能依赖于任意多的其他Charts。这些依赖项可以通过`requirements.yaml`文件动态链接，或者将依赖的Charts复制到`charts/`目录并手动管理。 推荐使用`requirements.yaml`文件来声明依赖项。
 
 在安装过程中，依赖的Charts也会被一起安装。
 
-##### 使用`requirements.yaml`文件管理依赖（推荐）
+#### 使用`requirements.yaml`文件管理依赖（推荐）
 
 requirements.yaml：
 
@@ -1818,15 +1816,13 @@ dependencies:
 │   └── mysql-3.2.1.tgz
 ```
 
-##### 通过`charts/`目录手动管理依赖
+#### 通过`charts/`目录手动管理依赖
 
 直接将Chart需要的依赖Charts复制到`charts/`即可。依赖Charts可以是Chart存档（如foo-1.2.3.tgz）或解压缩的Chart目录。但它的名称不能以`_`或`..`开头，Chart加载器会忽略这些文件。 
 
 要将依赖项下载到`charts/`目录中，可使用`helm fetch`命令。
 
-#### values.yaml
-
-#### Chart的模板
+### Chart的模板
 
 Chart的所有模板文件保存在`templates/`目录中，Helm通过这些模板文件来创建Kubernetes的资源定义文件。
 
@@ -1863,11 +1859,22 @@ spec:
               value: {{default "minio" .Values.storage}}
 ```
 
-有下面三种方式为模板提供值：
+#### 预定义对象
 
-- 通过`values.yaml`为模板中的变量提供默认值。
+##### 自定义值
 
-- 使用`-f`选项，为命令`helm install`或`helm upgrade`指定一个为模板中的变量提供值的YAML文件。它将覆盖`values.yaml`中的同名定义。例如：
+在模板中，可以通过`.Values`对象可访问如下方式提供的自定义值：
+
+- 通过`values.yaml` 定义的属性。（优先级最低，通常用于提供默认值）
+
+  ```yaml
+  imageRegistry: "quay.io/deis"
+  dockerTag: "latest"
+  pullPolicy: "Always"
+  storage: "s3"
+  ```
+
+- 使用`-f`选项，为命令`helm install`或`helm upgrade`指定一个YAML文件。它定义的属性将覆盖`values.yaml`中的同名定义。例如：
 
   ```bash
   $ helm install -f myvalues.yaml -f override.yaml ./redis
@@ -1875,18 +1882,36 @@ spec:
 
   如果在同一条命令中，多次使用`-f`指定YAML文件，则越后面的指定的优先级越高。
 
-- 通过使用`--set`或`--set-string`选项来为模板中的单个变量提供值：
+- 通过使用`--set`或`--set-string`选项定义的属性：
 
   ```bash
   $ helm install --set-string long_int=1234567890 ./redis
   $ helm upgrade --set foo=bar --set foo=newbar redis ./redis
   ```
 
-`--set-string`选项强制参数值是字符串。
+  `--set-string`选项强制参数值是字符串。
 
-如果在同一条命令中，多次使用`--set`或`--set-string`选项指定YAML文件，则越后面的指定的优先级越高。
+  如果在同一条命令中，多次使用`--set`或`--set-string`选项指定YAML文件，则越后面的指定的优先级越高。
 
-#### 打包Chart
+##### Release对象
+
+- `.Release.Name`：Release的名称。
+- `.Release.Time` ：Release最后更新时间，这将匹配Release对象上的Last Released时间 。
+- `.Release.Namespace`：Release所在的命名空间。
+- `.Release.Service`：管理该Release的服务，通常这是Tiller。
+- `.Release.IsUpgrade`：如果当前操作是升级或回滚，则设置为true。 
+- `.Release.IsInstall`：如果当前操作是安装，则设置为true。
+- `.Release.Revision`：Release的修订号。它从1开始，随着每次`helm upgrade`的执行而递增。 
+
+##### Chart对象
+
+`.Chart`对象用于访问`Chart.yaml`中定义的属性。例如：`.Chart.Version`。
+
+##### File对象
+
+
+
+### 打包Chart
 
 存储库中的包名：`Chart名称-版本.tgz`。 例如：`nginx-1.2.3.tgz`。
 
