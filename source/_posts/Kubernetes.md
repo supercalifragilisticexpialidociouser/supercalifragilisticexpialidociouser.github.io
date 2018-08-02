@@ -239,7 +239,7 @@ Node可以包含多个pod，Kubernetes master会自动处理在群集中的节�
 Pod是一个Kubernetes抽象，表示紧密相关的一组（一个或多个）应用程序容器（如Docker或rkt），以及这些容器的一些共享资源。 这些资源包括：
 
 - 共享存储——Kubernetes中存储卷是在Pod级别中设置的，而不是容器级别。 
-- 网络——Kubernetes集群中的每个Pod都有一个唯一的IP地址，Pod中的容器共享这个IP地址 和端口空间。而同一个Pod的容器之间能直接通过localhost来发现和通信。 
+- 网络——Kubernetes集群中的每个Pod都有一个唯一的IP地址，Pod中的容器共享这个IP地址和端口空间。而同一个Pod的容器之间能直接通过localhost来发现和通信。 
 - 有关如何运行每个容器的信息，例如容器映像版本或要使用的特定端口 
 
 Pod模拟一个特定于应用程序的“逻辑主机”，并且可以包含相对紧密耦合的不同应用程序容器。 
@@ -333,6 +333,22 @@ $ minikube version
 ## 使用Photon OS
 
 Photon OS是一个专注于容器的精简Linux操作系统。它的完全安装中已经包含Kubernetes和Mesos。
+
+# 网络管理
+
+## 网络模型
+
+Kubernetes采用基于扁平地址空间的网络模型，集群中的每个Pod都有自己的IP地址，Pod之间不需要配置NAT就能直接通信。另外，同一个Pod中的容器共享Pod的IP，它们能够通过localhost通信。也就是说，每个Pod可以看作一个个独立的系统，面Pod中的容器则可被看作同一系统中的不同进程。
+
+在Kubernetes集群中，Pod可能会频繁地销毁和创建，它们的IP是不固定的。为了解决这个问题，Service提供了访问Pod的抽象层。无论后端的Pod如何变化，Service都作为稳定的前端对外提供服务。同时，Service还提供了高可用和负载均衡功能，Service负责将请求转发给正确的Pod。
+
+无论是Pod的IP，还是Service的集群IP，它们只能在Kubernetes集群中可见，对集群之外的世界，这些IP都是私有的。Kubernetes提供了多种方式对外公布服务（参见“对外公布服务”）。
+
+## 网络方案
+
+Kubernetes采用了多种网络方案（例如：Flannel、Calico、Canal、Weave Net等）来支持它的网络模型，这些网络方案都实现了Container Networking Interface（CNI）规范。因此，用户无论选择哪种方案，得到的网络模型都是一样的。
+
+## 网络政策
 
 # 集群管理
 
@@ -758,7 +774,7 @@ $ kubectl delete pvc/myclaim
 
 如果`persistentVolumeReclaimPolicy`为`Retain`时，Kubernetes不会启动用于清除数据的Pod，`mysql-pv`中的数据得到保留，但其PV状态会一直处于“Released”，不能被其他PVC申请。这时，如果删除了PV`mysql-pv`，只是删除了`mysql-pv`对象，存储空间中的数据仍然不会被删除。重新创建`mysql-pv`后，它的状态将变为“Available”，此时可以被新的PVC申请。
 
-# 服务
+# 服务管理
 
 ## DNS访问服务
 
@@ -1688,11 +1704,12 @@ $ helm search mysql
 
 ```bash
 $ helm inspect stable/mariadb
+$ helm inspect values stable/mariabd     # 查看Chart的values.yaml的内容
 ```
 
 ### 安装Chart
 
-例如安装mysql：
+例如通过官方存储库安装mysql：
 
 ```bash
 $ helm repo update              # Make sure we get the latest list of charts
@@ -1707,9 +1724,36 @@ $ helm install stable/mysql --name mysql-release
 
 一旦安装了某个Chart，就可以在`~/.helm/cache/archive/`中找到该Chart的tar包。
 
-### 查看已安装的Release
+可以通过`--namespace`选项来指定将Release发布到哪个Kubernetes命名空间中。
 
-列出所有Release：
+可以通过`--version`选项选择特定的Chart版本：
+
+```bash
+$ helm install stable/mysql --version 0.8.2
+```
+
+没指定`--version`选项，则选择最新版本的Chart。
+
+
+
+除了通过官方Chart存储库安装Chart外，Helm还支持如下安装：
+
+通过tar包安装：
+
+```bash
+$ helm install ./nginx-1.2.3.tgz   # 使用本地的tar包安装
+$ helm install https://example.com/charts/nginx-1.2.3.tgz   # 通过远程tar包安装
+```
+
+通过本地Chart目录安装 ：
+
+```bash
+$ helm install ./nginx
+```
+
+
+
+### 列出已安装的Release
 
 ```bash
 $ helm ls
@@ -1717,7 +1761,7 @@ $ helm ls
 $ helm list
 ```
 
-查看Release的状态：
+### 查看Release的状态
 
 ```bash
 $ helm status mysql-release
@@ -1725,7 +1769,25 @@ $ helm status mysql-release
 
 ### 更新Release
 
+Release发布后可以执行`helm upgrade`对其进行升级：
+
+```bash
+$ helm upgrade --set imageTag=5.7.15 mysql-release stable/mysql
+```
+
+### 列出Release的所有修订历史
+
+```bash
+$ helm history mysql-release
+```
+
 ### 回滚Release
+
+通过`helm rollback`可以回滚到上面`helm histroy`列出的任意修订版本：
+
+```bash
+$ helm rollback mysql-release 1
+```
 
 ### 删除Release
 
@@ -1826,7 +1888,7 @@ dependencies:
 
 Chart的所有模板文件保存在`templates/`目录中，Helm通过这些模板文件来创建Kubernetes的资源定义文件。
 
-在Chart模板文件中使用形如`{{…}}`的Go模板语言来编写。
+在Chart模板文件中使用形如`{{…}}`的[Go模板语言](https://golang.org/pkg/text/template/)来编写。
 
 下面是一个`ReplicationController`的模板文件：
 
@@ -1874,13 +1936,13 @@ spec:
   storage: "s3"
   ```
 
-- 使用`-f`选项，为命令`helm install`或`helm upgrade`指定一个YAML文件。它定义的属性将覆盖`values.yaml`中的同名定义。例如：
+- 使用`-f`或`--values`选项，为命令`helm install`或`helm upgrade`指定一个YAML文件。它定义的属性将覆盖`values.yaml`中的同名定义。例如：
 
   ```bash
-  $ helm install -f myvalues.yaml -f override.yaml ./redis
+  $ helm install -f myvalues.yaml -f override.yaml stable/redis
   ```
 
-  如果在同一条命令中，多次使用`-f`指定YAML文件，则越后面的指定的优先级越高。
+  如果在同一条命令中，多次使用`-f`指定YAML文件，则这些自己指定的YAML文件将与默认的`values.yaml`合并。并且在多个YAML文件中重复出现的属性，越后面的指定的优先级越高，而`values.yaml`优先级总是最低的。
 
 - 通过使用`--set`或`--set-string`选项定义的属性：
 
@@ -1892,6 +1954,28 @@ spec:
   `--set-string`选项强制参数值是字符串。
 
   如果在同一条命令中，多次使用`--set`或`--set-string`选项指定YAML文件，则越后面的指定的优先级越高。
+
+  ###### 值的作用域
+
+  假设下面是`WordPress`Chart的`values.yaml`文件，并且`WordPress`Chart依赖于`mysql`Chart和`apache`Chart。
+
+  ```yaml
+  title: "My WordPress Site"   # 只有WordPress Chart才能访问（通过“.Values.title”访问）
+  
+  global:  # 这是全局属性，可以被WordPress及它的依赖Chart所访问（通过“.Values.global.app”）
+    app: MyWordPress
+  
+  mysql:  # mysql Chart只能访问这一命名空间下的属性（例如“.Values.password”），WordPress Chart也可以访问该命名空间下的属性（例如“.Values.mysql.password”）。
+    global:
+      app: AnotherWordPress
+    max_connections: 100 
+    password: "secret"
+  
+  apache:
+    port: 8080 
+  ```
+
+  父级Chart定义的全局属性优先于子级Chart定义的全局属性。也就是说全局属性只能向下传递。因此，通过`.Values.global.app`总是`MyWordPress`。
 
 ##### Release对象
 
@@ -1907,23 +1991,159 @@ spec:
 
 `.Chart`对象用于访问`Chart.yaml`中定义的属性。例如：`.Chart.Version`。
 
+> 自定义属性要放在`values.yaml`中，而不是`Chart.yaml`中。在`Chart.yaml`中只能放置Helm预定义的属性，所有未知属性将被忽略。
+
 ##### File对象
 
+##### Capabilities对象
 
+`{{.Capabilities.KubeVersion}}`用于访问Kubernetes版本。
+
+`{{.Capabilities.TillerVersion}}`用于访问Tiller版本。
+
+`{{Capabilities.APIVersions.Has "batch/v1"}}`用于访问Kubernetes API版本。
+
+#### 子模板
+
+如果存在一些信息多个模板都会用到，则可在`templates/_helpers.tpl`中将其定义为子模板，然后通过`templates`函数引用。
+
+service.yaml：
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "mychart.fullname" . }}
+  labels:
+    app: {{ template "mychart.name" . }}
+    chart: {{ template "mychart.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ template "mychart.name" . }}
+    release: {{ .Release.Name }}
+```
+
+_helpers.tpl：
+
+```
+{{/* vim: set filetype=mustache: */}}
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "mychart.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
+*/}}
+{{- define "mychart.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "mychart.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+```
+
+### 调试Chart
+
+`helm lint`用于检查Chart的所有工件语法是否正确：
+
+```bash
+$ helm lint ./mychart
+```
+
+`helm install --dry-run --debug`会模拟安装Chart，并输出每个模板生成的YAML文件：
+
+```bash
+$ helm install --dry-run --debug mychart
+```
 
 ### 打包Chart
 
 存储库中的包名：`Chart名称-版本.tgz`。 例如：`nginx-1.2.3.tgz`。
 
+```bash
+$ helm package ./nginx
+```
 
+该命令也会自动将生成的`nginx-1.2.3.tgz`添加到`local`存储库中。
 
 ### Chart存储库
 
-Helm安装时已经默认配置好了两个存储库：stable和local。stable是官方存储库，local是用户本地存储库。
+Helm安装时已经默认配置好了两个存储库：stable和local。stable是官方存储库，local是用户本地存储库（位于`~/.helm/repository/local` 下）。
 
-用户可以通过`helm repo add`添加更多存储库，比如企业私有存储库等。
+#### 搭建自己的Chart存储库
 
-可以通过`helm repo list`查看已经配置好的所有存储库。（Chart存储库的位置是`~/.helm/repository/` 下）
+任何HTTP Server都可以用作Chart的存储库。例如：（假设位于节点：192.168.56.106）
+
+```bash
+$ mkdir /var/www
+$ docker run -d -p 8080:80 -v /var/www:/usr/local/apache2/htdocs/ httpd
+```
+
+然后，通过执行`helm repo index`生成存储库的`index.yaml`文件：
+
+```bash
+$ mkdir myrepo
+$ mv mychart-0.1.0.tgz myrepo/
+$ helm repo index myrepo/ --url http://192.168.56.106:8080/charts
+```
+
+Helm会扫描`myrepo`目录中所有tgz包并生成`index.yaml` （记录了当前仓库中所有Chart信息）。`--url`指定新存储库的访问路径。
+
+接着，将`myrepo`目录下的所有tgz包和`index.yaml`文件上传到`192.168.56.106`服务器的`/var/www/charts`目录下。
+
+#### 向Helm注册Chart存储库
+
+用户可以通过`helm repo add`向Helm添加更多存储库，比如企业私有存储库等。
+
+```bash
+$ helm repo add newrepo http://192.168.56.106:8080/charts
+```
+
+#### 列出所有已注册的Chart存储库
+
+可以通过`helm repo list`查看所有已经向Helm注册的Chart存储库。（所有Chart存储库的本地缓存位置是`~/.helm/repository/cache` 下）
+
+#### 安装新存储库中的Chart
+
+```bash
+$ helm install newrepo/mychart
+或者
+$ helm install --repo http://192.168.56.106:8080/charts/ mychart   # 该方法无需先注册Chart存储库
+```
+
+#### 向存储库中添加新的Chart
+
+以后只要向存储库上传新的Chart，那么用`helm repo update`更新一下存储库的`index.yaml`即可。
+
+```bash
+$ helm repo update
+```
 
 # Deis
 
