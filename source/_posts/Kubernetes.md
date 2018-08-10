@@ -1362,9 +1362,25 @@ spec:
 	    		key: config2
 ```
 
+# DaemonSet
 
+DaemonSet部署的Pods副本会分布到每个节点上，并且每个节点最多只能运行一个副本。
+
+典型应用场景：
+
+- 在集群的每个节点上运行存储守护进程，比如ceph。
+- 在每个节点上运行日志收集守护进程，比如logstash。
+- 在每个节点上运行监控守护进程，比如 Prometheus Node Exporter。
 
 # 作业管理
+
+Job用于完成一次性任务，比如批处理程序，完成后容器就退出。
+
+Job的`restartPolicy`属性只能设置为`Never`或`OnFailure`。
+
+## Job的并行性
+
+## 定时Job
 
 # 健康检查
 
@@ -1740,7 +1756,7 @@ $ cp helm.pem $HELM_HOME/cert.pem
 $ cp helm-key.pem $HELM_HOME/key.pem
 ```
 
-这样，每条helm命令只要带上`--tls`选项（启用TLS/SSL）即可：
+这样，每条需要与Tiller交互的helm命令都要带上`--tls`选项（启用TLS/SSL）即可：
 
 ```bash
 $ helm ls --tls
@@ -2224,7 +2240,28 @@ $ helm repo update
 
 Kubernetes Dashboard是一个基于Web的应用，它提供了kubectl的绝大部分功能。
 
+> 安装成功后：
+>
+> 1. 需要将根证书 ca.pem 导入**客户**操作系统（不是Kubernetes集群服务器），并设置永久信任。这样，通过HTTPS访问Dashboard时，就不会出现“不安全”警告。
+> 2. 同时为自己的浏览器（不是在Kubernetes集群服务器）生成一个 client 证书，并导入该证书。这样，通过浏览器访问Dashboard时，就不会出现”401 Unauthorized“提示。
+>
+> 可以通过`kubectl cluster-info `来获取Kubernetes Dashboard的访问地址。
+>
+> 用浏览器打开Kubernetes Dashboard的访问地址后，选择使用token 或 kubeconfig 进行登陆。
+
 # 集群监控
+
+## Metrics Server
+
+K8S从1.8版本开始，CPU、内存等资源的指标信息可以通过 Metrics API来获取，用户可以直接获取这些指标信息（例如通过执行kubect top命令），HPA使用这些metics信息来实现动态伸缩。 
+
+[Metrics Server](https://github.com/kubernetes-incubator/metrics-server) 实现了Resource Metrics API，是集群范围资源使用数据的聚合器，它从每个节点上的 Kubelet Summary API 中采集指标信息。 
+
+> 原来的Heapster已经废弃。
+
+## Prometheus Operator
+
+# 日志管理
 
 # Deis
 
