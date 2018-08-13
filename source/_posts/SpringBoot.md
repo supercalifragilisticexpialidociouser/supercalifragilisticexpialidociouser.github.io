@@ -8,7 +8,7 @@ tags: [2.0.3]
 
 Spring Boot简化了Spring应用的开发，不需要什么配置就可以运行Spring应用。
 
-Spring Boot项目可以直接被打包成一个可执行的jar包，并且内嵌了Tomcat、Jetty和Undertow支持。因此，不再需要单独下载这些Servlet容器。当然，也可以打包成传统的war包。
+Spring Boot项目可以直接被打包成一个可执行的jar包，并且内嵌了Tomcat、Jetty和Undertow支持。因此，不再需要单独下载这些Servlet容器。当然，也可以将Spring Boot打包成传统的war包，部署到独立的Servlet容器中。
 
 <!--more-->
 
@@ -50,7 +50,6 @@ Spring Tool Suite（STS）：一个基于Eclipse的IDE，可以很方便地开�
 > $ curl https://start.spring.io/starter.zip\?name\=demo\&groupId\=com.example\&artifactId\=deroject+for+Spring+Boot\&packageName\=com.example.demo\&type\=maven-project\&packaging\=jar\&.0.2.RELEASE\&dependencies\=web --output demo.zip
 > ```
 >
-> 
 
 ### 添加Spring Boot依赖
 
@@ -519,6 +518,8 @@ Spring Boot按下列顺序加载应用属性，顺序靠前的应用属性优先
 16. 在`@Configuration`标注的类中，通过`@PropertySource`加载的应用属性。
 
 17. 应用默认属性（通过`SpringApplication.setDefaultProperties`设定）。
+
+> 另外，properties属性文件优先级高于相应的YAML文件。
 
 ### 应用属性文件
 
@@ -2301,7 +2302,7 @@ public WebMvcConfigurer corsConfigurer() {
 
 ## WebFlux
 
-Spring WebFlux是Spring Framework 5.0中引入的新的反应式Web框架。与Spring MVC不同，它不需要Servlet API，完全异步和非阻塞，并通过[Reactor](https://projectreactor.io/) 项目实现 [Reactive Streams](http://www.reactive-streams.org/) 规范。 
+Spring WebFlux是Spring Framework 5.0中引入的新的反应式Web框架。与Spring MVC不同，它不需要Servlet API，完全异步、非阻塞和事件驱动，并通过[Reactor](https://projectreactor.io/) 项目（也提供了对RxJava的支持 ）实现 [Reactive Streams](http://www.reactive-streams.org/) 规范。 另外，Spring WebFlux也支持响应式的Websocket服务端开发。
 
 Spring WebFlux有两种风格：函数式风格和基于标注的风格。基于标注的网络非常接近Spring MVC。
 
@@ -2484,6 +2485,54 @@ Spring Boot应用可以内嵌Tomcat、Jetty、Undertow或Netty HTTP服务器。
 # 安全
 
 # 关系数据库
+
+## 引入依赖
+
+### 引入数据库驱动
+
+MySQL：
+
+```xml
+<dependency>
+  <groupId>mysql</groupId>
+  <artifactId>mysql-connector-java</artifactId>
+  <scope>runtime</scope>
+</dependency>
+```
+
+H2：
+
+```xml
+<dependency>
+  <groupId>com.h2database</groupId>
+  <artifactId>h2</artifactId>
+  <scope>runtime</scope>
+</dependency>
+```
+
+### 引入持久层框架
+
+JDBC：
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-jdbc</artifactId>
+</dependency>
+```
+
+Spring Data JPA：
+
+```xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+```
+
+MyBatis：
+
+## 配置数据库
 
 # NoSQL
 
