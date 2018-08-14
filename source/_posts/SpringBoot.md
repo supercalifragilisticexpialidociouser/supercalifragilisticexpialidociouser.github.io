@@ -1,7 +1,7 @@
 ---
 title: SpringBoot
 date: 2018-04-16 09:39:49
-tags: [2.0.3]
+tags: [2.0.4]
 ---
 
 # 简介
@@ -2482,6 +2482,16 @@ Spring WebFlux提供了一个`WebFilter`接口，可以实现过滤HTTP请求-�
 
 Spring Boot应用可以内嵌Tomcat、Jetty、Undertow或Netty HTTP服务器。
 
+### Servlets、Filters和Listeners
+
+在Spring Boot中使用Servlets、Filters和Listeners很简单：
+
+1. 使用`@ServletComponentScan`标注启动类，基于标注自动发现Servlets、Filters和Listeners。
+
+   > `@ServletComponentScan`标注只对内嵌Servlet容器起作用，对独立的容器没有作用。独立容器使用自身的发现机制。
+
+2. 给Servlets实现类（实现`Servlet`接口）标注`@WebServlet`，给Filters实现类（实现`Filter`接口）标注`@WebFilter`，给Listeners实现类（实现相应监听器接口）标注`@WebListener`。
+
 # 安全
 
 # 关系数据库
@@ -2532,9 +2542,213 @@ Spring Data JPA：
 
 MyBatis：
 
+```xml
+<dependency>
+  <groupId>org.mybatis.spring.boot</groupId>
+  <artifactId>mybatis-spring-boot-starter</artifactId>
+  <version>1.3.2</version>
+</dependency>
+```
+
 ## 配置数据库
 
+### 嵌入式数据库
+
+Spring Boot可以自动配置嵌入式H2、HSQL和Derby数据库。无需提供任何连接URL，只需要包含要使用的嵌入式数据库的相关依赖。 在这种情况下，无论您使用的应用程序上下文有多少，整个测试套件都会重用相同的数据库。如果要确保每个上下文都有单独的嵌入式数据库，只需将`spring.datasource.generate-unique-name` 设置为 `true` 。如果自己显式设置了连接嵌入式数据库的URL，则务必确保数据库自动关闭被禁用。也就是说，如果使用H2，则应使用`DB_CLOSE_ON_EXIT = FALSE`；如果使用HSQLDB，则应确保不使用`shutdown = true` 。禁用数据库的自动关闭使得可以在数据库关闭时进行Spring Boot控制，从而确保在不再需要访问数据库时发生 。
+
+### 连接池
+
+连接池实现的选择规则：
+
+1. 如果HikariCP可用，总是选择它。 
+
+   > 如果使用`spring-boot-starter-jdbc`或`spring-boot-starter-data-jpa` “starters”，则会自动获得对HikariCP的依赖。
+
+2. 否则，如果Tomcat pooling DataSource可用，我们将使用它。 
+
+3. 如果HikariCP和Tomcat pooling DataSource都不可用，并且[Commons DBCP2](https://commons.apache.org/proper/commons-dbcp/)可用，我们就会使用它。 
+
+您可以完全绕过该算法，并通过设置`spring.datasource.type`属性指定要使用的连接池。始终可以手动配置其他连接池，如果您定义自己的DataSource bean，则不会进行自动配置 。
+
+可以通过使用各自的前缀（`spring.datasource.hikari.*`、`spring.datasource.tomcat.*`和`spring.datasource.dbcp2.*`）来微调特定实现的设置。例如：
+
+```properties
+# Number of ms to wait before throwing an exception if no connection is available.
+spring.datasource.tomcat.max-wait=10000
+
+# Maximum number of active connections that can be allocated from this pool at the same time.
+spring.datasource.tomcat.max-active=50
+
+# Validate the connection before borrowing it from the pool.
+spring.datasource.tomcat.test-on-borrow=true
+```
+
+### 配置数据源
+
+数据源在属性文件中进行配置。
+
+支持的选项，请参阅[DataSourceProperties](https://github.com/spring-projects/spring-boot/tree/v2.0.4.RELEASE/spring-boot-project/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/jdbc/DataSourceProperties.java)。无论实际实施如何，这些都是标准选项。  
+
+MySQL：
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost/test
+spring.datasource.username=dbuser
+spring.datasource.password=dbpass
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver  # 可选，Spring Boot可以从url中推断出。
+```
+
+### 使用JNDI数据源
+
+如果将Spring Boot应用程序部署到独立的应用服务器，则可能需要使用该应用服务器的内置功能来配置和管理数据源，并使用JNDI访问它。 
+
+`spring.datasource.jndi-name`属性可用作`spring.datasource.url`、`spring.datasource.username`和`spring.datasource.password`属性的替代，以从特定JNDI位置访问DataSource。 例如：
+
+```properties
+spring.datasource.jndi-name=java:jboss/datasources/customers
+```
+
+### 配置MyBatis
+
+```properties
+mybatis.mapper-locations=classpath:/mappers/*Mapper.xml  #指定Mapper文件存放路径
+mybatis.type-aliases-package=com.example.demo.dao   #指定DAO接口文件所在包
+```
+
+
+
+## 初始化数据库
+
+## 使用JdbcTemplate
+
+> 依赖于`spring-boot-starter-jdbc`。
+
+Spring的`JdbcTemplate`和`NamedParameterJdbcTemplate`类是自动配置的，您可以将它们直接`@Autowired`到您自己的bean中，如下面的示例所示：
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MyBean {
+	private final JdbcTemplate jdbcTemplate;
+
+	@Autowired
+	public MyBean(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
+	}
+
+	// ...
+}
+```
+
+您可以使用`spring.jdbc.template.*`属性自定义`JdbcTemplate`的某些属性，如以下示例所示： 
+
+```properties
+spring.jdbc.template.max-rows=500
+```
+
+## 使用Spring Data JPA
+
+> 依赖于`spring-boot-starter-data-jpa`。
+
+### 创建实体类
+
+传统上，JPA“Entity”类在persistence.xml文件中指定。使用Spring Boot，此文件不是必需的，而是使用“实体扫描”。默认情况下，将搜索主配置类（使用`@EnableAutoConfiguration`或`@SpringBootApplication`标注）下面的所有包。 
+
+任何使用`@Entity`、`@Embeddable`或`@MappedSuperclass`注释的类都被考虑为实体类。
+
+```java
+package hello;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+public class Customer {
+  @Id
+  @GeneratedValue(strategy=GenerationType.AUTO)
+  private Long id;
+  private String firstName;
+  private String lastName;
+
+  // no-args constructor required by JPA spec
+  // this one is protected since it shouldn't be used directly
+  protected Customer() {}
+
+  public Customer(String firstName, String lastName) {
+    this.firstName = firstName;
+    this.lastName = lastName;
+  }
+
+  @Override
+  public String toString() {
+    return String.format(
+      "Customer[id=%d, firstName='%s', lastName='%s']",
+      id, firstName, lastName);
+  }
+  
+  // getter和setter
+}
+```
+
+### 创建Repository
+
+Spring Data JPA中，Repository只需要创建为接口，在运行时，能够根据Repository接口自动创建Repository实现。 
+
+```java
+package hello;
+
+import java.util.List;
+import org.springframework.data.repository.CrudRepository;
+
+public interface CustomerRepository extends CrudRepository<Customer, Long> {
+  List<Customer> findByLastName(String lastName);
+}
+```
+
+> 在使用JPA中，更经常的是扩展`JpaRepository`接口。
+
+## 使用MyBatis
+
+## 事务管理
+
+在Spring Boot中已经默认对JPA、JDBC和MyBatis默认启用了事务，因此不需要显式使用`@EnableTransactionManagement`标注启用事务。
+
+Spring既支持编程式事务管理，也支持声明式事务管理（推荐）。
+
+Spring声明式事务管理提供了5种方式，其中基于标注的方式是目前比较流行的。使用基于标注的事务管理，只需将`@Transactional`标注在需要事务支持的类或方法上即可。
+
+`@Transactional`通过`propagation`属性设置事务的传播行为，属性值可取：
+
+- REQUIRED：如果当前没有事务，就新建一个事务；否则，就加入已有事务。
+- SUPPORTS：加入当前事务；如果当前没有事务，就以非事务方式执行。
+- MANDATORY：加入当前事务；如果当前没有事务，就抛出异常。
+- REQUIRES_NEW：总是新建事务，如果当前存在事务，就把当前事务挂起。
+- NOT_SUPPORTED：总是以非事务方式执行操作，如果当前存在事务，就把当前事务挂起。
+- NEVER：总是以非事务方式执行操作，如果当前存在事务，就抛出异常。
+- NESTED：如果当前存在事务，就在嵌套事务内执行；如果当前没有事务，就执行与`REQUIRED`类似的行为。
+
+`@Transactional`通过`isolation`属性定义事务隔离级别，属性值可取：
+
+- DEFAULT
+- READ_UNCOMMITTED
+- READ_COMMITTED
+- REPEATABLE_READ
+- SERIALIZABLE
+
+还可以通过`timeout`属性设置事务过期时间，通过`readOnly`属性指定当前事务是否是只读事务，通过`rollbackFor`或`noRollbackFor`指定哪个或哪些异常可以或不可以引起事务回滚。
+
+注意：Spring Data中提供的所有Repository接口都是没有标注`@Transactional`的，即没有进行事务控制的。只有实现类中（如`SimpleJapRepository`)中才有标注`@Transactional`。因此，为了进行事务控制，在自己定义的接口或类中，要标注上`@Transactional`。
+
 # NoSQL
+
+## Redis
+
+
 
 ## Hazelcast
 
