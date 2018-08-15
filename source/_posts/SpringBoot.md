@@ -2057,7 +2057,7 @@ Spring MVC支持各种模板引擎技术。其中，Spring Boot 对如下模板�
 
 默认错误视图映射的URL是`/error`，我们可以通过应用属性`error.path`来定制错误视图的URL。
 
-Spring Boot还允许我们为指定的状态码提供定制的错误页面。只需将错误视图文件放到`/error/`目录下，错误视图文件名必须是具体的状态码，或带有`x`掩码的状态码。
+Spring Boot还允许我们为指定的状态码提供定制的错误页面。只需将错误视图文件放到静态资源下的`error/`目录下，错误视图文件名必须是具体的状态码，或带有`x`掩码的状态码。
 
 例如，为`404`状态码映射一个静态HTML文件，为所有`5xx`错误映射一个FreeMarker模板：
 
@@ -2089,8 +2089,6 @@ public class MyErrorViewResolver implements ErrorViewResolver {
 	}
 }
 ```
-
-
 
 #### 定制错误视图内容
 
@@ -2757,6 +2755,25 @@ Spring声明式事务管理提供了5种方式，其中基于标注的方式是�
 # 缓存
 
 # 消息系统
+
+# 异步调用
+
+## 启用异步调用
+
+在启动类上标注`@EnableAsync`启用异步调用。
+
+## 编写异步调用方法
+
+在方法上标注`@Async`，该方法就成了异步调用方法，该方法应该返回`Future`类型。
+
+``` java
+@Async
+public Future<List<AyUser>> findAsynAll() {
+  …
+}
+```
+
+
 
 # 收发邮件
 
