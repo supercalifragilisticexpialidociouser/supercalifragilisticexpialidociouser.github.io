@@ -2490,7 +2490,52 @@ Spring Boot应用可以内嵌Tomcat、Jetty、Undertow或Netty HTTP服务器。
 
 2. 给Servlets实现类（实现`Servlet`接口）标注`@WebServlet`，给Filters实现类（实现`Filter`接口）标注`@WebFilter`，给Listeners实现类（实现相应监听器接口）标注`@WebListener`。
 
+# 重试机制
+
+当我们调用一个接口时，可能由于网络等原因造成第一次失败，再去尝试就成功了，这就是重试机制。
+
+Spring-Retry框架可以将业务逻辑与重试逻辑解耦。
+
+## 引入依赖
+
+```xml
+<dependency>
+	<groupId>org.springframework.retry</groupId>
+  <artifactId>spring-retry</artifactId>
+</dependency>
+<dependency>
+	<groupId>org.aspectj</groupId>
+  <artifactId>aspectjweaver</artifactId>
+</dependency>
+```
+
+## 启用重试
+
+通过给启动类标注上`@EnableRetry`来启用重试机制。
+
+## 控制重试
+
+```java
+@Retryable(value={BusinessException.class}, maxAttempts=5, backoff=@Backoff(delay=5000, multiplier=2))
+public AyUser findByNameAndPasswordRetry(String name, String password) {
+  System.out.println("[findByNameAndPasswordRetry] 方法失败重试了！");
+  throw new BusinessException();
+}
+```
+
+`value`属性表示当出现哪些异常时触发重试。
+
+`maxAttempts`表示最大重试次数（默认为3）。
+
+`delay`表示重试的延迟时间。
+
+`multiplier`表示上一次延迟时间是这一次的倍数。
+
 # 安全
+
+## 引入依赖
+
+
 
 # 关系数据库
 
@@ -2749,6 +2794,10 @@ Spring声明式事务管理提供了5种方式，其中基于标注的方式是�
 
 
 ## Hazelcast
+
+## MongoDB
+
+
 
 # 校验
 
