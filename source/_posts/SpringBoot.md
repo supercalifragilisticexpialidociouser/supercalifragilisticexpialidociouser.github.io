@@ -1615,7 +1615,7 @@ logging:
   level:
     root: WARN
     org.springframework.web: DEBUG
-    level.org.hibernate: ERROR
+    org.hibernate: ERROR
 ```
 
 ## 日志应用属性与系统属性的对应
