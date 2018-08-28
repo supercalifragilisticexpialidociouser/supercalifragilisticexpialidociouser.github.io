@@ -1784,9 +1784,9 @@ Spring Boot为Spring MVC提供了如下自动配置：
 
 ### HttpMessageConverters
 
-Spring MVC使用`HttpMessageConverter`  接口来转换HTTP请求和响应。字符串默认以`UTF-8`编码。
+Spring MVC使用`HttpMessageConverter` 接口来转换HTTP请求和响应。字符串默认以`UTF-8`编码。
 
-如果需要添加或重写转换器，则可以使用Spring Boot的`HttpMessageConverters`  类（注意：末尾多了个`s`）：
+如果需要添加或重写转换器，则可以使用Spring Boot的`HttpMessageConverters` 类（注意：末尾多了个`s`）：
 
 ```java
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
@@ -1868,7 +1868,7 @@ FreeMarker视图默认的后缀是`.ftl`，Thymeleaf视图默认的后缀是`.ht
 <link href="/css/ztree.css" rel="stylesheet"/>
 ```
 
-则Spring Boot将会定位到``src/main/resources/static/css/ztree.css`。
+则Spring Boot将会定位到`src/main/resources/static/css/ztree.css`。
 
 资源默认是映射到`/**`路径，可以通过`spring.mvc.static-path-pattern`来自定义映射路径。例如：
 
@@ -1876,7 +1876,7 @@ FreeMarker视图默认的后缀是`.ftl`，Thymeleaf视图默认的后缀是`.ht
 spring.mvc.static-path-pattern=/resources/**
 ```
 
-则上例中的``src/main/resources/static/css/ztree.css`将映射为`/resources/css/ztree.css`。
+则上例中的`src/main/resources/static/css/ztree.css`将映射为`/resources/css/ztree.css`。
 
 可以通过`spring.resources.static-locations`  属性自定义静态资源的位置，这样默认位置将不可用：
 
@@ -1885,6 +1885,8 @@ spring.resources.static-locations=classpath:/foo/**,file:/bar/**
 ```
 
 > ServletContext的根`/`自动加入`static-locations`中。
+>
+> `spring.mvc.static-path-pattern`定义的是访问路径，而`spring.resources.static-locations`定义的是存放的物理位置。
 
 如果只是希望增加静态资源位置，而不是覆盖默认位置，默认位置仍有效，则可以提供自己的`WebMvcConfigurer` 配置类，并重写`addResourceHandlers`  方法，添加自己的资源映射：
 
@@ -1894,7 +1896,8 @@ public class MyWebAppConfigurer
   	extends WebMvcConfigurerAdapter {
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    registry.addResourceHandler("/myres/**").addResourceLocations("classpath:/myres/", "file:/myres2/");
+    registry.addResourceHandler("/myres/**")
+      .addResourceLocations("classpath:/myres/", "file:/myres2/");
     super.addResourceHandlers(registry);
   }
 }
@@ -2796,6 +2799,24 @@ Spring声明式事务管理提供了5种方式，其中基于标注的方式是�
 ## Hazelcast
 
 ## MongoDB
+
+### 引入依赖
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-data-mongodb</artifactId>
+</dependency>
+```
+
+或者
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
+</dependency>
+```
 
 
 
