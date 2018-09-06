@@ -14,7 +14,7 @@ IoC（控制反转）也称为DI（依赖注入）。
 
 Spring 能过配置元数据（Configuration Metadata）来定义Bean。
 
-配置元数据以XML，Java标注或Java代码等形式表示。
+配置元数据以XML，Java标注或Java代码等形式表示。其中，XML和Java代码形式是显式定义Bean，而Java标注方式是自动扫描Bean。XML和Java代码形式配置更集中，也不会对代码造成侵入。Java标注和Java代码形式，具有类型安全等好处。推荐使用Java代码和Java标注相结合的方式。
 
 ### 基于XML的元数据
 
@@ -63,6 +63,8 @@ daos.xml：
 </beans>
 ```
 
+### 定义Bean
+
 ## 装载Bean
 
 Spring通过应用上下文（Application Context）装载bean的定义并把它们组装起来。Spring应用上下文全权负责对象的创建和组装。
@@ -79,6 +81,14 @@ List<String> userList = petStoreService.getUsernameList();
   context.close();
 }
 ```
+
+常见的应用上下文实现：
+
+- AnnotationConfigApplicationContext：从一个或多个基于Java的配置类中加载Spring应用上下文。
+- AnnotationConfigWebApplicationContext：从一个或多个基于Java的配置类中加载Spring Web应用上下文。
+- ClassPathXmlApplicationContext：从类路径下的一个或多个XML配置文件中加载上下文定义，把应用上下文的定义文件作为类资源。
+- FileSystemXmlapplicationcontext：从文件系统下的一个或多个XML配置文件中加载上下文定义。
+- XmlWebApplicationContext：从Web应用下的一个或多个XML配置文件中加载上下文定义。
 
 ## 导入
 
