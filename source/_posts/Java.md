@@ -4143,24 +4143,100 @@ Java的模块系统是从Java 9开始引入的。
 
 模块（Module）是包含代码的可识别工件，使用了元数据来描述模块及其与其他模块的关系。一个应用程序由多个模块协作组成。
 
+> 可以通过运行`java --list-modules`来获取JDK平台模块的完整列表。
+
 模块使用模块描述符进行描述，模块描述符保存在一个名为`module-info.java`的文件中。
 
-例如：
+例如，module-info.java：
 
 ```java
 module java.prefs {
   requires java.xml;  //声明依赖的模块
-  exports java.util.prefs;
+  exports java.util.prefs;  //导出需要公开的包
 }
 ```
 
-模块都位于一个全局命名空间中，因此，模块名称必须是唯一的。
+> `module`、`requires`等关键字只在`module-info.java`中被视为关键字，在其他源文件中它们只是普通标识符。
+
+模块都位于一个全局命名空间中，因此，模块名称必须是唯一的。在多模块模式下，模块名称必须与包含该模块描述符的模块目录名称相匹配。而在单模块模式中，则不需要匹配。
+
+模块名称的命名空间与Java中其他命名空间是分开的，模块名称可以与类、接口或包的名称相同。
+
+模块描述符必须位于模块目录的根目录中：
+
+```
+src
+└── helloworld    （模块目录）
+    ├── com
+    │   └── javamodularity
+    │       └── helloworld
+    │           └── HelloWorld.java
+    └── module-info.java  （模块描述符）
+```
+
+编译模块：
+
+```bash
+$ javac -d out/helloworld \
+        src/helloworld/com/javamodularity/helloworld/HelloWorld.java \
+        src/helloworld/module-info.java
+```
+
+编译后的结果（也称为Exploded Module格式）如下 ：
+
+```
+out
+└── helloworld
+    ├── com
+    │   └── javamodularity
+    │       └── helloworld
+    │           └── HelloWorld.class
+    └── module-info.class
+```
+
+打包成JAR：
+
+```bash
+$ jar -cfe mods/helloworld.jar com.javamodularity.helloworld.HelloWorld \
+      -C out/helloworld .
+```
+
+- `-c`：创建新JAR文件。JAR文件名可以随意。
+- `-f`：指定JAR文件名和路径。
+- `-e`：指定应用程序入口点。
+- `-C`：将指定目录中的所有已编译文件放在JAR文件中。
+
+打包生成的模块化JAR：
+
+```
+helloworld
+├── META-INFO
+│   └── MANIFEST.MF
+├── com
+│   └── javamodularity
+│       └── helloworld
+│           └── HelloWorld.class
+└── module-info.class
+```
+
+
 
 所有的模块都自动依赖`java.base`模块。
 
+默认情况下，`requires`是不可传递的。也就是说，模块A `requires` 模块B，模块B `requires` 模块C，则模块A不会自动 `requires` 模块C。而`requires transitive`则是可传递的。
+
 模块导出一个包并不意味着其他模块可以访问该导出包中的所有内容。导出包中的内容的可访问性仍由Java可访问性规则（即访问修饰符）决定。未被导出的包，不能从其他模块中访问。也就是说，在其他模块中，只能访问导出包中的`public`成员。
 
-> 可以通过运行`java --list-modules`来获取JDK平台模块的完整列表。
+限制导出只将包暴露给特定的某些模块。
+
+```java
+exports 包 to 模块;
+exports 包 to 模块1, …,模块N;
+```
+
+为了兼容以前的代码，未显式模块化的代码最终都放在未命名模块（Unnamed Module）。
+
+未命名模块自动`requires`所有其他模块。
 
 # 构建管理
 
