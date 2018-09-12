@@ -4145,6 +4145,8 @@ Java的模块系统是从Java 9开始引入的。
 
 > 可以通过运行`java --list-modules`来获取JDK平台模块的完整列表。
 
+## 模块描述符
+
 模块使用模块描述符进行描述，模块描述符保存在一个名为`module-info.java`的文件中。
 
 例如，module-info.java：
@@ -4174,12 +4176,18 @@ src
     └── module-info.java  （模块描述符）
 ```
 
-编译模块：
+## 编译模块
 
 ```bash
 $ javac -d out/helloworld \
         src/helloworld/com/javamodularity/helloworld/HelloWorld.java \
         src/helloworld/module-info.java
+```
+
+或者：（更适合多模块模式）
+
+```bash
+$ javac -d out --module-source-path src -m helloworld
 ```
 
 编译后的结果（也称为Exploded Module格式）如下 ：
@@ -4194,7 +4202,7 @@ out
     └── module-info.class
 ```
 
-打包成JAR：
+## 打包成JAR
 
 ```bash
 $ jar -cfe mods/helloworld.jar com.javamodularity.helloworld.HelloWorld \
@@ -4219,11 +4227,71 @@ helloworld
 └── module-info.class
 ```
 
+## 运行模块
 
+Exploded Module格式和模块化JAR都可以运行。可以使用下面的命令运行Exploded Module格式：
+
+```bash
+$ java --module-path out \
+       --module helloworld/com.javamodularity.helloworld.HelloWorld
+```
+
+运行模块化JAR：
+
+```bash
+$ java --module-path mods --module helloworld
+```
+
+> `--module`（或`-m`）参数应该放在`java`命令的所有参数之后。因为，在`--module`之后的参数都是传递给`--module`指定模块启动的主类。
+>
+> 模块路径（`--module-path`或`-p`）可以是包含模块的目录、Exploded Module格式的模块目录或模块化JAR文件。可以指定多个条目，条目之间使用平台分隔符分隔，即Linux/macOS上分隔符是冒号，Windows上是分号。例如：`out/:myexplodedmodule/:mypackagedmodule.jar`。
+>
+> 当模块路径上同一个目录中具有相同名称的多个模块时，解析器就会显示错误，并且不会启动应用程序。而具有相同名称的多个模块位于模块路径上的不同目录中时，则不会产生错误，只是选择第一个模块，并忽略具有相同名称的后续模块。
+
+## 链接模块
+
+前面使用`java`运行的模块都是基于JRE的，而使用`jlink`可以将应用程序所需要的最小运行时一同构建到应用程序中，生成自定义运行时映像（Custom Runtime Image）。在运行时，不再需要JRE。
+
+```bash
+$ jlink --module-path mods/:$JAVA_HOME/jmods \
+        --add-modules helloworld \
+        --launcher hello=helloworld \
+        --output helloworld-image
+```
+
+- `--module-path`除了包含`mods`目录（`helloworld`模块所在位置）外，还要显式包含要链接到映像中的平台模块的JDK安装目录，这点与`javac`和`java`不同。
+- `--add-modules`表示 `helloworld`是需要在运行时映像中运行的根模块。
+- `--launcher`定义了一个入口点来直接运行映像中的模块。
+- `--output`表示运行时映像的目录名称。
+
+运行上述命令将生成一个自定义运行时映像：
+
+```
+helloworld-image
+├── bin
+│   ├── hello  （可执行脚本）
+│   ├── java   （最小运行时）
+│   └── keytool
+├── conf
+│   └── …
+├── include
+│   └── …
+├── legal
+│   └── …
+├── lib
+│   └── …
+└── release
+```
+
+虽然链接是可选的，但它生成的运行时映像比完整JDK小得多，可以大大减少应用程序的占用空间。适用于在资源 受限的设备上使用，或者将其作为在云中运行应用程序的容器映像的基础。
+
+## 模块依赖
 
 所有的模块都自动依赖`java.base`模块。
 
 默认情况下，`requires`是不可传递的。也就是说，模块A `requires` 模块B，模块B `requires` 模块C，则模块A不会自动 `requires` 模块C。而`requires transitive`则是可传递的。
+
+## 导出
 
 模块导出一个包并不意味着其他模块可以访问该导出包中的所有内容。导出包中的内容的可访问性仍由Java可访问性规则（即访问修饰符）决定。未被导出的包，不能从其他模块中访问。也就是说，在其他模块中，只能访问导出包中的`public`成员。
 
@@ -4233,6 +4301,8 @@ helloworld
 exports 包 to 模块;
 exports 包 to 模块1, …,模块N;
 ```
+
+## 未命名模块
 
 为了兼容以前的代码，未显式模块化的代码最终都放在未命名模块（Unnamed Module）。
 
