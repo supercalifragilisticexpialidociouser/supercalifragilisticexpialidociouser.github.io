@@ -90,6 +90,8 @@ Smalltalk中的变量是没有类型的，即它可以引用任意类型对象�
 
 Smalltalk的对象是有类型的（实际上是类）。
 
+变量必须在使用前声明。
+
 ## 作用域
 
 ### 全局作用域
@@ -265,8 +267,8 @@ Smalltalk的“条件语句”：
 
 ```smalltalk
 tries > 5
-ifTrue: [^'Too many tries']
-ifFalse: [^'Trying again']
+ifTrue: [^ 'Too many tries']
+ifFalse: [^ 'Trying again']
 ```
 
 Smalltalk的“循环语句”：

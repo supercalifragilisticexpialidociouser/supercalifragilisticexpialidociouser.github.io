@@ -4159,6 +4159,8 @@ module java.prefs {
 ```
 
 > `module`、`requires`等关键字只在`module-info.java`中被视为关键字，在其他源文件中它们只是普通标识符。
+>
+> 可以通过命令`java --describe-module 模块名`来获取指定模块的依赖和导出信息。
 
 模块都位于一个全局命名空间中，因此，模块名称必须是唯一的。在多模块模式下，模块名称必须与包含该模块描述符的模块目录名称相匹配。而在单模块模式中，则不需要匹配。
 
@@ -4184,6 +4186,8 @@ $ javac -d out/helloworld \
         src/helloworld/module-info.java
 ```
 
+上述编译方式需要列出模块包含的所有源文件。
+
 或者：（更适合多模块模式）
 
 ```bash
@@ -4201,6 +4205,8 @@ out
     │           └── HelloWorld.class
     └── module-info.class
 ```
+
+当在编译多模块模式时，例如模块A依赖于模块B，则`-m`参数只需要指定A，编译器会自动编译所有被依赖模块。
 
 ## 打包成JAR
 
@@ -4307,6 +4313,8 @@ exports 包 to 模块1, …,模块N;
 为了兼容以前的代码，未显式模块化的代码最终都放在未命名模块（Unnamed Module）。
 
 未命名模块自动`requires`所有其他模块。
+
+## 服务
 
 # 构建管理
 
