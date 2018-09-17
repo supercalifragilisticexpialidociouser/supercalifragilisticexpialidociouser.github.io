@@ -4192,6 +4192,24 @@ src
     └── module-info.java  （模块描述符）
 ```
 
+多模块模式：
+
+```
+src
+└── easytext.analysis
+│   ├── javamodularity
+│   │   └── easytext
+│   │       └── analysis
+│   │           └── FleschKincaid.java
+│   └── module-info.java
+└── easytext.cli
+    ├── javamodularity
+    │   └── easytext
+    │       └── cli
+    │           └── Main.java
+    └── module-info.java
+```
+
 ## 编译模块
 
 ```bash
@@ -4329,6 +4347,60 @@ exports 包 to 模块1, …,模块N;
 未命名模块自动`requires`所有其他模块。
 
 ## 服务
+
+Java模块系统提供的服务机制，允许一个模块将服务实现暴露给另一个模块，而又不需要导出该实现类。
+
+### 提供服务
+
+```java
+module easytext.analysis.coleman {
+  requires easytext.analysis.api;
+  provides javamodularity.easytext.analysis.api.Analyzer
+    with javamodularity.easytext.analysis.coleman.ColemanAnalyzer;
+}
+```
+
+`provides-with`语法声明该模块提供了`Analyzer`接口的一个实现（`ColemanAnalyzer`）。通常，该实现类是提供者模块的一部分。最重要的是，包含实现类`ColemanAnalyzer`的包并不需要从提供者模块中导出。
+
+### 消费服务
+
+首先，消费模块在module-info.java中添加uses子句，告知ServiceLoader该模块想要消费某个服务的实现。这样ServiceLoader使指定服务的实例可用于该模块。
+
+```java
+module easytext.cli {
+  requires easytext.analysis.api;
+  uses javamodularity.easytext.analysis.api.Analyzer;
+}
+```
+
+uses子句并不要求Analyzer实现在编译期间可用，因为服务提供者和服务消费者仅在运行时才被绑定在一起。即使没有找到服务提供者，编译也不会失败。
+
+uses子句同样无法保证在运行时存在提供者，即使没有任何服务提供者，应用程序也会成功启动。这意味着在运行时可能会提供零个或多个提供者，因此代码必须能够处理相应的情况。
+
+接着，只需要向模块路径添加新的提供者模块，就可在代码中通过ServiceLoader API来消费服务。
+
+```java
+package javamodularity.providers.main;
+
+import java.util.List;
+import javamodularity.easytext.analysis.api.Analyzer;
+import java.util.ServiceLoader;
+
+public class Main {
+    public static void main(String[] args) {
+        Iterable<Analyzer> analyzers = ServiceLoader.load(Analyzer.class);
+
+        for (Analyzer analyzer : analyzers) {
+            System.out.println(analyzer.getName());
+        }
+    }
+}
+
+```
+
+服务消费者可以使用服务实现类的实例，而无须直接访问该实现类。服务消费者也不需要知道哪个模块提供了所需要的实现。
+
+由这些提供者模块所提供的任何服务都将通过ServiceLoader服务发现程序自动获取，无须更改代码或重新编译。
 
 # 构建管理
 
