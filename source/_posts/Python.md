@@ -8,6 +8,8 @@ tags: [3.7.0]
 
 # 开发环境
 
+## 安装
+
 ## 交互式环境
 
 安装完Python后，执行命令`python`将进入交互式环境。如果同时安装了版本2和3的Python，则命令`python`通常是指Python 3，另外还有命令`python2`和`python3`。
@@ -18,6 +20,22 @@ $ python
 ```
 
 退出交互式环境使用函数`quit()`或快捷键`Ctrl-D`。
+
+另外，官网上也提供了一个在线的交互式环境：https://www.python.org/shell/
+
+### 获取帮助
+
+如果你需要有关 Python 中任何函数或语句的快速信息，那么你可以使用内置的 `help()` 函数。
+
+```python
+>>> help('return')
+```
+
+> 提示：按下 `q` 退出帮助。
+
+## IDE
+
+[PyCharm](http://www.jetbrains.com/pycharm/)
 
 # 入门
 
@@ -55,13 +73,13 @@ Python 2默认采用US-ASCII字符集，Python 3默认采用UTF-8字符集。
 
 ## 运行
 
-直接运行脚本：
+### 直接运行脚本
 
 ```bash
 $ python hello.py
 ```
 
-shebang方式运行：
+### shebang方式运行脚本
 
 首先，要在`hello.py`的第一行添加`#!/usr/bin/env python`。
 
@@ -82,7 +100,7 @@ $ ./hello.py
 | 注释                       | 说明                                                         |
 | -------------------------- | ------------------------------------------------------------ |
 | `# …`                      | 单行注释。可嵌套。                                           |
-| `''' … '''` 或 `""" … """` | 块注释。可跨多行，但不可以嵌套。（块注释也是Python中的长字符串） |
+| `''' … '''` 或 `""" … """` | 块注释。可跨多行，但不可以嵌套。（块注释实际上是Python中的长字符串） |
 
 # 基本类型
 
@@ -97,9 +115,15 @@ $ ./hello.py
 0b1011 #二进制整数
 ```
 
+Python的整数类型是：`int`。
+
+### 浮点类型
+
+Python的浮点类型是：`float`。
+
 ### 复数类型
 
-Python本身提供了对复数的支持。
+Python本身提供了对复数的支持，复数类型是`complex`。
 
 虚数都以`j`或`J`结尾。
 
@@ -130,6 +154,13 @@ Python没有专门用于表示字符的类型，一个字符就是只包含一�
 
 类`NoneType`表示空类型，它只有一个值`None`，表示什么都没有。
 
+## 获取类型信息
+
+```python
+>>> type(3.14)
+<class 'float'>
+```
+
 # 声明
 
 Python变量不需要声明。
@@ -147,7 +178,7 @@ Python变量实际上是没有类型的，而对象是有类型：
 
 # 字符串
 
-字符串也是序列。
+字符串也是不可修改的序列（`bytearray`例外）。
 
 字符串的类型是`str`。
 
@@ -267,8 +298,6 @@ bytearray(b'Hullo!')
 b'Hello world!'
 ```
 
-
-
 ## 使用字符串
 
 ### 拼接
@@ -276,6 +305,85 @@ b'Hello world!'
 ```python
 s1 = "Hello " + "world!"
 s2 = "Hello " 'world!'  #连接输入两个字符串字面量，将会自动拼接成一个字符串
+```
+
+### 格式化
+
+Python字符串格式设置方法主要有：格式字符串、模板字符串、format方法。
+
+#### 格式字符串
+
+```python
+>>> format = 'Hello, %s. %s enough for ya?'
+>>> values = ('world', 'Hot')
+>>> format % values
+'Hello, world. Hot enough for ya?'
+```
+
+格式字符串中的`%s`称为转换说明符，类似C语言的`printf`函数。
+
+`%`运算符是字符串格式设置运算符，它的左操作数是格式字符串，右操作数是要设置格式的值。
+
+#### 模板字符串
+
+```python
+>>> from string import Template
+>>> tmpl = Template("Hello, $who! $what enough for ya?")
+>>> tmpl.substitute(who="Mars", what="Dusty")
+'Hello, Mars! Dusty enough for ya?'
+```
+
+#### format方法
+
+`format`方法可以将字符串中的插值（Interpolation）替换成方法的参数。
+
+插值用花括号括起来。如果要在最终结果中包含花括号字符，则使用两个花括号进行转义（即`{{`和`}}`）。
+
+插值由三部分组成，其中每个部分都是可选的：
+
+- 字段名：索引或标识符。
+- 转换标志：以`!`开头，后跟`r`（表示repr）、`s`（表示str）或`a`（表示ascii）。
+- 格式说明符：以`:`开头的表达式，用于详细设置最终的格式。
+
+按顺序配对：
+
+```python
+>>> '{}, {} and {}'.format('first', 'second', 'third')
+'first, second and third'
+```
+
+按索引配对：
+
+```python
+>>> '{2}, {0} and {1}'.format('first', 'second', 'third')
+'third, first and second'
+```
+
+按名字配对：
+
+```python
+>>> from math import pi
+>>> '{name} is approximately {value:.2f}.'.format(value=pi, name='π')
+'π is approximately 3.14'
+```
+
+f字符串：
+
+```python
+>>> from math import e
+>>> "Euler's constant is roughly {e}.".format(e=e)
+#上面变量名与字段名相同时，可以使用f字符串进行简写：
+>>> f"Euler's constant is roughly {e}."
+'Euler's constant is roughly 2.718281828459045.'
+```
+
+可以混合使用按顺序配对和按名字配对，也可以混合使用按索引配对和按名字配对，但不能混合使用按顺序配对和按索引配对：
+
+```python
+>>> "{foo} {} {bar} {}".format(1, 2, bar=4, foo=3)
+'3 1 4 2'
+>>> "{foo} {1} {bar} {0}".format(1, 2, bar=4, foo=3)
+'3 2 4 1'
 ```
 
 
@@ -376,6 +484,8 @@ Python中整除采取向下取整的策略。
 
 ```python
 x = 3
+a, b = 1, 3
+a, b = b, a  #交换值
 ```
 
 
@@ -554,9 +664,177 @@ if [username, pin] in db: print('Access granted')
 
 #### 使用列表
 
+```python
+>>> names = ['Alice', 'Beth', 'Tom', 'Mary', 'Rose']
+
+#给元素赋值（注意：不能给不存在的元素赋值，例如，names[100]='Eric'）
+>>> names[1] = 'Kate'
+>>> names
+['Alice', 'Kate', 'Tom', 'Mary', 'Rose']
+
+#删除指定索引处的元素
+>>> del names[2]
+>>> names
+['Alice', 'Kate', 'Mary', 'Rose']
+
+#弹出元素并返回这个非None元素
+>>> a = [1, 2, 3]
+>>> a.pop()  #弹出末尾元素
+3
+>>> a
+[1, 2]
+>>> a.pop(0) #弹出指定索引处的元素
+1
+>>> a
+[2]
+
+#删除列表中第一个为指定值的元素,如果列表中不存在指定值则引发异常
+>>> x = ['to', 'be', 'or', 'not', 'to', 'be']
+>>> x.remove('be')
+>>> x
+['to', 'or', 'not', 'to', 'be']
+
+#给切片赋值
+>>> name = list('Perl')
+>>> name
+['P', 'e', 'r', 'l']
+>>> name[1:] = list('ython')  #可将切片替换为长度与其不同的序列。
+>>> name
+['P', 'y', 't', 'h', 'o', 'n']
+# 使用切片赋值还可在不替换原有元素的情况下插入新元素：
+>>> numbers = [1, 5]
+>>> numbers[1:1] = [2, 3, 4] #替换了一个空切片，相当于插入
+>>> numbers
+[1, 2, 3, 4, 5]
+>>> numbers[1:4] = []  #给切片赋空序列，相当于删除切片，即：del numbers[1:4]
+>>> numbers
+[1, 5]
+
+#将一个对象附加到列表末尾
+>>> lst = [1, 2, 3]
+>>> lst.append(4)
+>>> lst
+[1, 2, 3, 4]
+
+#清空列表
+>>> lst.clear()
+>>> lst
+[]
+
+#扩展列表
+>>> a = [1, 2, 3]
+>>> b = [4, 5, 6]
+>>> a.extend(b)   #也可以是：a[len(a):] = b
+>>> a  #扩展会直接修改被扩展的列表，而拼接则是返回一个全新列表
+[1, 2, 3, 4, 5, 6]
+
+#在指定索引前插入元素
+>>> a = [1, 2, 3]
+>>> a.insert(2, 'four')  #相当于：a[2:2] = ['four']
+>>> a
+[1, 2, 'four', 3]
+
+#复制列表
+>>> a = [1, 2, 3]
+>>> b = a.copy()  #也可以使用：b = a[:] 或 b = list(a)
+>>> b[1] =4
+>>> a
+[1, 2, 3]
+#只是将a赋值给b，并不是复制，这时a和b指向同一个列表：
+>>> a = [1, 2, 3]
+>>> b = a
+>>> b[1] =4
+>>> a
+[1, 4, 3]
+
+#统计元素在列表中出现的次数
+>>> ['to', 'be', 'or', 'not', 'to', 'be'].count('to')
+2
+>>> x = [[1, 2], 1, 1, [2, 1, [1, 2]]]
+>>> x.count(1)
+2
+>>> x.count([1, 2])
+1
+
+#查找指定值在列表中第一次出现的索引
+>>> knights = ['We', 'are', 'the', 'knights', 'who', 'say', 'ni']
+>>> knights.index('who')
+4
+#如果在列表中没有找到指定值，将引发异常
+
+#反转列表
+>>> a = [1, 7, 3]
+>>> a.reverse()
+>>> a
+[3, 7, 1]
+#如果希望按相反顺序迭代列表，则使用reversed函数。它会一个迭代器。
+>>> b = [1, 2, 3]
+>>> list(reversed(b))  #list可以将迭代器转换成列表
+>>> b
+[3, 2, 1]
+
+#排序
+>>> x = [4, 6, 2, 1, 7, 9]
+>>> x.sort()  #按升序排序
+>>> x
+[1, 2, 4, 6, 7, 9]
+#不修改原列表，而是返回一个新的已排序列表，使用sorted函数
+>>> x = [4, 6, 2, 1, 7, 9]
+>>> y = sorted(x)
+>>> x
+[4, 6, 2, 1, 7, 9]
+>>> y
+[1, 2, 4, 6, 7, 9]
+#sort方法和sorted函数都可以接受两个可选参数：key和reverse。
+#key参数是一个函数，用它来为每个元素生成一个键，再根据这些键对元素进行排序：
+>>> s = ['aardvade', 'abdlef', 'acme', 'add', 'aegie']
+>>> s.sort(key=len)
+>>> s
+['add', 'acme', 'aegie', 'abdlef', 'aardvade']
+#reverse是一个布尔值，指示是否对列表进行倒序排列：
+>>> x = [4, 6, 2, 1, 7, 9]
+>>> x.sort(reverse=True)
+>>> x
+[9, 7, 6, 4, 2, 1]
+```
+
+
+
 ### 元组
 
 元组是不可以修改的序列。
+
+#### 元组字面量
+
+```python
+>>> 1, 2, 3  #圆括号是可选的
+(1, 2, 3)
+>>> ()  #空元组
+()
+>>> 42,  #单个元素的元组，逗号不能省略
+(42,)
+```
+
+#### 构造元组
+
+```python
+>>> tuple([1, 2, 3])
+(1, 2, 3)
+>>> tuple('abc')
+('a', 'b', 'c')
+```
+
+#### 使用元组
+
+```python
+>>> x = 1, 2, 3
+>>> x[0:2]
+(1, 2)
+```
+
+元组的切片也是元组，就像列表的切片也是列表一样。
+
+元组可以作为映射中的键，而列表不行。因为，映射的键必须是不可修改的。
 
 ## 映射
 
