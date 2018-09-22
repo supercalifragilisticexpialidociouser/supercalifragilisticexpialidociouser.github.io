@@ -146,6 +146,20 @@ Python没有专门的虚数类型，虚数可视为实部为0的复数。
 
 Python没有专门用于表示字符的类型，一个字符就是只包含一个元素的字符串。
 
+获取字符的码点：
+
+```python
+>>> ord('π')
+960
+```
+
+根据码点得到相应字符：
+
+```python
+>>> chr(960)
+'π'
+```
+
 ## 布尔类型
 
 布尔类型`bool`它有两个值：`True`和`False`。
@@ -752,7 +766,63 @@ Python中整除采取向下取整的策略。
 
 ## 关系表达式
 
+| 表达式     | 描述             |
+| ---------- | ---------------- |
+| x == y     | x等于y           |
+| x < y      | x小于y           |
+| x > y      | x大于y           |
+| x <= y     | x小于或等于y     |
+| x >= y     | x大于或等于y     |
+| x != y     | x不等于y         |
+| x is y     | x和y是同一个对象 |
+| x is not y | x和y是不同的对象 |
+| x in y     | x是集合y的成员   |
+| x not in y | x不是集合y的成员 |
+
+### 字符串的比较
+
+字符串是根据字符的码点顺序进行比较的：
+
+```python
+>>> 'alpha' < 'beta'
+True
+>>> 'user' > 'use'
+True
+```
+
+### 序列的比较
+
+序列是根据每个元素的值来进行比较的：
+
+```python
+>>> [1, 2] > [2, 1]
+False
+>>> [2, [1, 4]] < [2, [1, 5]]
+True
+```
+
+### 链式比较
+
+```python
+1 <= number <= 10
+等价于：
+1 <= number and number <= 10
+```
+
 ## 逻辑表达式
+
+`and`、`or`和`not`。
+
+### “短路”行为
+
+逻辑运算符`and`和`or`都有“短路”行为：
+
+```python
+>>> name = input('Please enter your name: ') or '<unknown>'
+Please enter your name: 
+>>> name
+'<unknown>'
+```
 
 ## 条件表达式
 
@@ -833,7 +903,7 @@ y = somefunction()
 
 ### 复合赋值（增强赋值）
 
-`+=`、`-=`、`*=`、`/=`、`%=`等。
+`+=`、`-=`、`*=`、`/=`、`//=`、`%=`、`**=`、`<<=`、`>>=`、`&=`、`|=`、`^=`。
 
 ## 代码块
 
@@ -865,6 +935,85 @@ elif 条件2
 …
 else:
 	语句
+```
+
+## 循环语句
+
+### while循环
+
+while循环的一般形式：
+
+```
+while 条件:
+  语句
+```
+
+### for-in循环
+
+for-in循环的一般形式：
+
+```python
+for 变量 in 可迭代对象:
+  语句
+```
+
+例如：
+
+```python
+words = ['this', 'is', 'an', 'ex', 'parrot']
+for word in words:
+  print(word)
+```
+
+#### 范围
+
+Python提供了一个创建范围的内置函数`range`：
+
+```python
+>>> r = range(0, 10)
+>>> r
+range(0, 10)
+>>> list(r)
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+
+范围类似切片，包含起始位置（这里是0），但不包含结束位置（这里是10）。起始位置可以省略，默认为0：
+
+```python
+>>> range(10)
+range(0, 10)
+```
+
+#### 迭代字典
+
+```python
+>>> d = {'x': 1, 'y': 2, 'z': 3}
+>>> for key in d:
+...   print(key, 'corresponds to', d[key])    #这里要注意缩进
+... 
+x corresponds to 1
+y corresponds to 2
+z corresponds to 3
+
+>>> for key, value in d.items():
+...   print(key, 'corresponds to', value)
+... 
+x corresponds to 1
+y corresponds to 2
+z corresponds to 3
+```
+
+#### 并行迭代
+
+内置函数`zip`将两个序列“缝合”起来，返回一个由元组组成的序列。这样，就可以在for-in循环同时迭代两个序列：
+
+```python
+>>> names = ['anne', 'beth', 'george', 'damon']
+>>> ages = [12, 45, 32, 102]
+>>> list(zip(names, ages))
+[('anne', 12), ('beth', 45), ('george', 32), ('damon', 102)]
+>>> for name, age in zip(names, ages):
+...   print(name, 'is', age, 'years old'
 ```
 
 
@@ -1513,6 +1662,19 @@ x = input("x: ")  #input函数的返回值是一个字符串
 
 
 # 异常处理
+
+# 断言
+
+```python
+>>> age = 10
+>>> assert 0 < age < 100
+
+>>> age = -1
+>>> assert 0 < age < 100, 'The age must be realistic!'
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+AssertionError: The age must be realistic!
+```
 
 # 图形用户界面
 
