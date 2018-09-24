@@ -102,6 +102,35 @@ $ ./hello.py
 | `# …`                      | 单行注释。可嵌套。                                           |
 | `''' … '''` 或 `""" … """` | 块注释。可跨多行，但不可以嵌套。（块注释实际上是Python中的长字符串） |
 
+### 文档字符串
+
+Python实际上是没有块注释的，上面的块注释实际上是文档字符串（Docstring），它可以出现在`def`语句之后、模块和类的开头。并且任何字符串都可以作为文档字符串，而不仅仅是长字符串。
+
+```python
+def square(x):
+  'Calculates the square of the number x.'
+  return x * x
+```
+
+可以象下面这样访问文档字符串：
+
+```python
+>>> square.__doc__
+'Calculates the square of the number x.'
+```
+
+另外，使用`help`函数获取帮助时，也包含了函数的文档字符串：
+
+```python
+>>> help(square)
+Help on function square in module __main__:
+  
+square(x)
+Calculates the square of the number x.
+```
+
+
+
 # 基本类型
 
 ## 数值类型
@@ -193,8 +222,6 @@ Python变量实际上是没有类型的，而对象是有类型：
 ```
 
 
-
-# 数组
 
 # 字符串
 
@@ -909,7 +936,7 @@ y = somefunction()
 
 代码块是一组语句。
 
-Python的代码块是通过冒号后跟缩进的代码来创建的。可以使用空格或制表符缩进。
+Python的代码块是通过缩进的代码来创建的。可以使用空格或制表符缩进。
 
 在同一个代码块中，各行代码的缩进量必须相同。
 
@@ -918,7 +945,7 @@ Python的代码块是通过冒号后跟缩进的代码来创建的。可以使�
 条件语句的一般形式：
 
 ```
-if 条件: 语句
+if 条件: 语句  #当语句只有一条时，可以放在同一行
 
 if 条件:
 	语句
@@ -984,6 +1011,8 @@ range(0, 10)
 range(0, 10)
 ```
 
+`range`函数还可以用第三个参数来指定步长，默认步长是1。（参见“else子句”的例子）
+
 #### 迭代字典
 
 ```python
@@ -1005,7 +1034,7 @@ z corresponds to 3
 
 #### 并行迭代
 
-内置函数`zip`将两个序列“缝合”起来，返回一个由元组组成的序列。这样，就可以在for-in循环同时迭代两个序列：
+内置函数`zip`将两个序列“缝合”起来，返回一个由元组组成的可迭代对象。这样，就可以在for-in循环同时迭代两个序列：
 
 ```python
 >>> names = ['anne', 'beth', 'george', 'damon']
@@ -1016,9 +1045,122 @@ z corresponds to 3
 ...   print(name, 'is', age, 'years old'
 ```
 
+#### 迭代时获取索引
+
+```python
+for index, string in enumerate(strings):
+  if 'xxx' in string:
+    strings[index] = '[censored]'
+```
+
+函数`enumerate`能让你在迭代时，自动获取当前对象的索引。
+
+### else子句
+
+else子句紧跟在for-in循环或while循环之后，它仅当前面的循环没有调用`break`时才会执行（即循环没有提前结束）。
+
+```python
+from math import sqrt
+for n in range(99, 81, -1):
+  root = sqrt(n)
+  if root == int(root):
+    print(n)
+    break
+else:
+  print("Didn't find it!')
+```
+
+## 跳转语句
+
+### break语句
+
+```python
+while True:
+  word = input('Please enter a word: ')
+  if not word: break
+  print('The word was ', word)
+```
+
+### continue语句
+
+## pass语句
+
+pass语句什么都不做，通常用作占位符。
+
+## del语句
+
+del语句用于删除对象的引用或变量。在Python中，对象只能由垃圾回收器自动回收。
+
 
 
 # 子程序
+
+## 函数
+
+### 定义函数
+
+```python
+def fibs(num):
+  result = [0, 1]
+  for i in range(num - 2):
+    result.append(result[-2] + result[-1])
+  return result
+```
+
+### 返回值
+
+在Python中，即使没有显式使用`return`语句返回的函数也有返回值——`None`。因此，Python的函数均有返回值。
+
+### 内置函数
+
+#### exec函数
+
+`exec`函数将字符串作为代码执行，并且不返回任何东西。
+
+直接在当前命名空间下执行：（很容易污染当前命名空间）
+
+```python
+>>> from math import sqrt
+>>> exec('sqrt = 1')
+>>> sqrt(4)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: 'int' object is not callable
+```
+
+在显式指定的全局空间下执行：（全局命名空间必须是字典）
+
+```python
+>>> from math import sqrt
+>>> scope = {}  #在全局环境定义一个命名空间
+>>> exec('sqrt = 1', scope)
+>>> sqrt(4)
+2.0
+>>> scope['sqrt']
+1
+```
+
+在显式指定的局部空间下执行：（局部命名空间可以是任何映射）
+
+#### eval函数
+
+`eval`函数计算用字符串表示的Python表达式的值，并返回结果。
+
+```python
+>>> eval(input("Enter an arithmetic expression: "))
+Enter an arithmetic expression: 6 + 18 * 2
+42
+
+>>> scope = {}  #在全局环境定义一个命名空间
+>>> scope['x'] = 2  #给全局命名空间添加一些值
+>>> exec('y = 3', scope)
+>>> eval('x * y', scope)
+6
+```
+
+与`exec`一样，也可向`eval`显式提供两个可选的命名空间（全局和局部）。
+
+# 面向对象编程
 
 # 集合类型
 
@@ -1318,21 +1460,25 @@ if [username, pin] in db: print('Access granted')
 #如果在列表中没有找到指定值，将引发异常
 ```
 
-##### 排序
+##### 反转列表
 
 ```python
-#反转列表
 >>> a = [1, 7, 3]
 >>> a.reverse()
 >>> a
 [3, 7, 1]
-#如果希望按相反顺序迭代列表，则使用reversed函数。它会一个迭代器。
+#如果希望按相反顺序迭代列表，则使用reversed函数。它返回一个迭代器，因此，不会修改原列表。
 >>> b = [1, 2, 3]
 >>> list(reversed(b))  #list可以将迭代器转换成列表
 >>> b
 [3, 2, 1]
+```
 
-#排序
+另外，方法`reverse`只能用于列表，而函数`reversed`可用于任何可迭代对象。
+
+##### 排序
+
+```python
 >>> x = [4, 6, 2, 1, 7, 9]
 >>> x.sort()  #按升序排序
 >>> x
@@ -1355,6 +1501,31 @@ if [username, pin] in db: print('Access granted')
 >>> x.sort(reverse=True)
 >>> x
 [9, 7, 6, 4, 2, 1]
+```
+
+另外，方法`sort`只能用于列表，而函数`sorted`可用于任何可迭代对象。
+
+> 注意：`sorted`返回的是一个列表，而`reversed`返回一个可迭代对象。
+
+##### 列表推导
+
+```python
+>>> [x * x for x in range(10)]
+[0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+```
+
+可以给列表推导加一个“Guard”，使得只有满足条件的元素才会出现在生成的列表中：
+
+```python
+>>> [x * x for x in range(10) if x % 3 == 0]
+[0, 9, 36, 81]
+```
+
+列表推导中可以出现多个for部分：
+
+```python
+>>> [(x, y) for x in range(3) for y in range(3) if x == y]
+[(0, 0), (1, 1), (2, 2)]
 ```
 
 ### 元组
@@ -1611,6 +1782,16 @@ dict_keys(['title', 'url', 'spam'])
 ```
 
 字典x中的所有项都将添加到字典d中，如果两个字典存在相同的键，则用字典x中的项替换字典d中的项。
+
+##### 字典推导
+
+```python
+>>> squares = {i: '{} squared is {}'.format(i, i**2) for i in range(10)}
+>>> squares[8]
+'8 squared is 64'
+```
+
+在列表推导中，for前面只有一个表达式，而在字典推导中，for前面有两个用冒号分隔的表达式，这两个表达式分别为键及其对应的值。
 
 ## 集
 
