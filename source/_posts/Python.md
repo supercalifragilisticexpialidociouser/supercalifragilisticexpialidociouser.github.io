@@ -212,13 +212,26 @@ Python没有专门用于表示字符的类型，一个字符就是只包含一�
 
 # 声明
 
-Python变量不需要声明。
+通常，Python变量不需要声明，首次给变量赋值，就相当于是声明。
 
 Python变量实际上是没有类型的，而对象是有类型：
 
 ```python
 >>> a = 1
 >>> a = 'ok'
+```
+
+在函数内部给变量赋值时，该变量默认为局部变量，除非你明确地（通过`global`）告诉Python它是全局变量：
+
+```python
+>>> x = 1
+>>> def change_global():
+...   global x
+...   x = x + 1
+...
+>>> change_global()
+>>> x
+2
 ```
 
 
@@ -1111,6 +1124,155 @@ def fibs(num):
 
 在Python中，即使没有显式使用`return`语句返回的函数也有返回值——`None`。因此，Python的函数均有返回值。
 
+### 参数
+
+#### 关键字参数
+
+```python
+>>> def hello(greeting, name):
+...   print('{}, {}!'.format(greeting, name))
+... 
+>>> hello(greeting='Hello', name='world')  #关键字参数
+Hello, world!
+>>> hello('Hello', 'world')  #位置参数
+Hello, world!
+>>> hello('Hello', name='Jo')  #混合使用，位置参数必须位于关键字参数之前
+Hello, Jo!
+```
+
+#### 参数默认值
+
+```python
+>>> def hello(greeting='Hello', name='world'):
+...   print('{}, {}!'.format(greeting, name))
+... 
+>>> hello()
+Hello, world!
+>>> hello('Hi')
+Hi, world!
+>>> hello('Hi', 'Jo')
+Hi, Jo!
+>>> hello(name='Jo')
+Hello, Jo!
+```
+
+#### 可变数量参数
+
+可变数量参数可以接收任意多个（包括0个）参数，以星号开头的形参是可变数量参数。Python的可变数量参数实际上是一个元组。
+
+> 注意：在“序列解包”中，赋值时带星号的变量也会收集多余的值，只不过列表而不是元组。
+
+```python
+>>> def print_params(title, *params):
+...   print(title)
+...   print(params)
+...
+>>> print_params('Params:', 1, 2, 3)
+Params:
+(1, 2, 3)
+>>> print_params('Nothing:')
+Nothing:
+()
+```
+
+可变数量参数不能接收关键字参数，除非关键字形参前面使用两个星号。这样得到的可变数量参数是一个字典，而不是一个元组：
+
+```python
+>>> print_params('Params:', foo=4)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: print_params() got an unexpected keyword argument 'foo'
+  
+>>> def print_params2(**params):
+...   print(params)
+...
+>>> print_params2(x=1, y=2, z=3)
+{'z': 3, 'x': 1, 'y': 2}
+```
+
+当可变数量参数不放在最末尾时，在它之后的参数只能接收关键字参数。
+
+```python
+>>> def in_the_middle(x, *y, z):
+...   print(x, y, z)
+... 
+>>> in_the_middle(1, 2, 3, 4, 5, 7)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: in_the_middle() missing 1 required keyword-only argument: 'z'
+>>> in_the_middle(1, 2, 3, 4, 5, z=7)
+1 (2, 3, 4, 5) 7
+```
+
+#### 分配参数
+
+分配参数是通过在调用函数（而不是定义函数）时使用运算符`*`和`**`实现的。
+
+```python
+>>> def add(x, y):
+...   return x + y
+...
+>>> params = (1, 2)
+>>> add(*params)
+
+>>> def hello(greeting='Hello', name='world'):
+...   print('{}, {}!'.format(greeting, name))
+... 
+>>> params2 = {'name': 'Sir Robin', 'greeting': 'Well met'}
+>>> hello(**params2)
+Well met, Sir Robin
+
+>>> def foo(x, y, z, m=0, n=0):
+...   print(x, y, z, m, n)
+...
+>>> def call_foo(*args, **kwds):
+...   print('Calling foo!')
+...   foo(*args, **kwds)
+... 
+```
+
+分配参数作用于参数列表的一部分，但是分配参数只能位于参数列表的末尾。
+
+可以将分配参数传递给可变数量参数，效果与将元组或字典传递给普通参数一样。
+
+### 函数嵌套
+
+Python函数可以嵌套：
+
+```python
+>>> def multiplier(factor):
+...  def multiplyByFactor(number):
+...    return number * factor
+...  return multiplyByFactor
+...
+>>> double = multiplier(2)
+>>> double(5)
+10
+>>> multiplier(5)(4)
+20
+```
+
+像`multiplyByFactor`这样存储其所在作用域的函数称为**闭包**。
+
+### 递归
+
+二分查找：
+
+```python
+def search(seq, number, lower, upper):
+  if lower == upper:
+    assert number == seq[upper]
+    return upper
+  else:
+    middle = (lower + upper) // 2
+    if number > seq[middle]:
+      return search(seq, number, middle + 1, upper)
+    else:
+      return search(seq, number, lower, middle)
+```
+
+
+
 ### 内置函数
 
 #### exec函数
@@ -1794,6 +1956,37 @@ dict_keys(['title', 'url', 'spam'])
 在列表推导中，for前面只有一个表达式，而在字典推导中，for前面有两个用冒号分隔的表达式，这两个表达式分别为键及其对应的值。
 
 ## 集
+
+# 作用域
+
+## 作用域函数
+
+### globals函数
+
+```python
+>>> def combine(parameter):
+...   print(parameter + globals()['parameter'])
+...
+>>> parameter = 'berry'
+>>> combine('Shrub')
+Shrubberry
+```
+
+
+
+### locals函数
+
+### vars函数
+
+```python
+>>> x = 1
+>>> scope = vars()
+>>> scope['x']
+1
+>>> scope['x'] += 1
+>>> x
+2
+```
 
 # 输入和输出
 
