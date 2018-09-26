@@ -4402,7 +4402,34 @@ public class Main {
 
 由这些提供者模块所提供的任何服务都将通过ServiceLoader服务发现程序自动获取，无须更改代码或重新编译。
 
-每次调用`ServiceLoader::load`时，都会实例化一个新的`ServiceLoader`实例。多次请求同一个`ServiceLoader` 实例的同一服务，将获得相同的服务实例。因此，使用相同服务的不同模块都拥有自己的服务实例。在使用包含状态的服务时，需要铭记这一点。
+每次调用`ServiceLoader::load`时，都会实例化一个新的`ServiceLoader`实例。多次请求同一个`ServiceLoader` 实例的同一服务，将获得相同的服务实例。因此，使用相同服务的不同模块都拥有自己的服务实例。在使用包含状态的服务时，需要铭记这一点。与依赖注入框架中的典型情况不同，没有单粒的服务实例。
+
+```java
+Iterable<Analyzer> first = ServiceLoader.load(Analyzer.class);
+System.out.println("Using the first analyzers");
+for (Analyzer analyzer : first) {
+  System.out.println(analyzer.hashCode());
+}
+
+Iterable<Analyzer> second = ServiceLoader.load(Analyzer.class); //不同与first的实例
+System.out.println("Using the second analyzers");
+for (Analyzer analyzer : second) {
+  System.out.println(analyzer.hashCode());
+}
+
+System.out.println("Using the first analyzers again, hashCode is the same");
+for (Analyzer analyzer : first) {
+  System.out.println(analyzer.hashCode());
+}
+
+first.reload(); //重载后，first是新的实例
+System.out.println("Reloading the first analyzers, hashCode is different");
+for (Analyzer analyzer : first) {
+  System.out.println(analyzer.hashCode());
+}
+```
+
+
 
 # 构建管理
 
