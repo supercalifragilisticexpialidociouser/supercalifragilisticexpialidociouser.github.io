@@ -722,6 +722,10 @@ f字符串：
 
 类似的方法还有：`lstrip`、`rstrip`。
 
+### repr函数
+
+`repr`函数用于返回对象的字符串表示。
+
 # 枚举类型
 
 # 表达式
@@ -1323,6 +1327,241 @@ Enter an arithmetic expression: 6 + 18 * 2
 与`exec`一样，也可向`eval`显式提供两个可选的命名空间（全局和局部）。
 
 # 面向对象编程
+
+类和对象是面向对象编程的两个主要概念。一个类创造了一种新的类型 ，而对象就是类的实例。
+
+属于对象或者类的变量被称作字段，属于对象或者类的函数被称作方法。
+
+字段有两种类型：他们可以属于每一个类的实例（也就是对象），也可以属于类本身。他们被分别称作实例变量和类的变量。
+
+> Python 3开始不区分类和类型。
+
+## 定义类
+
+```python
+>>> class Person:
+...   def set_name(self, name):
+...     self.name = name
+...   def get_name(self):
+...     return self.name
+...   def greet(self):
+...     print("Hello, world! I'm {}.".format(self.name))
+... 
+>>> foo = Person()  #类实例化
+>>> foo.set_name('Joy')
+>>> foo.greet()
+Hello, world! Im Joy.
+>>> foo.name
+'Joy'
+```
+
+> Python 3之前创建的是旧式类，要创建新式类，要在脚本或模块开头放置赋值语句`__metaclass__ = type`。
+
+Python的类体实际上是一个代码块，在类体中可以包含各种语句。定义类其实就是在执行这个代码块：
+
+```python
+>>> class C:
+...   print('Class C being defined ...')
+...
+Class C being defined ...
+```
+
+Python中一切皆对象，类定义完成后，会创建一个**类对象**，并在当前作用域中定义一个怀类同名的名字指向该类对象。
+
+相应地，类实例化而得到的对象称为**实例对象**。
+
+Python作为动态语言，类或实例的成员绑定可发生在两个地方：
+
+- 类定义时；
+- 运行时任意阶段。
+
+类对象和实例对象都可以在运行时任意添加或删除成员。例如：`objname.attr = value`，若属性`attr`已经存在，则给它赋新值`value`；否则 ，为该对象添加新的属性。
+
+## self
+
+方法与函数相比只有一个区别——方法在入口参数表的开头必须有一个额外的形式参数，但是当你调用这个方法的时候，你不会为这个参数赋予任何一个值，Python 会提供给它。这个特别的参数指向对象本身，通常约定它的名字叫做 `self` ，尽管你可以给这个参数起任何一个名字，但是这里 *强烈推荐* 使用 `self`。
+
+## 成员
+
+### 字段
+
+字段分为类字段和实例字段：
+
+```python
+>>> class MemberCounter:
+...   members = 0  #类字段
+... 
+>>> m1 = MemberCounter()
+>>> m1.members  #引用类字段
+0
+>>> MemberCounter.members  #引用类字段
+0
+>>> m2 = MemberCounter()
+>>> m2.members  #引用类字段
+0
+
+>>> MemberCounter.members = 1
+>>> m1.members
+1
+>>> m2.members
+1
+
+>>> m2.members = 2  #m2.members的重新赋值，将创建了一个实例字段members
+>>> m1.members  #引用类字段
+1
+>>> MemberCounter.members
+1
+>>> m2.members  #引用自己的实例字段
+2
+
+>>> MemberCounter.members = 3
+>>> m1.members
+3
+>>> m2.members
+2
+```
+
+### 方法
+
+假设你有一个类叫做 `MyClass` 以及这个类的一个对象叫做 `myobject` 。当你需要这样调用这个对象的方法的时候：`myobject.method(arg1, arg2)` ，这个语句会被 Python 自动的转换成 `MyClass.method(myobject, arg1, arg2)` 这样的形式。但后者的多态性更低。
+
+可以将字段或方法重新关联到一个普通函数，这时就没有特殊的`self`参数了，也就不可能访问当前对象了：
+
+```python
+>>> class Bird:
+...   song = 'Squaawk!'
+...   def sing(self):
+...     print(self.song)
+... 
+>>> def function():
+...   print("我没办法访问当前对象")
+... 
+>>> bird = Bird()
+>>> bird.sing()
+Squaawk!
+>>> birdsong = bird.sing
+>>> birdsong()
+Squaawk!
+>>> bird.sing = function
+>>> bird.sing()
+我没办法访问当前对
+```
+
+## 封装
+
+Python没有为可访问性提供直接支持，然而，通过玩点小花招，可以获得类似于私有成员的效果。
+
+要让方法和字段成为私有的，只需要让其名称以两个下划线开头即可。
+
+```python
+class Secretive:
+  def __inaccessible(self):
+    print("Bet you can't see me ...")
+  def accessible(self):
+    print("The secret message is:")
+    self.__inaccessible()
+```
+
+现在从外部不能访问`__inaccessible`方法，但在类中依然可以使用它，这样的方法类似于其他语言中的私有方法。之所以有效是因为，Python对所有以两个下划线开头的名称都进行转换，即在开头加上一个下划线和类名作为前缀：
+
+```python
+>>> s = Secretive()
+>>> s.__inaccessible()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: Secretive instance has no attribute '__inaccessible'
+>>> Secretive._Secretive__inaccessible()
+Bet you can't see me ...
+```
+
+只知道这种幕后处理手法，就能从类外部访问私有方法，然而不应该这样做。
+
+另外，`from ... import *`语句不会导入以一个下划线开头的名称，而且Python也不会对以一个下划线开头的名称进行转换。也就是说，以一个下划线开头的名称可以在类外部访问，但不能通过`from ... import *`语句导入到其他模块。从某种程序上说，以一个或两个下划线开头相当于两种不同的私有程度。
+
+## 继承
+
+### 多重继承
+
+```python
+class Calculator:
+  def calculate(self, expression):
+    self.value = eval(expression)
+    
+class Talker:
+  def talk(self):
+    print('Hi, my value is ', self.value)
+    
+class TalkingCalculator(Calculator, Talker):
+  pass
+```
+
+如果多个超类以不同方式实现了同一个方法，必须在`class`语句中小心排列这些超类。因为位于前面的类的方法将覆盖位于后面的类的方法。
+
+## 重写
+
+```python
+>>> class Filter:
+...   def init(self):
+...     self.blocked = []
+...   def filter(self, seq):
+...     return [x for x in seq if x not in self.blocked]
+...
+>>> class SPAMFilter(Filter):
+...   def init(self):  #重写超类Filter的方法init
+...     self.blocked = ['SPAM']
+...
+>>> f = Filter()
+>>> f.init()
+>>> f.filter([1, 2, 3])
+[1, 2, 3]
+>>> s = SPAMFilter()
+>>> s.init()
+>>> s.filter(['SPAM', 'SPAM', 'SPAM', 'SPAM', 'eggs', 'bacon', 'SPAM'])
+['eggs', 'bacon']
+```
+
+## 抽象类
+
+Python通过引入`abc`模块，对抽象类提供了支持。
+
+抽象类的最重要特性是不能实例化。
+
+### 定义抽象类
+
+```python
+from abc import ABC, abstractmethod
+
+class Talker(ABC):
+  @abstractmethod
+  def talk(self):
+    pass
+```
+
+装饰器`@abstractmethod`用于将方法标记为抽象的——在子类中必须实现的方法。
+
+继承抽象类的类，如果没有重写所有抽象方法，则该类仍然是抽象类。
+
+## 类注册
+
+Python允许将没有继承关系的两个类，注册为好像有继承关系：
+
+```python
+>>> class Herring:
+...   def talk(self):
+...     print('Blub.')
+...
+>>> h = Herring()
+>>> isinstance(h, Talker)
+False
+>>> Talker.register(Herring)
+<class '__main__.Herring'>
+>>> isinstance(h, Talker)
+True
+>>> issubclass(Herring, Talker)
+True
+```
+
+注意：上例的`Herring`类即使没有提供`talk`方法，仍然能注册成为`Talker`，只不过在调用`talk`方法将出错。
 
 # 集合类型
 
@@ -2055,6 +2294,74 @@ AssertionError: The age must be realistic!
 # 数据库支持
 
 # 网络编程
+
+# 元编程
+
+## 反射
+
+要确定一个类是否是另一个类的子类，可使用内置函数`issubclass`：
+
+```python
+>>> issubclass(TalkingCalculator, Calculator)
+True
+```
+
+访问类的特殊属性`__bases__`可以获得它的基类对象：
+
+```python
+>>> TalkingCalculator.__bases__
+(<class '__main__.Calculator')
+```
+
+要确定对象是否是特定类的实例，可使用`isinstance`函数：
+
+```python
+>>> tc = TalkingCalculator()
+>>> isinstance(tc, TalkingCalculator)
+True
+>>> isinstance(tc, Calculator)
+True
+```
+
+`isinstance`函数也可用于类型：
+
+```python
+>>> isinstance(tc, str)
+False
+```
+
+通过特殊属性`__class__`或函数`type`，可以获取对象所属于的类对象：
+
+```python
+>>> tc.__class__
+(<class '__main__.TalkingCalculator')
+>>> type(tc)
+(<class '__main__.TalkingCalculator')
+```
+
+可以使用内置函数`hasattr`来判断对象是否具有指定成员：
+
+```python
+>>> hasattr(m1, 'members')
+True
+```
+
+可以使用内置函数`callable`来检查成员是否是可调用的：
+
+```python
+>>> callable(getattr(bird, 'sing', None))  #第三个参数是当指定成员不存在时，返回的默认值
+True
+```
+
+内置函数`getattr`和`setattr`分别用来获取和设置成员：
+
+```python
+>>> setattr(m1, 'members', '10')
+>>> m1.members
+10
+```
+
+要查看对象中存储的所有值，可以使用`__dict__`字段。如果要确定对象是由什么组成的，应研究模块`inspect`。
 
 # 模块
 
