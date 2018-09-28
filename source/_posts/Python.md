@@ -221,7 +221,7 @@ Python变量实际上是没有类型的，而对象是有类型：
 >>> a = 'ok'
 ```
 
-在函数内部给变量赋值时，该变量默认为局部变量，除非你明确地（通过`global`）告诉Python它是全局变量：
+在函数内部给变量赋值时，该变量默认为局部变量，除非你明确地（通过`global`语句）告诉Python它是全局变量：
 
 ```python
 >>> x = 1
@@ -234,7 +234,16 @@ Python变量实际上是没有类型的，而对象是有类型：
 2
 ```
 
+同样道理，内嵌函数如果要修改外围函数中的变量，也需要使用`nonlocal`语句来标记它。否则，将当成是内嵌函数作用域中的变量：
 
+```python
+def makeinc():
+  count = 1
+  def inc():
+    nonlocal count
+    count += 1  #这个count是在makeinc中声明的count
+  return inc
+```
 
 # 字符串
 
