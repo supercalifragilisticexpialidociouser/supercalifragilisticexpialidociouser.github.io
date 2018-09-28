@@ -1355,7 +1355,7 @@ Hello, world! Im Joy.
 'Joy'
 ```
 
-> Python 3之前创建的是旧式类，要创建新式类，要在脚本或模块开头放置赋值语句`__metaclass__ = type`。
+> Python 3之前创建的是旧式类，要创建新式类，要在脚本或模块开头放置赋值语句`__metaclass__ = type`，或者显式地直接或间接地继承内置类`object`。
 
 Python的类体实际上是一个代码块，在类体中可以包含各种语句。定义类其实就是在执行这个代码块：
 
@@ -1447,6 +1447,36 @@ Squaawk!
 我没办法访问当前对
 ```
 
+### 构造函数
+
+Python的构造函数是`__init__`，它将在创建对象自动被调用。
+
+```python
+>>> class FooBar:
+...   def __init__(self):
+...     self.somevar = 42
+...
+>>> f = FooBar()
+>>> f.somevar
+42
+```
+
+构造函数还可以带除了`self`外的其他参数：
+
+```python
+>>> class FooBar:
+...   def __init__(self, value = 42):
+...     self.somevar = value
+...
+>>> f = FooBar('This is a constructor argument')
+>>> f.somevar
+'This is a constructor argument'
+```
+
+### 析构函数
+
+Python的析构函数是`__del__`，它将在对象被销毁（作为垃圾被回收）前被自动调用。
+
 ## 封装
 
 Python没有为可访问性提供直接支持，然而，通过玩点小花招，可以获得类似于私有成员的效果。
@@ -1480,6 +1510,8 @@ Bet you can't see me ...
 
 ## 继承
 
+Python 3中所有类都隐式地继承`object`类。
+
 ### 多重继承
 
 ```python
@@ -1498,6 +1530,8 @@ class TalkingCalculator(Calculator, Talker):
 如果多个超类以不同方式实现了同一个方法，必须在`class`语句中小心排列这些超类。因为位于前面的类的方法将覆盖位于后面的类的方法。
 
 ## 重写
+
+### 重写普通方法
 
 ```python
 >>> class Filter:
@@ -1519,6 +1553,39 @@ class TalkingCalculator(Calculator, Talker):
 >>> s.filter(['SPAM', 'SPAM', 'SPAM', 'SPAM', 'eggs', 'bacon', 'SPAM'])
 ['eggs', 'bacon']
 ```
+
+### 重写构造函数
+
+在Python中，构造函数也是可以重写的。
+
+在重写构造函数时，必须调用超类的构造函数，否则可能无法正确地初始化对象。
+
+```python
+class Bird:
+  def __init__(self):
+    self.hungry = True
+  def eat(self):
+    if self.hungry:
+      print('Aaaah ...')
+      self.hungry = False
+    else:
+      print('No, thanks!')
+      
+class SongBird:
+  def __init__(self):
+    super().__init__()  #也可以写成：super(SongBird, self).__init__()
+    self.sound = 'Squawk!'
+  def sing(self):
+    print(self.sound)
+```
+
+`super`函数是Python 3才有的，在这之前，通常使用下列代码来调用超类构造函数：
+
+```python
+Bird.__init__(self)
+```
+
+尽量使用`super`函数来调用超类构造函数，因为即便有多个超类，也只需要调用函数`super`一次（条件是所有超类的构造函数也使用`super`函数）。另外，`super`函数还会自动处理两个超类从同一个类派生而来的问题。
 
 ## 抽象类
 
@@ -1550,9 +1617,11 @@ Python允许将没有继承关系的两个类，注册为好像有继承关系�
 ...   def talk(self):
 ...     print('Blub.')
 ...
+
 >>> h = Herring()
 >>> isinstance(h, Talker)
 False
+
 >>> Talker.register(Herring)
 <class '__main__.Herring'>
 >>> isinstance(h, Talker)
@@ -2211,8 +2280,6 @@ dict_keys(['title', 'url', 'spam'])
 Shrubberry
 ```
 
-
-
 ### locals函数
 
 ### vars函数
@@ -2275,6 +2342,179 @@ x = input("x: ")  #input函数的返回值是一个字符串
 
 
 # 异常处理
+
+## 异常类型
+
+异常类必须是`Exception`的子类。
+
+### 内置异常类
+
+| 类名              | 描述                                                       |
+| ----------------- | ---------------------------------------------------------- |
+| Exception         | 异常类的基类。                                             |
+| AttributeError    | 引用属性或给它赋值失败时引发。                             |
+| OSError           | 操作系统不能执行指定任务时引发。                           |
+| IndexError        | 使用序列中不存在的索引时引发。                             |
+| KeyError          | 使用映射中不存在的键时引发。                               |
+| NameError         | 找不到名称（变量）时引发。                                 |
+| SyntaxError       | 代码不正确时引发。                                         |
+| TypeError         | 将内置操作或函数用于类型不正确的对象时引发。               |
+| ValueError        | 将内置操作或函数用于类型正确但包含的值不合适的对象时引发。 |
+| ZeroDivisionError | 在除法或求模运算的第二个参数为零时引发。                   |
+
+### 自定义异常
+
+```python
+class SomeCustomException(Exception): pass
+```
+
+## 引发异常
+
+要引发异常，可使用`raise`语句，并将一个异常类或实例作为参数。将异常类作为参数时，将自动创建一个实例：
+
+```python
+>>> raise Exception('hyperdrive overload')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+Exception: hyperdrive overload
+```
+
+## 捕获异常
+
+```python
+try:
+  x = int(input('Enter the first number: '))
+  y = int(input('Enter the second number: '))
+  print(x / y)
+except ZeroDivisionError:
+  print("The second number can't be zero!")
+except TypeError:
+  print("That wasn't a number, was it?")
+```
+
+`except`子句可以是一个或任意多个。
+
+也可以使用一条`except`子句处理多个异常：
+
+```python
+try:
+  x = int(input('Enter the first number: '))
+  y = int(input('Enter the second number: '))
+  print(x / y)
+except (ZeroDivisionError, TypeError, NameError):
+  print('Your numbers were bogus ...')
+```
+
+还可以使用一条`except`子句捕获所有异常，只需在`except`子句中不指定任何异常类。
+
+```python
+try:
+  x = int(input('Enter the first number: '))
+  y = int(input('Enter the second number: '))
+  print(x / y)
+except:
+  print('Something wrong happened ...')
+```
+
+### 访问异常对象
+
+要访问捕获到的异常对象，需要使用`except ... as ...`语句：
+
+```python
+try:
+  x = int(input('Enter the first number: '))
+  y = int(input('Enter the second number: '))
+  print(x / y)
+except (ZeroDivisionError, TypeError, NameError) as e:
+  print(e)
+```
+
+## 重新抛出异常
+
+捕获到异常后，可以重新抛出原异常，也可以抛出新的异常。如果是重新抛出原异常，`raise`子句可以不提供任何参数：
+
+```python
+class MuffledCalculator:
+  muffled = False
+  def calc(self, expr):
+    try:
+      return eval(expr)
+    except ZeroDivisionError:
+      if self.muffled:
+        print('Division by zero is illegal')
+      else:
+        raise
+```
+
+如果是抛出新异常，则默认情况下原异常将作为**异常上下文**存储起来，并且最终出现的错误消息中，将包含这两个异常信息：
+
+```python
+>>> try:
+...   1/0
+... except ZeroDivisionError:
+...   raise ValueError
+... 
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+ZeroDivisionError: division by zero
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+ValueError
+```
+
+可以使用`raise ... from ...`语句来提供自己的异常上下文，也可以使用`None`来禁用异常上下文：
+
+```python
+>>> try:
+...   1/0
+... except ZeroDivisionError:
+...   raise ValueError from None
+... 
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+ValueError
+```
+
+## 异常传播
+
+如果不处理（或捕获）函数中引发的异常，它将向上传播到调用函数的地方。如果在那里也未得到处理，异常将继续传播，直至到达主程序（全局作用域）。如果在主程序中仍没有处理，则程序将终止并显示栈跟踪消息（Traceback）。
+
+## else子句
+
+else子句可在没有出现异常时执行，而出现异常时将不会被执行：
+
+```python
+while True:
+  try:
+    x = int(input('Enter the first number: '))
+    y = int(input('Enter the second number: '))
+    value = x / y
+    print('x / y is', value)
+  except:
+    print('Invalid input. Please try again.')
+  else:
+    break
+```
+
+else子句是可选的。
+
+## finally子句
+
+不管`try`子句是否发生什么异常，都将执行`finally`子句。
+
+```python
+x = None
+try:
+  x = 1 / 0
+finally:
+  print('Cleaning up ...')
+  del x
+```
+
+finally子句是可选的。
 
 # 断言
 
