@@ -1096,6 +1096,44 @@ else:
   print("Didn't find it!')
 ```
 
+### 迭代器
+
+可迭代对象是实现了`__iter__`方法的对象，它可以使用for-in循环来迭代。
+
+`__iter__`方法返回一个迭代器，迭代器是一个包含`__next__`方法的对象。当调用`__next__`方法时，迭代器应返回其下一个值。如果迭代器没有可供返回的值，应引发`StopIteration`异常。
+
+```python
+class Fibs:
+  def __init__(self):
+    self.a = 0
+    self.b = 1
+  def __next__(self):
+    self.a, self.b = self.b, self.a + self.b
+    return self.a
+  def __iter__(self):
+    return self
+------------------------------------------------------
+>>> fibs = Fibs()
+>>> for f in fibs:
+...   if f > 1000:
+...     print(f)
+...     break
+...
+1597
+```
+
+另外，通过对可迭代对象调用内置函数`iter`，可获得一个迭代器。内置函数`next(iter)`与`iter.__next__()`等效。
+
+```python
+>>> it = iter([1, 2, 3])
+>>> next(it)
+1
+>>> next(it)
+2
+```
+
+迭代器可以通过构造函数`list`转化为序列：`list(it)`。
+
 ## 跳转语句
 
 ### break语句
@@ -1335,6 +1373,59 @@ Enter an arithmetic expression: 6 + 18 * 2
 
 与`exec`一样，也可向`eval`显式提供两个可选的命名空间（全局和局部）。
 
+## 生成器
+
+生成器是包含`yield`语句的函数，它返回一个迭代器。
+
+生成器使用`yield`或`return`语句返回，而普通函数只使用`return`语句返回。
+
+每次调用普通函数时，普通函数都将从头开始执行。而生成器每次使用`yield`生成一个值（迭代器）后，生成器都将被冻结，下次再调用时，从上次冻结处开始继续执行。
+
+由于生成器返回迭代器，因此可以像使用其他迭代器一样使用它。
+
+生成器使用`return`语句停止执行并不再生成值。
+
+```python
+def flatten(nested):
+  try:
+    #不迭代类似于字符串的对象，因为字符串的第一个元素是一个长度为1的字符串，而长度为1的字符串的第一个元素仍是字符串。这会导致无穷递归。
+    try: nested + ''
+    except TypeError: pass  #nested不是字符串
+    else: raise TypeError   #nested是字符串
+    for sublist in nested:
+      for element in flatten(sublist):
+        yield element
+  except TypeError:
+    yield nested  #原样生成字符串
+-----------------------------------------------
+>>> nested = ['foo', ['bar', ['baz']]]
+>>> for s in flatten(nested):
+...   print(s)
+...
+foo
+bar
+baz
+>>> list(flatten(nested))
+['foo', 'bar', 'baz']
+```
+
+
+
+### 生成器推导
+
+生成器推导与列表推导类似，但不是立即创建一个列表，而是返回一个生成器。
+
+```python
+>>> g = ((i + 2) ** 2 for i in range(2, 27))
+>>> next(g)
+16
+
+>>> sum(i ** 2 for i in range(10))
+285
+```
+
+
+
 # 面向对象编程
 
 类和对象是面向对象编程的两个主要概念。一个类创造了一种新的类型 ，而对象就是类的实例。
@@ -1485,6 +1576,83 @@ Python的构造函数是`__init__`，它将在创建对象自动被调用。
 ### 析构函数
 
 Python的析构函数是`__del__`，它将在对象被销毁（作为垃圾被回收）前被自动调用。
+
+### property
+
+`property`类允许为字段提供获取方法（getter）和设置方法（setter），而且使用起来仍像个字段。
+
+```python
+class Rectangle:
+  def __init__(self):
+    self.width = 0
+    self.height = 0
+  def set_size(self, size):
+    self.width, self.height = size
+  def get_size(self):
+    return self.width, self.height
+  size = property(get_size, set_size)
+-------------------------------------------
+>>> r = Rectangle()
+>>> r.width = 10
+>>> r.height = 5
+>>> r.size
+(10, 5)
+>>> r.size = 150, 100
+>>> r.width
+150
+```
+
+`property`构造函数可带0到4个参数。
+
+- 不带参数则这个property既不可读也不可写。
+- 带一个参数则这个property只可读。
+- 第一个参数是getter，第二个参数是setter，第三个参数是用于删除property的方法，第四个参数指定一个文档字符串。
+
+在旧式类中，可通过下面四个魔法方法中的后三个方法来实现property功能：
+
+- `__getattribute__(self, name)`：在property被访问时自动调用（只适用于新式类）；
+- `__getattr__(self, name)`：在property被访问而对象没有这样的property时自动调用；
+- `__setattr__(self, name, value)`：试图给property赋值时自动调用；
+- `__delattr__(self, name)`：试图删除property时自动调用。
+
+### 静态方法和类方法
+
+静态方法没有参数`self`，可直接通过类来调用。类方法有`cls`参数，它指向类对象本身，类方法可通过类或实例来调用。
+
+有两种方式来定义静态方法和类方法：
+
+1. 通过类`staticmethod`和`classmethod`来包装；
+
+   ```python
+   class MyClass:
+     def smeth():
+       print('This is a static method')
+     smeth = staticmethod(smeth)
+     def cmeth(cls):
+       print('This is a class method of ', cls)
+     cmeth = classmethod(cmeth)
+   ```
+
+2. 通过装饰器`@staticmethod`和`@classmethod`为标记。
+
+   ```python
+   class MyClass:
+     @staticmethod
+     def smeth():
+       print('This is a static method')
+     @classmethod
+     def cmeth(cls):
+       print('This is a class method of ', cls)
+   ```
+
+定义这些方法后，无需实例化类就可以使用它们：
+
+```python
+>>> MyClass.smeth()
+This is a static method
+>>> MyClass.cmeth()
+This is a class method of <class '__main__.MyClass'>
+```
 
 ## 封装
 
@@ -2273,6 +2441,55 @@ dict_keys(['title', 'url', 'spam'])
 在列表推导中，for前面只有一个表达式，而在字典推导中，for前面有两个用冒号分隔的表达式，这两个表达式分别为键及其对应的值。
 
 ## 集
+
+## 实现自己的集合类型
+
+要实现自己的自己的集合类型，最简单的作法是继承`list`、`dict`、`str`等类，或者继承`collections`模块提供的类。
+
+另外，由于鸭子类型的缘故，也可以不继承任何集合类型，而是在自己的集合类中定义如下4个魔法方法：
+
+- `__len__(self)`：这个方法应返回集合包含的项数，对序列来说为元素个数 ，对映射来说为键-值对个数。如果`__len__`返回0，且没有重写`__nonzero__`方法，则对象在布尔上下文中将被视为假（就像空的列表、元组、字符串和字典一样）。另外，如果没有实现`__len__`方法，则集合的长度是无穷的。
+- `__getitem__(self, key)`：这个方法应返回与指定键相关联的值，它在使用语法`集合对象[key]`访问集合元素时被调用。对序列来说，键应该是`-n`到`n-1`之间的整数，其中`n`为序列的长度。对映射来说，键可以是任何类型。
+- `__setitem__(self, key, value)`：这个方法应以与键相关联的方式存储值。仅当对象可变时才需要实现这个方法。
+- `__delitem__(self, key)`：这个方法在对对象的组成部分使用`del`语句时被调用。仅当对象可变时才需要实现这个方法。
+
+对于这些方法，还有一些额外的要求：
+
+- 对于序列，如果键为负整数，应从末尾往前数。
+- 如果键的类型不合适，可能引发`TypeError`异常。
+- 对于序列，如果索引的类型是正确的，但不在允许的范围内，应引发`IndexError`异常。
+
+```python
+def check_index(key):
+  if not isinstance(key, int): raise TypeError
+  if key < 0: raise IndexError
+
+class ArithmeticSequence:
+  def __init__(self, start=0, step=1):
+    self.start = start
+    self.step = step
+    #未被修改的元素使用公式self.start+key*self.step来计算，已被修改的元素则保存在字典changed中
+    self.changed = {}
+  def __getitem__(self, key):
+    check_index(key)
+    try: return self.changed[key]
+    except KeyError:
+      return self.start + key * self.step
+  def __setitem(self, key, value):
+    check_index(key)
+    self.changed[key] = value
+```
+
+下面示例演示了如何使用这个类：
+
+```python
+>>> s = ArithmeticSequence(1, 2)
+>>> s[4]
+9
+>>> s[4] = 2
+>>> s[4]
+2
+```
 
 # 作用域
 
