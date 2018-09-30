@@ -1375,15 +1375,9 @@ Enter an arithmetic expression: 6 + 18 * 2
 
 ## 生成器
 
-生成器是包含`yield`语句的函数，它返回一个迭代器。
-
-生成器使用`yield`或`return`语句返回，而普通函数只使用`return`语句返回。
-
-每次调用普通函数时，普通函数都将从头开始执行。而生成器每次使用`yield`生成一个值（迭代器）后，生成器都将被冻结，下次再调用时，从上次冻结处开始继续执行。
+生成器是包含`yield`语句的函数，但它被调用时**不会执行函数体内的代码**，而是返回一个迭代器。每次请求值时（例如调用`next`函数），都将执行生成器的代码，直到遇到`yield`或`return`。`yield`将生成一个值（即`yield`的参数）后，生成器都将被挂起，下次再调用时，从上次挂起处开始继续执行。而`return`语句停止执行生成器（即不再生成值）。
 
 由于生成器返回迭代器，因此可以像使用其他迭代器一样使用它。
-
-生成器使用`return`语句停止执行并不再生成值。
 
 ```python
 def flatten(nested):
@@ -1409,7 +1403,67 @@ baz
 ['foo', 'bar', 'baz']
 ```
 
+`yield`生成的值将通过`next`函数或它的迭代器的`__next__`方法来开始执行生成器代码，并在遇到`yield`时返回该生成的值。而`yield`表达式本身也有值，默认是`None`，可通过迭代器的`send`方法显式设置它的值。因此，只有当生成器挂起后（即`yield`生成一个值后），才能使用`send`方法（除非使用`send(None)`）。`send`方法在设置完成上一个`yield`表达式的值后，从挂起处继续执行生成器代码，直到遇到下一个`yield`，才返回该`yield`生成的值，并挂起生成器。
 
+```python
+>>> def repeater(value):
+...   while True:
+...     new = (yield value)
+...     print('new is ', new)
+...     if new is not None: value = new
+... 
+>>> r = repeater(42)
+>>> next(r)
+42
+>>> next(r)
+new is None
+42
+>>> r.send('Hello')
+new is Hello
+'Hello'
+```
+
+`send`方法通常用作外部与生成器之间的通信渠道。
+
+生成器还有另外两个方法：
+
+- `throw`方法：该方法被调用时，将在生成器上次挂起处引发异常。之后会继续执行生成器对象中后面的语句，直至遇到下一个`yield`。如果在生成器对象方法执行完毕后，依然没有遇到`yield`，抛出`StopIteration`异常。
+
+- `close`方法：用于停止生成器。它将在生成器上次挂起处引发`GeneratorExit`异常。
+  如果要在生成器中提供一些清理代码，可将`yield`放在try-finally语句中。
+  对生成器调用`close`后，再试图从它那里获取值将导致`RuntimeError`异常。
+
+  如果愿意，也可捕获`GeneratorExit`异常，但随后必须：
+
+  - 重新抛出它（可能在清理后）；
+  - 或者引发其他异常；
+  - 或者直接返回。
+
+```python
+>>> def echo(value=None):
+...     print("Execution starts when 'next()' is called for the first time.")
+...     try:
+...         while True:
+...             try:
+...                 value = (yield value)
+...             except Exception as e:
+...                 value = e
+...     finally:
+...         print("Don't forget to clean up when 'close()' is called.")
+...
+>>> generator = echo(1)
+>>> print(next(generator))
+Execution starts when 'next()' is called for the first time.
+1
+>>> print(next(generator))
+None
+>>> print(generator.send(2))
+2
+>>> generator.throw(TypeError, "spam")
+TypeError('spam',)
+>>> generator.close()
+Don't forget to clean up when 'close()' is called.
+```
 
 ### 生成器推导
 
