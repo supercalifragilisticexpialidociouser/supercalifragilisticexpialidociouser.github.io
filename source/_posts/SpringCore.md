@@ -1,7 +1,7 @@
 ---
 title: SpringCore
 date: 2018-06-01 21:57:20
-tags: [5.0.8]
+tags: [5.1.0]
 ---
 
 # IoC
@@ -130,7 +130,9 @@ private UserRepository userRepository;
 
 # 资源
 
-# 校验
+# 校验、数据绑定和类型转换
+
+
 
 # SpEL
 
