@@ -2885,12 +2885,67 @@ True
 
 # 模块
 
+## 模块就是程序
+
+任何Python程序（脚本）都可以作为模块，模块名就是脚本的文件名（不包括扩展名`.py`）。
+
+## 让模块可用
+
+要让模块可用，还需要告诉解释器到哪里查找模块。
+
+### 模块默认搜索位置
+
+模块的默认搜索位置保存在模块`sys`的`path`变量中，它是一个目录（表示为字符串）列表，可通过如下代码查看：
+
+```python
+>>> import sys, pprint
+>>> pprint.pprint(sys.path)
+['',
+ '/usr/lib/python37.zip',
+ '/usr/lib/python3.7',
+ '/usr/lib/python3.7/lib-dynload',
+ '/usr/lib/python3.7/site-packages']
+```
+
+> 函数`pprint`常用于打印一行容纳不下的大数据结构。
+
+只要将模块放到上面列出的任何一个位置中，解释器就能够找到它。
+
+### 自定义搜索位置
+
+#### 使用环境变量`PYTHONPATH`指定
+
+例如：
+
+```bash
+$ export PYTHONPATH=$PYTHONPATH:~/mypython
+```
+
+或者将上述语句写到`~/.bashrc`中。
+
+#### 直接附加到`sys.path`
+
+可以将自定义的模块搜索位置附加到`sys.path`中：
+
+```python
+>>> import sys
+>>> sys.path.append('/home/yourusername/mypython')
+```
+
+> 在UNIX中，不能直接将字符串`'~/mypython'`附加到`sys.path`末尾，而必须使用完整的路径`'/home/yourusername/mypython'`。
+
+#### 使用路径配置文件指定
+
+路径配置文件的扩展名为`pth`，位于一些特殊目录中。只要把自定义的模块搜索位置添加到这些文件中，解释器就可搜索到。详见模块`site`的标准库文档。
+
 ## 导入模块
 
 ```python
 >>> import math
 >>> math.floor(32.9)
 ```
+
+> 当你导入模块时，可能发现其所在目录中除源代码文件外，还新建了一个名为`__pycache__`的子目录（在较旧的Python版本中，是扩展名为`.pyc`的文件）。这个目录包含处理后的文件，Python能够更高效地处理它们。以后再导入这个模块时，如果`.py`文件未发生变化，Python将导入处理后的文件，否则将重新生成处理后的文件。删除`__pycache__`目录不会有任何害处，因为必要时会重新创建它。
 
 如果不想每次调用模块中的函数都要指定模块名前缀，则可以使用`import`的变种：
 
@@ -2919,7 +2974,18 @@ True
 2.0
 ```
 
+导入一个模块时，会执行其中的代码，而且只会执行一次。因此，导入模块多次和导入一次的效果相同。
 
+如果一定要重新加载模块，可使用模块`importlib`中的函数`reload`，它接受一个参数（要重新加载的模块），并返回重新加载的模块。重新加载模块，会再次执行模块中的代码。
+
+```python
+>>> import importlib, foo
+…
+>>> foo = importlib.reload(foo)
+…
+```
+
+重新加载模块，并不会重新创建原有对象，变量引用的对象仍然是重新加载前的对象，除非重新创建它们。
 
 ## `__future__`模块
 
