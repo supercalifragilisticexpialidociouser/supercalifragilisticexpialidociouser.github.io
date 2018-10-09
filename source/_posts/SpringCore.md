@@ -16,11 +16,6 @@ IoC容器是Spring框架的核心，它使用DI管理构成应用的组件。Spr
 
 - `org.springframework.beans.factory.BeanFactory`：最简单的IoC容器。
 - `org.springframework.context.ApplicationContext`：应用上下文，基于`BeanFactory`构建，并提供应用框架级别的服务。
-  - `AnnotationConfigApplicationContext`：从一个或多个基于Java的配置类中加载Spring应用上下文。
-  - `AnnotationConfigWebApplicationContext`：从一个或多个基于Java的配置类中加载Spring Web应用上下文。
-  - `ClassPathXmlApplicationContext`：从类路径下的一个或多个XML配置文件中加载上下文定义。
-  - `FileSystemXmlApplicationContext`：从文件系统下的一个或多个XML配置文件中加载上下文定义。
-  - `XmlWebApplicationContext`：从Web应用下的一个或多个XML配置文件中加载上下文定义。
 
 在Spring中，构成应用程序主干并由Spring IoC容器管理的对象称为bean。 bean是一个由Spring IoC容器实例化，装配（Wiring）和管理的对象。除此之外，bean只是应用程序中众多对象之一。 Bean及其之间的依赖关系反映在容器使用的配置元数据中。
 
@@ -43,27 +38,27 @@ IoC容器是Spring框架的核心，它使用DI管理构成应用的组件。Spr
 11. 如果Bean实现了`DisposableBean`接口，Spring将调用它的`destroy`方法；
 12. 如果Bean使用`destroy-method`声明了自定义的销毁方法，该方法会被调用。
 
-## 配置元数据
+## 装配Bean
 
-Spring 能过配置元数据（Configuration Metadata）来定义Bean。
+Spring 能过配置元数据（Configuration Metadata）来装配Bean。
 
-### 配置方式
+### 装配方式
 
-Spring提供了三种配置元数据的方法：
+Spring提供了三种装配Bean的方法：
 
-- 在XML中进行显式配置；
-- 在Java中进行显式配置；
+- 在XML中进行显式装配；
+- 在Java中进行显式装配；
 - 隐式的Bean发现机制和自动装配。
 
-这些配置方式可以任意互相搭配，比如：可以选择使用XML装配一些Bean，使用基于Java的配置来装配另一些Bean，而将剩余的Bean让Spring去自动发现。
+这些装配方式可以任意互相搭配，比如：可以选择使用XML装配一些Bean，使用基于Java的配置来装配另一些Bean，而将剩余的Bean让Spring去自动发现。
 
-XML和基于Java的配置更集中，且不会对代码造成侵入。自动装配和基于Java的配置具有类型安全等好处。
+XML和基于Java的装配方式更集中，且不会对代码造成侵入。自动装配和基于Java的配置具有类型安全等好处。
 
-通常建议尽可能地使用自动配置机制，当必须要显式配置Bean的时候（比如，有些源码不是由你来维护的，而当你需要为这些代码配置Bean时），推荐使用类型安全并且比XML更加强大的基于Java的配置。最后，只有当你想要使用便利的XML命名空间，并且在基于Java的配置中没有同样的实现时，才应该使用XML的配置。
+通常建议尽可能地使用自动装配机制，当必须要显式装配Bean的时候（比如，有些源码不是由你来维护的，而当你需要为这些代码装配Bean时），推荐使用类型安全并且比XML更加强大的基于Java的装配。最后，只有当你想要使用便利的XML命名空间，并且在基于Java的配置中没有同样的实现时，才应该使用XML的配置。
 
-#### 自动化装配
+### 自动化装配
 
-##### 创建可被发现的Bean
+#### 创建可被发现的Bean
 
 首先，创建Bean的接口：
 
@@ -93,7 +88,7 @@ public class SgtPeppers implements CompactDisc {
 
 实现类上要带有`@Component`等标注，这样Spring才会发现并为该类创建Bean。
 
-##### 启用组件扫描
+#### 启用组件扫描
 
 为了自动装配带有`@Component`等标注的Bean，需要启用组件扫描（默认是不启用的）。可以使用基于Java的配置或基于XML的配置来启用组件扫描。
 
@@ -110,7 +105,23 @@ public class CDPlayerConfig {
 }
 ```
 
-`@ComponentScan`标注默认会扫描与配置类相同的包以及其下的所有子包，查找带有`@Component`标注的类。
+`@ComponentScan`标注默认指定的基础包是被`@ComponentScan`标注的配置类所在的包，即它会扫描该基础包以及其下的任意层次的子包，查找带有`@Component`标注的类。
+
+如果要扫描不同的包（例如配置类放在单独的包中），或要扫描多个基础包，则需要显式指定要扫描的基础包。
+
+最简单指定基础包的方式是通过`@ComponentScan`的`value`属性：
+
+```java
+@ComponentScan("foo.bar")
+```
+
+另外，还可以使用`basePackages`或`basePackageClasses`属性来指定基础包。前者以字符串形式指定基础包，后者通过类或接口的class对象来指定，class对象所在的包即为基础包。而且，两者都可指定多个基础包：
+
+```java
+@ComponentScan(basePackages={"pkg1", "pkg2"})
+
+@ComponentScan(basePackageClasses={Foo.class, Bar.class})
+```
 
 基于XML的配置：（src/resources/META-INF/spring/soundsystem.xml）
 
@@ -129,33 +140,137 @@ public class CDPlayerConfig {
 </beans>
 ```
 
+#### 自动装配
 
+在自动装配中，要将Bean与它的依赖装配在一起，需要借助标注`@Autowired`或`@Inject`（Java依赖注入规范）。
 
-#### 基于Java的装配
+```java
+package soundsystem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-#### 基于XML的装配
+@Component
+public class CDPlayer implements MediaPlayer {
+  private CompactDisc cd;
 
-services.xml：
+  @Autowired
+  public CDPlayer(CompactDisc cd) {
+    this.cd = cd;
+  }
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans.xsd">
-
-    <!-- services -->
-
-    <bean id="petStore" class="org.springframework.samples.jpetstore.services.PetStoreServiceImpl">
-        <property name="accountDao" ref="accountDao"/>
-        <property name="itemDao" ref="itemDao"/>
-        <!-- additional collaborators and configuration for this bean go here -->
-    </bean>
-
-    <!-- more bean definitions for services go here -->
-
-</beans>
+  public void play() {
+    cd.play();
+  }
+}
 ```
+
+`@Autowired`标注不仅能够用在构造器上，还能用在类的任何方法上（通常是属性的setter方法上）：
+
+```java
+@Autowired
+public void setCompactDisc(CompactDisc cd) {
+  this.cd = cd;
+}
+
+@Autowired
+public void insertDisc(CompactDisc cd) {
+  this.cd = cd;
+}
+```
+
+`@Autowired`标注的`required`属性设置为`false`时，Spring会尝试执行自动装配，但是如果没有匹配的Bean，Spring将会让这个Bean处于未装配的状态。这时，如果在代码中没有进行null检查的话，这个处于未装配状态的属性有可能会出现`NullPointerException`异常。`required`属性的默认值是`true`，即如果没有匹配的Bean，那么在应用上下文创建的时候，Spring会抛出一个异常。
+
+`@Autowired`标注和`@Inject`标注都是按类型进行装配的。而`@Resource`标注是属于Java EE标准的，它默认按照Bean的ID进行装配，ID可以通过`name`属性进行指定。如果没有指定`name`属性，当标注写在字段上时，就默认取字段名进行查找；如果标注写在setter方法上，就默认取属性名进行装配。当找不到与ID匹配的bean时，才按照类型进行装配。但需要注意的是，`name`一旦指定，就只会按照ID进行装配。例如：
+
+```java
+@Resource(name="userRepository")
+private UserRepository userRepository;
+```
+
+### 基于Java的装配
+
+#### 编写方法创建Bean
+
+要在配置类中编写一个方法，该方法会创建所需类型的Bean，然后给这个方法加上`@Bean`标注：
+
+```java
+package soundsystem;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class CDPlayerConfig {  
+  @Bean
+  public CompactDisc randomBeatlesCD() {
+    int choice = (int) Math.floor(Math.random() * 4);
+    if (choice == 0) {
+      return new SgtPeppers();
+    } else if (choice == 1) {
+      return new WhiteAlbum();
+    } else if (choice == 2) {
+      return new HardDaysNight();
+    } else {
+      return new Revolver();
+    }
+  }
+}
+```
+
+> 这里，配置类上不需要加上`@ComponentScan`标注。
+
+标注`@Bean`的方法只会在首次请求时执行一次，以后每次请求都将被Spring拦截，并从应用上下文中返回相同的Bean。也就是说，默认情况下，Spring中的Bean都是**单例的**。
+
+#### 编程装配
+
+```java
+package soundsystem;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class CDPlayerConfig {
+  @Bean
+  public CompactDisc compactDisc() {
+    return new SgtPeppers();
+  }
+  
+  @Bean
+  public CDPlayer cdPlayer(CompactDisc compactDisc) {
+    return new CDPlayer(compactDisc);
+  }
+}
+```
+
+在这里，`cdPlayer`方法请求一个`CompactDisc`Bean作为参数。当Spring调用`cdPlayer`方法创建`CDPlayter`Bean时，它会自动装配一个`CompactDisc`到配置方法之中。这种方式不需要将`CompactDisc`声明到同一个配置类中，你可以将配置分散到多个配置类中。甚至不要求`CompactDisc`必须要在配置类中声明，也可是通过组件扫描自动发现或通过XML来配置。
+
+下面还有一种方式也可以实现相同的装配效果：
+
+```java
+package soundsystem;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class CDPlayerConfig {
+  @Bean
+  public CompactDisc compactDisc() {
+    return new SgtPeppers();
+  }
+  
+  @Bean
+  public CDPlayer cdPlayer() {
+    return new CDPlayer(compactDisc());
+  }
+}
+```
+
+这种方式通过“调用”`@Bean`方法的方式来装配Bean（实际上每次调用`@Bean`方法都将被Spring拦截，只在首次调用时真正执行方法，后面将从IoC容器中直接返回相同的Bean）。
+
+这种方式要求Bean与它的依赖Bean必须在同一个配置类中声明。
+
+### 基于XML的装配
+
+#### 配置Bean
 
 daos.xml：
 
@@ -171,18 +286,357 @@ daos.xml：
         <!-- additional collaborators and configuration for this bean go here -->
     </bean>
 
-    <bean id="itemDao" class="org.springframework.samples.jpetstore.dao.jpa.JpaItemDao">
-        <!-- additional collaborators and configuration for this bean go here -->
-    </bean>
+    <bean id="itemDao" class="org.springframework.samples.jpetstore.dao.jpa.JpaItemDao" />
 
     <!-- more bean definitions for data access objects go here -->
 
 </beans>
 ```
 
-### 定义Bean
+在基于XML的配置中，你不再需要直接手动创建Bean。当Spring发现`<bean>`元素时，它将会调用`class`属性指定的类的默认构造器来创建Bean。
 
-#### Bean的命名
+#### 构造器注入
+
+使用XML来配置构造器注入，可以使用`<constructor-arg>`元素或Spring 3.0引入的c-命名空间来配置。
+
+使用`<constructor-arg>`元素配置：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="compactDisc" class="soundsystem.collections.BlankDisc">
+    <constructor-arg value="Sgt. Pepper's Lonely Hearts Club Band" />
+    <constructor-arg value="The Beatles" />
+    <constructor-arg>
+      <list>
+        <value>Sgt. Pepper's Lonely Hearts Club Band</value>
+        <value>With a Little Help from My Friends</value>
+        <value>Lucy in the Sky with Diamonds</value>
+        <value>Getting Better</value>
+        <value>Fixing a Hole</value>
+        <value>She's Leaving Home</value>
+        <value>Being for the Benefit of Mr. Kite!</value>
+        <value>Within You Without You</value>
+        <value>When I'm Sixty-Four</value>
+        <value>Lovely Rita</value>
+        <value>Good Morning Good Morning</value>
+        <value>Sgt. Pepper's Lonely Hearts Club Band (Reprise)</value>
+        <value>A Day in the Life</value>
+      </list>
+    </constructor-arg>
+  </bean>
+        
+  <bean id="cdPlayer" class="soundsystem.CDPlayer">
+    <constructor-arg ref="compactDisc" />
+  </bean>
+
+</beans>
+```
+
+使用c-命名空间来配置：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:c="http://www.springframework.org/schema/c"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="compactDisc" class="soundsystem.BlankDisc"
+        c:_0="Sgt. Pepper's Lonely Hearts Club Band" 
+        c:_1="The Beatles" />
+        
+  <bean id="cdPlayer" class="soundsystem.CDPlayer"
+        c:_-ref="compactDisc" />
+
+</beans>
+```
+
+使用c-命名空间来声明构造器参数有两种方式：
+
+- 通过构造器参数名：
+  - `c:构造器参数名="字面量"`：例如，`c:foo="value"`。
+  - `c:构造器参数名-ref="要注入的Bean的ID"`：例如，`c:bar-ref="beanID"`。
+- 通过构造器参数的位置索引：
+  - `c:_索引="字面量"`：例如，`c:_0="value"`。
+  - `c:_索引-ref="要注入的Bean的ID"`：例如，`c:_1-ref="beanID"`。
+  - 如果构造器只有一个参数，则索引可以省略。例如：`c:_="value"`。
+
+> 注意：通过构造器参数名方式，需要在编译代码的时候，将调试符号（debug symbol）保存在类代码中。如果你优化构建过程，将调试符号移除掉，那么这种方式可能就无法正常执行了。
+
+#### 属性注入
+
+对于强依赖建议使用构造器注入，而对于可选性的依赖则建议使用属性注入。
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="compactDisc"
+        class="soundsystem.properties.BlankDisc">
+    <property name="title" value="Sgt. Pepper's Lonely Hearts Club Band" />
+    <property name="artist" value="The Beatles" />
+    <property name="tracks">
+      <list>
+        <value>Sgt. Pepper's Lonely Hearts Club Band</value>
+        <value>With a Little Help from My Friends</value>
+        <value>Lucy in the Sky with Diamonds</value>
+        <value>Getting Better</value>
+        <value>Fixing a Hole</value>
+        <value>She's Leaving Home</value>
+        <value>Being for the Benefit of Mr. Kite!</value>
+        <value>Within You Without You</value>
+        <value>When I'm Sixty-Four</value>
+        <value>Lovely Rita</value>
+        <value>Good Morning Good Morning</value>
+        <value>Sgt. Pepper's Lonely Hearts Club Band (Reprise)</value>
+        <value>A Day in the Life</value>
+      </list>
+    </property>
+  </bean>
+
+  <bean id="cdPlayer"
+        class="soundsystem.properties.CDPlayer"
+        p:compactDisc-ref="compactDisc" />
+
+</beans>
+```
+
+Spring提供了简洁的p-命名空间，作为`<property>`元素的替代方案。
+
+p-命名空间的命名约定与c-命名空间的类似。
+
+#### 装配集合
+
+如果装配的是集合，则只能使用`<constructor-arg>`元素和`<property>`元素来配置，而不能使用c-命名空间和p-命名空间来配置。
+
+##### 列表
+
+```xml
+<constructor-arg>
+	<list>
+    <value>a list element followed by a reference</value>
+  	<ref bean="myDataSource" />
+    …
+  </list>
+</constructor-arg>
+```
+
+##### 集合
+
+```xml
+<property name="someSet">
+  <set>
+    <value>just some string</value>
+    <ref bean="myDataSource" />
+  </set>
+</property>
+```
+
+##### 映射
+
+```xml
+<property name="someMap">
+  <map>
+    <entry key="an entry" value="just some string"/>
+    <entry key ="a ref" value-ref="myDataSource"/>
+  </map>
+</property>
+```
+
+> 映射的键和值、集合的值都可以是下列元素：
+>
+> bean、ref、idref、list、set、map、props、value、null
+
+##### java.util.Properties 
+
+```xml
+<!-- typed as a java.util.Properties -->
+<property name="properties">
+  <value>
+    jdbc.driver.className=com.mysql.jdbc.Driver
+    jdbc.url=jdbc:mysql://localhost:3306/mydb
+  </value>
+</property>
+```
+
+或者
+
+```xml
+<!-- results in a setAdminEmails(java.util.Properties) call -->
+<property name="adminEmails">
+  <props>
+    <prop key="administrator">administrator@example.org</prop>
+    <prop key="support">support@example.org</prop>
+    <prop key="development">development@example.org</prop>
+  </props>
+</property>
+```
+
+#### 使用util-命名空间
+
+| 元素                  | 描述                                                 |
+| --------------------- | ---------------------------------------------------- |
+| `<util:constant>`     | 引用某个类型的`public static`域，并将其暴露为Bean。  |
+| `<util:list>`         | 创建一个`java.util.List`类型的Bean。                 |
+| `<util:map>`          | 创建一个`java.util.Map`类型的Bean。                  |
+| `<util:properties>`   | 创建一个`java.util.Properties`类型的Bean。           |
+| `util:property-path>` | 引用一个Bean的属性（或内嵌属性），并将其暴露为Bean。 |
+| `<util:set>`          | 创建一个`java.util.Set`类型的Bean。                  |
+
+例如：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:util="http://www.springframework.org/schema/util"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/util 
+    http://www.springframework.org/schema/util/spring-util.xsd">
+
+  <bean id="compactDisc"
+        class="soundsystem.properties.BlankDisc"
+        p:title="Sgt. Pepper's Lonely Hearts Club Band"
+        p:artist="The Beatles"
+        p:tracks-ref="trackList" />
+
+  <util:list id="trackList">  
+    <value>Sgt. Pepper's Lonely Hearts Club Band</value>
+    <value>With a Little Help from My Friends</value>
+    <value>Lucy in the Sky with Diamonds</value>
+    <value>Getting Better</value>
+    <value>Fixing a Hole</value>
+    <value>She's Leaving Home</value>
+    <value>Being for the Benefit of Mr. Kite!</value>
+    <value>Within You Without You</value>
+    <value>When I'm Sixty-Four</value>
+    <value>Lovely Rita</value>
+    <value>Good Morning Good Morning</value>
+    <value>Sgt. Pepper's Lonely Hearts Club Band (Reprise)</value>
+    <value>A Day in the Life</value>
+  </util:list>
+
+</beans>
+```
+
+
+
+#### 装配内嵌Bean
+
+```xml
+<bean id="outer" class="...">
+  <!-- instead of using a reference to a target bean, simply define the target bean inline -->
+  <property name="target">
+    <bean class="com.example.Person"> <!-- this is the inner bean -->
+      <property name="name" value="Fiona Apple"/>
+      <property name="age" value="25"/>
+    </bean>
+  </property>
+</bean>
+```
+
+#### 装配空值和空串
+
+空值：
+
+```xml
+<constructor-arg><null/></constructor-arg>
+
+<property name="email"><null/></property>
+```
+
+空串：
+
+```xml
+<constructor-arg value="" />
+
+<property name="email" value="" />
+```
+
+#### `<idref>`元素
+
+```xml
+<bean id="theTargetBean" class="..."/>
+
+<bean id="theClientBean" class="...">
+    <property name="targetName">
+        <idref bean="theTargetBean"/>
+    </property>
+</bean>
+```
+
+等价于：
+
+```xml
+<bean id="theTargetBean" class="..." />
+
+<bean id="client" class="...">
+    <property name="targetName" value="theTargetBean"/>
+</bean>
+```
+
+### 配置导入
+
+可以使用`@Import`标注将多个配置类组合在一起，还可以使用`@ImportResource`标注将XML配置文件导入配置类：
+
+```java
+@Configuration
+@Import(abc.FooConfig.class)
+@ImportResource("classpath:bar-config.xml")
+public class MyConfig {
+  
+}
+```
+
+`@Import`标注和`@ImportResource`标注都可以接受多个参数：
+
+```java
+@Import({abc.FooConfig.class, xyz.BarConfig.class})
+```
+
+也可以将多个XML配置文件通过`<import>`组合到一个XML配置文件中：（app.xml）
+
+```xml
+<beans>
+  <import resource="services.xml"/>
+  <import resource="resources/messageSource.xml"/>
+  <import resource="/resources/themeSource.xml"/>
+
+  <bean id="bean1" class="..."/>
+  <bean id="bean2" class="..."/>
+</beans>
+```
+
+注意：`<import>`元素只能导入其他的XML配置文件，并不能导入配置类。但可以使用`<bean>`元素来将配置类导入XML配置文件中：
+
+```xml
+<bean class="abc.FooConfig" />
+```
+
+通过导入将多个配置类或XML配置文件组合在一起，在实例化应用上下文时，只需要传入最高层次的那一个配置类或XML配置文件即可。例如：
+
+```java
+ApplicationContext context = new ClassPathXmlApplicationContext("app.xml");
+```
+
+否则，就需要列出所有的配置类或XML配置文件：
+
+```java
+ApplicationContext context = new AnnotationConfigApplicationContext(abc.FooConfig.class, xyz.BarConfig.class);
+```
+
+
+
+### Bean的命名
 
 每个Bean可以有一个或多个标识符，这些标识符在托管bean的容器中必须是唯一的。
 
@@ -212,7 +666,7 @@ daos.xml：
 
 在基于XML的配置中，Bean的默认ID是Bean的完全限定类名加`#计数`组成。例如：`abc.FooBar#0`。
 
-## 装载Bean
+## 应用上下文
 
 Spring通过应用上下文（Application Context）装载bean的定义并把它们组装起来。Spring应用上下文全权负责对象的创建和组装。
 
@@ -231,49 +685,11 @@ List<String> userList = petStoreService.getUsernameList();
 
 常见的应用上下文实现：
 
-- AnnotationConfigApplicationContext：从一个或多个基于Java的配置类中加载Spring应用上下文。
-- AnnotationConfigWebApplicationContext：从一个或多个基于Java的配置类中加载Spring Web应用上下文。
-- ClassPathXmlApplicationContext：从类路径下的一个或多个XML配置文件中加载上下文定义，把应用上下文的定义文件作为类资源。
-- FileSystemXmlapplicationcontext：从文件系统下的一个或多个XML配置文件中加载上下文定义。
-- XmlWebApplicationContext：从Web应用下的一个或多个XML配置文件中加载上下文定义。
-
-## 导入
-
-也可以将多个XML配置文件通过`<import>`组合到一个XML配置文件中：（app.xml）
-
-```xml
-<beans>
-  <import resource="services.xml"/>
-  <import resource="resources/messageSource.xml"/>
-  <import resource="/resources/themeSource.xml"/>
-
-  <bean id="bean1" class="..."/>
-  <bean id="bean2" class="..."/>
-</beans>
-```
-
-这样实例化XML配置元数据时，只需要传入这个XML配置文件即可：
-
-```java
-ApplicationContext context = new ClassPathXmlApplicationContext("app.xml");
-```
-
-
-
-`@Resource`标注是属于Java EE标准的，它默认按照名称进行装配，名称可以通过`name`属性进行指定。如果没有指定`name`属性，当标注写在字段上时，就默认取字段名进行查找；如果标注写在setter方法上，就默认取属性名进行装配。当找不到与名称匹配的bean时，才按照类型进行装配。但需要注意的是，`name`一旦指定，就只会按照名称进行装配。例如：
-
-```java
-@Resource(name="userRepository")
-private UserRepository userRepository;
-```
-
-`@Autowired`标注属于Spring，默认按类型装配。默认情况下，要求注入对象必须存在，如果要允许`null`值，则要设置它的`required`属性为`false`，例如`@Autowired(required=false)`。可以借助`@Qualifier`标注实现按名称装配：
-
-```java
-@Autowired
-@Qualifier("userRepository")
-private UserRepository userRepository;
-```
+- `AnnotationConfigApplicationContext`：从一个或多个基于Java的配置类中加载Spring应用上下文。
+- `AnnotationConfigWebApplicationContext`：从一个或多个基于Java的配置类中加载Spring Web应用上下文。
+- `ClassPathXmlApplicationContext`：从类路径下的一个或多个XML配置文件中加载上下文定义。
+- `FileSystemXmlApplicationContext`：从文件系统下的一个或多个XML配置文件中加载上下文定义。
+- `XmlWebApplicationContext`：从Web应用下的一个或多个XML配置文件中加载上下文定义。
 
 # 资源
 
