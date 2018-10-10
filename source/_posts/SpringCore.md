@@ -634,8 +634,6 @@ ApplicationContext context = new ClassPathXmlApplicationContext("app.xml");
 ApplicationContext context = new AnnotationConfigApplicationContext(abc.FooConfig.class, xyz.BarConfig.class);
 ```
 
-
-
 ### Bean的命名
 
 每个Bean可以有一个或多个标识符，这些标识符在托管bean的容器中必须是唯一的。
@@ -665,6 +663,338 @@ ApplicationContext context = new AnnotationConfigApplicationContext(abc.FooConfi
 在基于XML的配置元数据中，使用`id`属性、`name`属性或两者来指定Bean标识符。`id`属性只能指定一个标识符，而`name`属性可以指定多个别名。别名之间使用逗号、分号或空白字符分隔。
 
 在基于XML的配置中，Bean的默认ID是Bean的完全限定类名加`#计数`组成。例如：`abc.FooBar#0`。
+
+### Spring Profile
+
+Spring Profile能够在**运行时**根据环境决定该创建哪个Bean和不创建哪个Bean。因此，同一个部署单元（可能会是WAR文件）能够适用于所有的环境，并且不需要重新构建。
+
+#### 配置Profile
+
+##### 在Java中配置Profile
+
+在Java配置中，使用`@Profile`标注来指定某个Bean属于哪一个Profile。`@Profile`可以标注在类级别，也可以标注在方法级别。
+
+标注在类级别：
+
+```java
+@Configuration
+@Profile("qa")
+public class QAProfileConfig {
+  @Bean(destroyMethod="close")
+  public DataSource dataSource() {
+    BasicDataSource dataSource = new BasicDataSource();
+    dataSource.setUrl("jdbc:h2:tcp://dbserver/~/test");
+    dataSource.setDriverClassName("org.h2.Driver");
+    dataSource.setUsername("sa");
+    dataSource.setPassword("password");
+    dataSource.setInitialSize(20);
+    dataSource.setMaxActive(30);
+    return dataSource;
+  }
+}
+```
+
+标注在方法上：
+
+```java
+@Configuration
+public class DataSourceConfig {
+  @Bean(destroyMethod = "shutdown")
+  @Profile("dev")
+  public DataSource embeddedDataSource() {
+    return new EmbeddedDatabaseBuilder()
+        .setType(EmbeddedDatabaseType.H2)
+        .addScript("classpath:schema.sql")
+        .addScript("classpath:test-data.sql")
+        .build();
+  }
+
+  @Bean
+  @Profile("prod")
+  public DataSource jndiDataSource() {
+    JndiObjectFactoryBean jndiObjectFactoryBean = new JndiObjectFactoryBean();
+    jndiObjectFactoryBean.setJndiName("jdbc/myDS");
+    jndiObjectFactoryBean.setResourceRef(true);
+    jndiObjectFactoryBean.setProxyInterface(javax.sql.DataSource.class);
+    return (DataSource) jndiObjectFactoryBean.getObject();
+  }
+}
+```
+
+另外，`@Profile`可以同时指定多个Profile：
+
+```java
+@Profile({"dev", "test"})
+```
+
+`@Profile`还可以通过`!`来表示取反。例如：`@Profile("!test") `。
+
+##### 在XML中配置Profile
+
+在XML中通过`<beans>`元素的`profile`属性来配置Profile。
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xsi:schemaLocation="
+         http://www.springframework.org/schema/jdbc
+         http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd"
+       profile="dev">
+
+  <jdbc:embedded-database id="dataSource" type="H2">
+    <jdbc:script location="classpath:schema.sql" />
+    <jdbc:script location="classpath:test-data.sql" />
+  </jdbc:embedded-database>
+  
+</beans>
+```
+
+还可以在根`<beans>`元素中嵌套定义`<beans>`元素，而不是为每个环境都创建一个Profile XML文件。这能够将所有的Profile Bean定义放到同一个XML文件中：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="
+         http://www.springframework.org/schema/jee
+         http://www.springframework.org/schema/jee/spring-jee.xsd
+         http://www.springframework.org/schema/jdbc
+         http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <beans profile="dev">
+    <jdbc:embedded-database id="dataSource" type="H2">
+      <jdbc:script location="classpath:schema.sql" />
+      <jdbc:script location="classpath:test-data.sql" />
+    </jdbc:embedded-database>
+  </beans>
+  
+  <beans profile="qa">
+  	<bean id="dataSource"
+          class="org.apache.commons.dbcp.BasicDataSource"
+          destroy-method="close"
+          p:url="jdbc:h2:tcp://dbserver/~/test"
+          p:driverClassName="org.h2.Driver"
+          p:username="sa"
+          p:password="password"
+          p:initialSize="20"
+          p:maxActive="30" />
+  </beans>
+  
+  <beans profile="prod">
+    <jee:jndi-lookup id="dataSource"
+      lazy-init="true"
+      jndi-name="jdbc/myDatabase"
+      resource-ref="true"
+      proxy-interface="javax.sql.DataSource" />
+  </beans>
+</beans>
+```
+
+#### 激活Profile
+
+已经配置了Profile的Bean，只有当指定的Profile激活时，相应的Bean才会被创建。而没有指定任何Profile的Bean，总是会被创建，与激活哪个Profile没有关系。
+
+Spring通过两个属性来确定哪个Profile处于激活状态：
+
+- `spring.profiles.active`
+- `spring.profiles.default`
+
+如果设置了`spring.profiles.active`属性，则它的值就是被激活的Profile。否则，Spring会继续查找`spring.profiles.default`属性的值。如果两个属性均未设置，那就没有激活的Profile，因此只会创建那些没有定义在Profile中的Bean。
+
+这两个属性都可以同时指定多个Profile，使用逗号分隔。
+
+有多种方式来设置这两个属性：
+
+- 作为`DispatcherServlet`的初始化参数：（web.xml）
+
+  ```xml
+  <servlet>
+  	<servlet-name>appServlet</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+    	<param-name>spring.profiles.default</param-name>
+      <param-value>dev</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  ```
+
+- 作为Web应用的上下文参数：（web.xml）
+
+  ```xml
+  <context-param>
+  	<param-name>spring.profiles.default</param-name>
+    <param-value>qa,demo</param-value>
+  </context-param>
+  ```
+
+- 作为JNDI条目；
+
+- 作为环境变量；
+
+- 作为JVM的系统属性；
+
+- 在集成测试类上，使用`@ActiveProfiles`标注设置。
+
+  ```java
+  public class DataSourceConfigTest {
+    @RunWith(SpringJUnit4ClassRunner.class)
+    @ContextConfiguration(classes=DataSourceConfig.class)
+    @ActiveProfiles("dev")
+    public static class DevDataSourceTest {
+      @Autowired
+      private DataSource dataSource;
+      
+      @Test
+      public void shouldBeEmbeddedDatasource() {
+        assertNotNull(dataSource);
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        List<String> results = jdbc.query("select id, name from Things", new RowMapper<String>() {
+          @Override
+          public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getLong("id") + ":" + rs.getString("name");
+          }
+        });
+        
+        assertEquals(1, results.size());
+        assertEquals("1:A", results.get(0));
+      }
+    }
+  
+    @RunWith(SpringJUnit4ClassRunner.class)
+    @ContextConfiguration(classes=DataSourceConfig.class)
+    @ActiveProfiles("prod")
+    public static class ProductionDataSourceTest {
+      @Autowired
+      private DataSource dataSource;
+      
+      @Test
+      public void shouldBeEmbeddedDatasource() {
+        // should be null, because there isn't a datasource configured in JNDI
+        assertNull(dataSource);
+      }
+    }
+    
+    @RunWith(SpringJUnit4ClassRunner.class)
+    @ContextConfiguration("classpath:datasource-config.xml")
+    @ActiveProfiles("dev")
+    public static class DevDataSourceTest_XMLConfig {
+      @Autowired
+      private DataSource dataSource;
+      
+      @Test
+      public void shouldBeEmbeddedDatasource() {
+        assertNotNull(dataSource);
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        List<String> results = jdbc.query("select id, name from Things", new RowMapper<String>() {
+          @Override
+          public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getLong("id") + ":" + rs.getString("name");
+          }
+        });
+        
+        assertEquals(1, results.size());
+        assertEquals("1:A", results.get(0));
+      }
+    }
+  
+    @RunWith(SpringJUnit4ClassRunner.class)
+    @ContextConfiguration("classpath:datasource-config.xml")
+    @ActiveProfiles("prod")
+    public static class ProductionDataSourceTest_XMLConfig {
+      @Autowired(required=false)
+      private DataSource dataSource;
+      
+      @Test
+      public void shouldBeEmbeddedDatasource() {
+        // should be null, because there isn't a datasource configured in JNDI
+        assertNull(dataSource);
+      }
+    }
+  }
+  ```
+
+### 条件化的Bean
+
+Spring 4.0引入了条件化的Bean机制，它可以自行设定条件来控制Bean的创建。它是比Profile机制更通用的机制。
+
+例如，假设有一个名为`MagicBean`的类，我们希望只有设置了`magic`环境属性时，Spring才会实例化这个类。
+
+首先，创建自定义条件：
+
+```java
+public class MagicExistsCondition implements Condition {
+  @Override
+  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    Environment env = context.getEnvironment();
+    return env.containsProperty("magic");
+  }
+}
+```
+
+然后，条件化配置Bean：
+
+```java
+@Configuration
+public class MagicConfig {
+  @Bean
+  @Conditional(MagicExistsCondition.class)
+  public MagicBean magicBean() {
+    return new MagicBean();
+  }
+}
+```
+
+### 处理自动装配的歧义性
+
+在自动装配时，如果同时有多个Bean能够匹配，这时Spring就会抛出`NoUniqueBeanDefinitionException`异常。
+
+Spring提供了两种方案来解决自动装配中的歧义性问题：你可以将可选的Bean中的某一个设置为首选（Primary），或者使用限定符（Qualifier）来帮助Spring将可选的Bean范围缩小到只有一个Bean。
+
+#### 设置首选Bean
+
+在Java配置中：
+
+```java
+@Component
+@Primary
+public class IceCream implements Dessert {…}
+```
+
+或者：
+
+```java
+@Bean
+@Primary
+public Dessert iceCream() {
+  return new IceCream();
+}
+```
+
+在XML配置中：
+
+```xml
+<bean id="iceCream"
+      class="com.desserteater.IceCream"
+      primary="true" />
+```
+
+为了使首选Bean有效，同一类型的Bean中，最多只能有一个Bean被设置为首选。但是，`@Primary`并不能限制设置多个首选Bean发生，它只是标示一个优先的可选方案，这也是设置首选Bean方案的局限性。
+
+当遇到歧义性时，Spring将会使用首选的Bean。
+
+#### 使用限定符
+
+
 
 ## 应用上下文
 
