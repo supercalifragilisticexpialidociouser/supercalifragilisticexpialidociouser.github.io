@@ -841,7 +841,11 @@ Spring通过两个属性来确定哪个Profile处于激活状态：
 
 - 作为环境变量；
 
-- 作为JVM的系统属性；
+- 作为JVM的系统属性：
+
+  ```bash
+  -Dspring.profiles.active="profile1,profile2"
+  ```
 
 - 在集成测试类上，使用`@ActiveProfiles`标注设置。
 
@@ -923,6 +927,15 @@ Spring通过两个属性来确定哪个Profile处于激活状态：
   }
   ```
 
+另外，还可以通过硬编码方式激活Profile：
+
+```java
+AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+ctx.getEnvironment().setActiveProfiles("development");
+ctx.register(SomeConfig.class, StandaloneDataConfig.class, JndiDataConfig.class);
+ctx.refresh();
+```
+
 ### 条件化的Bean
 
 Spring 4.0引入了条件化的Bean机制，它可以自行设定条件来控制Bean的创建。它是比Profile机制更通用的机制。
@@ -953,6 +966,8 @@ public class MagicConfig {
   }
 }
 ```
+
+当条件的`matches`方法返回`true`时才会创建`MagicBean`的实例。
 
 ### 处理自动装配的歧义性
 
@@ -994,13 +1009,206 @@ public Dessert iceCream() {
 
 #### 使用限定符
 
+##### 为Bean设置限定符
 
+所有的Bean，如果没有显式设置限定符，都会给定一个默认的限定符，它与Bean的ID相同。
+
+可以使用`@Qualifier`标注为Bean显式设置限定符：
+
+```java
+@Component
+@Qualifier("cold")
+public class IceCream implements Dessert {…}
+```
+
+或者
+
+```java
+@Bean
+@Qualifier("cold")
+public Dessert iceCream() {
+  return new IceCream();
+}
+```
+
+使用为Bean显式设置限定符的好处是，可以减少与Bean的ID的耦合度。
+
+为Bean设置限定符的最佳实践是为Bean选择特征性或描述性的术语作为限定符。
+
+##### 使用限定符注入
+
+```java
+@Autowired
+@Qualifier("cold")
+public void setDessert(Dessert dessert) {
+  this.dessert = dessert;
+}
+```
+
+这样，就只会将带有`cold`限定符的Bean注入。
+
+##### 自定义限定符标注
+
+当多个Bean设置了相同的限定符时，就需要设置更多的限定符来区分它们。但是，很遗憾在Java中不允许同一条目上重复出现相同类型的多个标注。我们可以通过创建自定义的限定符标注来解决这个问题。
+
+创建自定义限定符标注：
+
+```java
+@Target({ElementType.CONSTRUCTOR, ElementType.FIELD, ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Qualifier
+public @interface Cold {}
+
+@Target({ElementType.CONSTRUCTOR, ElementType.FIELD, ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Qualifier
+public @interface Creamy {}
+
+@Target({ElementType.CONSTRUCTOR, ElementType.FIELD, ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Qualifier
+public @interface Fruity {}
+```
+
+使用自定义限定符标注：
+
+```java
+@Component
+@Cold
+@Creamy
+public class IceCream implements Dessert {…}
+
+@Component
+@Cold
+@Fruity
+public class Popsicle implements Dessert {…}
+```
+
+则在注入点，可以使用下面方式将范围缩小到`IceCream`：
+
+```java
+@Autowired
+@Cold
+@Creamy
+public void setDessert(Dessert dessert) {
+  this.dessert = dessert;
+}
+```
+
+### Bean的作用域
+
+Spring Bean有多种作用域：
+
+- 单例（`singleton`）：在整个应用中，只创建Bean的一个实例。
+- 原型（`prototype`）：每次注入或者通过Spring应用上下文获取的时候，都会创建一个新的Bean实例。
+- 会话（`session`）：在Web应用中，为每个会话创建一个Bean实例。
+- 全局会话（`globalSession`）：类似于会话作用域，但仅在Portlet的Web应用中使用。
+- 请求（`request`）：在Web应用中，为每个请求创建一个Bean实例。
+
+在默认情况下，Spring应用上下文中所有Bean都是单例的。可以通过`@Scope`标注为Bean显式选择其他的作用域：
+
+```java
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class Notepad {…}
+```
+
+或者
+
+```java
+@Bean
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public Notepad notepad() {
+  return new Notepad();
+}
+```
+
+在XML配置文件中，可以使用`<bean>`元素的`scope`属性来设置：
+
+```xml
+<bean id="notepad"
+      class="com.myapp.Notepad"
+      scope="prototype" />
+```
+
+会话和请求作用域只能在Web应用中使用，并且要在web.xml中做如下设置：
+
+```xml
+<listener>
+	<listener-class>
+  	org.springframework.web.context.request.RequestContextListener
+  </listener-class>
+</listener>
+```
+
+
+
+#### 作用域代理
+
+在使用会话或请求作用域时，会遇到将会话或请求作用域的Bean注入到单例Bean中的问题。因为，单例Bean是在Spring应用上下文加载的时候创建的，而这时要注入的会话或请求作用域的Bean还不存在。而且，系统中将会有多个会话或请求作用域的Bean，而单例Bean只有一个。
+
+Spring通过注入作用域代理，而不是直接注入会话或请求作用域Bean来解决这个问题。作用域代理会暴露与它代理的会话或请求作用域Bean相同的方法，并将调用委托给**当前会话或请求**所对应的那一个会话或请求作用域Bean。
+
+![Scope Proxy](SpringCore/Scope-Proxy.png)
+
+作用域代理有两种实现模式：
+
+- 基于接口的JDK代理（目标Bean是个接口）；
+- 基于具体类的CGLib代理（目标Bean是个具体类）。
+
+作用域代理的实现模式用`@Scope`标注的`proxyMode`属性来设置：
+
+- `proxyMode=ScopedProxyMode.INTERFACES`：基于接口的JDK代理；
+- `proxyMode=ScopedProxyMode.TARGET_CLASS`：基于具体类的CGLib代理。
+
+```java
+@Bean
+@Scope(value=WebApplicationContext.SCOPE_SESSION, 
+       proxyMode=ScopedProxyMode.INTERFACES)
+public ShoppingCart cart() {…}
+```
+
+`proxyMode`属性的默认值是`ScopedProxyMode.DEFAULT`，即不创建作用域代理。
+
+在XML配置中，可以配置为：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+         http://www.springframework.org/schema/aop
+         http://www.springframework.org/schema/aop/spring-aop.xsd
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+  <bean id="cart"
+        class="com.myapp.ShoppingCart"
+        scope="session" />
+  <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+</beans>
+```
+
+`<aop:scoped-proxy>`的作用与`proxyMode`属性相同。
+
+默认情况下，`proxy-target-class`的值是`true`，即使用CGLib创建目标类的代理。
 
 ## 应用上下文
 
 Spring通过应用上下文（Application Context）装载bean的定义并把它们组装起来。Spring应用上下文全权负责对象的创建和组装。
 
-实例化Spring IoC容器：
+常见的应用上下文实现：
+
+- `AnnotationConfigApplicationContext`：从一个或多个基于Java的配置类中加载Spring应用上下文。
+- `AnnotationConfigWebApplicationContext`：从一个或多个基于Java的配置类中加载Spring Web应用上下文。
+- `ClassPathXmlApplicationContext`：从类路径下的一个或多个XML配置文件中加载上下文定义。
+- `FileSystemXmlApplicationContext`：从文件系统下的一个或多个XML配置文件中加载上下文定义。
+- `XmlWebApplicationContext`：从Web应用下的一个或多个XML配置文件中加载上下文定义。
+
+### 应用上下文实例化
+
+编程方式实例化：
 
 ```java
 public static void main(String[] args) throws Exception {
@@ -1013,15 +1221,39 @@ List<String> userList = petStoreService.getUsernameList();
 }
 ```
 
-常见的应用上下文实现：
+在Web应用中，可在`web.xml`中添加如下配置来自动实例化应用上下文：
 
-- `AnnotationConfigApplicationContext`：从一个或多个基于Java的配置类中加载Spring应用上下文。
-- `AnnotationConfigWebApplicationContext`：从一个或多个基于Java的配置类中加载Spring Web应用上下文。
-- `ClassPathXmlApplicationContext`：从类路径下的一个或多个XML配置文件中加载上下文定义。
-- `FileSystemXmlApplicationContext`：从文件系统下的一个或多个XML配置文件中加载上下文定义。
-- `XmlWebApplicationContext`：从Web应用下的一个或多个XML配置文件中加载上下文定义。
+```xml
+<context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>/WEB-INF/daoContext.xml /WEB-INF/applicationContext.xml</param-value>
+</context-param>
+
+<listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+```
+
+上下文参数`contextConfigLocation`的默认值是`/WEB-INF/applicationContext.xml`。
+
+上下文参数`contextConfigLocation`的值可以是逗号、分号或空白字符分隔的多个文件。还支持Ant样式的路径模式。例如：
+
+- `/WEB-INF/*Context.xml`：匹配所有名称以`Context.xml`结尾且位于`WEB-INF`目录中的文件；
+- `/WEB-INF/**/*Context.xml`：匹配`WEB-INF`的任何子目录中名称以`Context.xml`结尾的文件。
+
+### 应用上下文事件
+
+
 
 # 资源
+
+## 使用外部属性文件
+
+## 资源国际化
+
+## 其他资源
+
+### Resource接口
 
 # 校验、数据绑定和类型转换
 

@@ -79,6 +79,14 @@ Python 2默认采用US-ASCII字符集，Python 3默认采用UTF-8字符集。
 $ python hello.py
 ```
 
+还可以给运行的脚本传递参数：
+
+```bash
+$ python foo.py arg1 arg2
+```
+
+> 在脚本`foo.py`中，可以通过`sys.argv[N]`来获取命令行传递进来的参数。`sys.argv`的值 是`['foo.py', 'arg1', 'arg2']`。
+
 ### shebang方式运行脚本
 
 首先，要在`hello.py`的第一行添加`#!/usr/bin/env python`。
@@ -89,7 +97,13 @@ $ python hello.py
 $ ./hello.py
 ```
 
+### 直接运行代码
 
+```bash
+$ python -c "import sys; print('hello'); print(sys.argv)" 123
+hello
+['-c', '123']
+```
 
 # 程序结构
 
@@ -2908,6 +2922,8 @@ True
 ```
 
 > 函数`pprint`常用于打印一行容纳不下的大数据结构。
+>
+> 空串表示当前目录。
 
 只要将模块放到上面列出的任何一个位置中，解释器就能够找到它。
 
@@ -2933,6 +2949,8 @@ $ export PYTHONPATH=$PYTHONPATH:~/mypython
 ```
 
 > 在UNIX中，不能直接将字符串`'~/mypython'`附加到`sys.path`末尾，而必须使用完整的路径`'/home/yourusername/mypython'`。
+
+直接附加到`sys.path`的方式只适合于在交互式环境或代码中，当退出交互式环境或程序时，附加的内容将丢失。
 
 #### 使用路径配置文件指定
 
@@ -2986,6 +3004,44 @@ $ export PYTHONPATH=$PYTHONPATH:~/mypython
 ```
 
 重新加载模块，并不会重新创建原有对象，变量引用的对象仍然是重新加载前的对象，除非重新创建它们。
+
+## 把模块当作脚本执行
+
+虽然多次导入一个模块只会执行一次，但我们可在命令行下，通过`python -m 模块名 可选的参数列表`的方式来将模块当作普通脚本执行。
+
+```bash
+$ python -m SimpleHTTPServer 8080
+```
+
+> 在代码中可通过`sys.argv[N]`来获取命令行传递进来的参数。`sys.argv`的值 是`['…/SimpleHTTPServer.py', '8080']`。
+
+这与直接执行脚本不一样：
+
+- 直接执行脚本时，要指定脚本的具体路径和扩展名。例如：`python ~/python/foo.py`。而把模块当作脚本执行，不需要指定脚本具体路径，只需要将模块放到指定的模块搜索位置中，而且模块也是没有扩展名的。
+- 把模块当作脚本执行时，可以在任意位置执行。
+
+一个模块用于导入时，它的`__name__`变量值是该模块名，而用于当作脚本执行时，`__name__`变量值是`'__main__'`。
+
+例如，有一模块test：
+
+```python
+import sys
+
+print("Args is ", sys.argv)
+print("__name__ is ", __name__)
+```
+
+则
+
+```bash
+$ python -m test arg1
+Args is ['/home/i/Documents/python/test.py', 'arg1']
+__name__ is __main__
+
+$ python -c "import test" arg1
+Args is ['-c', 'arg1']
+__name__ is test
+```
 
 ## `__future__`模块
 

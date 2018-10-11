@@ -584,7 +584,7 @@ public class BarProperties {}
 
 `name`值在Spring Boot环境中必须是唯一。
 
-注意：`@PropertySource`标注只负责加载properties文件，而将加载到的属性注入到Bean中仍需要使用`@Value`、`@ConfigurationProperties` 或`Environment`标注。两者可结合起来使用：
+注意：`@PropertySource`标注只负责加载properties文件到Spring的`Environment`中，而将加载到的属性注入到Bean中仍需要使用`@Value`、`@ConfigurationProperties`标注 或`Environment`对象。两者可结合起来使用：
 
 使用`@Value`：
 
