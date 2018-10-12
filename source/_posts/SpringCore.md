@@ -1249,6 +1249,8 @@ List<String> userList = petStoreService.getUsernameList();
 
 ## 使用外部属性文件
 
+
+
 ## 资源国际化
 
 ## 其他资源
