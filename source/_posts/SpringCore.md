@@ -936,6 +936,14 @@ ctx.register(SomeConfig.class, StandaloneDataConfig.class, JndiDataConfig.class)
 ctx.refresh();
 ```
 
+#### 获取Profile的状态
+
+`Environment`提供了一些方法来检查哪些Profile处于激活状态：
+
+- `String[] getActiveProfiles()`：返回激活Profile名称的数组；
+- `String[] getDefaultProfiles()`：返回默认Profile名称的数组；
+- `boolean acceptsProfiles(String ... profiles)`：如果`Environment`支持给定Profile，则返回`true`。
+
 ### 条件化的Bean
 
 Spring 4.0引入了条件化的Bean机制，它可以自行设定条件来控制Bean的创建。它是比Profile机制更通用的机制。
@@ -1249,6 +1257,123 @@ List<String> userList = petStoreService.getUsernameList();
 
 ## 使用外部属性文件
 
+### 声明属性源
+
+Spring 使用`@PropertySource`标注来将外部属性文件声明为属性源，并在运行时加载到`Environment`中。
+
+```java
+@Configuration
+@PropertySource("classpath:/com/soundsystem/app.properties")
+public class ExpressiveConfig {
+  …
+}
+```
+
+app.properties：
+
+```properties
+disc.title=Sgt. Peppers Lonely Hearts Club Band
+disc.artist=The Beatles
+```
+
+### 获取外部属性
+
+#### 直接通过`Environment`对象获取
+
+```java
+@Configuration
+@PropertySource("classpath:/com/soundsystem/app.properties")
+public class ExpressiveConfig {
+  @Autowired
+  Environment env;
+  
+  @Bean
+  public BlankDisc disc() {
+    return new BlankDisc(env.getProperty("disc.title"),
+                         env.getProperty("disc.artist"));
+  }
+}
+```
+
+当指定的属性不存在时，`getProperty`方法返回`null`。可以通过可选的第二个参数显式地给不存在的属性指定一个默认值：
+
+```java
+env.getProperty("disc.title", "Rattle and Hum")
+```
+
+如果希望在指定属性不存在时，抛出异常，而不是返回`null`，则可以使用`getRequiredProperty`方法。
+
+`getProperty`方法除了可以返回`String`类型的属性值外，也可以返回指定的类类型：
+
+```java
+int connectionCount = env.getProperty("db.connection.count", Integer.class, 30);
+```
+
+要检查某个属性是否存在，可以使用`containsProperty`方法：
+
+```java
+boolean titleExists = env.containsProperty("disc.title");
+```
+
+可以使用方法`getPropertyAsClass`将属性值解析为类：
+
+```java
+Class<CompactDisc> cdClass = env.getPropertyAsClass("disc.class", CompactDisc.class);
+```
+
+#### 使用属性占位符获取外部属性
+
+Sprng的属性占位符是使用`${…}`形式包装的属性名称。
+
+为了使用属性占位符，要配置一个`PropertyPlaceholderConfigurer` Bean或`PropertySourcesPlaceholderConfigurer` Bean（推荐）。例如：
+
+```java
+@Bean
+public static PropertySourcesPlaceholderConfigurer placeholderConfigurer() {
+  return new PropertySourcesPlaceholderConfigurer();
+}
+```
+
+或者：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/context
+         http://www.springframework.org/schema/context/spring-context.xsd">
+  <context:property-placeholder />
+</beans>
+```
+
+在基于Java的配置中，可以使用`@Value`标注使用属性占位符来将外部属性注入到Bean中：
+
+```java
+@Component
+public class BlankDisc {
+  public BlankDisc(
+  	@Value("${disc.title}") String title,
+    @Value("${disc.artist}") String artist) {
+    this.title = title;
+    this.artist = artist;
+  }
+  …
+}
+```
+
+在基于XML配置中，则：
+
+```xml
+<bean id="sgtPeppers"
+      class="soundsystem.BlankDisc"
+      c:title="${disc.title}"
+      c:artist="${disc.artist}" />
+```
+
 
 
 ## 资源国际化
@@ -1262,6 +1387,12 @@ List<String> userList = petStoreService.getUsernameList();
 
 
 # SpEL
+
+Spring 3引入了Spring表达式语言（Spring Expression Language，SpEL），它能够以一种强大和简洁的方式将值装配到Bean属性和构造器参数中。另外，SpEL还可用在依赖注入以外的地方。例如，Spring MVC中使用的Thymeleaf模板可以使用SpEL引用模型数据。
+
+SpEL将在运行时计算它的值。
+
+SpEL要放在`#{…}`中，而属性占位符是放在`${…}`中。
 
 # AOP
 
