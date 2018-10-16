@@ -1394,9 +1394,196 @@ SpEL将在运行时计算它的值。
 
 SpEL要放在`#{…}`中，而属性占位符是放在`${…}`中。
 
+在Bean装配中，SpEL的使用方式与属性占位符基本相似。例如：
+
+```java
+@Component
+public class BlankDisc {
+  public BlankDisc(
+  	@Value("#{systemProperties['disc.title']}") String title,
+    @Value("#{systemProperties['disc.artist']}") String artist) {
+    this.title = title;
+    this.artist = artist;
+  }
+  …
+}
+```
+
+## 表示字面量
+
+```java
+#{3.14}
+#{9.87E4}
+#{'Hello'}
+#{false}
+```
+
+## 引用Bean
+
+通过Bean ID引用其他Bean及它的成员：
+
+```java
+#{sgtPeppers.artist}
+#{artistSelector.selectArtist()}
+#{artistSelector.selectArtist()?.toUpperCase()}
+```
+
+`?.`运算符确保只有在`selectArtist()`的返回值不是`null`时，SpEL才会调用`toUpperCase`方法。
+
+## 引用系统属性
+
+可以通过`systemProperties`对象引用系统属性：
+
+```java
+#{systemProperties['disc.title']}
+```
+
+## 使用类型
+
+如果要在SpEL中访问类的静态方法和常量，可以使用`T()`运算符，它接收一个类为参数，返回一个`Class`对象。
+
+```java
+#{T(java.lang.Math).random()}
+```
+
+## SpEL运算符
+
+| 运算符类型 | 运算符                                          |
+| ---------- | ----------------------------------------------- |
+| 算术运算   | +（加）、+（字符串连接）、-、*、/、%、^（乘方） |
+| 比较运算   | <、>、==、<=、>=、lt、gt、eq、le、ge            |
+| 逻辑运算   | and、or、not、\|                                |
+| 条件运算   | ?:（ternary）、?:（Elvis）                      |
+| 正则表达式 | matches                                         |
+
+示例：
+
+```java
+#{2 * T(java.lang.Math).PI * circle.radius}
+#{disc.title + ' by ' + disc.artist}
+#{counter.total eq 100}
+#{scoreboard.score > 1000 ? "Winner!" : "Loser"}
+```
+
+Elvis运算符的左操作数如果为`null`，则表达式的值为右操作数的值。否则，表达式的值就是左操作数的值：
+
+```java
+#{disc.title ?: 'Rattle and Hum'}
+```
+
+## 使用正则表达式
+
+SpEL通过`matches`运算符支持表达式中的模式匹配。如果与正则表达式相匹配，则返回`true`，否则返回`false`。
+
+```java
+#{admin.email matches '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.com'}
+```
+
+## 计算集合和数组
+
+### 访问集合或数组元素
+
+```java
+#{jukebox.songs[T(java.lang.Math).random() * jukebox.songs.size()].title}
+#{'This is a test'[3]}
+```
+
+### 过滤
+
+#### `.?[]`
+
+获取`jukebox`中`artist`属性为`'Aerosmith'`的所有歌曲：
+
+```java
+#{jukebox.songs.?[artist eq 'Aerosmith']}
+```
+
+#### `.^[]`和`.$[]`
+
+`.^[]`和`.$[]`分别用来在集合中查询第一个匹配项和最后一个匹配项。
+
+```java
+#{jukebox.songs.^[artist eq 'Aerosmith']}
+```
+
+#### `.![]`
+
+投影运算符`.![]`会从集合的每个元素中选择特定属性放到另一个集合中。
+
+例如：获取Aerosmith的所有歌曲名称的集合，而不是歌曲对象的集合：
+
+```java
+#{jukebox.songs.?[artist eq 'Aerosmith'].![title]}
+```
+
+
+
 # AOP
 
 DI能够让相互协作的软件组件保持松散耦合，而面向切面编程（aspect-oriented programming，AOP）允许你把遍布应用各处的功能分离出来形成**可重用**的组件。
 
-可以把切面想象为覆盖在很多组件之上的一个外壳。应用是由那些实现各自业务功能的模块组成的。借助AOP，可以使用各种功能层去包裹核心业务层。这些层以声明的方式灵活地应用到系统中，你的核心应用甚至根本不知道它们的存在。
+可以把**切面**（Aspect）想象为覆盖在很多组件之上的一个外壳。应用是由那些实现各自业务功能的模块组成的。借助AOP，可以使用各种功能层去包裹核心业务层。这些层以声明的方式灵活地应用到系统中，你的核心应用甚至根本不知道它们的存在。
 
+![AOP](SpringCore/AOP.png)
+
+## AOP术语
+
+### 通知（Advice）
+
+在AOP术语中，切面在何时要完成的工作被称为**通知**。
+
+Spring切面可以有5种类型的通知：
+
+- 前置通知（Before）：在目标方法被调用之前执行通知功能。
+- 后置通知（After）：在目标方法被调用之后执行通知功能，并且不关心目标方法的输出。
+- 返回通知（After-returning）：在目标方法成功执行之后调用通知。
+- 异常通知（After-throwing）：在目标方法抛出异常后调用通知。
+- 环绕通知（Around）：通知包裹了被通知的方法，在被通知的方法调用之前和调用之后执行自定义的行为。
+
+### 接入点（Join Point）
+
+接入点是在应用执行过程中能够插入切面的时机点。这个点可以是调用方法时、抛出异常时，甚至修改一个字段时。切面代码可以利用这些点插入到应用的正常流程之中，并添加新的行为。
+
+### 切点（Pointcut）
+
+切点用于定义通知被织入的具体位置（即一个或多个接入点）。
+
+### 切面（Aspect）
+
+切面是通知和切点的结合。通知和切点共同定义了切面的全部内容——它是什么，在何时（通知）和何处（切点）完成其功能。
+
+### 引入（Introduction）
+
+引入允许我们动态地向现有类添加新方法或属性。
+
+### 织入（Weaving）
+
+织入是把切面应用到目标对象的指定接入点上，并创建新的代理对象的过程。
+
+根据不同的实现技术，AOP有三种织入方式：
+
+- 编译期织入：切面在目标类编译时被织入。这种方式需要特殊的编译器，AspectJ的织入编译器就是以这种方式织入切面的。
+- 类加载期织入：切面在目标类加载到JVM时被织入。这种方式需要特殊的类加载器（ClassLoader），它可以在目标类被引入应用之前增强该目标类的字节码。AspectJ 5的加载时织入（load-time weaving，LTW）就支持以这种方式织入切面。
+- 运行期织入：切面在应用运行的某个时刻被织入。一般情况下，在织入切面时，AOP容器会为目标对象动态地创建一个代理对象。代理对象封装目标Bean，并拦截目标Bean方法的调用。在将调用转发给真正的目标Bean方法之前，会执行切面逻辑。Spring AOP就是以这种方式织入切面的。
+  ![动态代理](SpringCore/动态代理.png)
+
+## Spring对AOP的支持
+
+Spring提供了4种类型的AOP支持：
+
+- 基于代理的经典Spring AOP（不推荐）；
+- 纯POJO切面；（使用XML配置，借助`aop`命名空间）
+- `@AspectJ`标注驱动的切面；（使用标注配置）
+- 注入式AspectJ切面。（基于AspectJ）
+
+前三种类型本质上都是Spring基于代理的AOP，它们只支持方法级别的接入点。而第四种类型实际上是Spring对AspectJ框架的整合，它除了运行方法接入点外，还支持字段和构造器接入点。
+
+## 切点表达式语言
+
+在Spring AOP中，使用AspectJ的切点表达式语言来定义切点。
+
+## 使用标注创建切面
+
+## 在XML中声明切面
+
+## 注入AspectJ切面
