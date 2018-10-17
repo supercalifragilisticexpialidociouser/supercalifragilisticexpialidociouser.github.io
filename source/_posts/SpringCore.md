@@ -1,7 +1,7 @@
 ---
 title: SpringCore
 date: 2018-06-01 21:57:20
-tags: [5.1.0]
+tags: [5.1.1]
 ---
 
 # Spring框架
@@ -132,8 +132,11 @@ public class CDPlayerConfig {
   xmlns:context="http://www.springframework.org/schema/context"
   xmlns:c="http://www.springframework.org/schema/c"
   xmlns:p="http://www.springframework.org/schema/p"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd">
 
   <context:component-scan base-package="soundsystem" />
 
@@ -1516,13 +1519,15 @@ SpEL通过`matches`运算符支持表达式中的模式匹配。如果与正则�
 #{jukebox.songs.?[artist eq 'Aerosmith'].![title]}
 ```
 
-
-
 # AOP
 
 DI能够让相互协作的软件组件保持松散耦合，而面向切面编程（aspect-oriented programming，AOP）允许你把遍布应用各处的功能分离出来形成**可重用**的组件。
 
-可以把**切面**（Aspect）想象为覆盖在很多组件之上的一个外壳。应用是由那些实现各自业务功能的模块组成的。借助AOP，可以使用各种功能层去包裹核心业务层。这些层以声明的方式灵活地应用到系统中，你的核心应用甚至根本不知道它们的存在。
+> 虽然Spring的一个关键组件是AOP框架，但是Spring IoC容器不依赖于AOP（意味着如果您不想使用AOP，则不需要使用AOP），AOP补充了Spring IoC，以提供非常强大的中间件解决方案。
+
+**切面**（Aspect）实现了跨越多种类型和对象的关注点（例如事务管理）的模块化。
+
+可以把切面想象为覆盖在很多组件之上的一个外壳。应用是由那些实现各自业务功能的模块组成的。借助AOP，可以使用各种功能层去包裹核心业务层。这些层以声明的方式灵活地应用到系统中，你的核心应用甚至根本不知道它们的存在。
 
 ![AOP](SpringCore/AOP.png)
 
@@ -1530,15 +1535,15 @@ DI能够让相互协作的软件组件保持松散耦合，而面向切面编程
 
 ### 通知（Advice）
 
-在AOP术语中，切面在何时要完成的工作被称为**通知**。
+在AOP术语中，切面在特定时候要完成的工作被称为**通知**。
 
 Spring切面可以有5种类型的通知：
 
-- 前置通知（Before）：在目标方法被调用之前执行通知功能。
-- 后置通知（After）：在目标方法被调用之后执行通知功能，并且不关心目标方法的输出。
-- 返回通知（After-returning）：在目标方法成功执行之后调用通知。
-- 异常通知（After-throwing）：在目标方法抛出异常后调用通知。
-- 环绕通知（Around）：通知包裹了被通知的方法，在被通知的方法调用之前和调用之后执行自定义的行为。
+- 前置通知（Before）：在接入点（即调用目标方法）之前执行通知功能。
+- 后置通知（After）：在接入点之后，无论接入点是正常返回或异常退出，都要执行的通知。
+- 返回通知（After-returning）：在接入点成功执行之后调用通知。
+- 异常通知（After-throwing）：在接入点抛出异常后调用通知。
+- 环绕通知（Around）：环绕接入点的通知，可以在接入点之前和之后执行自定义的行为。它还负责选择是继续执行接入点，还是通过返回自己的返回值或抛出异常来绕过接入点。
 
 ### 接入点（Join Point）
 
@@ -1556,6 +1561,18 @@ Spring切面可以有5种类型的通知：
 
 引入允许我们动态地向现有类添加新方法或属性。
 
+### 目标对象（Target Object）
+
+目标对象是被一个或多个切面通知的对象。
+
+> 在Spring AOP中，切面本身不能成为其他切面通知的目标。类上的`@Aspect`标注将其标记为切面，从而也将其从自动代理中排除。
+
+### AOP代理（AOP Proxy）
+
+AOP代理是由AOP框架创建的对象，用于实现切面契约（通知方法执行等）。在Spring Framework中，AOP代理是JDK动态代理或CGLIB代理。
+
+在默认情况下，如果目标对象有实现接口，则Spring AOP代理使用标准JDK动态代理。否则，目标对象没有实现接口，则使用CGLIB代理。
+
 ### 织入（Weaving）
 
 织入是把切面应用到目标对象的指定接入点上，并创建新的代理对象的过程。
@@ -1564,7 +1581,7 @@ Spring切面可以有5种类型的通知：
 
 - 编译期织入：切面在目标类编译时被织入。这种方式需要特殊的编译器，AspectJ的织入编译器就是以这种方式织入切面的。
 - 类加载期织入：切面在目标类加载到JVM时被织入。这种方式需要特殊的类加载器（ClassLoader），它可以在目标类被引入应用之前增强该目标类的字节码。AspectJ 5的加载时织入（load-time weaving，LTW）就支持以这种方式织入切面。
-- 运行期织入：切面在应用运行的某个时刻被织入。一般情况下，在织入切面时，AOP容器会为目标对象动态地创建一个代理对象。代理对象封装目标Bean，并拦截目标Bean方法的调用。在将调用转发给真正的目标Bean方法之前，会执行切面逻辑。Spring AOP就是以这种方式织入切面的。
+- 运行期织入：切面在应用运行的某个时刻被织入。一般情况下，在织入切面时，AOP容器会为目标对象动态地创建一个代理对象。代理对象封装目标Bean，并拦截目标Bean方法的调用。在将调用转发给真正的目标Bean方法之前，会执行切面逻辑。Spring AOP就是以这种方式织入切面的。这种方式比较适合在Servlet容器或应用服务器上使用。
   ![动态代理](SpringCore/动态代理.png)
 
 ## Spring对AOP的支持
@@ -1573,17 +1590,426 @@ Spring提供了4种类型的AOP支持：
 
 - 基于代理的经典Spring AOP（不推荐）；
 - 纯POJO切面；（使用XML配置，借助`aop`命名空间）
-- `@AspectJ`标注驱动的切面；（使用标注配置）
+- @AspectJ 风格声明的切面。；（使用标注配置。注：@AspectJ并不是一个标注，它只是一个风格的名称）
 - 注入式AspectJ切面。（基于AspectJ）
 
-前三种类型本质上都是Spring基于代理的AOP，它们只支持方法级别的接入点。而第四种类型实际上是Spring对AspectJ框架的整合，它除了运行方法接入点外，还支持字段和构造器接入点。
+前三种类型本质上都是Spring基于代理的AOP，它们只支持方法级别的接入点。第三种类型中，@AspectJ 风格（即使用AspectJ的标注将常规Java类声明为切面）虽然来自AspectJ框架，但Spring只是借用它的标注和相应的解析库，而Spring AOP运行时仍然是基于动态代理的，没有对AspectJ的编译器和织入器的依赖。
+
+而第四种类型实际上是Spring对AspectJ框架的集成，它除了支持方法接入点外，还支持字段和构造器接入点。
+
+我们通常讲的Spring AOP是指前三种类型AOP支持。
+
+## 创建目标
+
+目标就是一些普通的Java接口或类。
+
+```java
+package concert;
+public interface Performance {
+	public void perform();
+}
+```
+
+## 使用标注创建切面
+
+### 启用@AspectJ支持
+
+首先，要确保AspectJ的 `aspectjweaver.jar`库在项目的类路径上。
+
+```java
+@Configuration
+@EnableAspectJAutoProxy
+public class AppConfig {
+
+}
+```
+
+### 声明切面
+
+首先，使用`@Aspect`标注将一个类声明为切面：
+
+```java
+package concert;
+
+import org.aspectj.lang.annotation.Aspect;
+
+@Aspect
+public class Audience {
+  …
+}
+```
+
+切面类可以包含方法和字段，与任何其他类相同。它们还可以包含切点、通知和引入声明。
+
+然后，将该切面注册为Bean。例如：
+
+```java
+@Configuration
+@EnableAspectJAutoProxy
+public class AppConfig {
+	@Bean
+  public Audience audience() {
+    return new Audience();
+  }
+}
+```
+
+如果使用自动装配，则：
+
+配置类：
+
+```java
+@Configuration
+@EnableAspectJAutoProxy
+@ComponentScan
+public class AppConfig {
+
+}
+```
+
+切面Bean：
+
+```java
+@Component
+@Aspect
+public class Audience {
+  …
+}
+```
+
+### 声明通知
+
+通知方法声明在切面类中，Spring使用AspectJ标注来声明通知方法：
+
+| 标注            | 说明     |
+| --------------- | -------- |
+| @After          | 后置通知 |
+| @AfterReturning | 返回通知 |
+| @AfterThrowing  | 异常通知 |
+| @Around         | 环绕通知 |
+| @Before         | 前置通知 |
+
+示例：
+
+```java
+package concert;
+
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+
+@Aspect
+public class Audience {
+	@Before("execution(** concert.Performance.perform(..))")
+  public void silenceCellPhones() {
+    System.out.println("Silencing cell phones");
+  }
+  
+  @Before("execution(** concert.Performance.perform(..))")
+  public void takeSeats() {
+  	System.out.println("Taking seats");
+  }
+  
+  @AfterReturning("execution(** concert.Performance.perform(..))")
+  public void applause() {
+  	System.out.println("CLAP CLAP CLAP!!!");
+  }
+  
+  @AfterThrowing("execution(** concert.Performance.perform(..))")
+  public void demandRefund() {
+  	System.out.println("Demanding a refund");
+  }
+}
+```
+
+#### 在返回通知中访问返回值
+
+```java
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.AfterReturning;
+
+@Aspect
+public class AfterReturningExample {
+    @AfterReturning(
+        pointcut="com.xyz.myapp.SystemArchitecture.dataAccessOperation()",
+        returning="retVal")
+    public void doAccessCheck(Object retVal) {
+        // ...
+    }
+}
+```
+
+`returning`属性中使用的名称必须与通知方法中的参数名称相对应。当接入点方法返回时，返回值作为相应的参数值传递给通知方法。`returning`子句还将仅限于匹配那些返回指定类型值的方法调用（在本例中为`Object`，它匹配任何返回值）。
+
+#### 在异常通知中访问抛出的异常
+
+```java
+@Aspect
+public class AfterThrowingExample {
+    @AfterThrowing(
+        pointcut="com.xyz.myapp.SystemArchitecture.dataAccessOperation()",
+        throwing="ex")
+    public void doRecoveryActions(DataAccessException ex) {
+        // ...
+    }
+}
+```
+
+`throwing`属性中使用的名称必须与通知方法中的参数名称相对应。当通过抛出异常退出接入点时，异常将作为相应的参数值传递给通知方法。 `throwing`子句还将仅限于匹配那些抛出指定类型异常的方法调用（在本例中为`DataAccessException`）。
+
+#### 创建环绕通知
+
+环绕通知使用`@Around`标注声明。环绕通知方法的第一个参数必须是`ProceedingJoinPoint`类型。
+
+在通知方法体内，调用`ProceedingJoinPoint`的`proceed`方法会导致执行接入点。 `proceed`方法可以不带参数，也可以传入`Object []`参数。数组中的值将传递给接入点方法的参数。另外，`proceed`方法的返回值就是接入点方法的返回值。
+
+```java
+package concert;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+
+@Aspect
+public class Audience {
+  @Pointcut("execution(** concert.Performance.perform(..))")
+  public void performance() {}
+  
+  @Around("performance()")
+  public void watchPerformance(ProceedingJoinPoint jp) {
+    try {
+      System.out.println("Silencing cell phones");
+      System.out.println("Taking seats");
+      jp.proceed();
+    	System.out.println("CLAP CLAP CLAP!!!");
+    } catch (Throwable e) {
+    	System.out.println("Demanding a refund");
+    }
+  }
+}
+```
+
+### 声明切点
+
+有两种方法声明切点：
+
+- 在声明通知时，将切点表达式作为AspectJ通知标注的参数即可（参见前面`Audience`切面的声明）。
+- 声明命名切点。
+
+#### 命名切点
+
+但如果相同的切点表达式要在多个地方重用，则使用单独声明的命名切点会比较方便。
+
+命名切点由两部分组成：由`@Pointcut`标注的切点表达式和切点签名（即返回类型为`void`的方法）。
+
+```java
+package concert;
+
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
+
+@Aspect
+public class Audience {
+  @Pointcut("execution(** concert.Performance.perform(..))")  // the pointcut expression
+  public void performance() {}  // the pointcut signature
+  
+  @Before("performance()")
+  public void silenceCellPhones() {
+  	System.out.println("Silencing cell phones");
+  }
+  
+  @Before("performance()")
+  public void takeSeats() {
+  	System.out.println("Taking seats");
+  }
+  
+  @AfterReturning("performance()")
+  public void applause() {
+  	System.out.println("CLAP CLAP CLAP!!!");
+  }
+  
+  @AfterThrowing("performance()")
+  public void demandRefund() {
+  	System.out.println("Demanding a refund");
+  }
+}
+```
+
+命名切点的声明与引用它的通知可以分属在不同的类中：
+
+声明切点的类：
+
+```java
+package com.xyz.someapp;
+
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+
+@Aspect
+public class SystemArchitecture {
+    /**
+     * A join point is in the web layer if the method is defined
+     * in a type in the com.xyz.someapp.web package or any sub-package
+     * under that.
+     */
+    @Pointcut("within(com.xyz.someapp.web..*)")
+    public void inWebLayer() {}
+
+    /**
+     * A join point is in the service layer if the method is defined
+     * in a type in the com.xyz.someapp.service package or any sub-package
+     * under that.
+     */
+    @Pointcut("within(com.xyz.someapp.service..*)")
+    public void inServiceLayer() {}
+
+    /**
+     * A join point is in the data access layer if the method is defined
+     * in a type in the com.xyz.someapp.dao package or any sub-package
+     * under that.
+     */
+    @Pointcut("within(com.xyz.someapp.dao..*)")
+    public void inDataAccessLayer() {}
+
+    /**
+     * A business service is the execution of any method defined on a service
+     * interface. This definition assumes that interfaces are placed in the
+     * "service" package, and that implementation types are in sub-packages.
+     *
+     * If you group service interfaces by functional area (for example,
+     * in packages com.xyz.someapp.abc.service and com.xyz.someapp.def.service) then
+     * the pointcut expression "execution(* com.xyz.someapp..service.*.*(..))"
+     * could be used instead.
+     *
+     * Alternatively, you can write the expression using the 'bean'
+     * PCD, like so "bean(*Service)". (This assumes that you have
+     * named your Spring service beans in a consistent fashion.)
+     */
+    @Pointcut("execution(* com.xyz.someapp..service.*.*(..))")
+    public void businessService() {}
+
+    /**
+     * A data access operation is the execution of any method defined on a
+     * dao interface. This definition assumes that interfaces are placed in the
+     * "dao" package, and that implementation types are in sub-packages.
+     */
+    @Pointcut("execution(* com.xyz.someapp.dao.*.*(..))")
+    public void dataAccessOperation() {}
+}
+```
+
+引用切点的通知：
+
+```java
+@Aspect
+public class AroundExample {
+    @Around("com.xyz.myapp.SystemArchitecture.businessService()")
+    public Object doBasicProfiling(ProceedingJoinPoint pjp) throws Throwable {
+        // start stopwatch
+        Object retVal = pjp.proceed();
+        // stop stopwatch
+        return retVal;
+    }
+}
+```
+
+命名切点的可见性取决于切点签名的可见性。
+
+### 通知参数
+
+## 在XML中声明切面
+
+### 启用@AspectJ支持
+
+首先，要确保AspectJ的 `aspectjweaver.jar`库在项目的类路径上。
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/aop
+         http://www.springframework.org/schema/aop/spring-aop.xsd
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/context
+         http://www.springframework.org/schema/context/spring-context.xsd">
+
+  <aop:aspectj-autoproxy />
+
+</beans>
+```
+
+
+
+## 注入AspectJ切面
 
 ## 切点表达式语言
 
 在Spring AOP中，使用AspectJ的切点表达式语言来定义切点。
 
-## 使用标注创建切面
+> Spring AOP仅支持AspectJ切点表达式语言的一个子集，要获得完整AspectJ切点表达式语言支持，请使用注入式AspectJ切面。
 
-## 在XML中声明切面
+### AspectJ切点指示符
 
-## 注入AspectJ切面
+Spring AOP支持的AspectJ切点指示符有：
+
+| AspectJ指示符 | 说明                                         |
+| ------------- | -------------------------------------------- |
+| args()        | 限制匹配的接入点具有指定的方法参数。         |
+| @args()       | 限制匹配的接入点的方法参数由指定的标注标记。 |
+| execution()   | 用于匹配接入点的执行方法。                   |
+| this()        | 限制AOP代理对象本身的类型。                  |
+| target()      | 限制目标对象的类型。                         |
+| @target()     | 限制目标对象要由指定标注标记。               |
+| within()      | 限制接入点定义在指定的类中。                 |
+| @within()     | 限制接入点定义在指定标注标记的类中。         |
+| @annotation() |                                              |
+
+> 只有`execution()`指示符是实际执行匹配的，其他指示符都是用来限制匹配的。
+>
+> AspectJ框架中，`this()`和`target()`都引用相同的对象——目标对象。 Spring AOP是一个基于代理的系统，它区分代理对象本身（绑定到`this()`）和代理后面的目标对象（绑定到`target()`）。
+>
+> 由于Spring的AOP框架基于代理的本质，根据定义，目标对象内的调用不会被截获。对于JDK代理，只能拦截代理上的公共接口方法调用。使用CGLIB，代理上的公共和受保护方法调用被截获（如果需要，甚至是包可见的方法）。但是，通过代理进行的常见交互应始终通过公共签名进行设计。
+
+#### `execution()`指示符
+
+一般形式：
+
+```
+execution(modifiers-pattern? ret-type-pattern 
+          declaring-type-pattern?name-pattern(param-pattern)
+          throws-pattern?)
+```
+
+示例：
+
+- `execution(public * *(..))`：匹配任何公有方法的执行。
+- `execution(* set*(..))`：匹配名称以set开头的任何方法的执行。
+- `execution(* com.xyz.service.AccountService.*(..))`：匹配`com.xyz.service.AccountService` 接口定义的任何方法的执行。其中`com.xyz.service.AccountService.`部分就是`declaring-type-pattern`。
+- `execution(* com.xyz.service.*.*(..))`：匹配`com.xyz.service`包中定义的任何方法的执行。
+- `execution(* com.xyz.service..*.*(..))`：匹配`com.xyz.service`包及其任意层次子包中定义的任何方法的执行。
+- `execution(* com.xyz..AccountService.*())`：匹配`com.xyz`包及其任意层次子包中的`AccountService`接口定义的任何无参方法的执行。
+- `execution(* com.xyz.service.AccountService+.*(*))`：匹配`com.xyz.service.AccountService` 接口及其子类型定义的任何只有一个参数的方法的执行。
+- `execution(* (!com.xyz.service.AccountService+).*(..))`：匹配除了`com.xyz.service.AccountService` 接口及其子类型之外定义的任何方法的执行。
+- `execution(public * *(java.util.Date))`：匹配任何带有一个`java.util.Date`参数的公有方法的执行。
+- `execution(* *(..) throws IllegalArgumentException, ArrayIndexOutOfBoundsException)`：匹配任何抛出`IllegalArgumentException`或`ArrayIndexOutOfBoundsException`异常的方法的执行。
+- `execution(* (com.xyz.service.AccountService+ && java.io.Serializable+).*(..))`：匹配实现了`com.xyz.service.AccountService` 接口及其子类型，以及`java.io.Serializable`接口及其子类型的类型中定义的任何方法的执行。
+
+#### `bean()`指示符
+
+此外，Spring AOP还支持一个专有的切点指示符`bean()`。此切点指示符允许您将接入点的匹配限制为特定命名的一个或一组Spring Bean（使用通配符`*`）。切点指示符`bean()`具有以下形式：
+
+```
+bean(idOrNameOfBean)
+```
+
+### 切点运算符
+
+可以使用`&&`（或`and`）、`||`（或`or`）和`!`（或`not`）运算符来组合切入点表达式。
