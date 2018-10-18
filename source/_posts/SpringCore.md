@@ -1731,12 +1731,12 @@ import org.aspectj.lang.annotation.AfterReturning;
 
 @Aspect
 public class AfterReturningExample {
-    @AfterReturning(
-        pointcut="com.xyz.myapp.SystemArchitecture.dataAccessOperation()",
-        returning="retVal")
-    public void doAccessCheck(Object retVal) {
-        // ...
-    }
+  @AfterReturning(
+    pointcut="com.xyz.myapp.SystemArchitecture.dataAccessOperation()",
+    returning="retVal")
+  public void doAccessCheck(Object retVal) {
+    // ...
+  }
 }
 ```
 
@@ -1747,12 +1747,12 @@ public class AfterReturningExample {
 ```java
 @Aspect
 public class AfterThrowingExample {
-    @AfterThrowing(
-        pointcut="com.xyz.myapp.SystemArchitecture.dataAccessOperation()",
-        throwing="ex")
-    public void doRecoveryActions(DataAccessException ex) {
-        // ...
-    }
+  @AfterThrowing(
+    pointcut="com.xyz.myapp.SystemArchitecture.dataAccessOperation()",
+    throwing="ex")
+  public void doRecoveryActions(DataAccessException ex) {
+    // ...
+  }
 }
 ```
 
@@ -1762,7 +1762,7 @@ public class AfterThrowingExample {
 
 环绕通知使用`@Around`标注声明。环绕通知方法的第一个参数必须是`ProceedingJoinPoint`类型。
 
-在通知方法体内，调用`ProceedingJoinPoint`的`proceed`方法会导致执行接入点。 `proceed`方法可以不带参数，也可以传入`Object []`参数。数组中的值将传递给接入点方法的参数。另外，`proceed`方法的返回值就是接入点方法的返回值。
+在通知方法体内，调用`ProceedingJoinPoint`的`proceed`方法会导致执行接入点。
 
 ```java
 package concert;
@@ -1790,6 +1790,78 @@ public class Audience {
   }
 }
 ```
+
+ `proceed`方法可以不带参数，也可以传入`Object []`参数。数组中的值将传递给接入点方法的参数。另外，`proceed`方法的返回值就是接入点方法的返回值。
+
+```java
+@Around("execution(List<Account> find*(..)) && " +
+        "com.xyz.myapp.SystemArchitecture.inDataAccessLayer() && " +
+        "args(accountHolderNamePattern)")
+public Object preProcessQueryPattern(
+    ProceedingJoinPoint pjp,
+    String accountHolderNamePattern) throws Throwable {
+  String newPattern = preProcess(accountHolderNamePattern);
+  return pjp.proceed(new Object[] {newPattern});
+}
+```
+
+#### 通知执行顺序
+
+当多个通知都想在同一个接入点执行时，优先级高的前置通知先执行，优先级高的后置通知、返回通知和异常通知后执行。
+
+不同切面的通知的优先级由切面优先级决定，切面可以通过实现`org.springframework.core.Ordered` 接口或使用`@Order`标注标记来定义优先级。`Ordered.getValue()` 返回的值或标注的值越小，优先级越高。
+
+```java
+@Aspect
+public class ConcurrentOperationExecutor implements Ordered {
+  private static final int DEFAULT_MAX_RETRIES = 2;
+
+  private int maxRetries = DEFAULT_MAX_RETRIES;
+  private int order = 1;
+
+  public void setMaxRetries(int maxRetries) {
+    this.maxRetries = maxRetries;
+  }
+
+  public int getOrder() {
+    return this.order;
+  }
+
+  public void setOrder(int order) {
+    this.order = order;
+  }
+
+  @Around("com.xyz.myapp.SystemArchitecture.businessService()")
+  public Object doConcurrentOperation(ProceedingJoinPoint pjp) throws Throwable {
+    int numAttempts = 0;
+    PessimisticLockingFailureException lockFailureException;
+    do {
+      numAttempts++;
+      try {
+        return pjp.proceed();
+      }
+      catch(PessimisticLockingFailureException ex) {
+        lockFailureException = ex;
+      }
+    } while(numAttempts <= this.maxRetries);
+    throw lockFailureException;
+  }
+}
+```
+
+或者：
+
+```xml
+<aop:aspectj-autoproxy/>
+
+<bean id="concurrentOperationExecutor"
+      class="com.xyz.myapp.service.impl.ConcurrentOperationExecutor">
+  <property name="maxRetries" value="3"/>
+  <property name="order" value="100"/>
+</bean>
+```
+
+在Spring AOP中同一切面中的通知无法确定优先级，因此，它们同时应用到同一接入点的执行顺序是不确定的。
 
 ### 声明切点
 
@@ -1922,6 +1994,153 @@ public class AroundExample {
 
 ### 通知参数
 
+通过返回通知可获取接入点方法的返回值，通过异常通知可获取接入点方法抛出的异常。通过`args()`指示符的绑定形式（即接受参数名而不是参数类型），则可以将接入点方法的参数传递给通知方法。
+
+> 其实，通过通知方法的`JoinPoint`类型参数，也可以获取接入点方法参数。
+
+例如：获取接入点方法的第一个参数，且该参数是`Account`类型，并将它传递给通知方法的`account`参数。
+
+```java
+@Before("com.xyz.myapp.SystemArchitecture.dataAccessOperation() && args(account,..)")
+public void validateAccount(Account account) {
+    // ...
+}
+```
+
+或者：
+
+```java
+@Pointcut("com.xyz.myapp.SystemArchitecture.dataAccessOperation() && args(account,..)")
+private void accountDataAccessOperation(Account account) {}
+
+@Before("accountDataAccessOperation(account)")
+public void validateAccount(Account account) {
+    // ...
+}
+```
+
+#### 处理泛型参数
+
+Spring AOP还可以处理泛型参数：
+
+目标接口：
+
+```java
+public interface Sample<T> {
+  void sampleGenericMethod(T param);
+  void sampleGenericCollectionMethod(Collection<T> param);
+}
+```
+
+将要拦截的接入点方法的泛型参数限制为`MyType`，并将`param`参数传递给通知方法的对应参数：
+
+```java
+@Before("execution(* ..Sample+.sampleGenericMethod(*)) && args(param)")
+public void beforeSampleMethod(MyType param) {
+  // Advice implementation
+}
+```
+
+此方法不适用于泛型集合。因此，您无法按如下方式定义切入点：
+
+```java
+@Before("execution(* ..Sample+.sampleGenericCollectionMethod(*)) && args(param)")
+public void beforeSampleMethod(Collection<MyType> param) {
+  // Advice implementation
+}
+```
+
+只能将通知方法参数设置成`Collection<?> param`，并手动检查元素的类型。
+
+#### 确定参数名
+
+由于通过Java反射机制是无法获取方法的参数名的，为此，Spring AOP使用如下策略来确定切点表达式中参数名与通知方法参数名的对应：
+
+1. 如果用户已显式指定参数名称，则使用指定的参数名称。通知和切点标注都有一个可选的`argNames`属性，您可以使用该属性显式指定方法的参数名称，这些参数名称在运行时可用。
+
+   ```java
+   @Before(value="com.xyz.lib.Pointcuts.anyPublicMethod() && target(bean) && @annotation(auditable)",
+           argNames="bean,auditable")
+   public void audit(JoinPoint jp, Object bean, Auditable auditable) {
+       AuditCode code = auditable.value();
+       // ... use code, bean, and jp
+   }
+   ```
+
+   注意：如果通知方法的第一个参数是`JoinPoint`、`ProceedingJoinPoint`或`JoinPoint.StaticPart`类型，`argNames`属性将不包含该参数名。
+
+2. 如果没有指定`argNames`属性，Spring AOP会查看该类的调试信息，并尝试从局部变量表中确定参数名称。
+
+   > 如果@Aspect切面被AspectJ编译器编译过，则不需要设置`argNames`属性。因为，AspectJ编译器会保留必要的信息。
+
+3. 如果代码编译时没有保留调试信息，则Spring AOP会尝试推断绑定变量与参数的配对（例如，如果只有一个变量绑定在切入点表达式中，并且通知方法只接受一个参数，那么配对很明显）。如果给定可用信息仍不足以确定变量的绑定，则抛出`AmbiguousBindingException`。
+4. 如果上述所有策略都失败，则抛出`IllegalArgumentException`。
+
+### 访问当前接入点
+
+在环绕通知中，通知方法第一个参数必须声明为`ProceedingJoinPoint`类型。其实任何通知，都可以将它的第一个参数声明为`org.aspectj.lang.JoinPoint`类型，它是`ProceedingJoinPoint`父类，提供了许多方法来访问当前接入点信息，包括接入点方法参数。
+
+- `getArgs()`：返回接入点方法的参数。
+- `getThis()`：返回代理对象。
+- `getTarget()`：返回目标对象。
+- `getSignature()`：返回接入点的方法签名。
+
+### 引入
+
+在Spring中，切面只是与它所包装的目标Bean实现了相同接口的代理。如果除了实现目标Bean的接口外，代理还暴露了新接口，这就是AOP中的引入。引入相当于为目标Bean动态添加了新的接口。
+
+引入有点类似其他语言中的扩展类。
+
+![引入](SpringCore/引入.png)
+
+当代理中目标Bean接口的方法被调用时，代理将调用委托给目标Bean实例；而当代理中新暴露接口的方法被调用时，它将调用委托给实现了这个新接口的某个其他对象。实际上，代理对象的实现被拆分到多个类中。
+
+假设，希望为所有实现了`Performance`的类型动态实现`Encoreable`接口。
+
+Encoreable接口：
+
+```java
+package concert;
+public interface Encoreable {
+	void performEncore();
+}
+```
+
+声明引入：
+
+```java
+package concert;
+
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.DeclareParents;
+
+@Aspect
+public class EncoreableIntroducer {
+  @DeclareParents(value="concert.Performance+", defaultImpl=DefaultEncoreable.class)
+  public static Encoreable encoreable;
+}
+```
+
+`@DeclareParents`标注由三部分组成：
+
+- `value`属性指定了哪种类型的Bean要引入（动态实现）新接口。
+- `defaultImpl`属性指定了引入的新接口的实现类。
+- `@DeclareParents`标记的静态属性指明了要引入的新接口。这里是`Encoreable`接口。
+
+最后，与其他切面一样，也要将该引入注册为Bean：
+
+```xml
+<bean class="concert.EncoreableIntroducer" />
+```
+
+这样，所有实现了`Performance`的类型也动态实现`Encoreable`接口：
+
+```java
+Encoreable encoreable = (Encoreable) context.getBean("myPerformance");
+```
+
+
+
 ## 在XML中声明切面
 
 ### 启用@AspectJ支持
@@ -1946,6 +2165,197 @@ public class AroundExample {
 </beans>
 ```
 
+### 声明切面
+
+```xml
+<aop:config>
+  <aop:aspect id="audienceAspect" ref="audience">
+    …
+  </aop:aspect>
+</aop:config>
+
+<bean id="audience" class="concert.Audience">
+  …
+</bean>
+```
+
+### 声明通知
+
+```xml
+<aop:config>
+  <aop:aspect ref="audience">
+    <aop:before
+      pointcut="execution(** concert.Performance.perform(..))"
+      method="silenceCellPhones"/>
+    <aop:before
+      pointcut="execution(** concert.Performance.perform(..))"
+      method="takeSeats"/>
+    <aop:after-returning
+      pointcut="execution(** concert.Performance.perform(..))"
+      method="applause"/>
+    <aop:after-throwing
+      pointcut="execution(** concert.Performance.perform(..))"
+      method="demandRefund"/>
+  </aop:aspect>
+</aop:config>
+```
+
+此外，后置通知使用`<aop:after>`元素。
+
+#### 在返回通知中访问返回值
+
+```xml
+<aop:aspect id="afterReturningExample" ref="aBean">
+  <aop:after-returning
+    pointcut-ref="dataAccessOperation"
+    returning="retVal"
+    method="doAccessCheck"/>
+  ...
+</aop:aspect>
+```
+
+`doAccessCheck`方法必须声明一个名为`retVal`的参数。此参数的类型以与`@AfterReturning`所述相同的方式约束匹配。例如：
+
+```java
+public void doAccessCheck(Object retVal) {…}
+```
+
+#### 在异常通知中访问抛出的异常
+
+```xml
+<aop:aspect id="afterThrowingExample" ref="aBean">
+  <aop:after-throwing
+    pointcut-ref="dataAccessOperation"
+    throwing="dataAccessEx"
+    method="doRecoveryActions"/>
+  ...
+</aop:aspect>
+```
+
+`doRecoveryActions`方法必须声明一个名为`dataAccessEx`的参数。此参数的类型以与`@AfterThrowing`相同的方式约束匹配。例如：
+
+```java
+public void doRecoveryActions(DataAccessException dataAccessEx) {…}
+```
+
+#### 创建环绕通知
+
+```xml
+<aop:config>
+  <aop:aspect ref="audience">
+    <aop:pointcut
+      id="performance"
+      expression="execution(** concert.Performance.perform(..))" />
+    <aop:around
+      pointcut-ref="performance"
+      method="watchPerformance"/>
+  </aop:aspect>
+</aop:config>
+```
+
+
+
+### 声明切点
+
+#### 命名切点
+
+```xml
+<aop:config>
+  <aop:aspect ref="audience">
+    <aop:pointcut
+      id="performance"
+      expression="execution(** concert.Performance.perform(..))" />
+    <aop:before
+      pointcut-ref="performance"
+      method="silenceCellPhones"/>
+    <aop:before
+      pointcut-ref="performance"
+      method="takeSeats"/>
+    <aop:after-returning
+      pointcut-ref="performance"
+      method="applause"/>
+    <aop:after-throwing
+      pointcut-ref="performance"
+      method="demandRefund"/>
+  </aop:aspect>
+</aop:config>
+```
+
+`<aop:pointcut>`放在`<aop:aspect>`元素内时，这个命名切点只能为所有切面的所有通知所共享。如果将`<aop:pointcut>`放在`<aop:config>`元素内时，则该命名切点可以为所有切面所共享。
+
+### 通知参数
+
+#### 确定参数名
+
+```xml
+<aop:before
+  pointcut="com.xyz.lib.Pointcuts.anyPublicMethod() and @annotation(auditable)"
+  method="audit"
+  arg-names="auditable"/>
+```
+
+### 引入
+
+```xml
+<aop:config>
+  <aop:aspect ref="audience">
+    <aop:declare-parents
+      types-matching="concert.Performance+"
+      implement-interface="concert.Encoreable"
+      default-impl="concert.DefaultEncoreable" />
+  </aop:aspect>
+  …
+</aop:config>
+…
+<bean id="audience" class="concert.Audience">
+  …
+</bean>
+```
+
+除了使用`default-impl`属性以完全限定名形式设定`Encoreable`接口的实现类外，还可以使用`delegate-ref`属性来引用实现类的Bean：
+
+```xml
+<aop:config>
+  <aop:aspect ref="audience">
+    <aop:declare-parents
+      types-matching="concert.Performance+"
+      implement-interface="concert.Encoreable"
+      delegate-ref="encoreableDelegate" />
+  </aop:aspect>
+  …
+</aop:config>
+…
+<bean id="encoreableDelegate"
+	class="concert.DefaultEncoreable" />
+<bean id="audience" class="concert.Audience">
+  …
+</bean>
+```
+
+### Advisor
+
+Advisor的概念来自Spring AOP，在AspectJ中没有直接的等价物。
+
+Advisor可看成是只包含一个切点和一个通知的切面，并且通知表示为一个Bean，且要实现相应的[通知接口](https://docs.spring.io/spring/docs/5.1.1.RELEASE/spring-framework-reference/core.html#aop-api-advice-types)。
+
+Advisor最常见的是与事务性通知一起使用：
+
+```xml
+<aop:config>
+  <aop:pointcut id="businessService"
+                expression="execution(* com.xyz.myapp.service.*.*(..))"/>
+  <aop:advisor
+               pointcut-ref="businessService"
+               advice-ref="tx-advice"/>
+</aop:config>
+
+<tx:advice id="tx-advice">
+  <tx:attributes>
+    <tx:method name="*" propagation="REQUIRED"/>
+  </tx:attributes>
+</tx:advice>
+```
+
 
 
 ## 注入AspectJ切面
@@ -1960,17 +2370,17 @@ public class AroundExample {
 
 Spring AOP支持的AspectJ切点指示符有：
 
-| AspectJ指示符 | 说明                                         |
-| ------------- | -------------------------------------------- |
-| args()        | 限制匹配的接入点具有指定的方法参数。         |
-| @args()       | 限制匹配的接入点的方法参数由指定的标注标记。 |
-| execution()   | 用于匹配接入点的执行方法。                   |
-| this()        | 限制AOP代理对象本身的类型。                  |
-| target()      | 限制目标对象的类型。                         |
-| @target()     | 限制目标对象要由指定标注标记。               |
-| within()      | 限制接入点定义在指定的类中。                 |
-| @within()     | 限制接入点定义在指定标注标记的类中。         |
-| @annotation() |                                              |
+| AspectJ指示符 | 说明                                                         |
+| ------------- | ------------------------------------------------------------ |
+| args()        | 限制接入点必须具有指定类型参数。                             |
+| @args()       | 限制接入点的方法参数的类必须由指定的标注标记。               |
+| execution()   | 用于匹配接入点的执行方法。                                   |
+| this()        | 限制AOP代理对象本身必须是指定类的实例（包含了子类的实例）。  |
+| target()      | 限制目标对象必须是指定类的实例（包含了子类的实例）。         |
+| @target()     | 限制目标对象必须是由指定的标注标记的类的实例（包含了子类的实例）。 |
+| within()      | 限制接入点必须定义在指定的类中。                             |
+| @within()     | 限制接入点必须定义在由指定的标注标记的类中。                 |
+| @annotation() | 限制接入点必须带有指定标注。                                 |
 
 > 只有`execution()`指示符是实际执行匹配的，其他指示符都是用来限制匹配的。
 >
@@ -1997,10 +2407,75 @@ execution(modifiers-pattern? ret-type-pattern
 - `execution(* com.xyz.service..*.*(..))`：匹配`com.xyz.service`包及其任意层次子包中定义的任何方法的执行。
 - `execution(* com.xyz..AccountService.*())`：匹配`com.xyz`包及其任意层次子包中的`AccountService`接口定义的任何无参方法的执行。
 - `execution(* com.xyz.service.AccountService+.*(*))`：匹配`com.xyz.service.AccountService` 接口及其子类型定义的任何只有一个参数的方法的执行。
+- `execution(public * *(*, String))`：匹配任何带两个参数的公有方法的执行，并且方法的第一个参数是任意类型，第二个参数是`String`类型。
 - `execution(* (!com.xyz.service.AccountService+).*(..))`：匹配除了`com.xyz.service.AccountService` 接口及其子类型之外定义的任何方法的执行。
 - `execution(public * *(java.util.Date))`：匹配任何带有一个`java.util.Date`参数的公有方法的执行。
 - `execution(* *(..) throws IllegalArgumentException, ArrayIndexOutOfBoundsException)`：匹配任何抛出`IllegalArgumentException`或`ArrayIndexOutOfBoundsException`异常的方法的执行。
 - `execution(* (com.xyz.service.AccountService+ && java.io.Serializable+).*(..))`：匹配实现了`com.xyz.service.AccountService` 接口及其子类型，以及`java.io.Serializable`接口及其子类型的类型中定义的任何方法的执行。
+
+#### `within()`指示符
+
+示例：
+
+- `within(com.xyz.service.*)`：在`com.xyz.service`包中的任何接入点。
+- `within(com.xyz.service..*)`：在`com.xyz.service`包及其任意层次子包中的任何接入点。
+
+#### `@within()`指示符
+
+示例：
+
+- `@within(org.springframework.transaction.annotation.Transactional)`：目标对象的声明类型具有`@Transactional`标注的任何接入点。
+
+#### `this()`指示符
+
+示例：
+
+- `this(com.xyz.service.AccountService)`：代理对象实现`AccountService`接口的任何接入点。
+
+绑定形式的`this()`例子：
+
+```java
+@Aspect
+public class UsageTracking {
+    @DeclareParents(value="com.xzy.myapp.service.*+", defaultImpl=DefaultUsageTracked.class)
+    public static UsageTracked mixin;
+
+    @Before("com.xyz.myapp.SystemArchitecture.businessService() && this(usageTracked)")
+    public void recordUsage(UsageTracked usageTracked) {
+        usageTracked.incrementUseCount();
+    }
+}
+```
+
+#### `target()`指示符
+
+示例：
+
+- `target(com.xyz.service.AccountService)`：目标对象实现`AccountService`接口的任何接入点。
+
+#### `@target()`指示符
+
+示例：
+
+- `@target(org.springframework.transaction.annotation.Transactional)`：目标对象的任何接入点，且目标对象是具有`@Transactional`标注的类的实例。
+
+#### `args()`指示符
+
+示例：
+
+- `args(java.io.Serializable)`：采用单个参数的任何接入点，以及在**运行时**传递的参数是`Serializable`。注：`execution(* *(java.io.Serializable))`是在执行时匹配，即匹配方法签名。
+
+#### `@args()`指示符
+
+示例：
+
+- `@args(com.xyz.security.Classified)`：采用单个参数的任何接入点，并且传递的参数的运行时类型具有`@Classified`标注
+
+#### `@annotation()`指示符
+
+示例：
+
+- `@annotation(org.springframework.transaction.annotation.Transactional)`：具有`@Transactional`标注的任何接入点。
 
 #### `bean()`指示符
 
@@ -2010,6 +2485,44 @@ execution(modifiers-pattern? ret-type-pattern
 bean(idOrNameOfBean)
 ```
 
+示例：
+
+- `bean(*Service)`：名称与通配符表达式`* Service`匹配的Spring Bean上的任何接入点。
+
+#### 指示符的绑定形式
+
+`args()`、`this()`、`target()`、`@target()`、`@within()`、`@annotation()`、`@args()`等指示符还可以使用绑定形式。（也参见“通知参数”）
+
+通过绑定形式可以将匹配的对象传递给通知方法的相应参数。
+
+例如：
+
+接入点的标注：
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Auditable {
+  AuditCode value();
+}
+```
+
+通知：
+
+```java
+@Before("com.xyz.lib.Pointcuts.anyPublicMethod() && @annotation(auditable)")
+public void audit(Auditable auditable) {
+  AuditCode code = auditable.value();
+  // ...
+}
+```
+
+
+
 ### 切点运算符
 
 可以使用`&&`（或`and`）、`||`（或`or`）和`!`（或`not`）运算符来组合切入点表达式。
+
+示例：
+
+- `execution(* concert.Performance.perform()) and !bean('woodstock')`：匹配Bean ID不为`woodstock`的`Performance` Bean的`perform()`方法执行。
