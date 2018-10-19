@@ -1379,7 +1379,101 @@ public class BlankDisc {
 
 
 
-## 资源国际化
+## 国际化
+
+### JDK的国际化支持
+
+#### 格式化类
+
+JDK的`java.util`包中提供了几个支持国际化的格式化类，如`NumberFormat`、`DateFormat`和`MessageFormat`。
+
+`NumberFormat`的示例：
+
+```java
+Locale locale = new Locale("zh", "CN");
+NumberFormat currFmt = NumberFormat.getCurrencyInstance(locale);
+double amount = 123456.78;
+System.out.println(currFmt.format(amount));
+```
+
+`DateFormat`的示例：
+
+```java
+Locale locale = new Locale("zh", "CN");
+DateFormat df = DateFormat.getDateInstance(DateFormat.MEDIUM, locale);
+Date date = new Date();
+System.out.println(df.format(date));
+```
+
+`MessageFormat`的示例：
+
+```java
+//格式化消息串
+String pattern1 = "{0}，你好！你于{1}在工商银行存入{2}元。";
+String pattern2 = "At {1,time,short} On {1,date,long}, {0} paid {2,number,currency}.";
+
+//用于动态替换占位符的参数
+Object[] params = {"John", new GregorianCalendar().getTime(), 1.0E3};
+
+//使用默认的本地化对象格式化消息
+String msg1 = MessageFormat.format(pattern1, params);
+
+//使用指定的本地化对象格式化消息
+MessageFormat mf = new MessageFormat(pattern2, Locale.US);
+String msg2 = mf.format(params);
+System.out.println(msg1);
+System.out.println(msg2);
+```
+
+#### ResourceBundle
+
+仅使用格式化类也可以提供国际化支持，但太笨拙了。JDK为此提供了方便加载及访问国际化资源文件的类`java.util.ResourceBundle`。
+
+首先，为每个要支持的语言、地区创建如下命名的国际化资源文件：
+
+```
+资源名_可选的语言代码_可选的国家或地区代码.properties
+```
+
+例如：
+
+```
+resource_en_US.properties
+resource_en.properties
+resource.properties
+```
+
+资源名相同，但语言代码、国家或地区代码不同的一组国际化资源文件应该放在同一个目录下，它们包含的属性名是相同的，但属性值各不相同。
+
+其中`资源名.properties`为默认资源文件，即某个语言或地区在系统中找不到对应的资源文件时，就采用这个默认资源文件。
+
+假设上面的`resource`资源文件都放在类路径根的`i18n`目录下，则：
+
+```java
+ResourceBundle rb = ResourceBundle.getBundle("i18n/resource", Locale.CHINA);
+String msg = rb.getString("greeting.common");
+```
+
+如果消息中包含占位符，则可以使用`MessageFormat来填充占位符：
+
+```java
+Object[] params = {"John", new GregorianCalendar().getTime(), 1.0E3};
+String msgFmt = new MessageFormat(rb.getString("greeting.common"), Locale.CHINA).format(params);
+```
+
+### Spring的国际化支持
+
+Spring提供了`MessageSource`接口，进一步简化了国际化的使用。这些接口提供了如下易用的方法：
+
+- `String getMessage(String code, Object[] args, String default, Locale loc)`：`code`是国际化消息中的属性名；`args`是用于传递给格式化串占位符的运行期参数；`default`是当在`MessageSource`中找不到对应属性名时，返回的默认值；`locale`是区域对象。
+- `String getMessage(String code, Object[] args, Locale loc)`：与上面的方法类似，只是没有提供默认值。如果找不到该消息，则抛出`NoSuchMessageException`。
+- `String getMessage(MessageSourceResolvable resolvable, Locale locale)`：`resolvable`封装了属性名、参数数组和默认消息。如果找不到该消息，则抛出`NoSuchMessageException`。
+
+`MessageSource`的接口分别被`HierarchicalMessageSource`接口和`ApplicationContext`接口扩展，前者提供了分层次地解析消息的能力。
+
+#### ResourceBundleMessageSource
+
+`ResourceBundleMessageSource`是`HierarchicalMessageSource`接口的一个实现类，它允许通过`beanName`属性指定一个国际化资源，也可以通过`beanNames`指定一组国际化资源。
 
 ## 其他资源
 
