@@ -1,5 +1,5 @@
 ---
-title: Python
+f5title: Python
 date: 2018-09-15 12:15:06
 tags: [3.7.0]
 ---
@@ -118,7 +118,7 @@ hello
 
 ### 文档字符串
 
-Python实际上是没有块注释的，上面的块注释实际上是文档字符串（Docstring），它可以出现在`def`语句之后、模块和类的开头。并且任何字符串都可以作为文档字符串，而不仅仅是长字符串。
+Python实际上是没有块注释的，上面的块注释实际上是文档字符串（Docstring），它可以出现在`def`语句之后、模块和类的开头。并且任何种类字符串都可以作为文档字符串，而不仅仅是长字符串。
 
 ```python
 def square(x):
@@ -2625,15 +2625,44 @@ Age: 42
 I_wish_to_register_a_complaint
 ```
 
-
-
 ## 标准输入
 
 ```python
 x = input("x: ")  #input函数的返回值是一个字符串
 ```
 
+# 系统环境
 
+## 命令行参数
+
+Python中，可以通过`sys`模块的`argv`变量来获取命令行参数。
+
+示例参见：“直接运行脚本”、“直接运行代码”和“把模块当作脚本执行”章节。
+
+## 退出当前程序
+
+执行`sys`模块的`exit`函数将退出当前程序，并将参数返回给操作系统。可以向`exit`函数提供一个整数参数，指出程序是否成功。参数缺省时，将向操作系统返回0。它也可以接收一个字符串参数，这时，当程序退出时将显示指定的错误消息以及一个表示失败的编码。
+
+> 在try-finally中调用`exit`函数时，finally子句依然会执行。
+
+## 平台标识符
+
+`sys`模块的`platform`变量是一个字符串，它是运行解释器的平台名称，可能是操作系统名称，也可能是其他平台类型（如Java虚拟机）名称。
+
+## 环境变量
+
+模块`os`的`environ`变量是一个包含环境变量的映射。例如，要访问环境变量`PYTHONPATH`，可使用表达式`os.environ['PYTHONPATH']`。这个映射也可用于修改环境变量，但并非所有的平台都支持这样做。
+
+## 运行操作系统命令
+
+模块`os`的`system`函数用于运行外部程序。
+
+例如，打开firefox：
+
+```python
+import os
+os.system('/usr/bin/firefox')
+```
 
 # 异常处理
 
@@ -2823,11 +2852,15 @@ Traceback (most recent call last):
 AssertionError: The age must be realistic!
 ```
 
+# 正则表达式
+
 # 图形用户界面
 
 # 数据库支持
 
 # 网络编程
+
+# 日期和时间
 
 # 元编程
 
@@ -3046,5 +3079,65 @@ __name__ is test
 ## `__future__`模块
 
 `__future__`是一个特殊模块，它用于存放当前Python不支持，但未来将成为标准组成部分的功能。
+
+## 包
+
+Python使用包（Package）来组织模块。
+
+包是一个目录，并且目录中必须包含文件`__init__.py`。
+
+除了组织模块外，包也可以当作普通模块使用。这时，导入包实际上就是导入`__init__.py`文件的内容。
+
+要将模块加入包中，只需要将模块文件放在包目录中即可。你还可以在包中嵌套其他包。
+
+示例：
+
+```
+~/python               （PYTHONPATH中的目录）
+└── drawing            （包目录）
+    ├── __init__.py    （包代码，即模块drawing的内容）
+    ├── colors.py      （模块colors）
+    └── shapes.py      （模块shapes）
+```
+
+则下面的语句是合法的：
+
+```python
+import drawing                #导入模块drawing
+import drawing.colors         #导入drawing包中的模块colors
+from drawing import shapes    #导入模块shapes
+```
+
+`import drawing`只会导入模块`drawing`，而不会自动导入`drawing`包下的`drawing.colors`和`drawing.shapes`。同理，`import drawing.colors`也不会自动导入`drawing`包。即模块导入是互相独立的。
+
+通过`import drawing.colors`语句导入了`colors`模块后，必须使用全限定名`drawing.colors`来访问`colors`模块的成员。而使用`from drawing import colors`语句导入，则可以使用简单名`colors`来访问`colors`模块的成员。
+
+## 探索模块
+
+可以使用`dir`函数列出模块包含的所有成员（包含以下划线开头的成员）：
+
+```python
+>>> import copy
+>>> dir(copy)
+['Error', '__all__', '__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', '_copy_dispatch', '_copy_immutable', '_deepcopy_atomic', '_deepcopy_dict', '_deepcopy_dispatch', '_deepcopy_list', '_deepcopy_method', '_deepcopy_tuple', '_keep_alive', '_reconstruct', 'copy', 'deepcopy', 'dispatch_table', 'error']
+```
+
+通过模块的`__all__`属性可以列出模块希望公开的接口：
+
+```python
+>>> copy.__all__
+['Error', 'copy', 'deepcopy']
+```
+
+它也是`from copy import *`导入的成员。
+
+要看一个模块的源代码存入在什么地方，可以访问模块的`__file__`属性：
+
+```python
+>>> copy.__file__
+'/usr/lib/python3.7/copy.py'
+```
+
+最后，也可以使用`help`函数来获取模块的帮助信息，`copy.__doc__`可以查看`copy`模块的文档字符串。
 
 # 构建管理
