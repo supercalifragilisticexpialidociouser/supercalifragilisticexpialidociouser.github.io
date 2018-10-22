@@ -1454,7 +1454,7 @@ ResourceBundle rb = ResourceBundle.getBundle("i18n/resource", Locale.CHINA);
 String msg = rb.getString("greeting.common");
 ```
 
-如果消息中包含占位符，则可以使用`MessageFormat来填充占位符：
+如果消息中包含占位符，则可以使用`MessageFormat`来填充占位符：
 
 ```java
 Object[] params = {"John", new GregorianCalendar().getTime(), 1.0E3};
@@ -1473,7 +1473,50 @@ Spring提供了`MessageSource`接口，进一步简化了国际化的使用。�
 
 #### ResourceBundleMessageSource
 
-`ResourceBundleMessageSource`是`HierarchicalMessageSource`接口的一个实现类，它允许通过`beanName`属性指定一个国际化资源，也可以通过`beanNames`指定一组国际化资源。
+`ResourceBundleMessageSource`是`HierarchicalMessageSource`接口的一个实现类，它允许通过`beanName`属性指定一个国际化资源，或者通过`beanNames`指定一组国际化资源。底层还是使用`ResourceBundle`对象解析消息。
+
+beans.xml：
+
+```xml
+<beans>
+  <bean id="messageSource"
+        class="org.springframework.context.support.ResourceBundleMessageSource">
+    <property name="basenames">
+      <list>
+        <value>format</value>
+        <value>exceptions</value>
+        <value>windows</value>
+      </list>
+    </property>
+  </bean>
+</beans>
+```
+
+format.properties：
+
+```properties
+message=Alligators rock!
+```
+
+exceptions.properties：
+
+```properties
+argument.required=The {0} argument is required.
+```
+
+可以将上面的`messageSource`Bean注入其他Bean中，以使得其他Bean能访问国际化资源。但是，由于`ApplicationContext`也实现了`MessageSource`接口，从而可以直接在容器级别上使用国际化资源。
+
+在加载`ApplicationContext`时，它会自动搜索上下文中定义的`MessageSource` Bean，且Bean必须具有名称`messageSource`。如果找到这样的Bean，则对`ApplicationContext`的`getMessage`方法的所有调用都被委托给`messageSource`Bean。如果未找到任何`messageSource`Bean，`ApplicationContext`将尝试在父级容器中查找`messageSource`Bean。如果找到，它将该bean用作`MessageSource`。如果`ApplicationContext`找不到任何消息源，则会实例化一个空的`DelegatingMessageSource`，以便能够接受对上面定义的方法的调用。
+
+```java
+public static void main(String[] args) {
+  MessageSource resources = new ClassPathXmlApplicationContext("beans.xml");
+  String message = resources.getMessage("message", null, "Default", null);
+  System.out.println(message);
+}
+```
+
+#### ReloadableResourceBundleMessageSource
 
 ## 其他资源
 
@@ -2450,9 +2493,38 @@ Advisor最常见的是与事务性通知一起使用：
 </tx:advice>
 ```
 
+## AspectJ切面
 
+当Spring AOP不能满足需求时，我们必须转向更为强大的AspectJ。
 
-## 注入AspectJ切面
+### 声明AspectJ切面
+
+```
+package concert;
+public aspect CriticAspect {
+  public CriticAspect() {}
+  pointcut performance(): execution(* perform(..));
+  afterReturning(): performance() {
+    System.out.println(criticismEngine.getCriticism());
+  }
+  private CriticismEngine criticismEngine;
+  public void setCriticismEngine(CriticismEngine criticismEngine) {
+    this.criticismEngine = criticismEngine;
+  }
+}
+```
+
+### 注入AspectJ切面
+
+使用AspectJ切面时，根本不需要Spring就可以织入到我们的应用中。但如果想使用Spring的依赖注入为AspectJ切面注入协作者，那就还需要在Spring配置中把AspectJ切面声明为一个Spring Bean。
+
+```xml
+<bean class="com.springinaction.springidol.CriticAspect" factory-method="aspectOf">
+	<property name="criticismEngine" ref="criticismEngine" />
+</bean>
+```
+
+注意：AspectJ切面是由AspectJ在运行期创建的，而不是由Spring容器初始化的，因此要使用`factory-method`指定的工厂方法来获得切面的引用。
 
 ## 切点表达式语言
 
