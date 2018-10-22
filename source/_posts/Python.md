@@ -3138,6 +3138,8 @@ from drawing import shapes    #导入模块shapes
 '/usr/lib/python3.7/copy.py'
 ```
 
-最后，也可以使用`help`函数来获取模块的帮助信息，`copy.__doc__`可以查看`copy`模块的文档字符串。
+另外，也可以使用`help`函数来获取模块的帮助信息，`copy.__doc__`可以查看`copy`模块的文档字符串。
+
+`sys`模块的`modules`变量是一个已加载模块的字典。
 
 # 构建管理
