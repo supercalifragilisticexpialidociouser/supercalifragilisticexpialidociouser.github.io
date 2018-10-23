@@ -4,7 +4,7 @@ date: 2018-06-01 21:57:20
 tags: [5.1.1]
 ---
 
-# Spring框架
+# Spring架构
 
 ![Spring-framework](SpringCore/Spring-framework.png)
 
@@ -87,6 +87,8 @@ public class SgtPeppers implements CompactDisc {
 ```
 
 实现类上要带有`@Component`等标注，这样Spring才会发现并为该类创建Bean。
+
+另外，`@Repository`、`@ Service`和`@Controller`是`@Component`的特殊化，用于更具体的用例（分别在持久性，服务和表示层中）。
 
 #### 启用组件扫描
 
@@ -296,9 +298,73 @@ daos.xml：
 </beans>
 ```
 
-在基于XML的配置中，你不再需要直接手动创建Bean。当Spring发现`<bean>`元素时，它将会调用`class`属性指定的类的默认构造器来创建Bean。
+在基于XML的配置中，你不再需要直接手动创建Bean。当Spring发现`<bean>`元素时，它将会根据Bean配置的实例化方式来自动实例化Bean。
 
-#### 构造器注入
+#### 实例化Bean
+
+##### 通过默认构造器实例化Bean
+
+```xml
+<bean id="exampleBean" class="examples.ExampleBean"/>
+```
+
+##### 通过静态工厂方法实例化Bean
+
+```xml
+<bean id="clientService"
+      class="examples.ClientService"
+      factory-method="createInstance"/>
+```
+
+`class`属性指定包含静态工厂方法的类。`factory-method`属性指定实例化Bean的静态工厂方法名。
+
+```java
+public class ClientService {
+  private static ClientService clientService = new ClientService();
+  private ClientService() {}
+
+  public static ClientService createInstance() {
+    return clientService;
+  }
+}
+```
+
+##### 通过实例工厂方法实例化Bean
+
+```xml
+<bean id="serviceLocator" class="examples.DefaultServiceLocator">
+  <!-- inject any dependencies required by this locator bean -->
+</bean>
+
+<bean id="clientService"
+      factory-bean="serviceLocator"
+      factory-method="createClientServiceInstance"/>
+
+<bean id="accountService"
+      factory-bean="serviceLocator"
+      factory-method="createAccountServiceInstance"/>
+```
+
+`factory-bean`属性指定包含实例工厂方法的Bean名。
+
+```java
+public class DefaultServiceLocator {
+  private static ClientService clientService = new ClientServiceImpl();
+  private static AccountService accountService = new AccountServiceImpl();
+
+  public ClientService createClientServiceInstance() {
+    return clientService;
+  }
+
+  public AccountService createAccountServiceInstance() {
+    return accountService;
+  }
+}
+```
+
+#### 依赖注入
+
+##### 构造器注入
 
 使用XML来配置构造器注入，可以使用`<constructor-arg>`元素或Spring 3.0引入的c-命名空间来配置。
 
@@ -339,6 +405,50 @@ daos.xml：
 </beans>
 ```
 
+可以使用`type`属性显式指定构造函数参数的类型：
+
+```xml
+<bean id="exampleBean" class="examples.ExampleBean">
+  <constructor-arg type="int" value="7500000"/>
+  <constructor-arg type="java.lang.String" value="42"/>
+</bean>
+```
+
+可以使用`index`属性显式指定构造函数参数的索引：
+
+```xml
+<bean id="exampleBean" class="examples.ExampleBean">
+  <constructor-arg index="0" value="7500000"/>
+  <constructor-arg index="1" value="42"/>
+</bean>
+```
+
+还可以使用`name`属性显式指定构造函数参数名称：
+
+```xml
+<bean id="exampleBean" class="examples.ExampleBean">
+  <constructor-arg name="years" value="7500000"/>
+  <constructor-arg name="ultimateAnswer" value="42"/>
+</bean>
+```
+
+为了使这项工作开箱即用，必须在启用调试标志的情况下编译代码，以便Spring可以从构造函数中查找参数名称。如果您不能或不想使用debug标志编译代码，则可以使用`@ConstructorProperties` JDK批注显式命名构造函数参数。
+
+```java
+package examples;
+
+public class ExampleBean {
+  // Fields omitted
+  @ConstructorProperties({"years", "ultimateAnswer"})
+  public ExampleBean(int years, String ultimateAnswer) {
+    this.years = years;
+    this.ultimateAnswer = ultimateAnswer;
+  }
+}
+```
+
+
+
 使用c-命名空间来配置：
 
 ```xml
@@ -370,7 +480,7 @@ daos.xml：
 
 > 注意：通过构造器参数名方式，需要在编译代码的时候，将调试符号（debug symbol）保存在类代码中。如果你优化构建过程，将调试符号移除掉，那么这种方式可能就无法正常执行了。
 
-#### 属性注入
+##### 属性注入
 
 对于强依赖建议使用构造器注入，而对于可选性的依赖则建议使用属性注入。
 
@@ -547,6 +657,16 @@ p-命名空间的命名约定与c-命名空间的类似。
 </bean>
 ```
 
+#### 装配复合属性
+
+```xml
+<bean id="something" class="things.ThingOne">
+  <property name="fred.bob.sammy" value="123" />
+</bean>
+```
+
+`something`Bean有一个`fred`属性，`fred`有一个`bob`属性，`bob`有一个`sammy`属性，最后的`sammy`属性被设置为`123`。为了使它们工作，`fred`属性和它的`bob`属性不能为`null`。否则，抛出`NullPointerException`。
+
 #### 装配空值和空串
 
 空值：
@@ -587,6 +707,41 @@ p-命名空间的命名约定与c-命名空间的类似。
 </bean>
 ```
 
+#### 使用`depends-on`属性
+
+如果bean是另一个bean的依赖项，那通常意味着将一个bean设置为另一个bean的属性。通常，您可以使用基于XML的配置元数据中的`<ref />`元素来完成此操作。但是，有时bean之间的依赖关系不那么直接。例如，需要触发类中的静态初始化程序。
+
+```xml
+<bean id="beanOne" class="ExampleBean" depends-on="manager,accountDao">
+  <property name="manager" ref="manager" />
+</bean>
+
+<bean id="manager" class="ManagerBean" />
+<bean id="accountDao" class="x.y.jdbc.JdbcAccountDao" />
+```
+
+`depends-on`属性既指定初始化时间依赖关系，也指定销毁时间依赖关系。在给定的bean本身被销毁之前，首先销毁它依赖的bean。因此，依赖也可以控制关闭顺序。
+
+#### 延迟初始化Bean
+
+默认情况下，`ApplicationContext`实现会立即地创建和配置所有单例bean。如果不希望出现这种情况，可以通过`lazy-init`属性将bean定义为延迟初始化来阻止单例bean的预实例化。延迟初始化的bean告诉IoC容器在第一次请求时创建bean实例，而不是在启动时创建。
+
+```xml
+<bean id="lazy" class="com.something.ExpensiveToCreateBean" lazy-init="true"/>
+```
+
+当一个延迟初始化的bean是一个非延迟初始化的单例bean的依赖项时，`ApplicationContext`会在启动时创建立即创建延迟初始化的bean，因为它必须满足单例的依赖关系。
+
+还可以使用`<beans />`元素上的`default-lazy-init`属性在容器级别控制延迟初始化：
+
+```xml
+<beans default-lazy-init="true">
+  <!-- no beans will be pre-instantiated... -->
+</beans>
+```
+
+
+
 ### 配置导入
 
 可以使用`@Import`标注将多个配置类组合在一起，还可以使用`@ImportResource`标注将XML配置文件导入配置类：
@@ -618,6 +773,8 @@ public class MyConfig {
   <bean id="bean2" class="..."/>
 </beans>
 ```
+
+上面三个导入的配置文件都是相对路径（即使以`/`开头），它相对于当前执行导入的配置文件（`app.xml`）的位置。要使用绝对路径，要写成：`file:C:/config/services.xml` 或 `classpath:/config/services.xml`。
 
 注意：`<import>`元素只能导入其他的XML配置文件，并不能导入配置类。但可以使用`<bean>`元素来将配置类导入XML配置文件中：
 
@@ -1224,6 +1381,7 @@ Spring通过应用上下文（Application Context）装载bean的定义并把它
 ```java
 public static void main(String[] args) throws Exception {
 	ApplicationContext context = new ClassPathXmlApplicationContext("services.xml", "daos.xml");
+  //或者 ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
   // 获取Bean
   PetStoreService petStoreService = context.getBean("petStore", PetStoreService.class);
   // 使用petStoreService

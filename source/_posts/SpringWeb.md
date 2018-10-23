@@ -54,7 +54,11 @@ web.xml：
   <servlet>
     <servlet-name>app</servlet-name>
     <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-    <!-- 默认加载 /WEB-INF/Servlet名称-servlet.xml （这里是 /WEB-INF/app-servlet.xml）的Spring配置文件 -->
+    <!-- 如果缺省init-param元素，则默认加载 /WEB-INF/Servlet名称-servlet.xml （这里是 /WEB-INF/app-servlet.xml）的Spring配置文件。这里将contextConfigLocation显式设置为空，表示不加载Web组件的应用上下文 -->
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value></param-value>
+    </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
 
@@ -69,11 +73,150 @@ web.xml：
 
 #### 使用Java配置
 
+在Servlet 3环境中，容器会在类路径中查找实现了`javax.servlet.ServletContainerInitializer`接口的类，如果能发现的话，就会用它来配置Servlet容器上下文。
+
+Spring提供了这个接口的实现——`SpringServletContainerInitializer`，这个类会查找实现`WebApplicationInitializer`接口的类，并将配置的任务交给它们来完成。因此，可通过实现`WebApplicationInitializer`接口来配置`DispatcherServlet`和Spring应用上下文。当部署到Servlet 3.0容器中时，容器会自动发现它，并用它来配置Servlet上下文。Spring应用上下文会位于应用程序的Servlet上下文之中：
+
+```java
+public class MyWebApplicationInitializer implements WebApplicationInitializer {
+    @Override
+    public void onStartup(ServletContext servletCxt) {
+        // Load Spring web application configuration
+        AnnotationConfigWebApplicationContext ac = new AnnotationConfigWebApplicationContext();
+        ac.register(AppConfig.class);
+        ac.refresh();
+
+        // Create and register the DispatcherServlet
+        DispatcherServlet servlet = new DispatcherServlet(ac);
+        ServletRegistration.Dynamic registration = servletCxt.addServlet("app", servlet);
+        registration.setLoadOnStartup(1);
+        registration.addMapping("/app/*");
+    }
+}
+```
+
+Spring 3.2引入了一个便利的`WebApplicationInitializer`基础实现，也就是`AbstractAnnotationConfigDispatcherServletInitializer` ，也可以扩展这个类来配置`DispatcherServlet`和Spring应用上下文：
+
+```java
+public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+  @Override
+  protected Class<?>[] getRootConfigClasses() {
+    return new Class<?>[] { AppConfig.class };
+  }
+
+  @Override
+  protected Class<?>[] getServletConfigClasses() {
+    return null;
+  }
+
+  @Override
+  protected String[] getServletMappings() {
+    return new String[] { "/app/*" };
+  }
+}
+```
+
 ### 上下文的层次结构
 
-在Spring MVC中，`DispatcherServlet`加载的Web层应用上下文，将作为`ContextLoaderListener`加载的后端应用上下文的子上下文。
+对于许多应用程序，拥有单个`WebApplicationContext`就足够。但Spring应用上下文之间可以设置为父子级关系，以实现更好的解耦。子上下文可以访问父上下文中的Bean，反之则不行。
 
-## 过滤器
+在Spring MVC中，通常包含两个应用上下文，并且`DispatcherServlet`加载的Web层应用上下文，将作为`ContextLoaderListener`加载的后端应用上下文的子上下文。
+
+![mvc-context-hierarchy](SpringWeb/mvc-context-hierarchy.png)
+
+下面的示例配置了这种WebApplicationContext层次结构：
+
+```java
+public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+    @Override
+    protected Class<?>[] getRootConfigClasses() {
+        return new Class<?>[] { RootConfig.class };
+    }
+
+    @Override
+    protected Class<?>[] getServletConfigClasses() {
+        return new Class<?>[] { WebConfig.class };
+    }
+
+    @Override
+    protected String[] getServletMappings() {
+        return new String[] { "/app/*" };
+    }
+}
+```
+
+或者：
+
+```xml
+<web-app>
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>/WEB-INF/root-context.xml</param-value>
+  </context-param>
+
+  <servlet>
+    <servlet-name>app</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>/WEB-INF/web-context.xml</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>app</servlet-name>
+    <url-pattern>/app/*</url-pattern>
+  </servlet-mapping>
+</web-app>
+```
+
+## MVC配置
+
+### 启用Spring MVC
+
+在基于Java的配置中，可以在Servlet的应用上下文配置类中通过`@EnableWebMvc`标注来启用Spring MVC：
+
+```java
+@Configuration
+@EnableWebMvc
+public class WebConfig {
+  …
+}
+```
+
+在基于XML的配置中，可以使用下面配置启用标注驱动的Spring MVC：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+  <mvc:annotation-driven/>
+
+</beans>
+```
+
+### 启用组件扫描
+
+```java
+@Configuration
+@EnableWebMvc
+@ComponentScan("spitter.web")
+public class WebConfig {
+  …
+}
+```
 
 ## 控制器
 
@@ -152,5 +295,25 @@ public @ResponseBody User getById(@PathVariable("id") Long id) {
 #### HTTP HEAD、OPTIONS
 
 ### 处理器方法
+
+## 根上下文配置
+
+```java
+package spittr.config;
+
+…
+
+@Configuration
+@ComponentScan(
+  basePackages={"spitter"},
+  excludeFilters={
+    @Filter(type=FilterType.ANNOTATION, value=EnableWebMvc.class)
+  })
+public class RootConfig {
+  …
+}
+```
+
+组件扫描时，过滤掉以`@EnableWebMvc`标注的类。
 
 # Spring WebFlux
