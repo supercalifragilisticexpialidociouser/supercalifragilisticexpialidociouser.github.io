@@ -1,7 +1,7 @@
 ---
 title: Java
 date: 2018-03-22 17:13:48
-tags: [10]
+tags: [11]
 ---
 
 # 简介
@@ -2988,16 +2988,16 @@ Person p = new Student("Vinee Vu", "Economics");
 ```java
 public class Employee {
   …
-  public boolean equals(Object otherObject) {
+  public boolean equals(Object that) {
     // a quick test to see if the objects are identical
-    if (this == otherObject) return true;
+    if (this == that) return true;
     // must return false if the explicit parameter is null
-    if (otherObject == null ) return false;
+    if (that == null ) return false;
     // if the classes don't match, they can't be equal
-    if (getClass() != otherObject.getClass())
+    if (getClass() != that.getClass())
       return false;
-    // now we know otherObject is a non-null Employee
-    Employee other = (Employee) otherObject;
+    // now we know that is a non-null Employee
+    Employee other = (Employee) that;
     // test whether the fields have identical values
     return Objects.equals(name, other.name)  //Objects.equals()允许它的参数为null
       && salary == other.salary
@@ -3009,7 +3009,7 @@ public class Employee {
 > 如果`equals`的语义在每个子类中有所改变，则像上面一样使用`getClass`来检测它们是否属于同一个类；如果所有的子类都拥有统一的语义，就使用`instanceof`来检测，这时比较的两个对象可以一个是父类，另一个是子类，类型不需要完全相同：
 >
 > ```java
-> if (!(otherObject instanceof ClassName)) return false;
+> if (!(that instanceof ClassName)) return false;
 > ```
 > 
 >对于数组类型的字段，可以使用静态的`Arrays.equals`方法检测相应的数组元素是否相等。
@@ -3018,18 +3018,33 @@ public class Employee {
 
 ```java
 public class Manager extends Employee {
-  public boolean equals(Object otherObject) {
-    if (!super.equals(otherObject)) return false;
+  public boolean equals(Object that) {
+    if (!super.equals(that)) return false;
     // super.equals checked that this and otherObject belong to the same class
-    Manager other = (Manager) otherObject;
+    Manager other = (Manager) that;
     return bonus == other.bonus;
   }
 }
 ```
 
-
+> Apache Common Lang的`EqualsBuilder`类提供了方便的方法来实现`equals`方法：
+>
+> ```java
+> public boolean equals(Object that) {
+>   return EqualsBuilder.reflectionEquals(this, that, "name", "salary", "hireDay");
+> }
+> ```
+>
 
 ### `hashCode`方法
+
+> Apache Common Lang的`HashCodeBuilder`类提供了方便的方法来实现`hashCOde`方法：
+>
+> ```java
+> public int hashCode() {
+>   return HashCodeBuilder.reflectionHashCode(this, "name", "salary", "hireDay");
+> }
+> ```
 
 ### `toString`方法
 

@@ -222,7 +222,7 @@ public class WebConfig {
 
 ### 声明
 
-Spring MVC的控制器不需要继承任何类或接口，只需要标注上`@Controller`即可。并且，使用`@RequestMapping`将HTTP请求映射到指定的方法。
+Spring MVC的控制器不需要继承任何类或接口，只需要在控制器的方法上标注上`@RequestMapping`即可。`@RequestMapping`将HTTP请求映射到指定的方法。而`@Controller`标注主要是在自动装配时辅助组件扫描的。
 
 `@RequestMapping`既可只作用在方法上，也可以同时作用在方法和类上：
 
@@ -240,7 +240,9 @@ public class FooController {
 
 则对`/foo/bar`的请求，将交由`FooController.bar`方法处理。
 
-控制器方法返回值默认是视图的名称。如果希望返回内容本身，而不是视图名称，则需要在方法上加上`@ResponseBody`。`@ResponseBody`用于将控制器的方法返回值，通过相应的`HttpMessageConverter`转换为指定格式后，写入`Response`对象的body。默认情况下，如果返回值是字符串类型，则直接返回这个字符串；否则，默认使用Jackson将返回值序列化为JSON字符串后输出。
+控制器方法返回值默认是视图的名称，`DispatcherServlet`会要求视图解析器将这个逻辑视图名称解析为实际的视图。
+
+如果希望返回内容本身，而不是视图名称，则需要在方法上加上`@ResponseBody`。`@ResponseBody`用于将控制器的方法返回值，通过相应的`HttpMessageConverter`转换为指定格式后，写入`Response`对象的body。默认情况下，如果返回值是字符串类型，则直接返回这个字符串；否则，默认使用Jackson将返回值序列化为JSON字符串后输出。
 
 如果需要的是一个RESTful风格的控制器，则需要使用`@RestController`标注，它相当于`@Controller`+`@ResponseBody`，用于返回JSON格式数据。
 
@@ -248,11 +250,24 @@ public class FooController {
 
 `@RequestMapping`的属性：
 
-- value：请求的URL路径，支持URL模板、正则表达式；
+- value：请求的URL路径，支持URL模板、正则表达式。`value`属性能够接受一个`String`类型的数组：
+
+  ```java
+  @Controller
+  @RequestMapping({"/", "/home"})
+  public class HomeController {
+    …
+  }
+  ```
+
 - method：HTTP请求方法，有GET、POST等；
+
 - consumes：接受的媒体类型。对应HTTP的`Content-Type`；
+
 - produces：响应的媒体类型。对应HTTP的`Accept`；
+
 - params：请求参数；
+
 - headers：请求的HTTP头。
 
 另外，根据请求方法的不同，还可以使用`@GetMapping`、`@PostMapping`、`@PutMapping`、`@DeleteMapping`和`@PatchMapping`等简便标注代替。

@@ -334,6 +334,105 @@ $ minikube version
 
 Photon OS是一个专注于容器的精简Linux操作系统。它的完全安装中已经包含Kubernetes和Mesos。
 
+## 使用kubekit搭建k8s集群
+
+[Kubekit](https://github.com/Orientsoft/kubekit)是一个部署工具包，它为kubernetes提供离线安装解决方案。您可以使用它将Kubernetes部署到OFFLINE生产环境。
+
+Kubekit将安装
+
+- Docker（1.12.6）
+- Kubernetes及其所有组件
+- Kubernetes仪表板，默认节点端口：31234
+
+### 安装操作系统
+
+首先官方支持下面两个操作系统，而且都要是最小化安装支持的
+
+- CentOS release 7.3.1611
+- CentOS release 7.4.1708
+
+安装完成之后关闭防火墙：
+
+```
+systemctl stop firewalld
+systemctl disable firewalld
+```
+
+关闭selinux：
+
+```
+setenforce 0
+vim /etc/selinux/config
+```
+
+修改为：
+
+```
+SELINUX=disabled
+```
+
+最好还可以同步一下时间什么的：
+
+```
+yum install ntpdate
+ntpdate 0.cn.pool.ntp.org
+```
+
+### 下载kubekit
+
+```
+yum install wget
+wget https://kubekit.orientsoft.cn/kubekit-linux64-0.3.tar.gz
+```
+
+解压
+
+```bash
+tar -zxvf kubekit-linux64-0.3.tar.gz
+mv kubekit-release/ kubekit
+```
+
+下载离线包：
+
+```
+wget https://kubekit.orientsoft.cn/package-1.9.2.tar.gz
+tar -zxvf package-1.9.2.tar.gz
+mv package kubekit
+```
+
+给脚本赋予可执行权限
+
+```
+cd kubekit/package/
+chmod +x ./*.sh
+```
+
+### 安装并初始化master节点
+
+```bash
+./kubekit init 192.168.38.166
+```
+
+接着ctrl+c退出来，然后重新启动kubekit的dashboard并且放在后台
+
+```
+./kubekit server &
+```
+
+### 添加一个node
+
+浏览器访问 ip:9000。
+
+创建一个同样安装着centos 1708最小化安装的机器，之后打开修改主机名：
+
+```
+hostnamectl set-hostname kubekit-node1
+```
+
+接着点击web界面上的add node，输入ssh账号密码等信息，最后选中点击start deploy就可以了。
+
+之后你就会在kubernetes的dashboard看到这个节点的详细信息了。
+
 # 网络管理
 
 ## 网络模型
