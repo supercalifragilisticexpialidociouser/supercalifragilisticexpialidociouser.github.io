@@ -1877,7 +1877,7 @@ True
 
 注意：上例的`Herring`类即使没有提供`talk`方法，仍然能注册成为`Talker`，只不过在调用`talk`方法将出错。
 
-# 集合类型
+# 数据结构
 
 ## 序列
 
@@ -2508,7 +2508,82 @@ dict_keys(['title', 'url', 'spam'])
 
 在列表推导中，for前面只有一个表达式，而在字典推导中，for前面有两个用冒号分隔的表达式，这两个表达式分别为键及其对应的值。
 
-## 集
+## 集合
+
+早期Python的集合是由模块`sets`中的`Set`类实现的，现在集合是由内置类`set`实现的。
+
+集合是可变的，因此不能用作字典的键。另外，集合中只能包含不可变的值，因此集合中不能包含其他集合。
+
+如果要使用可变的集合，要使用`frozenset`类型。
+
+### 集合字面量
+
+```python
+{0, 1, 2}
+```
+
+注意：`{}`是空字典，而不是空集。空集表示为`set()`。
+
+集合将忽略重复的元素：
+
+```python
+>>> {0, 1, 2, 3, 0, 1, 2, 3, 4, 5}
+{0, 1, 2, 3, 4, 5}
+```
+
+与字典一样，集合中元素的排列顺序是不确定的。 
+
+### 构造集
+
+```python
+>>> set(range(10))
+{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+```
+
+### 使用集合
+
+并集：
+
+```python
+>>> a = {1, 2, 3}
+>>> b = {2, 3, 4}
+>>> a.union(b)
+{1, 2, 3, 4}
+>>> a | b
+{1, 2, 3, 4}
+```
+
+其他操作：
+
+```python
+>>> c = a & b
+>>> c
+{2, 3}
+>>> c.issubset(a)
+True
+>>> c <= a
+True
+>>> c.issuperset(a)
+False
+>>> a.intersection(b)
+{2, 3}
+>>> a.difference(b)
+{1}
+>>> a - b
+{1}
+>>> a.symmetric_difference(b)
+{1, 4}
+>>> a ^ b
+{1, 4}
+>>> a.copy()
+{1, 2, 3}
+>>> a.copy() is a
+False
+```
+
+## 堆
+
+Python中实际上没有堆类型，而只有一个包含一些堆操作函数的模块`heapq`，堆对象使用列表来表示。
 
 ## 实现自己的集合类型
 
@@ -2663,6 +2738,15 @@ Python中，可以通过`sys`模块的`argv`变量来获取命令行参数。
 import os
 os.system('/usr/bin/firefox')
 ```
+
+要Windows中，使用`os.system`启动外部程序后，当前Python程序将继续运行；而在UNIX中，当前Python程序将等待`os.system`命令结束。
+
+> 打开网页的更好解决方案是使用模块`webbrowser`中的函数`open`：
+>
+> ```python
+> import webbrowser
+> webbrowser.open('http://www.python.org')
+> ```
 
 # 异常处理
 
