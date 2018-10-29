@@ -218,6 +218,10 @@ public class WebConfig {
 }
 ```
 
+### AOP代理
+
+在某些情况下，您需要在运行时使用AOP代理装饰控制器。例如，如果您选择在控制器上直接使用`@Transactional`注释。在这种情况下，对于控制器而言，我们建议使用基于类的代理。这通常是控制器的默认选择。但是，如果控制器必须实现不是Spring Context回调的接口（例如`InitializingBean`，`*Aware`等），则可能需要显式配置基于类的代理。例如，使用`<tx：annotation-driven />`，您可以更改为`<tx：annotation-driven proxy-target-class =“true”/>`。
+
 ## 控制器
 
 ### 声明
@@ -238,7 +242,7 @@ public class FooController {
 }
 ```
 
-则对`/foo/bar`的请求，将交由`FooController.bar`方法处理。
+上面代码对`/foo/bar`的请求，将交由`FooController.bar`方法处理。
 
 控制器方法返回值默认是视图的名称，`DispatcherServlet`会要求视图解析器将这个逻辑视图名称解析为实际的视图。
 
@@ -270,7 +274,32 @@ public class FooController {
 
 - headers：请求的HTTP头。
 
-另外，根据请求方法的不同，还可以使用`@GetMapping`、`@PostMapping`、`@PutMapping`、`@DeleteMapping`和`@PatchMapping`等简便标注代替。
+#### 指定HTTP方法
+
+请求的HTTP方法可以通过`@RequestMapping`标注的`method`属性来指定，也可以使用如下便捷的标注来指定：
+
+- `@GetMapping`
+- `@PostMapping`
+- `@PutMapping`
+- `@DeleteMapping`
+- `@PatchMapping`
+
+```java
+@RestController
+@RequestMapping("/persons")
+class PersonController {
+  @GetMapping("/{id}")
+  public Person getPerson(@PathVariable Long id) {
+    // ...
+  }
+
+  @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
+  public void add(@RequestBody Person person) {
+    // ...
+  }
+}
+```
 
 #### URL模式
 
@@ -287,9 +316,26 @@ public @ResponseBody User getById(@PathVariable("id") Long id) {
 
 > 标注中如果只设置一个`value`参数时，可以省略`value=`部分。例如：`@RequestMapping("/get/{id}.json")`。
 
+同一个处理器方法允许有任意多个参数带有`@PathVariable`标注，并且可以在类和方法级别声明URI变量：
+
+```java
+@Controller
+@RequestMapping("/owners/{ownerId}")
+public class OwnerController {
+  @GetMapping("/pets/{petId}")
+  public Pet findPet(@PathVariable Long ownerId, @PathVariable Long petId) {
+    // ...
+  }
+}
+```
+
+如果URI变量名称与方法参数相同，并且您的代码使用调试信息或Java 8上的`-parameters`编译器标志进行编译，则`@PathVariable`可以省略参数。
+
+URI变量自动转换为适当的类型，如果转换失败将引发`TypeMismatchException`。默认情况下支持简单类型（int，long，Date等），您可以注册对任何其他数据类型的支持。请参见“类型转换”和“数据绑定”。
+
 ##### Ant路径表达式
 
-`*`匹配任意多个字符（除了路径分隔符”/“），`**`匹配任意路径，`?`匹配单个字符。
+`*`匹配任意多个字符（除了路径分隔符”/“），`**`匹配任意多个字符（包括路径分隔符），`?`匹配单个字符。
 
 ```java
 @RequestMapping("/user/*.html")  //匹配：/user/1.html、/user/abc.html，但不匹配：/user/add/1.html
@@ -297,11 +343,24 @@ public @ResponseBody User getById(@PathVariable("id") Long id) {
 @RequestMapping("/user/?.html")  //匹配：/user/1.html，但不匹配：/user/abc.html
 ```
 
-如果一个请求有多个`@RequestMapping`能够匹配，则更具体的匹配优先。另外，有通配符的低于无通配符的，有`**`的低于有`*`的。
+如果一个请求有多个`@RequestMapping`能够匹配，则更具体的匹配优先。另外，有通配符的优先级低于无通配符的，有`**`的低于有`*`的。默认映射模式（`/**`）总是具有最低优先级。
 
-##### 插值
+##### 正则表达式
 
-在URL映射中，可以使用`${…}`的插值（SpEL），来获取系统配置或环境变量：
+语法`{varName：regex}`声明一个URI变量，它的值必须匹配正则表达式`regex`：
+
+```java
+@GetMapping("/{name:[a-z-]+}-{version:\\d\\.\\d\\.\\d}{ext:\\.[a-z]+}")
+public void handle(@PathVariable String version, @PathVariable String ext) {
+  // ...
+}
+```
+
+上面的正则表达式可以匹配类似于`/spring-web-3.0.5 .jar`的URL。
+
+##### 占位符
+
+URI路径模式还可以嵌入`$ {…}`占位符，这些占位符在启动时通过`PropertyPlaceHolderConfigurer`来解析本地、系统、环境和其他属性源。例如，您可以使用它来根据某些外部配置参数化基本URL：
 
 ```java
 @RequestMapping("/${query.all}.json")
@@ -309,15 +368,13 @@ public @ResponseBody User getById(@PathVariable("id") Long id) {
 
 #### HTTP HEAD、OPTIONS
 
-### 处理器方法
-
-### 模型
-
-### 数据绑定
-
 ### 异常
 
 ### 控制器通知
+
+## 模型
+
+### 数据绑定
 
 ## 视图
 
@@ -330,6 +387,55 @@ public @ResponseBody User getById(@PathVariable("id") Long id) {
 ### 主题
 
 ### 视图技术
+
+## *内容类型
+
+默认情况下，Spring MVC执行`.*`后缀模式匹配，以便映射到`/person`的控制器也隐式映射到`/person.*`。这种机制主要是为了可以使用文件扩展名来指明响应的请求内容类型（而不是`Accept`头）。但是，使用文件扩展名来指定请求内容类型已经证明存在多种问题，可能会导致歧义。因此，使用`Accept`头应该是首选。
+
+要完全禁用文件扩展名，必须同时设置以下两项：
+
+- useSuffixPatternMatching(false)
+
+- favorPathExtension(false)
+
+基于Java的配置：
+
+```java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+  @Override
+  public void configurePathMatch(PathMatchConfigurer configurer) {
+    configurer.setUseSuffixPatternMatch(false);
+    …
+  }
+
+  @Bean
+  public UrlPathHelper urlPathHelper() {
+    //...
+  }
+
+  @Bean
+  public PathMatcher antPathMatcher() {
+    //...
+  }
+}
+```
+
+基于XML配置：
+
+```xml
+<mvc:annotation-driven>
+  <mvc:path-matching
+    suffix-pattern="false"
+    …/>
+</mvc:annotation-driven>
+
+<bean id="pathHelper" class="org.example.app.MyPathHelper"/>
+<bean id="pathMatcher" class="org.example.app.MyPathMatcher"/>
+```
+
+基于URL的内容协商（content negotiation）仍然有用（例如，在浏览器中键入URL时）。为此，我们建议使用基于查询参数的策略来避免文件扩展名带来的大多数问题。或者，如果必须使用文件扩展名，请考虑通过`ContentNegotiationConfigurer`的`mediaTypes`属性将它们限制为显式注册的扩展名列表。
 
 ## Multipart解析器
 
