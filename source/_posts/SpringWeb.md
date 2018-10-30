@@ -1,7 +1,7 @@
 ---
 title: SpringWeb
 date: 2018-06-01 21:57:58
-tags: [5.1.1]
+tags: [5.1.2]
 ---
 
 # Spring MVC
@@ -28,7 +28,7 @@ Spring Web MVC是构建在Servlet API上的Web框架。
 
 7. 渲染输出（如HTML、JSON、图片等）最终通过响应对象传递给客户端。
 
-## DispatcherServlet
+## 搭建Spring MVC
 
 ### 配置DispatcherServlet
 
@@ -175,9 +175,9 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 </web-app>
 ```
 
-## MVC配置
+### MVC配置
 
-### 启用Spring MVC
+#### 启用Spring MVC
 
 在基于Java的配置中，可以在Servlet的应用上下文配置类中通过`@EnableWebMvc`标注来启用Spring MVC：
 
@@ -207,7 +207,7 @@ public class WebConfig {
 </beans>
 ```
 
-### 启用组件扫描
+#### 启用组件扫描
 
 ```java
 @Configuration
@@ -218,9 +218,29 @@ public class WebConfig {
 }
 ```
 
-### AOP代理
+#### AOP代理
 
 在某些情况下，您需要在运行时使用AOP代理装饰控制器。例如，如果您选择在控制器上直接使用`@Transactional`注释。在这种情况下，对于控制器而言，我们建议使用基于类的代理。这通常是控制器的默认选择。但是，如果控制器必须实现不是Spring Context回调的接口（例如`InitializingBean`，`*Aware`等），则可能需要显式配置基于类的代理。例如，使用`<tx：annotation-driven />`，您可以更改为`<tx：annotation-driven proxy-target-class =“true”/>`。
+
+### 根上下文配置
+
+```java
+package spittr.config;
+
+…
+
+@Configuration
+@ComponentScan(
+  basePackages={"spitter"},
+  excludeFilters={
+    @Filter(type=FilterType.ANNOTATION, value=EnableWebMvc.class)
+  })
+public class RootConfig {
+  …
+}
+```
+
+组件扫描时，过滤掉以`@EnableWebMvc`标注的类。
 
 ## 控制器
 
@@ -368,13 +388,61 @@ URI路径模式还可以嵌入`$ {…}`占位符，这些占位符在启动时�
 
 #### HTTP HEAD、OPTIONS
 
+### 数据绑定
+
 ### 异常
 
 ### 控制器通知
 
 ## 模型
 
-### 数据绑定
+### 传递模型数据到视图中
+
+Spring提供了多种方式将模型数据传递到视图中。
+
+#### 通过Model参数
+
+```java
+@RequestMapping(method=RequestMethod.GET)
+public String spittles(Model model) {
+  model.addAttribute("spittleList", spittleRepository.findSpittles(Long.MAX_VALUE, 20));
+  return "spittles";
+}
+```
+
+这样，在视图中就可以通过`${spittles.属性名}`方式访问这些模型数据。
+
+> 当视图是JSP时，模型数据实际上会作为请求属性放在请求（request）之中。
+
+#### 通过Map参数
+
+如果你希望使用非Spring类型的话，可以用`java.util.Map`来代替`Model`：
+
+```java
+@RequestMapping(method=RequestMethod.GET)
+public String spittles(Map model) {
+  model.put("spittleList", spittleRepository.findSpittles(Long.MAX_VALUE, 20));
+  return "spittles";
+}
+```
+
+#### 通过返回值
+
+当处理器方法的返回值是除了`String`类型之外的对象时，该返回值将不会被当作是视图的逻辑名称，而是会被放到模型中：
+
+```java
+@Controller
+@RequestMapping("/spittles")
+public class SpittleController {
+  …
+  @RequestMapping(method=RequestMethod.GET)
+  public List<Spittle> spittles() {
+    return spittleRepository.findSpittles(Long.MAX_VALUE, 20);
+  }
+}
+```
+
+这里返回值是一个`List`对象，将被放到模型中，并且它在模型中的键名会根据其类型推断得出，本例中就是`spittleList`。而逻辑视图的名称将会根据请求路径推断得出，本例中就是`spittles`
 
 ## 视图
 
@@ -454,25 +522,5 @@ public class WebConfig implements WebMvcConfigurer {
 ## REST客户端
 
 ## WebSockets
-
-## 根上下文配置
-
-```java
-package spittr.config;
-
-…
-
-@Configuration
-@ComponentScan(
-  basePackages={"spitter"},
-  excludeFilters={
-    @Filter(type=FilterType.ANNOTATION, value=EnableWebMvc.class)
-  })
-public class RootConfig {
-  …
-}
-```
-
-组件扫描时，过滤掉以`@EnableWebMvc`标注的类。
 
 # Spring WebFlux
