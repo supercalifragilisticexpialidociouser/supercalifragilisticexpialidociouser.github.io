@@ -1680,7 +1680,11 @@ public static void main(String[] args) {
 
 ### Resource接口
 
-# 校验、数据绑定和类型转换
+# 校验
+
+# 数据绑定
+
+# 类型转换
 
 
 

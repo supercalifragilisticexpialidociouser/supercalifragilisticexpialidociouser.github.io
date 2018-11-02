@@ -349,7 +349,7 @@ public class OwnerController {
 }
 ```
 
-如果URI变量名称与方法参数相同，并且您的代码使用调试信息或Java 8上的`-parameters`编译器标志进行编译，则`@PathVariable`可以省略参数。
+如果URI变量名称与方法参数相同，并且您的代码使用调试信息或Java 8上的`-parameters`编译器标志进行编译，则`@PathVariable`可以省略`value`属性。
 
 URI变量自动转换为适当的类型，如果转换失败将引发`TypeMismatchException`。默认情况下支持简单类型（int，long，Date等），您可以注册对任何其他数据类型的支持。请参见“类型转换”和“数据绑定”。
 
@@ -388,6 +388,187 @@ URI路径模式还可以嵌入`$ {…}`占位符，这些占位符在启动时�
 
 #### HTTP HEAD、OPTIONS
 
+### 接受请求的输入
+
+Spring MVC提供了下面几种方式将客户端的数据传送到控制器的处理器方法中：
+
+- 查询参数（Query Parameter）：面向操作（控制）。
+- 表单参数（Form Parameter）：面向数据。
+- 路径变量（Path Variable）：面向资源，详见“路径参数”。
+
+#### 查询参数
+
+下面的处理器方法将匹配：`GET: /spittles?max=238900&count=50`
+
+```java
+@Controller
+@RequestMapping("/spittles")
+public class SpittleController {
+  private static final String MAX_LONG_AS_STRING = "9223372036854775807";
+  …
+  @RequestMapping(method=RequestMethod.GET)
+  public List<Spittle> spittles(
+      @RequestParam(value="max", defaultValue=MAX_LONG_AS_STRING) long max,
+      @RequestParam(value="count", defaultValue="20") int count) {
+    return spittleRepository.findSpittles(max, count);
+  }
+  …
+}
+```
+
+注意：`@RequestParam`的`value`和`defaultValue`属性都是`String`类型，但是当绑定到方法的参数时，会自动转换为相应类型。
+
+#### 表单参数
+
+控制器代码：
+
+```java
+@Controller
+@RequestMapping("/spitter")
+public class SpitterController {
+  private SpitterRepository spitterRepository;
+
+  @Autowired
+  public SpitterController(SpitterRepository spitterRepository) {
+    this.spitterRepository = spitterRepository;
+  }
+  
+  //显示注册表单
+  @RequestMapping(value="/register", method=GET)
+  public String showRegistrationForm() {
+    return "registerForm";
+  }
+  
+  //处理注册表单
+  @RequestMapping(value="/register", method=POST)
+  public String processRegistration(Spitter spitter) {
+    spitterRepository.save(spitter);
+    return "redirect:/spitter/" + spitter.getUsername();
+  }
+  
+  //显示个人信息
+  @RequestMapping(value="/{username}", method=GET)
+  public String showSpitterProfile(@PathVariable String username, Model model) {
+    Spitter spitter = spitterRepository.findByUsername(username);
+    model.addAttribute(spitter);
+    return "profile";
+  }
+}
+```
+
+> `processRegistration`方法的`spitter`参数的属性将会使用POST请求中同名的参数进行填充。
+>
+> 在处理POST类型的请求时，在请求处理完成后，最好进行一下重定向，这样浏览器的刷新就不会重复提交表单了。
+>
+> 本例假定使用`InternalResourceViewResolver`视图解析器，它会将以`redirect:`为前缀的视图格式解析为重定向到指定视图。
+>
+> `InternalResourceViewResolver`视图解析器还会识别`forward:`前缀的视图格式，它将解析为将请求转发到指定视图。
+
+registerForm.jsp：
+
+```jsp
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page session="false" %>
+<html>
+  <head>
+    <title>Spitter</title>
+    <link rel="stylesheet" type="text/css" 
+          href="<c:url value="/resources/style.css" />" >
+  </head>
+  <body>
+    <h1>Register</h1>
+
+    <form method="POST">
+      First Name: <input type="text" name="firstName" /><br/>
+      Last Name: <input type="text" name="lastName" /><br/>
+      Email: <input type="email" name="email" /><br/>
+      Username: <input type="text" name="username" /><br/>
+      Password: <input type="password" name="password" /><br/>
+      <input type="submit" value="Register" />
+    </form>
+  </body>
+</html>
+```
+
+这里`<form>`元素中并没有设置`action`属性。在这种情况下，当表单提交时，它会提交到与展现当前视图时相同的URL路径上，本例中就是`/spitter/register`。
+
+profile.jsp：
+
+```jsp
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page session="false" %>
+<html>
+  <head>
+    <title>Spitter</title>
+    <link rel="stylesheet" type="text/css" href="<c:url value="/resources/style.css" />" >
+  </head>
+  <body>
+    <h1>Your Profile</h1>
+    <c:out value="${spitter.username}" /><br/>
+    <c:out value="${spitter.firstName}" /> <c:out value="${spitter.lastName}" /><br/>
+    <c:out value="${spitter.email}" />
+  </body>
+</html>
+```
+
+##### 校验表单
+
+从Spring 3.0开始，Spring MVC提供了对Java Validation API的支持。在Spring MVC中使用Java Validation API，并不需要什么额外的配置，只要保证在类路径下包含Java Validation API的实现（例如Hibernate Validator）。
+
+Spitter.java：
+
+```java
+public class Spitter {
+  private Long id;
+  
+  @NotNull
+  @Size(min=5, max=16)
+  private String username;
+
+  @NotNull
+  @Size(min=5, max=25)
+  private String password;
+  
+  @NotNull
+  @Size(min=2, max=30)
+  private String firstName;
+
+  @NotNull
+  @Size(min=2, max=30)
+  private String lastName;
+  
+  @NotNull
+  @Email
+  private String email;
+  
+  …
+}
+```
+
+我们已经为`Spitter`添加了校验标注，接下来需要修改`processRegistration`方法来应用校验功能：
+
+```java
+@RequestMapping(value="/register", method=POST)
+public String processRegistration(
+  @Valid Spitter spitter, 
+  Errors errors) {
+  if (errors.hasErrors()) {
+    return "registerForm";
+  }
+
+  spitterRepository.save(spitter);
+  return "redirect:/spitter/" + spitter.getUsername();
+}
+```
+
+`spitter`参数添加了`@Valid`标注，这会告知Spring，需要确保这个对象满足校验限制。
+
+在`Spitter`类的属性上添加校验限制并不能阻止表单提交，不管校验有没有通过，`processRegistration`方法都会被调用。因此，我们要在`processRegistration`方法中处理校验的错误。
+
+如果有校验出现错误，那么这些错误可以通过`Errors`对象进行访问。注意，`Errors`参数必须紧跟在带有`@Valid`标注的参数之后。
+
+> 校验的更详细用法，请参见“SpringCore”的“校验”。
+
 ### 数据绑定
 
 ### 异常
@@ -413,6 +594,8 @@ public String spittles(Model model) {
 这样，在视图中就可以通过`${spittles.属性名}`方式访问这些模型数据。
 
 > 当视图是JSP时，模型数据实际上会作为请求属性放在请求（request）之中。
+>
+> `Model`参数的位置可任意。
 
 #### 通过Map参数
 
@@ -425,6 +608,8 @@ public String spittles(Map model) {
   return "spittles";
 }
 ```
+
+> `Map`参数的位置可任意。
 
 #### 通过返回值
 
@@ -450,11 +635,176 @@ public class SpittleController {
 
 ### 视图解析器
 
+控制器只提供了逻辑视图名，而Spring视图解析器则负责根据逻辑视图名来确定使用哪一个视图实现来渲染模型。
+
+Spring MVC定义了一个名为`ViewResolver`的接口，它大致如下：
+
+```java
+public interface ViewResolver {
+  View resolveViewName(String viewName, Locale locale) throw Exception;
+}
+```
+
+当给`resolveViewName`方法传递一个视图名和语言环境对象时，它会返回一个`View`实例。`View`也是一个接口：
+
+```java
+public interface View {
+  String getContentType();
+  void render(Map<String, ?>model, HttpServletRequest request, HttpServletResponse response) throw Exception;
+}
+```
+
+`View`接口的任务就是接受模型以及Servlet的请求和响应对象，并将输出结果渲染到响应对象中。
+
+当需要与具体视图技术整合时，我们实际上只需要实现上述两个接口。但是，Spring MVC已经为我们提供了许多内置的实现：
+
+| 视图解析器                     | 说明                                                         |
+| ------------------------------ | ------------------------------------------------------------ |
+| BeanNameViewResolver           | 将视图解析为Spring应用上下文中的Bean，其中Bean的ID与视图名字相同。 |
+| ContentNegotiatingViewResolver | 根据内容类型来解析视图，委托给另一个能够产生对应内容类型的视图解析器。 |
+| FreeMarkerViewResolver         | 将视图解析为FreeMarker模板。                                 |
+| InternalResourceViewResolver   | 将视图解析为Web应用的内部资源（一般为JSP）。                 |
+| JasperReportsViewResolver      | 将视图解析为JasperReports定义。                              |
+| ResourceBundleViewResolver     | 将视图解析为资源Bundle（一般为属性文件）。                   |
+| TilesViewResolver              | 将视图解析为Apache Tile定义，其中tile ID与视图名相同。       |
+| UrlBasedViewResolver           | 直接根据视图的名称解析视图，视图的名称会匹配一个物理视图的定义。 |
+| VelocityLayoutViewResolver     | 将视图解析为Velocity布局，从不同的Velocity模板中组合页面。   |
+| VelocityViewResolver           | 将视图解析为Velocity模板。                                   |
+| XmlViewResolver                | 将视图解析为特定XML文件中的bean定义。类似于BeanNameViewResolver。 |
+| XsltViewResolver               | 将视图解析为XSLT转换后的结果。                               |
+
+### 视图技术
+
+#### JSP
+
+##### 配置视图解析器
+
+基于Java的配置：
+
+```java
+@Configuration
+@EnableWebMvc
+@ComponentScan("spittr.web")
+public class WebConfig extends WebMvcConfigurerAdapter {
+  @Bean
+  public ViewResolver viewResolver() {
+    InternalResourceViewResolver resolver = new InternalResourceViewResolver();
+    resolver.setPrefix("/WEB-INF/views/");
+    resolver.setSuffix(".jsp");
+    return resolver;
+  }
+  …
+}
+```
+
+或者基于XML的配置：
+
+```xml
+<bean id="viewResolver"
+      class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+      p:prefix="/WEB-INF/views/"
+      p:suffix=".jsp" />
+```
+
+解析示例：
+
+- 逻辑视图`home`将会解析为`/WEB-INF/views/home.jsp`。
+  ![JSP视图解析图示](SpringWeb/JSP视图解析图示.png)
+- 逻辑视图`productList`将会解析为`/WEB-INF/views/productList.jsp`。
+- 逻辑视图`books/detail`将会解析为`/WEB-INF/views/books/detail.jsp`。
+
+上面的配置最终会将逻辑视图名解析为`InternalResourceView`实例，这个实例会引用JSP文件。但是如果这些JSP使用JSTL标签来处理格式化和信息的话，那么我们会希望`InternalResourceViewResolver`将视图解析为`JstlView`。要让`InternalResourceViewResolver`将视图解析为`JstlView`，而不是`InternalResourceView`，只需要多设置个`viewClass`属性：
+
+```java
+@Bean
+public ViewResolver viewResolver() {
+  InternalResourceViewResolver resolver = new InternalResourceViewResolver();
+  resolver.setPrefix("/WEB-INF/views/");
+  resolver.setSuffix(".jsp");
+  resolver.setViewClass(org.springframework.web.servlet.view.JstlView.class);
+  return resolver;
+}
+```
+
+或者：
+
+```xml
+<bean id="viewResolver"
+      class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+      p:prefix="/WEB-INF/views/"
+      p:suffix=".jsp"
+      p:viewClass="org.springframework.web.servlet.view.JstlView" />
+```
+
+#### Thymeleaf
+
+JSP作为视图技术是有很大缺点的：
+
+- 缺乏良好的格式：JSP模板虽然采用HTML的形式，但又掺杂上了各种JSP标签库的标签，使其变得很混乱，在浏览器上展示的效果很难接近模板最终所渲染出来的效果。
+- JSP规范与Servlet规范紧密耦合，只能在基于Servlet的Web应用之中使用。
+
+Thymeleaf模板是原生的，不依赖于标签库。它通过自定义的命名空间，为标准的HTML标签集合添加Thymeleaf属性，从而能在接受原始HTML的地方进行编辑和渲染。它也没有与Servlet规范耦合，因此可以进入JSP无法涉足的领域。
+
+##### 配置
+
+为了在Spring中使用Thymeleaf，需要配置三个Bean：
+
+- ThymeleafViewResolver：将逻辑视图名称解析为Thymeleaf模板；（Thymeleaf视图解析器不是Spring内置的）
+- SpringTemplateEngine：处理模板并渲染结果；
+- TemplateResolver：加载Thymeleaf模板。
+
+```java
+@Configuration
+@EnableWebMvc
+@ComponentScan("spittr.web")
+public class WebConfig extends WebMvcConfigurerAdapter {
+  @Bean
+  public ViewResolver viewResolver(SpringTemplateEngine templateEngine) {
+    ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
+    viewResolver.setTemplateEngine(templateEngine);
+    return viewResolver;
+  }
+  @Bean
+  public SpringTemplateEngine templateEngine(TemplateResolver templateResolver) {
+    SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+    templateEngine.setTemplateResolver(templateResolver);
+    return templateEngine;
+  }
+
+  @Bean
+  public TemplateResolver templateResolver() {
+    TemplateResolver templateResolver = new ServletContextTemplateResolver();
+    templateResolver.setPrefix("/WEB-INF/templates/");
+    templateResolver.setSuffix(".html");
+    templateResolver.setTemplateMode("HTML5");
+    return templateResolver;
+  }
+    
+  …
+}
+```
+
+或者：
+
+```xml
+<bean id="viewResolver"
+      class="org.thymeleaf.spring3.view.ThymeleafViewResolver"
+      p:templateEngine-ref="templateEngine" />
+<bean id="templateEngine"
+      class="org.thymeleaf.spring3.SpringTemplateEngine"
+      p:templateResolver-ref="templateResolver" />
+<bean id="templateResolver"
+      class="org.thymeleaf.templateresolver.ServletContextTemplateResolver"
+      p:prefix="/WEB-INF/templates"
+      p:suffix=".html"
+      p:templateMode="HTML5" />
+```
+
+
+
 ### 静态资源
 
 ### 主题
-
-### 视图技术
 
 ## *内容类型
 
