@@ -40,7 +40,7 @@ web.xml：
 
 ```xml
 <web-app>
-  <!-- 加载后端的中间层和数据层组件的应用上下文 -->
+  <!-- 加载后端的中间层和数据层组件的应用上下文（根应用上下文） -->
   <listener>
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
   </listener>
@@ -71,6 +71,48 @@ web.xml：
 
 一个web.xml可以配置多个`DispatcherServlet`，通过不同的`<servlet-mapping>`配置，让每个`DispatcherServlet`处理不同的请求。
 
+另外，还可以在web.xml中配置使用基于Java的配置，只需要告诉`ContextLoaderListener`和`DispatcherServlet`使用`AnnotationConfigWebApplicationContext`，它是`WebApplicationContext`的实现类，它会加载Java配置类，而不是使用XML配置。要实现这种配置，可以设置`contextClass`参数：
+
+```xml
+<web-app>
+  <!-- 加载后端的中间层和数据层组件的应用上下文（根应用上下文） -->
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+
+  <context-param><!-- 指定根配置类 -->
+    <param-name>contextConfigLocation</param-name>
+    <param-value>foo.bar.RootConfig</param-value>
+  </context-param>
+  <context-param><!-- 使用Java配置类 -->
+  	<param-name>contextClass</param-name>
+    <param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
+  </context-param>
+
+  <!-- 加载Web组件的应用上下文 -->
+  <servlet>
+    <servlet-name>app</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param><!-- 指定DispatcherServlet配置类 -->
+      <param-name>contextConfigLocation</param-name>
+      <param-value>foo.bar.WebConfig</param-value>
+    </init-param>
+    <init-param><!-- 使用Java配置类 -->
+    	<param-name>contextClass</param-name>
+    	<param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>app</servlet-name>
+    <url-pattern>/app/*</url-pattern>
+  </servlet-mapping>
+</web-app>
+```
+
+
+
 #### 使用Java配置
 
 在Servlet 3环境中，容器会在类路径中查找实现了`javax.servlet.ServletContainerInitializer`接口的类，如果能发现的话，就会用它来配置Servlet容器上下文。
@@ -79,19 +121,19 @@ Spring提供了这个接口的实现——`SpringServletContainerInitializer`，
 
 ```java
 public class MyWebApplicationInitializer implements WebApplicationInitializer {
-    @Override
-    public void onStartup(ServletContext servletCxt) {
-        // Load Spring web application configuration
-        AnnotationConfigWebApplicationContext ac = new AnnotationConfigWebApplicationContext();
-        ac.register(AppConfig.class);
-        ac.refresh();
+  @Override
+  public void onStartup(ServletContext servletCxt) {
+    // Load Spring web application configuration
+    AnnotationConfigWebApplicationContext ac = new AnnotationConfigWebApplicationContext();
+    ac.register(AppConfig.class);
+    ac.refresh();
 
-        // Create and register the DispatcherServlet
-        DispatcherServlet servlet = new DispatcherServlet(ac);
-        ServletRegistration.Dynamic registration = servletCxt.addServlet("app", servlet);
-        registration.setLoadOnStartup(1);
-        registration.addMapping("/app/*");
-    }
+    // Create and register the DispatcherServlet
+    DispatcherServlet servlet = new DispatcherServlet(ac);
+    ServletRegistration.Dynamic registration = servletCxt.addServlet("app", servlet);
+    registration.setLoadOnStartup(1);
+    registration.addMapping("/app/*");
+  }
 }
 ```
 
@@ -116,6 +158,12 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 }
 ```
 
+##### 自定义DispatcherServlet配置
+
+可以通过重写`customizeRegistration`方法（属于`AbstractDispatcherServletInitializer`类），利用它的参数`ServletRegistration.Dynamic`的方法来自定义`DispatcherServlet`配置。
+
+例如，调用`setLoadOnStartup`方法设置`load-on-startup`优先级；调用`setInitParameter`方法设置初始化参数等。
+
 ### 上下文的层次结构
 
 对于许多应用程序，拥有单个`WebApplicationContext`就足够。但Spring应用上下文之间可以设置为父子级关系，以实现更好的解耦。子上下文可以访问父上下文中的Bean，反之则不行。
@@ -128,21 +176,49 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 
 ```java
 public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
-    @Override
-    protected Class<?>[] getRootConfigClasses() {
-        return new Class<?>[] { RootConfig.class };
-    }
+  @Override
+  protected Class<?>[] getRootConfigClasses() {
+    return new Class<?>[] { RootConfig.class };
+  }
 
-    @Override
-    protected Class<?>[] getServletConfigClasses() {
-        return new Class<?>[] { WebConfig.class };
-    }
+  @Override
+  protected Class<?>[] getServletConfigClasses() {
+    return new Class<?>[] { WebConfig.class };
+  }
 
-    @Override
-    protected String[] getServletMappings() {
-        return new String[] { "/app/*" };
-    }
+  @Override
+  protected String[] getServletMappings() {
+    return new String[] { "/app/*" };
+  }
 }
+```
+
+或者：
+
+```java
+public class MyWebAppInitializer implements WebApplicationInitializer {
+  @Override
+  public void onStartup(ServletContext container) {
+    // Create the 'root' Spring application context
+    AnnotationConfigWebApplicationContext rootContext =
+      new AnnotationConfigWebApplicationContext();
+    rootContext.register(RootConfig.class);
+
+    // Manage the lifecycle of the root application context
+    container.addListener(new ContextLoaderListener(rootContext));
+
+    // Create the dispatcher servlet's Spring application context
+    AnnotationConfigWebApplicationContext dispatcherContext =
+      new AnnotationConfigWebApplicationContext();
+    dispatcherContext.register(WebConfig.class);
+
+    // Register and map the dispatcher servlet
+    ServletRegistration.Dynamic dispatcher =
+      container.addServlet("dispatcher", new DispatcherServlet(dispatcherContext));
+    dispatcher.setLoadOnStartup(1);
+    dispatcher.addMapping("/");
+  }
+ }
 ```
 
 或者：
@@ -385,8 +461,6 @@ URI路径模式还可以嵌入`$ {…}`占位符，这些占位符在启动时�
 ```java
 @RequestMapping("/${query.all}.json")
 ```
-
-#### HTTP HEAD、OPTIONS
 
 ### 接受请求的输入
 
@@ -855,15 +929,135 @@ public class WebConfig implements WebMvcConfigurer {
 
 基于URL的内容协商（content negotiation）仍然有用（例如，在浏览器中键入URL时）。为此，我们建议使用基于查询参数的策略来避免文件扩展名带来的大多数问题。或者，如果必须使用文件扩展名，请考虑通过`ContentNegotiationConfigurer`的`mediaTypes`属性将它们限制为显式注册的扩展名列表。
 
-## Multipart解析器
+## 注册其他Servlet、Filter和Listener
+
+### 基于Java的配置
+
+基于Java的初始化器（Initializer）的一个好处是我们可以定义任意数量的初始化器类。因此，我们如果想往Web容器中注册其他组件，只需要创建一个新的初始化器就可以了。最简单的方式是就是实现Spring的`WebApplicationInitializer`接口。
+
+注册Servlet：
+
+```java
+public class MyServletInitializer implements WebApplicationInitializer {
+  @Override
+  public void onStartup(ServletContext servletContext) throws ServletException {
+    ServletRegistration.Dynamic myServlet = servletContext.addServlet("myServlet", MyServlet.class);
+    myServlet.addMapping("/custom/**");
+  }
+}
+```
+
+注册Filter：
+
+```java
+@Override
+public void onStartup(ServletContext servletContext) throws ServletException {
+  FilterRegistration.Dynamic filter = servletContext.addFilter("myFilter", MyFilter.class);
+  filter.addMappingForUrlPatterns(null, false, "/custom/**");
+}
+```
+
+注册Filter并将其映射到`DispatcherServlet`，有一个快捷方式，就是重写`AbstractAnnotationConfigDispatcherServletInitializer`类的`getServletFilter`方法：
+
+```java
+@Override
+protected Filter[] getServletFilters() {
+  return new Filter[] {new MyFilter()};
+}
+```
+
+`getServletFilter`方法返回的所有Filter都会映射到`DispatcherServlet`上。
+
+### 基于web.xml的配置
+
+参见“传统的web.xml配置。
+
+## 处理Multipart数据
+
+### 配置multipart解析器
+
+`DispatcherServlet`并没有实现任何解析multipart请求数据的功能，它将该任务委托给了Spring中的`MultipartResolver`策略接口的实现。从Spring 3.1开始，Spring内置了两个`MultipartResolver`实现供我们选择：
+
+- `CommonsMultipartResolver`：使用Jakarta Commons FileUpload解析multipart请求。
+- `StandardServletMultipartResolver`：依赖于Servlet 3对multipart请求的支持（始于Spring 3.1）。
+
+#### 使用Servlet 3.0解析multipart请求
+
+首先，配置一个`StandardServletMultipartResolver` Bean：
+
+```java
+@Bean
+public MultipartResolver multipartResolver() throws IOException {
+  return new StandardServletMultipartResolver();
+}
+```
+
+然后，有关multipart的配置（例如上传文件大小限制、临时写入目录的位置等）则在`DispatcherServlet`中配置。
+
+如果初始化器实现了`WebApplicationInitializer`，则：
+
+```java
+public class MyWebApplicationInitializer implements WebApplicationInitializer {
+  @Override
+  public void onStartup(ServletContext servletCxt) {
+    …
+    DispatcherServlet ds = new DispatcherServlet();
+    ServletRegistration.Dynamic registration = servletCxt.addServlet("app", ds);
+    registration.setLoadOnStartup(1);
+    registration.addMapping("/app/*");
+    //设置临时写入路径
+		registration.setMultipartConfig(new MultipartConfigElement("/tmp/uploads"));
+  }
+}
+```
+
+如果初始化器继承了`AnnotationConfigDispatcherServletInitializer`，则：
+
+```java
+@Override
+protected void customizeRegistration(Dynamic registration) {
+  registration.setMultipartConfig(new MultipartConfigElement("/tmp/uploads"));
+}
+```
+
+`MultipartConfigElement`还有一个构造器，能接受如下参数：
+
+- 临时写入目录；
+- 上传文件的最大容量（以字节为单位），默认是没有限制的。
+- 整个multipart请求的最大容量（以字节为单位），默认是没有限制的。（对part的个数，以及每个part的大小则不关心）。
+- 在上传过程中，如果文件大小达到一个指定最大容量（以字节为单位）时，将会写入到临时文件路径中。默认值为0，即所有上传的文件都会写入到磁盘中。
+
+```java
+@Override
+protected void customizeRegistration(Dynamic registration) {
+  registration.setMultipartConfig(new MultipartConfigElement("/tmp/uploads", 2097152, 4194304, 0));
+}
+```
+
+另外，也可以在web.xml中配置：
+
+```xml
+<servlet>
+  <servlet-name>app</servlet-name>
+  <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+  <load-on-startup>1</load-on-startup>
+  <multipart-config>
+  	<location>/tmp/uploads</location><!-- 必配选项 -->
+    <max-file-size>2097152</max-file-size>
+    <max-request-size>4194304</max-request-size>
+  </multipart-config>
+</servlet>
+```
+
+#### 配置Jakarta Commons FileUpload multipart解析器
+
+
 
 ## 语言环境
 
 ## 拦截器
 
-## 过滤器
-
-### CORS
+## CORS
 
 ## 异步请求
 
