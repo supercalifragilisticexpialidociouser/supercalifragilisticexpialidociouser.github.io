@@ -469,6 +469,7 @@ Spring MVC提供了下面几种方式将客户端的数据传送到控制器的�
 - 查询参数（Query Parameter）：面向操作（控制）。
 - 表单参数（Form Parameter）：面向数据。
 - 路径变量（Path Variable）：面向资源，详见“路径参数”。
+- Matrix 变量。
 
 #### 查询参数
 
@@ -643,11 +644,37 @@ public String processRegistration(
 
 > 校验的更详细用法，请参见“SpringCore”的“校验”。
 
+#### Matrix 变量
+
 ### 数据绑定
 
-### 异常
-
 ### 控制器通知
+
+Spring 3.2引入了控制器通知，它能将控制器类的特定切面运用到整个应用程序的所有控制器中。
+
+控制器通知是任意带有`@ControllerAdvice`标注的类，这个类会包含一个或多个如下类型的方法：
+
+- 带`@ExceptionHandler`标注的方法：用于处理异常；
+- 带`@InitBinder`标注的方法；
+- 带`@ModelAttribute`标注的方法。
+
+以上这些方法会应用到整个应用程序所有控制器中带有`@RequestMapping`标注的方法（即处理器方法）。
+
+`@ControllerAdvice`标注本身已经使用了`@Component`标注，因此`@ControllerAdvice`标注的类会自动被组件扫描获取到。
+
+`@ControllerAdvice`标注最为实用的一个场景是将所有的`@ExceptionHandler`方法收集到一个类中，这样所有控制器的异常就能在一个地方进行一致处理。
+
+```java
+@ControllerAdvice
+public class AppWideExceptionHandler {
+  @ExceptionHandler(DuplicateSpittleException.class)
+  public String duplicateSpittleHandler() {
+  	return "error/duplicate";
+  }
+}
+```
+
+这样，任意控制器类的处理器方法抛出`DuplicateSpittleException`异常，都将调用`duplicateSpittleHandler`方法来处理异常。
 
 ## 模型
 
@@ -702,6 +729,91 @@ public class SpittleController {
 ```
 
 这里返回值是一个`List`对象，将被放到模型中，并且它在模型中的键名会根据其类型推断得出，本例中就是`spittleList`。而逻辑视图的名称将会根据请求路径推断得出，本例中就是`spittles`
+
+### 跨重定向请求传递数据
+
+通常，在执行重定向后，原始的请求就结束了，并且会发起一个新的GET请求。原始请求中所带有的模型数据也就随着请求一起消亡了，在新的请求属性中，没有任何模型数据。
+
+但是，Spring MVC能够从发起重定向的方法传递数据给处理重定向方法中。
+
+#### 通过URL模板以路径变量和/或查询参数的形式传递数据
+
+```java
+@RequestMapping(value="/register", method=POST)
+public String processRegistration(Spitter spitter, Model model) {
+	spitterRepository.save(spitter);
+  model.addAttribute("username", spitter.getUsername());
+	return "redirect:/spitter/{username}";
+}
+```
+
+> `username`作为占位符填充到URL模板（即带占位符的字符串）中，而不是如下面代码中直接使用字符串拼接。
+>
+> ```java
+> return "redirect:/spitter/" + spitter.getUsername();
+> ```
+>
+> 主要原因是由于使用URL模板更安全，占位符中所有不安全字符都会进行转义。
+
+此外，`Model`中没有与占位符匹配的属性将会自动作为URL中的查询参数：
+
+```java
+@RequestMapping(value="/register", method=POST)
+public String processRegistration(Spitter spitter, Model model) {
+  spitterRepository.save(spitter);
+  model.addAttribute("username", spitter.getUsername());
+  model.addAttribute("spitterId", spitter.getId());
+  return "redirect:/spitter/{username}";
+}
+```
+
+假设`username`的值是`habuma`，`spitterId`的值是`42`，则重定向的URL将会是：`/spitter/habuma?spitterId=42`。
+
+通过路径变量和查询参数的形式跨重定向传递数据，只能用来发送简单的值（例如字符串和数值）。在URL中，并没有办法发送复杂的值。要发送复杂的值可通过flash属性。
+
+#### 通过flash属性传递复杂数据
+
+假如要将`Spitter`对象传递给重定向后的处理器方法，但`Spitter`对象是一个复杂的对象，不能通过路径变量和查询参数发送。
+
+一种可行的方法是只传递`Spitter`对象的ID，但这样重定向后的处理器方法还要从数据库中再查询一次`Spitter`对象。
+
+另一种可行的方法是将`Spitter`对象放到会话（session）中，但这要我们负责会话的清理。
+
+Spring通过`RedirectAttributes`接口（Spring 3.1引入的`Model`的一个子接口）将数据添加到flash属性，而flash属性会一直携带这些数据直到下一次请求才会消失。从而既实现了跨重定向传递复杂数据，又不需要手动清理。
+
+```java
+@RequestMapping(value="/register", method=POST)
+public String processRegistration(Spitter spitter, RedirectAttributes model) {
+  spitterRepository.save(spitter);
+  model.addAttribute("username", spitter.getUsername());
+  model.addFlashAttribute("spitter", spitter);
+  return "redirect:/spitter/{username}";
+}
+```
+
+> `addFlashAttribute`方法的第一参数用来设置flash属性的key，可以省略。如果缺省，则key将根据值的类型进行推断得出：
+>
+> ```java
+> model.addFlashAttribute(spitter);
+> ```
+>
+> 因为我们传递了一个`Spitter`对象，所以推断得到的key将会是`spitter`。
+
+可以多次调用`addFlashAttribute`方法来设置多个flash属性。在重定向执行之前，所有的flash属性都会被复制到会话中。在重定向后，存在会话中的flash属性会被取出，并从会话转移到模型之中。这样，处理重定向的方法就能从模型中访问`Spitter`对象了，就像获取其他的模型对象一样。
+
+![flash属性](SpringWeb/flash.png)
+
+处理重定向的方法：
+
+```java
+@RequestMapping(value="/{username}", method=GET)
+public String showSpitterProfile(@PathVariable String username, Model model) {
+  if (!model.containsAttribute("spitter")) {
+    model.addAttribute(spitterRepository.findByUsername(username));
+  }
+  return "profile";
+}
+```
 
 ## 视图
 
@@ -972,16 +1084,18 @@ protected Filter[] getServletFilters() {
 
 参见“传统的web.xml配置。
 
-## 处理Multipart数据
+## Multipart请求
 
-### 配置multipart解析器
+### 通过Spring解析器处理
+
+#### 配置multipart解析器
 
 `DispatcherServlet`并没有实现任何解析multipart请求数据的功能，它将该任务委托给了Spring中的`MultipartResolver`策略接口的实现。从Spring 3.1开始，Spring内置了两个`MultipartResolver`实现供我们选择：
 
 - `CommonsMultipartResolver`：使用Jakarta Commons FileUpload解析multipart请求。
 - `StandardServletMultipartResolver`：依赖于Servlet 3对multipart请求的支持（始于Spring 3.1）。
 
-#### 使用Servlet 3.0解析multipart请求
+##### 使用Servlet 3.0解析multipart请求
 
 首先，配置一个`StandardServletMultipartResolver` Bean：
 
@@ -1049,9 +1163,254 @@ protected void customizeRegistration(Dynamic registration) {
 </servlet>
 ```
 
-#### 配置Jakarta Commons FileUpload multipart解析器
+##### 配置Jakarta Commons FileUpload multipart解析器
 
+通常来讲，`StandardServletMultipartResolver` 会是最佳的选择，但是如果我们需要将应用部署到非Servlet 3.0的容器中，那么就需要使用替代方案——`CommonsMultipartResolver`。
 
+`CommonsMultipartResolver`的最简单配置：
+
+```java
+@Bean
+public MultipartResolver multipartResolver() {
+  return new CommonsMultipartResolver();
+}
+```
+
+与`StandardServletMultipartResolver` 有所不同，`CommonsMultipartResolver`不会强制要求设置临时文件路径。默认情况下，这个路径就是Servlet容器的临时目录。另外，有关multipart的配置是通过`CommonsMultipartResolver`的方法来设置的，而不是在`DispatcherServlet`中设置：
+
+```java
+@Bean
+public MultipartResolver multipartResolver() throws IOException {
+  CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+  multipartResolver.setUploadTempDir(new FileSystemResource("/tmp/uploads"));
+  multipartResolver.setMaxUploadSize(2097152); //上传文件的最大容量
+  multipartResolver.setMaxInMemorySize(0);//相当于MultipartConfigElement第四个参数
+  return multipartResolver;
+}
+```
+
+`CommonsMultipartResolver`无法设置整个multipart请求的最大容量。
+
+#### 创建Multipart表单
+
+表单视图：
+
+```html
+<form method="POST" th:object="${spitter}" enctype="multipart/form-data">
+  …
+  <label>Profile Picture</label>:
+  <input type="file" name="profilePicture" accept="image/jpeg;image/png,image/gif"></input><br/>
+	<input type="submit"></input>
+</form>
+```
+
+`<form>`表单将`enctype`设置为`multipart/form-data`，会告诉浏览器以multipart数据的形式提交表单，而不是以表单数据形式提交。在multipart中，每个输入域都会对应一个part。
+
+表单数据示例：
+
+```
+firstName=Charles&lastName=Xavier&email=professorx%40xmen.org
+&username=professorx&password=letmein01
+```
+
+multipart请求体示例：
+
+```
+------WebKitFormBoundaryqgkaBn8IHJCuNmiW
+Content-Disposition: form-data; name="firstName"
+Charles
+------WebKitFormBoundaryqgkaBn8IHJCuNmiW
+Content-Disposition: form-data; name="lastName"
+Xavier
+------WebKitFormBoundaryqgkaBn8IHJCuNmiW
+Content-Disposition: form-data; name="email"
+charles@xmen.com
+------WebKitFormBoundaryqgkaBn8IHJCuNmiW
+Content-Disposition: form-data; name="username"
+professorx
+------WebKitFormBoundaryqgkaBn8IHJCuNmiW
+Content-Disposition: form-data; name="password"
+letmein01
+------WebKitFormBoundaryqgkaBn8IHJCuNmiW
+Content-Disposition: form-data; name="profilePicture"; filename="me.jpg"
+Content-Type: image/jpeg
+[[ Binary image data goes here ]]
+------WebKitFormBoundaryqgkaBn8IHJCuNmiW--
+```
+
+文件域的`accept`属性用来将文件类型限制为JPEG、PNG和GIF图片。
+
+`multipart/form-data`表单除了可以包含文件域外，也可以包含其他表单元素。
+
+#### 处理Multipart请求
+
+Spring提供了多种方式来接收上传的文件，但都需要在接收上传文件的处理器方法参数上标上`@RequestPart`标注。
+
+##### 接收为byte[]
+
+```java
+@RequestMapping(value="/register", method=POST)
+public String processRegistration(
+    @RequestPart("profilePicture") byte[] profilePicture,
+    @Valid Spitter spitter,
+    Errors errors) {
+	...
+}
+```
+
+这种方式只能获取上传文件的数据和大小，而无法获取上传文件的原来文件名、文件类型。
+
+如果提交表单时，没有选择文件，则`profilePicture`为空数组，而不是`null`。
+
+> `@RequestPart`和`@RequestParam`都可用在multipart请求中，主要区别在于，当方法参数不是`String`或原始`MultipartFile` / `Part`时，`@ RequestParam`依赖于通过已注册的`Converter`或`PropertyEditor`进行类型转换，而`RequestPart`依赖于`HttpMessageConverters`，同时考虑到请求部分的“Content-Type”标头。 `RequestParam`可能与“名称 - 值”表单字段一起使用，而`RequestPart`可能与包含更复杂内容的部分一起使用，例如JSON，XML）。
+
+##### 接收为MultipartFile
+
+```java
+@RequestMapping(value="/register", method=POST)
+public String processRegistration(
+    @RequestPart("profilePicture") MultipartFile profilePicture,
+    @Valid Spitter spitter,
+    Errors errors) {
+	if (!profilePicture.isEmpty()) {
+    byte[] bytes = profilePicture.getBytes();
+    // store the bytes somewhere
+    return "redirect:uploadSuccess";
+  }
+  return "redirect:uploadFailure";
+}
+```
+
+`MultipartFile`接口为处理multipart数据提供了内容更为丰富的对象：
+
+```java
+public interface MultipartFile {
+  String getName();
+  String getOriginalFilename();
+  String getContentType();
+  boolean isEmpty();
+  long getSize();
+  byte[] getBytes() throws IOException;
+  InputStream getInputStream() throws IOException;
+  void transferTo(File dest) throws IOException; //将上传文件写入dest文件中
+}
+```
+
+当表单中，文件域允许多选时，可以将处理器参数声明为`List<MultipartFile>`类型。
+
+当表单中存在多个文件域时，可以将一个处理器参数声明为`Map<String, MultipartFile>` 或 `MultiValueMap<String, MultipartFile>`类型。这时`@RequestPart`或`@RequestParam` 标注不需要设置`name`或`value`属性值，文件域的`name`属性自动成为`Map`或`MultiValueMap`的键。
+
+### 通过Part形式处理
+
+当使用Servlet 3.0容器时，Spring MVC也能接受`javax.servlet.http.Part`作为处理器接收上传文件的参数。
+
+```java
+@RequestMapping(value="/register", method=POST)
+public String processRegistration(
+    @RequestPart("profilePicture") Part profilePicture,
+    @Valid Spitter spitter,
+    Errors errors) {
+	...
+}
+```
+
+`Part`接口与`MultipartFile`接口并没有太大的差别：
+
+```java
+public interface Part {
+  public InputStream getInputStream() throws IOException;
+  public String getContentType();
+  public String getName();
+  public String getSubmittedFileName();  //对应于getOriginalFilename()
+  public long getSize();
+  public void write(String fileName) throws IOException; //对应于transferTo
+  public void delete() throws IOException;
+  public String getHeader(String name);
+  public Collection<String> getHeaders(String name);
+  public Collection<String> getHeaderNames();
+}
+```
+
+如果使用`Part`代替`MultipartFile`接收上传文件，就没有必须配置`MultipartResolver`了。
+
+## 处理异常
+
+### 自动将异常映射为HTTP状态码
+
+在默认情况下，Spring会将自身的一些异常自动转换为合适的状态码：
+
+| Spring异常                              | HTTP状态码                   |
+| --------------------------------------- | ---------------------------- |
+| BindException                           | 400 - Bad Request            |
+| ConversionNotSupportedException         | 500 - Internal Server Error  |
+| HttpMediaTypeNotAcceptableException     | 406 - Not Acceptable         |
+| HttpMediaTypeNotSupportedException      | 415 - Unsupported Media Type |
+| HttpMessageNotReadableException         | 400 - Bad Request            |
+| HttpMessageNotWritableException         | 500 - Internal Server Error  |
+| HttpRequestMethodNotSupportedException  | 405 - Method Not Allowed     |
+| MethodArgumentNotValidException         | 400 - Bad Request            |
+| MissingServletRequestParameterException | 400 - Bad Request            |
+| MissingServletRequestPartException      | 400 - Bad Request            |
+| NoSuchRequestHandlingMethodException    | 404 - Not Found              |
+| TypeMismatchException                   | 400 - Bad Request            |
+
+### 使用`@ResponseStatus`标注映射HTTP状态码
+
+除了上节中Spring自动映射的异常外，其他任何异常如果没有显式映射，响应都会带有500状态码。我们可以使用`@ResponseStatus`标注，将自己定义的异常显式映射为指定HTTP状态码：
+
+```java
+@ResponseStatus(value=HttpStatus.NOT_FOUND,
+                reason="Spittle Not Found")
+public class SpittleNotFoundException extends RuntimeException {
+}
+```
+
+在使用`@ResponseStatus`标注之后，如果控制器方法抛出`SpittleNotFoundException`异常，响应将会具有404状态码。
+
+### 编写异常处理的方法
+
+在很多场景下，将异常映射为状态码就够了。但如果我们要处理这个异常，则传统的方式是使用try-catch语句来处理。例如：
+
+```java
+@RequestMapping(method=RequestMethod.POST)
+public String saveSpittle(SpittleForm form, Model model) {
+  try {
+    spittleRepository.save(
+    	new Spittle(null, form.getMessage(), new Date(),
+    		form.getLongitude(), form.getLatitude()));
+  	return "redirect:/spittles";
+  } catch (DuplicateSpittleException e) {
+  	return "error/duplicate";
+  }
+}
+```
+
+Spring允许我们将异常处理的代码从正常代码中剥离出来，让另外一个方法专门处理异常。
+
+只处理正常逻辑的控制器方法：
+
+```java
+@RequestMapping(method=RequestMethod.POST)
+public String saveSpittle(SpittleForm form, Model model) {
+  spittleRepository.save(
+  	new Spittle(null, form.getMessage(), new Date(),
+  		form.getLongitude(), form.getLatitude()));
+  return "redirect:/spittles";
+}
+```
+
+在**同一个**控制器类中添加一个处理异常的方法：
+
+```java
+@ExceptionHandler(DuplicateSpittleException.class)
+public String handleDuplicateSpittle() {
+	return "error/duplicate";
+}
+```
+
+这样，不仅`saveSpittle`方法抛出`DuplicateSpittleException`异常时，会委托`handleDuplicateSpittle`方法处理，而且只要是与`handleDuplicateSpittle`方法在同一个控制器类中的所有处理器方法抛出`DuplicateSpittleException`异常，都会委托`handleDuplicateSpittle`方法处理。
+
+`@ExceptionHandler`只能处理同一个控制器类下的处理器方法抛出的异常。而如果要能够处理所有控制器中处理器方法抛出的异常，则需要将处理异常代码定义到控制器通知类中。（参见“控制器通知”）
 
 ## 语言环境
 
@@ -1068,3 +1427,5 @@ protected void customizeRegistration(Dynamic registration) {
 ## WebSockets
 
 # Spring WebFlux
+
+# Spring Web Flow
