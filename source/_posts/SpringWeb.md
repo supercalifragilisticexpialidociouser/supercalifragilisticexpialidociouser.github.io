@@ -1429,3 +1429,173 @@ public String handleDuplicateSpittle() {
 # Spring WebFlux
 
 # Spring Web Flow
+
+Spring Web Flow是Spring MVC的扩展，它支持开发基于流程的应用程序。它将流程定义与实现流程行为的类和视图分离开来。
+
+## 配置Web Flow
+
+基于Java的配置类：（从Spring Web Flow 2.4开始）
+
+```java
+import org.springframework.context.annotation.Configuration;
+import org.springframework.webflow.config.AbstractFlowConfiguration;
+
+@Configuration
+public class WebFlowConfig extends AbstractFlowConfiguration {
+
+}
+```
+
+基于XML配置：
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:webflow="http://www.springframework.org/schema/webflow-config"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/webflow-config
+           http://www.springframework.org/schema/webflow-config/spring-webflow-config.xsd">
+
+  <!-- Setup Web Flow here -->
+
+</beans>
+```
+
+### 配置流程注册表
+
+流程注册表用于加载流程定义并让流程执行器能够使用它们。
+
+```java
+@Bean
+public FlowDefinitionRegistry flowRegistry() {
+  return getFlowDefinitionRegistryBuilder()
+    .addFlowLocation("/WEB-INF/flows/booking/booking.xml")
+    .build();
+}
+```
+
+或者：
+
+```xml
+<webflow:flow-registry id="flowRegistry">
+  <webflow:flow-location path="/WEB-INF/flows/booking/booking.xml" />
+</webflow:flow-registry>
+```
+
+#### 显式指定流程ID
+
+上面每个`addFlowLocation`方法或`<webflow:flow-location>`元素加载一个流程定义文件，流程的ID默认就是流程定义文件名（不含扩展名），这里就是`booking`。也可以为流程显式指定ID：
+
+```java
+return getFlowDefinitionRegistryBuilder()
+  .addFlowLocation("/WEB-INF/flows/booking/booking.xml", "bookHotel")
+  .build();
+```
+
+或者：
+
+```xml
+<webflow:flow-location path="/WEB-INF/flows/booking/booking.xml" id="bookHotel" />
+```
+
+#### 使用位置模式注册流程
+
+除了具体指定每个流程定义文件路径外，也可以使用位置模式来匹配一组流程定义文件：
+
+```java
+return getFlowDefinitionRegistryBuilder()
+  .addFlowLocationPattern("/WEB-INF/flows/**/*-flow.xml")
+  .build();
+```
+
+或者：
+
+```xml
+<webflow:flow-location-pattern value="/WEB-INF/flows/**/*-flow.xml" />
+```
+
+#### 设置流程位置基准路径
+
+使用`base-path`属性为应用程序中的所有流程定义基准位置。然后，所有流程位置都相对于基准路径。基准路径可以是资源路径，例如`/WEB-INF`，也可以是类路径上的位置，如`classpath:org/springframework/webflow/samples`。
+
+```java
+return getFlowDefinitionRegistryBuilder()
+  .setBasePath("/WEB-INF")
+  .addFlowLocation("/hotels/booking/booking.xml")
+  .build();
+```
+
+或者：
+
+```xml
+<webflow:flow-registry id="flowRegistry" base-path="/WEB-INF">
+  <webflow:flow-location path="/hotels/booking/booking.xml" />
+</webflow:flow-registry>
+```
+
+当设置了基准位置后，流程默认的ID，将变成流程位置的完整路径中，扣除基准位置和流程定义文件名部分。在本例中就是`/hotels/booking`。
+
+基准位置更经常是与位置模式一起使用：
+
+```java
+return getFlowDefinitionRegistryBuilder()
+  .setBasePath("/WEB-INF")
+  .addFlowLocationPattern("/**/*-flow.xml")
+  .build();
+```
+
+或者：
+
+```xml
+<webflow:flow-registry id="flowRegistry" base-path="/WEB-INF">
+  <webflow:flow-location-pattern value="/**/*-flow.xml" />
+</webflow:flow-registry>
+```
+
+### 装配流程执行器
+
+流程执行器驱动流程的执行。当用户进入一个流程时，流程执行器会为用户创建并启动一个流程执行实例。当流程暂停的时候（如为用户展示视图时），流程执行器会在用户执行操作后恢复流程。
+
+```java
+@Bean
+public FlowExecutor flowExecutor() {
+  return getFlowExecutorBuilder(flowRegistry()).build();
+}
+```
+
+或者：
+
+```xml
+<webflow:flow-executor id="flowExecutor" />
+```
+
+### 与Spring MVC整合
+
+#### 定义流程映射
+
+`DispatcherServlet`一般将请求分发给控制器，但是对于流程而言，我们需要一个`FlowHandlerMapping`来帮助`DispatcherServlet`将流程请求分发给Spring Web Flow。
+
+```xml
+<!-- Maps request paths to flows in the flowRegistry;
+	e.g. a path of /hotels/booking looks for a flow with id "hotels/booking" -->
+<bean class="org.springframework.webflow.mvc.servlet.FlowHandlerMapping">
+	<property name="flowRegistry" ref="flowRegistry"/>
+	<property name="order" value="0"/>
+</bean>
+```
+
+#### 注册FlowHandlerAdapter
+
+`FlowHandlerMapping`仅仅是将流程请求定向到Spring Web Flow，响应请求的是`FlowHandlerAdapter`。
+
+`FlowHandlerAdapter`等同于Spring MVC的控制器，它会响应发送的流程请求并对其进行处理。
+
+```xml
+<!-- Enables FlowHandler URL mapping -->
+<bean class="org.springframework.webflow.mvc.servlet.FlowHandlerAdapter">
+	<property name="flowExecutor" ref="flowExecutor" />
+</bean>
+```
+
