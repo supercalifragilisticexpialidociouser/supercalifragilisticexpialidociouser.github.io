@@ -1599,3 +1599,98 @@ public FlowExecutor flowExecutor() {
 </bean>
 ```
 
+## 流程
+
+### 定义流程
+
+流程由基于XML的流程定义语言编写：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow
+                          http://www.springframework.org/schema/webflow/spring-webflow.xsd">
+	…
+</flow>
+```
+
+### 状态
+
+状态（State）就是流程中事件发生的地点。
+
+#### 起始状态
+
+#### 视图状态
+
+视图状态用于为用户展现信息，并使用户参与到流程中来。
+
+```xml
+<view-state id="welcome" view="greeting">
+  …
+</view-state>
+```
+
+`view`属性指定了流程到达这个状态时要展现的逻辑视图名。如果流程定义文件放在`/WEB-INF/flows/pizza/`下，则视图将是`/WEB-INF/flows/pizza/greeting.jsp`（假设使用JSP）。
+
+`view`属性可以省略，则默认与`id`属性取相的值。
+
+##### 绑定模型
+
+可通过`model`属性为视图绑定一个模型对象：
+
+```xml
+<view-state id="takePayment" model="flowScope.paymentDetails">
+  …
+</view-state>
+```
+
+这里指定`takePayment`视图中的表单将绑定流程作用域内的`paymentDetails`对象。
+
+#### 行为状态
+
+行为状态用于在流程中执行一些任务。
+
+```xml
+<action-state id="saveOrder">
+  <evaluate expression="pizzaFlowActions.saveOrder(order)" />
+  <transition to="thankYou" />
+</action-state>
+```
+
+行为状态通过`<evaluate>`元素来指定要执行的操作，它的`expression`属性的值支持表达式语言。这里是`pizzaFlowActions` Bean的`saveOrder`方法，并且传给该方法一个`order`对象。
+
+#### 决策状态
+
+#### 子流程状态
+
+#### 结束状态
+
+### 转换
+
+在流程中，通过转换（Transaction）从一个状态到另一个状态。
+
+流程中除了结束状态之外的每个状态，都至少需要一个转换。
+
+转换通过`<transaction>`元素定义，它是状态元素的子元素。
+
+### 行为
+
+### 输入输出
+
+### 变量
+
+#### 作用域
+
+### 子流程
+
+### 流程继承
+
+## 表达式语言
+
+## 流程持久化
+
+## 流程安全
+
+## 测试流程
+
