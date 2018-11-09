@@ -1611,7 +1611,26 @@ public FlowExecutor flowExecutor() {
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://www.springframework.org/schema/webflow
                           http://www.springframework.org/schema/webflow/spring-webflow.xsd">
-	…
+  <input name="hotelId" />
+
+  <on-start>
+    <evaluate expression="bookingService.createBooking(hotelId, currentUser.name)"
+              result="flowScope.booking" />
+  </on-start>
+
+  <view-state id="enterBookingDetails">
+    <transition on="submit" to="reviewBooking" />
+  </view-state>
+
+  <view-state id="reviewBooking">
+    <transition on="confirm" to="bookingConfirmed" />
+    <transition on="revise" to="enterBookingDetails" />
+    <transition on="cancel" to="bookingCancelled" />
+  </view-state>
+
+  <end-state id="bookingConfirmed" />
+
+  <end-state id="bookingCancelled" />
 </flow>
 ```
 
@@ -1660,11 +1679,63 @@ public FlowExecutor flowExecutor() {
 
 行为状态通过`<evaluate>`元素来指定要执行的操作，它的`expression`属性的值支持表达式语言。这里是`pizzaFlowActions` Bean的`saveOrder`方法，并且传给该方法一个`order`对象。
 
+行为状态还可以基于表达式执行的结果来决定接下来的状态转换：
+
+```xml
+<action-state id="moreAnswersNeeded">
+	<evaluate expression="interview.moreAnswersNeeded()" />
+	<transition on="yes" to="answerQuestions" />
+	<transition on="no" to="finish" />
+</action-state>
+```
+
+事件ID与表达式结果的映射关系：
+
+| 表达式结果类型    | 对应的事件ID                         |
+| ----------------- | ------------------------------------ |
+| java.lang.String  | 该字符串的值。                       |
+| java.lang.Boolean | `yes`（或`true`）、`no`（或`false`） |
+| java.lang.Enum    | 枚举量的名称                         |
+| 其他类型          | `success`                            |
+
 #### 决策状态
+
+决策状态将计算一个Boolean类型的表达式，然后在两个状态转换中选择一个。
+
+```xml
+<decision-state id="checkDeliveryArea">
+  <if test="pizzaFlowActions.checkDeliveryArea(order.customer.zipCode)" 
+      then="addCustomer" 
+      else="deliveryWarning"/>
+</decision-state>
+```
 
 #### 子流程状态
 
+子流程状态会在当前正在执行的流程上下文中启动另一个流程。父流程将等待子流程返回，然后响应子流程结果。
+
+```xml
+<subflow-state id="order" subflow="pizza/order">
+  <input name="order" value="order"/>
+  <transition on="orderCreated" to="payment" />
+</subflow-state>
+```
+
+`<input>`元素用于传递订单对象给子流程作为输入。
+
+如果子流程结束的结束状态ID为`orderCreated`，则流程将会转换到名为`payment`的状态。
+
 #### 结束状态
+
+当流程转换到结束状态时，它会终止并返回结果。
+
+```xml
+<end-state id="customerReady" />
+```
+
+一个流程可能会有不止一个结束状态。
+
+子流程的结束状态ID确定了激活的事件。
 
 ### 转换
 
@@ -1674,15 +1745,633 @@ public FlowExecutor flowExecutor() {
 
 转换通过`<transaction>`元素定义，它是状态元素的子元素。
 
+#### 事件触发的转换
+
+```xml
+<transition on="phoneEntered" to="lookupCustomer" />
+```
+
+当触发了`phoneEntered`事件，流程将会进入`lookupCustomer`状态。
+
+#### 异常触发的转换
+
+```xml
+<transition to="registrationForm" 
+            on-exception="com.springinaction.pizza.service.CustomerNotFoundException" />
+```
+
+#### 默认转换
+
+缺省`on`或`on-exception`属性的转换称为默认转换。
+
+默认转换通常位于所有转换之后。当没有其他可用转换时，就会执行默认转换。
+
+```xml
+<action-state id="lookupCustomer">
+  <evaluate result="order.customer" 
+            expression="pizzaFlowActions.lookupCustomer(requestParameters.phoneNumber)" />
+  <transition to="registrationForm" 
+              on-exception="com.springinaction.pizza.service.CustomerNotFoundException" />
+  <transition to="customerReady" />
+</action-state>
+```
+
+#### 全局转换
+
+所有状态都具有的转换，可以定义为全局转换：
+
+```xml
+<global-transitions>
+  <transition on="cancel" to="endState" />
+</global-transitions>
+```
+
 ### 行为
+
+#### 定义行为
+
+行为使用表达式语言进行定义，Spring Web Flow默认使用Unified EL。
+
+#### 执行行为
+
+通过`<evaluate>` 元素，可以对一个表达式进行计算。表达式中可以访问Spring Bean（如下例中的`entityManager`）和任何流程变量（如下例 中的`booking`）。
+
+```xml
+<evaluate expression="entityManager.persist(booking)" />
+```
+
+如果表达式有返回值，则可以将表达式的值保存在`result`属性声明的变量中：
+
+```xml
+<evaluate expression="bookingService.findHotels(searchCriteria)" 
+          result="flowScope.hotels" />
+```
+
+如果表达式的值需要显式类型转换，可以使用`result-type`属性指定所需的类型：
+
+```xml
+<evaluate expression="bookingService.findHotels(searchCriteria)" 
+          result="flowScope.hotels"
+          result-type="dataModel"/>
+```
+
+##### 命名行为
+
+```xml
+<action-state id="doTwoThings">
+	<evaluate expression="service.thingOne()">
+		<attribute name="name" value="thingOne" />
+	</evaluate>
+	<evaluate expression="service.thingTwo()">
+		<attribute name="name" value="thingTwo" />
+	</evaluate>
+	<transition on="thingTwo.success" to="showResults" />
+</action-state>
+```
+
+每个行为的名字成为了行为结果事件的限定符。
+
+#### 执行点
+
+##### 在行为状态中执行行为
+
+参见“行为状态”。
+
+##### 在决策状态中执行行为
+
+参见“决策状态”。
+
+##### 在流程的开始执行行为
+
+```xml
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow
+                          http://www.springframework.org/schema/webflow/spring-webflow.xsd">
+  <input name="hotelId" />
+
+  <on-start>
+    <evaluate expression="bookingService.createBooking(hotelId, currentUser.name)"
+              result="flowScope.booking" />
+  </on-start>
+</flow>
+```
+
+##### 在状态的入口执行行为
+
+```xml
+<view-state id="changeSearchCriteria" view="enterSearchCriteria.xhtml" popup="true">
+	<on-entry>
+		<render fragments="hotelSearchForm" />
+	</on-entry>
+</view-state>
+```
+
+##### 在视图渲染之前执行行为
+
+```xml
+<view-state id="reviewHotels">
+  <on-render>
+    <evaluate expression="bookingService.findHotels(searchCriteria)"
+              result="viewScope.hotels" result-type="dataModel" />
+  </on-render>
+  <transition on="select" to="reviewHotel">
+    <set name="flowScope.hotel" value="hotels.selectedRow" />
+  </transition>
+</view-state>
+```
+
+##### 在转换执行时执行行为
+
+```xml
+<subflow-state id="addGuest" subflow="createGuest">
+	<transition on="guestCreated" to="reviewBooking">
+		<evaluate expression="booking.guestList.add(currentEvent.attributes.newGuest)" />
+	</transition>
+</subfow-state>
+```
+
+##### 在状态的出口执行行为
+
+```xml
+<view-state id="editOrder">
+  <on-entry>
+    <evaluate expression="orderService.selectForUpdate(orderId, currentUser)"
+              result="viewScope.order" />
+  </on-entry>
+  <transition on="save" to="finish">
+    <evaluate expression="orderService.update(order, currentUser)" />
+  </transition>
+  <on-exit>
+    <evaluate expression="orderService.releaseLock(order, currentUser)" />
+  </on-exit>
+</view-state>
+```
+
+##### 在流程的结束执行行为
+
+```xml
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow
+                          http://www.springframework.org/schema/webflow/spring-webflow.xsd">
+  <input name="orderId" />
+
+  <on-start>
+    <evaluate expression="orderService.selectForUpdate(orderId, currentUser)"
+              result="flowScope.order" />
+  </on-start>
+
+  <view-state id="editOrder">
+    <transition on="save" to="finish">
+      <evaluate expression="orderService.update(order, currentUser)" />
+    </transition>
+  </view-state>
+
+  <on-end>
+    <evaluate expression="orderService.releaseLock(order, currentUser)" />
+  </on-end>
+</flow>
+```
+
+
+
+#### 行为的实现
+
+##### POJO行为
+
+```xml
+<evaluate expression="pojoAction.method(flowRequestContext)" />
+```
+
+```java
+public class PojoAction {
+	public String method(RequestContext context) {
+		...
+	}
+}
+```
+
+##### 基于`Action`接口的行为
+
+```xml
+<evaluate expression="customAction" />
+```
+
+```java
+public class CustomAction implements Action {
+	public Event execute(RequestContext context) {
+		...
+	}
+}
+```
+
+##### 基于`MultiAction`的行为
+
+`MultiAction`是`Action`的一个实现类。
+
+```xml
+<evaluate expression="multiAction.actionMethod1" />
+```
+
+```java
+public class CustomMultiAction extends MultiAction {
+	public Event actionMethod1(RequestContext context) {
+		...
+	}
+
+	public Event actionMethod2(RequestContext context) {
+		...
+	}
+
+	...
+}
+
+```
+
+所有的行为方法的返回值必须是`Event`类，参数必须是`RequestContext`类。
+
+#### 处理异常
+
+##### 在POJO行为中处理异常
+
+下面示例在POJO行为中处理业务异常，将错误信息添加到上下文，并返回结果事件ID。
+
+```xml
+<evaluate expression="bookingAction.makeBooking(booking, flowRequestContext)" />
+```
+
+```java
+public class BookingAction {
+  public String makeBooking(Booking booking, RequestContext context) {
+    try {
+      BookingConfirmation confirmation = bookingService.make(booking);
+      context.getFlowScope().put("confirmation", confirmation);
+      return "success";
+    } catch (RoomNotAvailableException e) {
+      context.addMessage(new MessageBuilder().error().defaultText("No room is available at this hotel").build());
+      return "error";
+    }
+  }
+}
+```
+
+##### 在MultiAction行为中处理异常
+
+```xml
+<evaluate expression="bookingAction.makeBooking" />
+```
+
+```java
+public class BookingAction extends MultiAction {
+  public Event makeBooking(RequestContext context) {
+    try {
+      Booking booking = (Booking) context.getFlowScope().get("booking");
+      BookingConfirmation confirmation = bookingService.make(booking);
+      context.getFlowScope().put("confirmation", confirmation);
+      return success();
+    } catch (RoomNotAvailableException e) {
+      context.getMessageContext().addMessage(new MessageBuilder().error().defaultText("No room is available at this hotel").build());
+      return error();
+    }
+  }
+}
+```
+
+##### 使用`<exception-handler>`元素
+
+#### 处理文件上传
+
+视图：
+
+```jsp
+<form:form modelAttribute="fileUploadHandler" enctype="multipart/form-data">
+	Select file: <input type="file" name="file"/>
+	<input type="submit" name="_eventId_upload" value="Upload" />
+</form:form>
+```
+
+后端对象：
+
+```java
+import org.springframework.web.multipart.MultipartFile;
+
+public class FileUploadHandler {
+	private transient MultipartFile file;
+
+	public void processFile() {
+		//Do something with the MultipartFile here
+	}
+
+	public void setFile(MultipartFile file) {
+		this.file = file;
+	}
+}
+```
+
+流程定义：
+
+```xml
+<view-state id="uploadFile" model="uploadFileHandler">
+	<var name="fileUploadHandler" 
+       class="org.springframework.webflow.samples.booking.FileUploadHandler" />
+	<transition on="upload" to="finish" >
+		<evaluate expression="fileUploadHandler.processFile()"/>
+	</transition>
+	<transition on="cancel" to="finish" bind="false"/>
+</view-state>
+```
 
 ### 输入输出
 
-### 变量
+流程可以在开始时通过`<input>`元素接收输入属性，在结束时通过`<output>`返回输出属性。
+
+```xml
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow
+                          http://www.springframework.org/schema/webflow/spring-webflow.xsd">
+  <input name="hotelId" />
+
+  <on-start>
+    <evaluate expression="bookingService.createBooking(hotelId, currentUser.name)"
+              result="flowScope.booking" />
+  </on-start>
+
+  <view-state id="enterBookingDetails">
+    <transition on="submit" to="reviewBooking" />
+  </view-state>
+
+  <view-state id="reviewBooking">
+    <transition on="confirm" to="bookingConfirmed" />
+    <transition on="revise" to="enterBookingDetails" />
+    <transition on="cancel" to="bookingCancelled" />
+  </view-state>
+
+  <end-state id="bookingConfirmed" >
+    <output name="bookingId" value="booking.id"/>
+  </end-state>
+
+  <end-state id="bookingCancelled" />
+</flow>
+```
+
+可以通过`type`属性为输入属性指定类型，通过`value`属性为输入属性赋予一个值，通过`required`属性强制输入属性是否可空：
+
+```xml
+<input name="hotelId" type="long" value="flowScope.hotelId" required="true" />
+```
+
+`<output>`通常出现在`<end-state>`中，它指定了流程的结果。可以通过`value`属性为输出属性赋予一个值：
+
+```xml
+<output name="confirmationNumber" value="booking.confirmationNumber" />
+```
+
+### 流程变量
+
+流程可以声明一个或多个实例变量，这些变量在流程开始时分配。
+
+#### 声明变量
+
+在流程中创建变量的最简单形式是使用`<var>`元素：
+
+```xml
+<var name="order" class="com.springinaction.pizza.domain.Order"/>
+```
+
+确保变量的类实现`java.io.Serializable`，因为实例状态在流程请求之间保存。
+
+这个变量可以在流程的任意状态进行访问。
+
+`<evaluate>`也可以用来创建或设置变量：
+
+```xml
+<evaluate result="viewScope.paymentTypeList" 
+          expression="T(com.springinaction.pizza.domain.PaymentType).asList()" />
+```
+
+类似地，`<set>`元素也可以创建或设置变量：
+
+```xml
+<set name="flowScope.paymentDetails" 
+     value="new com.springinaction.pizza.domain.PaymentDetails()" />
+```
 
 #### 作用域
 
+使用`<var>`元素声明的变量总是流程作用域的。
+
+当使用`<set>`或`<evaluate>`声明变量时，作用域通过`name`或`result`属性的作用域前缀指定。
+
+##### 流程作用域
+
+流程作用域在流程开始时分配，在流程结束时销毁。只在创建它的流程中是可见的，即不包括子流程。
+
+在默认实现中，存储在流程作用域中的任何对象都需要是`Serializable`。
+
+##### 视图作用域
+
+视图作用域在进入视图状态时分配，在退出视图状态时销毁。
+
+视图作用域仅可在视图状态中引用。
+
+在默认实现中，存储在流程作用域中的任何对象都需要是`Serializable`。
+
+##### 请求作用域
+
+请求作用域在一个请求进入流程时分配，在流程返回时销毁。
+
+##### Flash作用域
+
+流程作用域在流程开始时分配，在每个视图状态渲染后清除，并在流程结束时销毁。只在创建它的流程中是可见的，即不包括子流程。
+
+在默认实现中，存储在流程作用域中的任何对象都需要是`Serializable`。
+
+##### Conversation作用域
+
+Conversation作用域在最高层级的流程开始时分配，在最高层级的流程结束时销毁。被最高层级的流程及其任意层级的子流程所共享。
+
+在默认实现中，Conversation作用域对象存储在HTTP会话中，并且通常应该是`Serializable`以考虑典型的会话复制。
+
 ### 子流程
+
+流程可以通过`<subflow-state>`元素调用一个子流程。父流程将等待子流程返回，然后响应子流程结果。
+
+示例：
+
+主流程定义：pizza-flow.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow 
+                          http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
+  <var name="order" class="com.springinaction.pizza.domain.Order"/>
+
+  <!-- Customer -->
+  <subflow-state id="customer" subflow="pizza/customer">
+    <input name="order" value="order"/>
+    <transition on="customerReady" to="order" />
+  </subflow-state>
+
+  <!-- Order -->
+  <subflow-state id="order" subflow="pizza/order">
+    <input name="order" value="order"/>
+    <transition on="orderCreated" to="payment" />
+  </subflow-state>
+
+  <!-- Payment -->
+  <subflow-state id="payment" subflow="pizza/payment">
+    <input name="order" value="order"/>
+    <transition on="paymentTaken" to="saveOrder"/>      
+  </subflow-state>
+
+  <action-state id="saveOrder">
+    <evaluate expression="pizzaFlowActions.saveOrder(order)" />
+    <transition to="thankYou" />
+  </action-state>
+
+  <view-state id="thankYou">
+    <transition to="endState" />
+  </view-state>
+
+  <!-- End state -->
+  <end-state id="endState" />
+
+  <global-transitions>
+    <transition on="cancel" to="endState" />
+  </global-transitions>
+</flow>
+```
+
+customer-flow.xml：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow 
+                          http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
+  <input name="order" required="true"/>
+
+  <!-- Customer -->
+  <view-state id="welcome">
+    <transition on="phoneEntered" to="lookupCustomer"/>
+    <transition on="cancel" to="cancel"/>
+  </view-state>
+
+  <action-state id="lookupCustomer">
+    <evaluate result="order.customer" expression=
+              "pizzaFlowActions.lookupCustomer(requestParameters.phoneNumber)" />
+    <transition to="registrationForm" on-exception=
+                "com.springinaction.pizza.service.CustomerNotFoundException" />
+    <transition to="customerReady" />
+  </action-state>
+
+  <view-state id="registrationForm" model="order" popup="true" >
+    <on-entry>
+      <evaluate expression=
+                "order.customer.phoneNumber = requestParameters.phoneNumber" />
+    </on-entry>
+    <transition on="submit" to="checkDeliveryArea" />
+    <transition on="cancel" to="cancel" />
+  </view-state>
+
+  <decision-state id="checkDeliveryArea">
+    <if test="pizzaFlowActions.checkDeliveryArea(order.customer.zipCode)" 
+        then="addCustomer" 
+        else="deliveryWarning"/>
+  </decision-state>
+
+  <view-state id="deliveryWarning">
+    <transition on="accept" to="addCustomer" />
+    <transition on="cancel" to="cancel" />
+  </view-state>
+
+  <action-state id="addCustomer">
+    <evaluate expression="pizzaFlowActions.addCustomer(order.customer)" />
+    <transition to="customerReady" />
+  </action-state>
+
+  <!-- End state -->
+  <end-state id="cancel" />
+  <end-state id="customerReady" />
+</flow>
+```
+
+order-flow.xml：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow 
+                          http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
+  <input name="order" required="true" />
+
+  <!-- Order -->
+  <view-state id="showOrder">
+    <transition on="createPizza" to="createPizza" />
+    <transition on="checkout" to="orderCreated" />
+    <transition on="cancel" to="cancel" />
+  </view-state>
+
+  <view-state id="createPizza" model="flowScope.pizza">
+    <on-entry>
+      <set name="flowScope.pizza" 
+           value="new com.springinaction.pizza.domain.Pizza()" />
+
+      <evaluate result="viewScope.toppingsList" 
+                expression="T(com.springinaction.pizza.domain.Topping).asList()" />
+    </on-entry>
+    <transition on="addPizza" to="showOrder">
+      <evaluate expression="order.addPizza(flowScope.pizza)" />
+    </transition>
+    <transition on="cancel" to="showOrder" />
+  </view-state>
+
+
+  <!-- End state -->
+  <end-state id="cancel" />
+  <end-state id="orderCreated" />
+</flow>
+```
+
+payment-flow.xml：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow 
+                          http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
+  <input name="order" required="true"/>
+
+  <view-state id="takePayment" model="flowScope.paymentDetails">
+    <on-entry>
+      <set name="flowScope.paymentDetails" 
+           value="new com.springinaction.pizza.domain.PaymentDetails()" />
+
+      <evaluate result="viewScope.paymentTypeList" 
+                expression="T(com.springinaction.pizza.domain.PaymentType).asList()" />
+    </on-entry>
+    <transition on="paymentSubmitted" to="verifyPayment" />
+    <transition on="cancel" to="cancel" />
+  </view-state>
+
+  <action-state id="verifyPayment">
+    <evaluate result="order.payment" expression=
+              "pizzaFlowActions.verifyPayment(flowScope.paymentDetails)" />
+    <transition to="paymentTaken" />
+  </action-state>
+
+  <!-- End state -->
+  <end-state id="cancel" />
+  <end-state id="paymentTaken" />
+</flow>
+```
 
 ### 流程继承
 
@@ -1690,7 +2379,19 @@ public FlowExecutor flowExecutor() {
 
 ## 流程持久化
 
-## 流程安全
+## 保护流程
+
+Spring Web Flow中的状态、转换甚至整个流程都可以借助`<secured>`元素实现安全性，该元素会作为这些元素的子元素。例如，为了保护对一个视图状态的访问，你可以这样：
+
+```xml
+<view-state id="restricted">
+	<secured attributes="ROLE_USER, ROLE_ANONYMOUS" match="any" />
+</view-state>
+```
+
+这里只授予`ROLE_USER`和`ROLE_ANONYMOUS`访问这个视图状态的权限。
+
+`match`属性可以设置为`any`或`all`。如果设置为`any`，则用户必须至少具有一个`attributes`属性所列的权限。如果设置为`all`，则用户必须具有所列的所有权限。
 
 ## 测试流程
 
