@@ -49,7 +49,7 @@ $ apt install libc6:i386 libcurl3:i386
 
 在Windows下，直接双击下载的`Red-xxx.exe`，首次将自动创建Red GUI控制台（在`C:\ProgramData\Red\`中。如果升级了Red，则最好要删除该目录下的文件，否则可能仍然使用旧版本GUI控制台）。下次运行该文件时，将自动打开GUI控制台。
 
-如果要在命令提示符（cmd或PowerShell）下打开Red交互式环境，则需要加上`--cli`选项。（Linux下，加不加`--cli`都一样）
+如果要在命令提示符（cmd或PowerShell）下打开Red交互式环境，则需要加上`--cli`选项，否则是打开GUI控制台。（Linux下，加不加`--cli`都一样）
 
 ```powershell
 PS C:\Users\Jo> red --cli
