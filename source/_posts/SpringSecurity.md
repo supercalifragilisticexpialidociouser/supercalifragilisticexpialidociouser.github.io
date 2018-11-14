@@ -477,6 +477,103 @@ public BCryptPasswordEncoder passwordEncoder() {
 }
 ```
 
+## 拦截请求
 
+默认情况下，Spring Security会拦截所有请求，并要求所有请求都要进行认证。如果要对每个请求进行细粒度安全控制，则需要重写`WebSecurityConfigurerAdapter`类的`configure(HttpSecurity)`方法。
+
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+  http
+    .authorizeRequests()                                                         
+      .antMatchers("/resources/**", "/signup", "/about").permitAll() //任何人均可访问
+      .antMatchers("/admin/**").hasRole("ADMIN") //具有ROLE_ADMIN角色的用户允许访问
+      .antMatchers("/db/**").access("hasRole('ADMIN') and hasRole('DBA')") 
+      .anyRequest().authenticated() //已经登录的用户允许访问
+    .and()
+    // ...
+    .formLogin();
+}
+```
+
+### 路径选择
+
+用于设定拦截路径的方法主要有：`antMatchers`、`regexMatchers`和`anyRequest`。
+
+`antMatchers`方法中设定的路径支持Ant风格的通配符。
+
+`regexMatchers`方法则能够接受正则表达式来定义请求路径：
+
+```java
+.regexMatchers("/admin/.*")
+```
+
+`anyRequest`方法表示任何请求。
+
+### 授权请求
+
+可以通过如下方法来定义如何保护指定路径的请求：
+
+| 方法                       | 说明                                                         |
+| -------------------------- | ------------------------------------------------------------ |
+| access(String)             | 如果给定的SpEL表达式计算结果为`true`，就允许访问。           |
+| anonymous()                | 允许匿名用户访问。                                           |
+| authenticated()            | 允许认证过的用户访问。                                       |
+| denyAll()                  | 无条件拒绝所有访问。                                         |
+| fullyAuthenticated()       | 如果用户是完整认证的话（不是通过Remember-me功能认证的），就允许访问。 |
+| hasAnyAuthority(String...) | 如果用户具备给定权限中的某一个，就允许访问。                 |
+| hasAnyRole(String...)      | 如果用户具备给定角色中的某一个，就允许访问。                 |
+| hasAuthority(String)       | 如果用户具备给定权限，就允许访问。                           |
+| hasIpAddress(String)       | 如果请求来自给定IP地址，就允许访问。                         |
+| hasRole(String)            | 如果用户具备给定角色，就允许访问。                           |
+| not()                      | 对其他访问方法的结果求反。                                   |
+| permitAll()                | 无条件允许访问。                                             |
+| rememberMe()               | 如果用户通过Remember-me功能认证，就允许访问。                |
+
+我们可以将任意数量的`antMatchers`、`regexMatchers`和`anyRequest`连接起来，以满足Web应用安全规则的需要。排在越前面的安全规则，优先级越高。因此，要将最为具体的请求路径放在最前面，而最不具体的路径放在最后面。
+
+对每一路径只能应用一次上面的方法。也就是说，如果已使用`hasRole`方法限制某个特定的角色，就不能在相同的路径上同时通过`hasIpAddress`限制特定的IP地址。如果希望在同一路径上同时应用多个条件，则需要借助`access`方法，它支持使用SpEL表达式来声明访问限制。
+
+Spring Security通过一些安全相关的表达式扩展了SpEL：
+
+| 安全表达式             | 计算结果                                                  |
+| ---------------------- | --------------------------------------------------------- |
+| authentication         | 用户的认证对象                                            |
+| denyAll                | 结果始终为`false`                                         |
+| hasAnyRole(角色列表)   | 如果用户被授予了列表中任意一个指定角色，则结果为`true`    |
+| hasRole(role)          | 如果用户被授予了指定角色，则结果为`true`                  |
+| hasIpAddress(IP地址)   | 如果请求来自指定IP，则结果为`true`                        |
+| isAnonymous()          | 如果当前用户为匿名用户，则结果为`true`                    |
+| isAuthenticated()      | 如果当前用户已进行了认证，则结果为`true`                  |
+| isFullyAuthenticated() | 如果当前用户进行了完整认证，则结果为`true`                |
+| isRememberMe()         | 如果当前用户是通过Remember-me功能自动认证，则结果为`true` |
+| permitAll              | 结果始终为`true`                                          |
+| principal              | 用户的`principal`对象                                     |
+
+### 请求通道
+
+`HttpSecurity`对象的`requiresChannel`方法可以为各个路径设置请求的通道（HTTP或HTTPS）。
+
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+  http
+    .authorizeRequests()                                                         
+      .antMatchers("/resources/**", "/signup", "/about").permitAll()
+      .antMatchers("/admin/**").hasRole("ADMIN")
+      .antMatchers("/db/**").access("hasRole('ADMIN') and hasRole('DBA')") 
+      .anyRequest().authenticated()
+    .and()
+    .requiresChannel()
+      .antMatchers("/").requiresInecure()
+      .anyRequest().requiresSecure()
+    // ...
+    .formLogin();
+}
+```
+
+`requiresInecure`方法表示对“/”的请求，将自动重定向到不安全的HTTP通道上。
+
+`requiresSecure`方法表示对其他任何请求，将自动重定向到安全的HTTPS通道上。
 
 # 反应式应用
