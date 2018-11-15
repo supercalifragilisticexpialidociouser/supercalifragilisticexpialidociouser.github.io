@@ -477,7 +477,7 @@ public BCryptPasswordEncoder passwordEncoder() {
 }
 ```
 
-## 拦截请求
+## 保护请求
 
 默认情况下，Spring Security会拦截所有请求，并要求所有请求都要进行认证。如果要对每个请求进行细粒度安全控制，则需要重写`WebSecurityConfigurerAdapter`类的`configure(HttpSecurity)`方法。
 
@@ -490,8 +490,9 @@ protected void configure(HttpSecurity http) throws Exception {
       .antMatchers("/admin/**").hasRole("ADMIN") //具有ROLE_ADMIN角色的用户允许访问
       .antMatchers("/db/**").access("hasRole('ADMIN') and hasRole('DBA')") 
       .anyRequest().authenticated() //已经登录的用户允许访问
-    .and()
+    	.and()
     // ...
+    	.and()
     .formLogin();
 }
 ```
@@ -563,11 +564,12 @@ protected void configure(HttpSecurity http) throws Exception {
       .antMatchers("/admin/**").hasRole("ADMIN")
       .antMatchers("/db/**").access("hasRole('ADMIN') and hasRole('DBA')") 
       .anyRequest().authenticated()
-    .and()
+    	.and()
     .requiresChannel()
       .antMatchers("/").requiresInecure()
       .anyRequest().requiresSecure()
     // ...
+    	.and()
     .formLogin();
 }
 ```
@@ -576,4 +578,187 @@ protected void configure(HttpSecurity http) throws Exception {
 
 `requiresSecure`方法表示对其他任何请求，将自动重定向到安全的HTTPS通道上。
 
+### 防止跨站请求伪造
+
+CSRF（Cross Site Request Forgery, 跨站域请求伪造）是一种网络的攻击方式，它可以在受害者毫不知情的情况下以受害者名义伪造请求发送给受攻击站点，从而在并未授权的情况下执行在权限保护之下的操作。比如说，受害者 Bob 在银行有一笔存款，通过对银行的网站发送请求 http://bank.example/withdraw?account=bob&amount=1000000&for=bob2 可以使 Bob 把 1000000 的存款转到 bob2 的账号下。通常情况下，该请求发送到网站后，服务器会先验证该请求是否来自一个合法的 session，并且该 session 的用户 Bob 已经成功登陆。黑客 Mallory 自己在该银行也有账户，他知道上文中的 URL 可以把钱进行转帐操作。Mallory 可以自己发送一个请求给银行：http://bank.example/withdraw?account=bob&amount=1000000&for=Mallory。但是这个请求来自 Mallory 而非 Bob，他不能通过安全认证，因此该请求不会起作用。这时，Mallory 想到使用 CSRF 的攻击方式，他先自己做一个网站，在网站中放入如下代码： src=”http://bank.example/withdraw?account=bob&amount=1000000&for=Mallory ”，并且通过广告等诱使 Bob 来访问他的网站。当 Bob 访问该网站时，上述 url 就会从 Bob 的浏览器发向银行，而这个请求会附带 Bob 浏览器中的 cookie 一起发向银行服务器。大多数情况下，该请求会失败，因为他要求 Bob 的认证信息。但是，如果 Bob 当时恰巧刚访问他的银行后不久，他的浏览器与银行网站之间的 session 尚未过期，浏览器的 cookie 之中含有 Bob 的认证信息。这时，悲剧发生了，这个 url 请求就会得到响应，钱将从 Bob 的账号转移到 Mallory 的账号，而 Bob 当时毫不知情。等以后 Bob 发现账户钱少了，即使他去银行查询日志，他也只能发现确实有一个来自于他本人的合法请求转移了资金，没有任何被攻击的痕迹。而 Mallory 则可以拿到钱后逍遥法外。
+
+从Spring Security 3.2开始，默认就会启用CSRF防护。Spring Security通过一个同步token的方式来实现CSRF防护，它将会拦截状态变化的请求（例如，非GET、HEAD、OPTIONS和TRACE的请求）并检查CSRF token。如果请求中不包含CSRF token的话，或者token不能与服务器端的token相匹配，请求将会失败，并抛出`CsrfException`异常。这意味着在你的应用中，所有的表单必须在一个`_csrf`域中提交token，而且这个token必须要与服务器端计算并存储的token一致。
+
+例如，使用JSP作为视图模板时，需要在表单中添加如下的隐藏域：
+
+```jsp
+<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+```
+
+好消息是，如果使用的是Thymeleaf视图技术，则只要在`<form>`标签的`action`属性添加了Thymeleaf命名空间前缀，那么就会自动生成一个`_csrf`隐藏域：
+
+```html
+<form method="POST" th:action="@{/spittles}"
+```
+
+更好的功能是，如果使用Spring的表单绑定标签的话，`<sf:form>`标签会自动为我们添加隐藏的CSRF token标签。
+
+如果要禁用CSRF防护，只需要：
+
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+  http.csrf().disable();
+}
+```
+
+## 认证用户
+
+### 基于表单的认证
+
+默认情况下（即没有重写`configure(HttpSecurity)`方法），当访问应用的`/login`链接或者导航到需要认证的页面时，Spring Security会为我们提供一个简单的登录页面。默认认的`configure(HttpSecurity)`方法如下：
+
+```java
+protected void configure(HttpSecurity http) throws Exception {
+  http
+    .authorizeRequests()
+    	.anyRequest().authenticated()
+    	.and()
+    .formLogin() //基于表单的登录
+    	.and()
+    .httpBasic(); //HTTP Basic方式的认证
+}
+```
+
+但是，一旦重写了`configure(HttpSecurity)`方法，就需要自己显式调用`formLogin`方法来获得这个登录页面。
+
+#### 自定义登录页
+
+自定义登录页可以参考默认提供的登录页来写，主要注意如下几点：
+
+1. 表单要提交到`/login`；
+2. 用户名输入域名必须是`username`，密码输入域名必须是`password`；
+3. 如果没有禁用CSRF，还要保证包含值为CSRF token的`_csrf`输入域。
+
+例如：（Thymeleaf模板）
+
+```html
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>Spitter</title>
+    <link rel="stylesheet"
+          type="text/css"
+          th:href="@{/resources/style.css}"></link>
+  </head>
+  <body onload='document.f.username.focus();'>
+    <div id="header" th:include="page :: header"></div>
+    <div id="content">
+      <form name='f' th:action='@{/login}' method='POST'>
+        <table>
+          <tr><td>User:</td><td>
+            <input type='text' name='username' value='' /></td></tr>
+          <tr><td>Password:</td>
+            <td><input type='password' name='password'/></td></tr>
+          <tr><td colspan='2'>
+            <input name="submit" type="submit" value="Login"/></td></tr>
+        </table>
+      </form>
+    </div>
+    <div id="footer" th:include="page :: copy"></div>
+  </body>
+</html>
+```
+
+### 启用HTTP Basic认证
+
+当应用程序的使用者是另外一个应用程序时（例如REST客户端访问RESTful API），使用表单来提示登录的方式就不太适合。
+
+HTTP Basic认证会直接通过HTTP请求本身，对要访问应用程序的用户进行认证。
+
+在访问需要HTTP Basic认证的资源时，如果没有在请求中包含用户名和密码等认证信息时，则会响应一个HTTP 401（如果是在浏览器中访问，则是向用户弹出一个简单的模态对话框，要求用户输入用户名和密码）。
+
+默认情况，Spring Security已经启用了HTTP Basic认证。但如果重写了`configure(HttpSecurity)`方法，就需要自己显式调用`httpBasic`方法来启用HTTP Basic认证。另外，还可以通过调用`realmName`方法指定安全域：
+
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+  http
+    .formLogin()
+    	.loginPage("/login")
+    	.and()
+    .httpBasic()
+    	.realmName("Spittr")
+    	.and()
+    ...
+}
+```
+
+### 启用Remember-me功能
+
+Remember-me功能使得用户登录过一次，就会被记住，当再次回到应用时就不需要登录了。
+
+要启用Remember-me功能只需要象如下代码一样调用`rememberMe`方法：
+
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+  http
+    .formLogin()
+    	.loginPage("/login")
+    	.and()
+    .rememberMe()
+    	.tokenValiditySeconds(2419200)
+    	.key("spittrKey")
+    ...
+}
+```
+
+默认情况下，这个功能是通过在cookie中存储一个token来完成的。这个token最多两周内有效，本例中我们设定这个token最多四周内有效（2419200秒）。
+
+存储在cookie中的token包含用户名、密码、过期时间和一个私钥——在写入cookie前都进行了MD5哈希。默认情况下，私钥名为`SpringSecured`，本例通过`key`方法将其设置为`spittrKey`。
+
+启用Remember-me功能后，还需要在登录请求中包含一个名为`remember-me`的参数。在登录表单中，增加一个简单复选框就可以完成这件事情：
+
+```html
+<input id="remember_me" name="remember-me" type="checkbox"/>
+<label for="remember_me" class="inline">Remember me</label>
+```
+
+### 退出
+
+能出功能是通过Servlet容器中的Filter实现的（即`LogoutFilter`），它会拦截对`/logout`的请求。因此，为应用添加退出功能只需要添加如下的链接即可：
+
+```html
+<a th:href="@{/logout}">Logout</a>
+```
+
+当用户点击上述链接时，会发起对`/logout`的请求，这个请求会被Spring Security的`LogoutFilter`所处理，用户会退出应用，所有的Remember-me token都会被清除掉。
+
+在退出完成之后，用户浏览器将会重定向到`/login?logout`，从而允许用户进行再次登录。如果希望被重定向到其他页面，如应用的首页，则可以在`configure`方法中做如下配置：
+
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+  http
+    .formLogin()
+      .loginPage("/login")
+      .and()
+    .logout()
+    	.logoutSuccessUrl("/")
+    ...
+}
+```
+
+`logoutSuccessUrl("/")`表明在退出成功之后，浏览器需要重定向到`/`。
+
+`LogoutFilter`默认拦截`/logout`路径，可以通过`logoutUrl`方法来自定义拦截路径：
+
+```java
+.logout()
+  .logoutSuccessUrl("/")
+  .logoutUrl("/signout")
+```
+
+## 保护视图
+
+参见《Spring实战 · 9.5保护视图》（第四版）。
+
 # 反应式应用
+
+# 保护方法
