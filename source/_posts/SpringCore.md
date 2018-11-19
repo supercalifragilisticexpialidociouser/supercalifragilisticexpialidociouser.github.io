@@ -854,7 +854,7 @@ public class QAProfileConfig {
 }
 ```
 
-标注在方法上：
+标注在`@Bean`方法上：
 
 ```java
 @Configuration
