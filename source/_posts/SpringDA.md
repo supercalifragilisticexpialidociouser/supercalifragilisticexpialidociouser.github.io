@@ -342,42 +342,66 @@ public LocalSessionFactoryBean sessionFactory(DataSource dataSource) {
 ### 创建Repository
 
 ```java
-public HibernateSpitterRepository(SessionFactory sessionFactory) {
-  this.sessionFactory = sessionFactory;
-}
-private Session currentSession() {
-  return sessionFactory.getCurrentSession();
-}
-public long count() {
-  return findAll().size();
-}
-public Spitter save(Spitter spitter) {
-  Serializable id = currentSession().save(spitter);
-  return new Spitter((Long) id,
-                     spitter.getUsername(),
-                     spitter.getPassword(),
-                     spitter.getFullName(),
-                     spitter.getEmail(),
-                     spitter.isUpdateByEmail());
-}
-public Spitter findOne(long id) {
-  return (Spitter) currentSession().get(Spitter.class, id);
-}
-public Spitter findByUsername(String username) {
-  return (Spitter) currentSession()
-    .createCriteria(Spitter.class)
-    .add(Restrictions.eq("username", username))
-    .list().get(0);
-}
-public List<Spitter> findAll() {
-  return (List<Spitter>) currentSession()
-    .createCriteria(Spitter.class).list();
+@Repository
+public class HibernateSpitterRepository implements SpitterRepository {
+  private SessionFactory sessionFactory;
+
+  @Inject
+  public HibernateSpitterRepository(SessionFactory sessionFactory) {
+    this.sessionFactory = sessionFactory;
+  }
+
+  private Session currentSession() {
+    return sessionFactory.getCurrentSession();
+  }
+
+  public long count() {
+    return findAll().size();
+  }
+
+  public Spitter save(Spitter spitter) {
+    Serializable id = currentSession().save(spitter);
+    return new Spitter((Long) id, 
+                       spitter.getUsername(), 
+                       spitter.getPassword(), 
+                       spitter.getFullName(), 
+                       spitter.getEmail(), 
+                       spitter.isUpdateByEmail());
+  }
+
+  public Spitter findOne(long id) {
+    return (Spitter) currentSession().get(Spitter.class, id); 
+  }
+
+  public Spitter findByUsername(String username) {		
+    return (Spitter) currentSession() 
+      .createCriteria(Spitter.class) 
+      .add(Restrictions.eq("username", username))
+      .list().get(0);
+  }
+
+  public List<Spitter> findAll() {
+    return (List<Spitter>) currentSession().createCriteria(Spitter.class).list(); 
+  }
 }
 ```
 
+### 注册`PersistenceExceptionTranslationPostProcessor`
 
+当我们直接使用Hibernate上下文的`Session`，而不是`HibernateTemplate`（不推荐）时，为了给不使用模板的Hibernate Repository添加异常转换功能，只需要在Spring应用上下文中添加一个`PersistenceExceptionTranslationPostProcessor` Bean：
+
+```java
+@Bean
+public BeanPostProcessor persistenceTranslation() {
+	return new PersistenceExceptionTranslationPostProcessor();
+}
+```
+
+`PersistenceExceptionTranslationPostProcessor`是一个Bean后置处理器，它会在所有拥有`@Repository`标注的类上添加一个通知器（Advisor），这样就会捕获任何平台相关的异常，并以Spring的数据访问异常重新抛出。
 
 ## JPA
+
+### 配置实体管理器工厂
 
 # Spring Data
 
