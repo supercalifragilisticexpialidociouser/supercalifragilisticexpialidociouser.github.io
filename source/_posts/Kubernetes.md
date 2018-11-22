@@ -2362,6 +2362,8 @@ K8S从1.8版本开始，CPU、内存等资源的指标信息可以通过 Metrics
 
 # 日志管理
 
+# Istio
+
 # Deis
 
 [Deis](https://deis.com/) 是一个Kubernetes的原生PaaS。

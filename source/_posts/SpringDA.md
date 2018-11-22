@@ -386,7 +386,7 @@ public class HibernateSpitterRepository implements SpitterRepository {
 }
 ```
 
-### 注册`PersistenceExceptionTranslationPostProcessor`
+#### 注册`PersistenceExceptionTranslationPostProcessor`
 
 当我们直接使用Hibernate上下文的`Session`，而不是`HibernateTemplate`（不推荐）时，为了给不使用模板的Hibernate Repository添加异常转换功能，只需要在Spring应用上下文中添加一个`PersistenceExceptionTranslationPostProcessor` Bean：
 
@@ -403,8 +403,390 @@ public BeanPostProcessor persistenceTranslation() {
 
 ### 配置实体管理器工厂
 
+#### 使用LocalEntityManagerFactoryBean
+
+只能在简单的部署环境中使用此选项，例如单体应用程序和集成测试。
+
+`LocalEntityManagerFactoryBean`生成应用程序管理的实体管理器，不能引用现有的JDBC DataSource bean定义，也不存在对全局事务的支持。此外，持久化类的编织（字节码转换）是特定于提供者的，通常需要在启动时指定特定的JVM代理。
+
+```java
+@Bean
+public LocalEntityManagerFactoryBean entityManagerFactoryBean() {
+  LocalEntityManagerFactoryBean emfb = new LocalEntityManagerFactoryBean();
+  emfb.setPersistenceUnitName("spitterPU");
+  return emfb;
+}
+```
+
+持久化单元的信息是配置在一个名为`persistence.xml`文件中的，该文件必须位于类路径下的`META-INF`目录中。
+
+persistence.xml：
+
+```xml
+<persistence xmlns="http://java.sun.com/xml/ns/persistence" version="1.0">
+  <persistence-unit name="spitterPU">
+    <class>com.habuma.spittr.domain.Spitter</class>
+    <class>com.habuma.spittr.domain.Spittle</class>
+    <properties>
+      <property name="toplink.jdbc.driver"
+                value="org.hsqldb.jdbcDriver" />
+      <property name="toplink.jdbc.url" 
+                value= "jdbc:hsqldb:hsql://localhost/spitter/spitter" />
+      <property name="toplink.jdbc.user"
+                value="sa" />
+      <property name="toplink.jdbc.password"
+                value="" />
+    </properties>
+  </persistence-unit>
+</persistence>
+```
+
+#### 使用LocalContainerEntityManagerFactoryBean
+
+`LocalContainerEntityManagerFactoryBean`生成容器管理的实体管理器，提供了完整的JPA功能。
+
+```java
+@Bean
+public LocalContainerEntityManagerFactoryBean entityManagerFactory(
+  	DataSource dataSource, JpaVendorAdapter jpaVendorAdapter) {
+  LocalContainerEntityManagerFactoryBean emfb =
+    new LocalContainerEntityManagerFactoryBean();
+  emfb.setDataSource(dataSource);
+  emfb.setJpaVendorAdapter(jpaVendorAdapter);
+  emfb.setPackagesToScan("com.habuma.spittr.domain");
+  return emfb;
+}
+
+@Bean
+public JpaVendorAdapter jpaVendorAdapter() {
+  HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
+  adapter.setDatabase("HSQL");
+  adapter.setShowSql(true);
+  adapter.setGenerateDdl(false);
+  adapter.setDatabasePlatform("org.hibernate.dialect.HSQLDialect");
+  return adapter;
+}
+
+@Bean
+public BasicDataSource dataSource() {
+  …
+}
+```
+
+数据源信息既可以配置在Spring应用上下文中，也可以配置在`persistence.xml`文件中，而且前者优先级更高。
+
+jpaVendorAdapter属性用于指明所使用的是哪一个厂商的JPA实现。Spring提供了多个JPA厂商适配器：
+
+- EclipseLinkJpaVendorAdapter
+- HibernateJpaVendorAdapter
+- OpenJpaVendorAdapter
+- TopLinkJpaVendorAdapter（已废弃）
+
+packagesToScan属性指定了自动扫描的包名，在该包中带有`@Entity`标注类将被当作实体类。
+
+#### 从JNDI中获取实体管理器工厂
+
+部署到Java EE服务器时，可以使用此选项。
+
+```java
+@Bean
+public JndiObjectFactoryBean entityManagerFactory() {}
+  JndiObjectFactoryBean jndiObjectFB = new JndiObjectFactoryBean();
+  jndiObjectFB.setJndiName("jdbc/SpittrDS");
+  return jndiObjectFB;
+}
+```
+
+或者：
+
+```xml
+<jee:jndi-lookup id="emf" jndi-name="persistence/spitterPU" />
+```
+
+### 创建基于JPA的Repository
+
+#### 注入EntityManagerFactory
+
+```java
+@Repository
+@Transactional
+public class JpaSpitterRepository implements SpitterRepository {
+  @PersistenceUnit
+  private EntityManagerFactory emf;
+  public void addSpitter(Spitter spitter) {
+    emf.createEntityManager().persist(spitter);
+  }
+  public Spitter getSpitterById(long id) {
+    return emf.createEntityManager().find(Spitter.class, id);
+  }
+  public void saveSpitter(Spitter spitter) {
+    emf.createEntityManager().merge(spitter);
+  }
+  ...
+}
+```
+
+#### 直接注入EntityManager
+
+```java
+@Repository
+@Transactional
+public class JpaSpitterRepository implements SpitterRepository {
+  @PersistenceContext
+  private EntityManager em;
+  public void addSpitter(Spitter spitter) {
+    em.persist(spitter);
+  }
+  public Spitter getSpitterById(long id) {
+    return em.find(Spitter.class, id);
+  }
+  public void saveSpitter(Spitter spitter) {
+    em.merge(spitter);
+  }
+  ...
+}
+```
+
+`EntityManager`并不是线程安全的，一般来讲并不适合注入到像Repository这样的单例bean中。但是，`@PersistenceContext`标注并不会真正注入`EntityManager`，而是注入一个`EntityManager`代理。真正的`EntityManager`是与当前事务相关联的那一个，如果不存在这样的`EntityManager`，就会创建一个新的。这样，我们就能始终以线程安全的方式使用实体管理器。
+
+#### 注册PersistenceAnnotationBeanPostProcessor
+
+由于`@PersistenceUnit`和`@PersistenceContext`并不是Spring的标注，而是JPA规范的。为了让Spring理解这个标注，并注入`EntityManagerFactory`或`EntityManager`，我们必须要注册`PersistenceAnnotationBeanPostProcessor`：
+
+```java
+@Bean
+public PersistenceAnnotationBeanPostProcessor paPostProcessor() {
+	return new PersistenceAnnotationBeanPostProcessor();
+}
+```
+
+但是，如果你已经使用了`<context:annotation-config>`或`<context:component-scan>`，则不需要显式注册`PersistenceAnnotationBeanPostProcessor`。因为，这些配置会自动注册`PersistenceAnnotationBeanPostProcessor` Bean。
+
+#### 注册PersistenceExceptionTranslationPostProcessor
+
+由于没有使用模板类（已废弃）来处理异常，所以我们需要为Repository添加`@Repository`标注。因而，需要注册一个`PersistenceExceptionTranslationPostProcessor` Bean。
+
+```java
+@Bean
+public BeanPostProcessor persistenceTranslation() {
+	return new PersistenceExceptionTranslationPostProcessor();
+}
+```
+
+> 不管对于JPA，还是Hibernate，异常转换都不是强制要求的。如果你希望在Repository中抛出特定的JPA或Hibernate异常，只需要不注册`PersistenceExceptionTranslationPostProcessor` Bean即可。但是使用Spring的数据访问异常，以后切换持久化机制会更容易。
+
 # Spring Data
+
+Spring Data能够让我们只编写Repository接口，而不需要实现类。
 
 ## Spring Data JDBC
 
 ## Spring Data JPA
+
+### 启用Spring Data JPA
+
+```java
+@Configuration
+@EnableJpaRepositories(basePackages="com.habuma.spittr.db")
+  public class JpaConfiguration {
+  ...
+}
+```
+
+或者：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xsi:schemaLocation="http://www.springframework.org/schema/data/jpa
+                           http://www.springframework.org/schema/data/jpa/spring-jpa-1.0.xsd">
+  <jpa:repositories base-package="com.habuma.spittr.db" />
+  ...
+</beans>
+```
+
+Spring Data会扫描`basePackages`指定的包下所有扩展自`Repository`接口的所有接口。如果发现了扩展自`Repository`的接口，它会自动生成（在应用启动的时候）这个接口的实现。
+
+### 创建Repository接口
+
+自己创建的Repository接口必须扩展自`Repository`接口，通常扩展`JpaRepository`接口。
+
+```java
+public interface SpitterRepository
+		extends JpaRepository<Spitter, Long> {
+  …
+}
+```
+
+`JpaRepository`接口本身提供了18个常用的持久化方法，而无需你编写任何实现代码。除了这些预先提供的方法外，我们还可以使用多种方式为Spring Data JPA编写自定义的查询方法。
+
+#### 根据方法签名定义查询方法
+
+Spring Data为Repository方法的签名定义了一组小型的邻域特定语言（DSL）。具体地说，Repository方法是由一个动词、一个可选的主题（Subject）、关键词`By`以及一个断言组成。
+
+在创建Repository实现的时候，Spring Data会根据方法的签名自动实现这些方法。
+
+Spring Data允许的动词有：`get`、`read`、`find`和`count`。其中，`get`、`read`、`find`是同义的，都用于查询数据并返回对象。而`count`则会返回匹配对象的数量，而不是对象本身。
+
+```java
+public interface SpitterRepository
+  	extends JpaRepository<Spitter, Long> {
+	Spitter findByUsername(String username);
+  List<Spitter> readSpittersByFirstnameOrLastname(String first, String last);
+  …
+}
+```
+
+![Repository方法签名](SpringDA/repository-method-signatures.png)
+
+Repository方法的主题是可选的，并且可以随便命名。例如`readSpittersByFirstnameOrLastname`、`readByFirstnameOrLastname`、`readThoseThingsWeWantByFirstnameOrLastname`都是没有区别的。要查询的对象类型是通过参数化的`JpaRepository`接口确定的，而不是方法名称中的主题。
+
+在省略主题的时候，有一种例外：如果主题的名称以`Distinct`开头的话，那么在生成查询的时候会确保所返回结果集中不包含重复记录。
+
+断言指定了一个或多个限制结果的条件，每个条件必须引用一个属性（方法参数），并且还可以指定一种比较操作。如果省略比较操作符，则默认是相等比较操作。
+
+比较操作（同一行的比较操作是同义的）：
+
+- IsAfter、After、IsGreaterThan、GreaterThan
+
+- IsGreaterThanEqual、GreaterThanEqual
+
+- IsBefore、Before、IsLessThan、LessThan
+
+- IsLessThanEqual、LessThanEqual
+
+- IsBetween、Between
+
+  ```java
+  List<Order> findByShippingDateBetween(Date start, Date end);
+  ```
+
+- IsNull、Null
+
+- IsNotNull、NotNull
+
+- IsIn、In
+
+  ```java
+  List<Pet> findPetsByBreedIn(List<String> breed);
+  ```
+
+- IsNotIn、NotIn
+
+- IsStartingWith、StartingWith、StartsWith
+
+- IsEndingWith、EndingWith、EndsWith
+
+- IsContaining、Containing、Contains
+
+- IsLike、Like
+
+- IsNotLike、NotLike
+
+- IsTrue、True
+
+- IsFalse、False
+
+- Is、Equals
+
+- IsNot、Not
+
+条件之间是通过`And`或`Or`连接的。
+
+在处理`String`类型的属性时，条件中可以包含`IgnoringCase`或`IgnoresCase`（两者是同义的），这样在执行对比时就不会考虑字符的大小写。例如：
+
+```java
+List<Spitter> readByFirstnameIgnoringCaseOrLastnameIgnoresCase(String first, String last);
+```
+
+如果所有`String`类型的属性都要忽略大小写，则只需在所有条件的后面添加`AllIgnoringCase`或`AllIgnoresCase`：
+
+```java
+List<Spitter> readByFirstnameOrLastnameAllIgnoresCase(String first, String last);
+```
+
+注意：属性名是无关紧要的，但是它们的顺序必须与方法参数相匹配。
+
+最后，我们还可以在方法名称的结尾处添加`OrderBy…Asc`（升序）或`OrderBy…Desc`（降序），实现对结果集的排序：
+
+```java
+List<Spitter> readByFirstnameOrLastnameOrderByLastnameAsc(String first, String last);
+
+List<Spitter> readByFirstnameOrLastnameOrderByFirstnameDesc(String first, String last);
+```
+
+如果要根据多个属性排序，只需将其依序添加到`OrderBy`之后即可：
+
+```java
+List<Spitter> readByFirstnameOrLastnameOrderByLastnameAscFirstnameDesc(String first, String last);
+```
+
+#### 使用`@Query`标注声明自定义查询
+
+如果所需的数据无法通过方法名称进行恰当地描述，那么我们可以使用`@Query`标注，为Spring Data提供要执行的查询：
+
+```java
+@Query("select s from Spitter s where s.email like '%gmail.com'")
+List<Spitter> findAllGmailSpitters();
+```
+
+我们依然不需要编写`findAllGmailSpitters`方法的实现，只需提供查询即可。
+
+`@Query`仅限于单个JPA查询。
+
+#### 混合自定义查询
+
+如果我们需要Repository所提供的功能是无法用Spring Data的方法命名约定来描述的，甚至无法用`@Query`标注设置查询来实现的。这时，Spring Data允许我们自己实现该功能，并且仍然保留Spring Data的其他便利。
+
+当Spring Data JPA为Repository接口生成实现的时候，它还会查找名字与接口相同，并且添加了`Impl`后缀（默认）的一个类。如果这个类存在的话，Spring Data JPA将会把它的方法与Spring Data JPA所生成的方法合并在一起。对于`SpitterRepository`接口而言，要查找的类名为`SpitterRepositoryImpl`。
+
+```java
+public class SpitterRepositoryImpl implements SpitterSweeper {
+  @PersistenceContext
+  private EntityManager em;
+  
+  public int eliteSweep() {
+    String update =
+      "UPDATE Spitter spitter " +
+      "SET spitter.status = 'Elite' " +
+      "WHERE spitter.status = 'Newbie' " +
+      "AND spitter.id IN (" +
+      "SELECT s FROM Spitter s WHERE (" +
+      " SELECT COUNT(spittles) FROM s.spittles spittles) > 10000 )";
+    return em.createQuery(update).executeUpdate();
+  }
+}
+
+public interface SpitterSweeper{
+	int eliteSweep();
+}
+```
+
+注意：`SpitterRepositoryImpl`并不需要实现`SpitterRepository`接口，将它与Spring Data 的 Repository关联起来的是它的名字。但是，要确保`eliteSweep`方法也被声明在`SpitterRepository`接口中。要实现这点，同时避免代码重复的最简单方式是修改`SpitterRepository`接口，让它扩展`SpitterSweeper`接口：
+
+```java
+public interface SpitterRepository
+    extends JpaRepository<Spitter, Long>,
+            SpitterSweeper {
+  ...
+}
+```
+
+另外，`Impl`后缀只是默认的做法，可以通过`@EnableJpaRepository`的`repositoryImplementationPostfix`属性来自定义：
+
+```java
+@EnableJpaRepositories(
+  basePackages="com.habuma.spittr.db",
+  repositoryImplementationPostfix="Helper")
+```
+
+或者：
+
+```xml
+<jpa:repositories base-package="com.habuma.spittr.db"
+                  repository-impl-postfix="Helper" />
+```
+
+这样，Spring Data JPA将会查找名为`SpitterRepositoryHelper`的类，用它来匹配`SpitterRepository`接口。
