@@ -1280,3 +1280,178 @@ Redis连接工厂会生成到Redis数据库服务器的连接。Spring Data Redi
 - JredisConnectionFactory
 - LettuceConnectionFactory
 - SrpConnectionFactory
+
+```java
+@Bean
+public RedisConnectionFactory redisCF() {
+	return new JedisConnectionFactory();
+}
+```
+
+上面通过默认构造器创建的连接工厂会向`localhost`上的`6379`端口创建连接，并且没有密码。下面的配置将连接远程需要认证的服务器：
+
+```java
+@Bean
+public RedisConnectionFactory redisCF() {
+  JedisConnectionFactory cf = new JedisConnectionFactory();
+  cf.setHostName("redis-server");
+  cf.setPort(7379);
+  cf.setPassword("foobared");
+  return cf;
+}
+```
+
+### 使用RedisTemplate
+
+不使用模板的直接访问Redis，需要操作字节数组：
+
+```java
+RedisConnectionFactory cf = ...;
+RedisConnection conn = cf.getConnection();
+
+conn.set("greeting".getBytes(), "Hello World".getBytes());
+
+byte[] greetingBytes = conn.get("greeting".getBytes());
+String greeting = new String(greetingBytes);
+```
+
+Spring Data Redis提供了两个模板来简化Redis数据访问：
+
+- RedisTemplate
+- StringRedisTempate：key和value都是`String`类型。
+
+```java
+RedisConnectionFactory cf = ...;
+RedisTemplate<String, Product> redis = new RedisTemplate<String, Product>();
+redis.setConnectionFactory(cf);
+```
+
+`RedisTemplate`的第一个泛型参数是key的类型，第二个是value的类型。
+
+如果你经常使用`RedisTemplate`或`StringRedisTempate`，可以将它们注册为Bean，然后注入到需要的地方：
+
+```java
+@Bean
+public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory cf) {
+	return new StringRedisTemplate(cf);
+}
+```
+
+`RedisTemplate`的很多功能是以子API的形式提供的：
+
+| 方法             | 子API接口（返回值类型）    | 说明                                    |
+| ---------------- | -------------------------- | --------------------------------------- |
+| opsForValue()    | ValueOperations<K, V>      | 操作简单值的条目。                      |
+| opsForList()     | ListOperations<K, V>       | 操作list值的条目。                      |
+| opsForSet()      | SetOperations<K, V>        | 操作set值的条目。                       |
+| opsForZSet()     | ZSetOperations<K, V>       | 操作ZSet值（排序的set）的条目。         |
+| opsForHash()     | HashOperations<K, HK, HV>  | 操作hash值的条目。                      |
+| boundValueOps(K) | BoundValueOperations<K, V> | 以绑定指定key的方式，操作简单值的条目。 |
+| boundListOps(K)  | BoundListOperations<K, V>  | 以绑定指定key的方式，操作list值的条目。 |
+| boundSetOps(K)   | BoundSetOperations<K, V>   | 以绑定指定key的方式，操作set值的条目。  |
+| boundZSetOps(K)  | BoundZSetOperations<K, V>  | 以绑定指定key的方式，操作ZSet值的条目。 |
+| boundHashOps(K)  | BoundHashOperations<K, V>  | 以绑定指定key的方式，操作hash值的条目。 |
+
+#### 操作简单值
+
+```java
+redis.opsForValue().set(product.getSku(), product);
+
+Product product = redis.opsForValue().get("123456");//如果给定的key不存在，则返回null
+```
+
+#### 操作List类型值
+
+在List条目的尾部添加一个值，如果指定key的列表不存在，则会创建一个：
+
+```java
+redis.opsForList().rightPush("cart", product);
+```
+
+在列表条目的头部添加一个值：
+
+```java
+redis.opsForList().leftPush("cart", product);
+```
+
+从列表中弹出（获取并删除）一个值：
+
+```java
+Product first = redis.opsForList().leftPop("cart");
+Product last = redis.opsForList().rightPop("cart");
+```
+
+获取指定范围内的一个或多个值（不会删除列表中任何元素）：
+
+```java
+List<Product> products = redis.opsForList().range("cart", 2, 12); //从索引为2（包含）到索引为12（不包含）
+```
+
+如果范围超出了列表的边界，那么只会返回索引在范围内的元素。如果该索引范围内没有元素的话，将会返回一个空的列表。
+
+#### 操作Set类型值
+
+往Set中添加一个元素：
+
+```java
+redis.opsForSet().add("cart", product);
+```
+
+差集、交集、并集：
+
+```java
+List<Product> diff = redis.opsForSet().difference("cart1", "cart2");
+List<Product> union = redis.opsForSet().union("cart1", "cart2");
+List<Product> isect = redis.opsForSet().isect("cart1", "cart2");
+```
+
+移除元素：
+
+```java
+redis.opsForSet().remove(product);
+```
+
+随机获取Set中的一个元素：
+
+```java
+Product random = redis.opsForSet().randomMember("cart");
+```
+
+因为Set没有索引和内部排序，无法精准定位某个元素。
+
+#### 将操作绑定到指定key上
+
+假如我们需要对某个key上的数据进行一系列操作，不希望每次都会指定同一个key多次。使用以`bound`开头的方法，只需要绑定一次key，则后续的操作都是针对该key：
+
+```java
+BoundListOperations<String, Product> cart = redis.boundListOps("cart");
+Product popped = cart.rightPop();
+cart.rightPush(product1);
+cart.rightPush(product2);
+cart.rightPush(product3);
+```
+
+### 使用key和value的序列化器
+
+当某个条目保存到Redis时，key和value都会使用Redis序列化器进行序列化。Spring Data Redis提供了多个这样的序列化器：
+
+- GenericToStringSerializer：使用Spring转换服务进行序列化；
+- JacksonJsonRedisSerializer：使用Jackson 1，将对象序列化为JSON；
+- Jackson2JsonRedisSerializer：使用Jackson 2，将对象序列化为JSON；
+- JdkSerializationRedisSerializer：使用Java序列化；（RedisTemplate的默认序列化器）
+- OxmSerializer：使用Spring O/X映射的编排器（marshaler）和解排器（unmarshaler）实现序列化，用于XML序列化；
+- StringRedisSerializer：序列化String类型的key和value。（StringRedisTemplate的默认序列化器）
+
+假设当使用RedisTemplate时，我们希望将Product类型的value序列为JSON，而key是String类型：
+
+```java
+@Bean
+public RedisTemplate<String, Product> redisTemplate(RedisConnectionFactory cf) {
+  RedisTemplate<String, Product> redis = new RedisTemplate<String, Product>();
+  redis.setConnectionFactory(cf);
+  redis.setKeySerializer(new StringRedisSerializer());
+  redis.setValueSerializer(new Jackson2JsonRedisSerializer<Product>(Product.class));
+  return redis;
+}
+```
+
