@@ -205,3 +205,103 @@ Spring提供了多个用来定义缓存规则的SpEL扩展：
 
 ###  条件化缓存
 
+`@Cacheable`和`@CachePut`提供了两个属性用以实现条件化缓存：`unless`和`condition`。
+
+`unless`属性只能阻止将对象放进缓存，但是在这个方法调用的时候，依然会去缓存中进行查找，如果找到匹配的值，就会返回找到的值。
+
+`condition`的表达式计算结果为`false`，则在这个方法调用的过程中，缓存是被禁用的。就是说，不会去缓存进行查找，同时返回值也不会放进缓存中。
+
+```java
+@Cacheable(value="spittleCache"
+           unless="#result.message.contains('NoCache')"
+           condition="#id >= 10")
+Spittle findOne(long id);
+```
+
+另外，`unless`属性只有在缓存方法有返回值时才开始发挥作用。而`condition`肩负着在方法上禁用缓存的任务，因此它不能等到方法返回时再确定是否该关闭缓存。这意味着它的表达式必须要在进入方法时进行计算，所以我们不能通过`#result`引用返回值。
+
+## 移除缓存条目
+
+`@CacheEvict`并不会往缓存中添加任何东西。相反，如果带有`@CacheEvict`标注的方法被调用的话，那么会有一个或更多的条目会在缓存中移除。
+
+> 注意：`@CacheEvict`可以应用在返回值为`void`的方法上，而`@Cacheable`和`@CachePut`只能用在返回值不是`void`的方法上。
+
+```java
+@CacheEvict("spittleCache")
+void remove(long spittleId);
+```
+
+被删除条目的key与传递进来的`spittleId`参数的值相同。
+
+`@CacheEvict`的属性：
+
+| 属性             | 类型     | 说明                                                         |
+| ---------------- | -------- | ------------------------------------------------------------ |
+| value            | String[] | 要使用的缓存名称。                                           |
+| key              | String   | SpEL表达式，用来计算自定义的缓存key。                        |
+| condition        | String   | SpEL表达式，如果得到的值是`false`，则缓存不会应用到方法调用上。 |
+| allEntries       | boolean  | 如果为`true`，特定缓存的所有条目都会被移除掉。               |
+| beforeInvocation | boolean  | 如果为`true`，则在方法调用之前移除条目。如果为`false`（默认值），则在方法成功调用之后再移除条目。 |
+
+# 使用XML声明缓存
+
+如果你不希望在自己的源码中添加Spring的标注，或者你需要在没有源码的Bean上应用缓存功能。这时就需要使用XML的方式来声明缓存。
+
+| 元素                        | 说明                                                         |
+| --------------------------- | ------------------------------------------------------------ |
+| `<cache:annotation-driven>` | 启用标注驱动的缓存。等同于Java配置中的`@EnableCaching`。     |
+| `<cache:advice>`            | 定义缓存通知（advice）。结合`<aop:advisor>`，将通知应用到切点上。 |
+| `<cache:caching>`           | 在缓存通知中，定义一组特定的缓存规则。                       |
+| `<cache:cacheable>`         | 指明某个方法要进行缓存。等同于`@Cacheable`。                 |
+| `<cache:cache-put>`         | 指明某个方法要填充缓存，但不会考虑缓存中是否已有配置的值。等同于`@CachePut`。 |
+| `<cache:cache-evict>`       | 指明某个方法要从缓存中移除一个或多个条目。等同于`@CacheEvict`。 |
+
+```java
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:cache="http://www.springframework.org/schema/cache"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="http://www.springframework.org/schema/aop
+      http://www.springframework.org/schema/aop/spring-aop.xsd
+      http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans.xsd
+      http://www.springframework.org/schema/cache
+      http://www.springframework.org/schema/cache/spring-cache.xsd">
+  <aop:config>
+  <aop:advisor advice-ref="cacheAdvice"
+    pointcut="execution(* com.habuma.spittr.db.SpittleRepository.*(..))"/>
+  </aop:config>
+  <cache:advice id="cacheAdvice">
+    <cache:caching>
+      <cache:cacheable cache="spittleCache" method="findRecent" />
+      <cache:cacheable cache="spittleCache" method="findOne" />
+      <cache:cacheable cache="spittleCache" method="findBySpitterId" />
+      <cache:cache-put cache="spittleCache" method="save" key="#result.id" />
+      <cache:cache-evict cache="spittleCache" method="remove" />
+    </cache:caching>
+  </cache:advice>
+  <bean id="cacheManager"
+        class="org.springframework.cache.concurrent.ConcurrentMapCacheManager" />
+</beans>
+```
+
+在`<cache:advice>`中可包含任意数量的`<cache:caching>`元素。
+
+另外，如果缓存管理器的ID不是`cacheManager`的话，则还要在`<cache:advice>`中通过`cache-manager`属性显式指定。
+
+如果`<cache:caching>`下的所有`<cache:cacheable>`、`<cache:cache-put>`、`<cache:cache-evict>`元素的`cache`、`condition`、`key`或`method`属性都引用相同的名字，则可以在`<cache:caching>`元素的对应属性上统一指定：
+
+```xml
+<cache:advice id="cacheAdvice">
+  <cache:caching cache="spittleCache">
+    <cache:cacheable method="findRecent" />
+    <cache:cacheable method="findOne" />
+    <cache:cacheable method="findBySpitterId" />
+    <cache:cache-put method="save" key="#result.id" />
+    <cache:cache-evict method="remove" />
+  </cache:caching>
+</cache:advice>
+```
+
+此外，`<cache:cacheable>`、`<cache:cache-put>`也有`unless`属性。`<cache:cache-evict>`有`all-entries`和`before-invocation`属性。
