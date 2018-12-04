@@ -1,7 +1,7 @@
 ---
 title: Red
 date: 2018-11-01 09:32:24
-tags: [0.6.3]
+tags: [0.6.4]
 ---
 
 # 简介
@@ -63,7 +63,61 @@ $ red-xxx
 Hello
 ```
 
+### 加载脚本
+
+可以使用`load`函数来将一个脚本加载到交互式环境中：
+
+```red
+>> a: load %myprogram.txt
+```
+
+### 运行脚本
+
+可以在交互式环境中使用`do`函数直接运行脚本、块、函数或任何值。
+
+```red
+>> do a
+
+>> do %myprogram.txt
+
+>> do load %myfunction.txt
+
+>> do [loop 3 [print "hello"]]
+hello
+hello
+hello
+```
+
+### 退出程序
+
 要退出交互式环境，可以运行函数`quit`或`q`，也可以按下`Ctrl-C`（不适用于GUI控制台）。
+
+`quit`或`q`也可用于非交互式环境，用于退出程序。
+
+`quit/return`函数和`quit-return`例程都可以退出程序，并将参数返回给操作系统：
+
+```red
+quit/return 3
+```
+
+在Windows上，当执行完包含上述代码的程序后，可以通过在命令行中输入如下命令来获取返回给操作系统的状态：
+
+```
+> echo ％errorlevel％
+```
+
+另外，`halt`函数会挂起脚本的执行，并返回1。
+
+在GUI程序中，你可以使用VID事件`on-close`来监听关闭程序事件：
+
+```red
+ed [needs: view]
+
+view [
+       on-close [print "bye!"]        
+       button [print "click"]
+]
+```
 
 ## 脚本式
 
@@ -327,7 +381,7 @@ something
 
 ### 块求值
 
-块默认是不求值的，它被当作数据看待。如果需要对块求值，则需要使用`do`函数。
+块默认是不求值的，它被当作数据看待。如果需要对块求值，则需要使用原生的`do`函数。
 
 ```red
 >> [1 + 2]
@@ -375,8 +429,6 @@ do %script.red
 == 3
 ```
 
-
-
 ### 求值顺序
 
 Red总是从左到右求值，运算符之间没有优先级。
@@ -418,6 +470,73 @@ Red总是从左到右求值，运算符之间没有优先级。
 # 数据结构
 
 # 输入和输出
+
+## 标准输入输出
+
+### print
+
+`print`将数据发送到控制台，并会在结尾自动添加换行符。它在打印之前对参数求值，也就是说，它在打印之前对参数应用`reduce`。
+
+`print`是原生函数。
+
+### prin
+
+`prin`也将数据发送到控制台，但它自动添加换行符。它在打印之前对其参数求值。
+
+`prin`是原生函数。
+
+### probe
+
+`probe`函数将它的参数原样发送到控制台，而不对参数进行求值。
+
+```red
+>> probe [3 + 2]
+[3 + 2]
+== [3 + 2]
+
+>> print [3 + 2]
+5
+```
+
+### input
+
+`input`函数从控制台读取一个字符串输入，并且移除换行符。
+
+>  注意，在控制台上键入的任何数字都将转换为string。
+
+```red
+Red []
+
+prin "Enter a name: "
+name: input
+print [name "is" length? name "characters long"]
+```
+
+执行上面脚本，将提示输入名字，并输出它的长度：
+
+```red
+John
+John is 4 characters long
+```
+
+### ask
+
+`ask`例程会先将参数输出到控制台，然后再从控制台读取一个字符串输入，并且移除换行符。
+
+```red
+Red []
+
+name: ask "What is your name: "
+prin "Your name is "
+print name
+```
+
+执行上述脚本：
+
+```red
+What is your name: John
+Your name is John
+```
 
 # 异常
 
