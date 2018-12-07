@@ -45,27 +45,35 @@ $ apt install libc6:i386 libcurl3:i386
 
    这将生成`yourscript.exe`。
 
-## 交互式
+## 脚本
 
-在Windows下，直接双击下载的`Red-xxx.exe`，首次将自动创建Red GUI控制台（在`C:\ProgramData\Red\`中。如果升级了Red，则最好要删除该目录下的文件，否则可能仍然使用旧版本GUI控制台）。下次运行该文件时，将自动打开GUI控制台。
+解释的编程语言一次执行一行代码。解释语言的程序称为“脚本”（Script）。 Red并没有真正被解释，因为它在运行之前进行了一些编译（排序），但它的程序通常被称为脚本。
 
-如果要在命令提示符（cmd或PowerShell）下打开Red交互式环境，则需要加上`--cli`选项，否则是打开GUI控制台。（Linux下，加不加`--cli`都一样）
+### 第一个脚本
 
-```powershell
-PS C:\Users\Jo> red --cli
+hello.red：
+
+```red
+Red []
+
+print "Hello world!"
 ```
 
-在Linux下，在终端上：
+每个Red脚本必须以`Red`（这里区分大小写）开头，之后跟一个包含有关您的程序信息的块（在Red中，方括号内的任何内容都称为“块”）。
 
-```bash
-$ red-xxx
->> print "Hello"
-Hello
-```
+Red是不区分大小写的，除了极少数特殊情况外。
+
+#### 注释
+
+行注释：`; 从分号开始一直到行尾`或者`comment "行注释"`。
+
+块注释：`comment {块注释}`、`{块注释}`或者`comment [块注释]`。
+
+此外，`Red […]`之前的内容都将被解释器忽略，因此，也可将`Red […]`之前的内容视为注释。
 
 ### 加载脚本
 
-可以使用`load`函数来将一个脚本加载到交互式环境中：
+可以使用`load`函数来加载一个脚本：
 
 ```red
 >> a: load %myprogram.txt
@@ -73,7 +81,7 @@ Hello
 
 ### 运行脚本
 
-可以在交互式环境中使用`do`函数直接运行脚本、块、函数或任何值。
+可以使用`do`函数直接运行脚本、块、函数或任何值。
 
 ```red
 >> do a
@@ -88,13 +96,11 @@ hello
 hello
 ```
 
-### 退出程序
+### 退出脚本
 
-要退出交互式环境，可以运行函数`quit`或`q`，也可以按下`Ctrl-C`（不适用于GUI控制台）。
+`quit`或`q`也可用于非交互式环境，用于退出脚本。
 
-`quit`或`q`也可用于非交互式环境，用于退出程序。
-
-`quit/return`函数和`quit-return`例程都可以退出程序，并将参数返回给操作系统：
+`quit/return`函数和`quit-return`例程都可以退出脚本，并将参数返回给操作系统：
 
 ```red
 quit/return 3
@@ -119,33 +125,27 @@ view [
 ]
 ```
 
-## 脚本式
+## 交互式
 
-### 脚本
+在Windows下，直接双击下载的`Red-xxx.exe`，首次将自动创建Red GUI控制台（在`C:\ProgramData\Red\`中。如果升级了Red，则最好要删除该目录下的文件，否则可能仍然使用旧版本GUI控制台）。下次运行该文件时，将自动打开GUI控制台。
 
-解释的编程语言一次执行一行代码。解释语言的程序称为“脚本”（Script）。 Red并没有真正被解释，因为它在运行之前进行了一些编译（排序），但它的程序通常被称为脚本。
+如果要在命令提示符（cmd或PowerShell）下打开Red交互式环境，则需要加上`--cli`选项，否则是打开GUI控制台。（Linux下，加不加`--cli`都一样）
 
-#### 第一个脚本
-
-hello.red：
-
-```red
-Red []
-
-print "Hello world!"
+```powershell
+PS C:\Users\Jo> red --cli
 ```
 
-每个Red脚本必须以`Red`（这里区分大小写）开头，之后跟一个包含有关您的程序信息的块（在Red中，方括号内的任何内容都称为“块”）。
+在Linux下，在终端上：
 
-Red是不区分大小写的，除了极少数特殊情况外。
+```bash
+$ red-xxx
+>> print "Hello"
+Hello
+```
 
-#### 注释
+在退出交互式环境，除了使用函数`quit`或`q`外，也可以按下`Ctrl-C`（不适用于GUI控制台）。
 
-行注释：`; 从分号开始一直到行尾`或者`comment "行注释"`。
-
-块注释：`comment {块注释}`、`{块注释}`或者`comment [块注释]`。
-
-此外，`Red […]`之前的内容都将被解释器忽略，因此，也可将`Red […]`之前的内容视为注释。
+## 编译式
 
 ### 编译
 
@@ -285,6 +285,90 @@ A is a block! value: [1 2 3]
 `about`函数可以查看Red解释器的版本号和构建时间等信息。
 
 # 数据类型
+
+## 基本类型
+
+### none!
+
+```red
+>> a: [1 2 3 4 5] 
+== [1 2 3 4 5] 
+>> pick a 7 
+== none
+```
+
+`none`相当于其他编程语言中的`null`。
+
+### logic!
+
+`logic!`类型可以取：`true`和`false`，或者`on`和`off`，或者`yes`和`no`。
+
+其实，任何不是`false`、`off`或`on`的值都看作是`true`。
+
+### string!
+
+字符串是字符的序列（series），它使用双引号（单行）或花括号（可跨行）包围。
+
+> 单引号不能用于字符串，因为以单引号开头的是符号。
+
+```red
+>> a: "my string" 
+== "my string"
+
+>> a: {my 
+{ string}        ;the first "{" is not a typo, is how the console shows it. Try! 
+== "my^/string" 
+>> print a 
+my 
+string
+```
+
+### char!
+
+Red的字符是一个Unicode码点（范围从0到10FFFF），它也可以当作整数来使用。
+
+```red
+>> a: "my string" 
+== "my string" 
+>> pick a 2 
+== #"y" 
+
+>> a: #"b" 
+== #"b" 
+>> a: a + 1 
+== #"c"
+```
+
+### integer!
+
+`integer!`表示32位整数。
+
+两个整数相除，表示取整：
+
+```red
+>> 7 / 2 
+== 3
+```
+
+### float!
+
+`float!`表示64位浮点类型。
+
+```red
+>> 7.0 / 2 
+== 3.5
+>> 3e2 
+== 300.0
+```
+
+
+
+## 获取值的类型
+
+```red
+>> type? 33
+== integer!
+```
 
 # 变量
 
@@ -537,6 +621,28 @@ print name
 What is your name: John
 Your name is John
 ```
+
+## 文件
+
+### 文件类型
+
+`file!`表示 文件类型。
+
+文件字面量是要以`%`开头：
+
+```red
+>> write %myfirstfile.txt "This is my first file"
+```
+
+`%myfirstfile.txt`表示当前路径下的`myfirstfile.txt`文件。
+
+如果文件不在当前路径下，则需要在双引号中写出完整路径：
+
+```red
+>> write %"C:\Users\André\Documents\RED\mysecondfile.txt" "This is my second file"
+```
+
+文件分隔符可以使用`/`或者`\`。
 
 # 异常
 

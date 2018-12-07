@@ -1422,11 +1422,31 @@ public String handleDuplicateSpittle() {
 
 ## HTTP缓存
 
-## REST客户端
-
 ## WebSockets
 
 # Spring WebFlux
+
+# Spring REST
+
+REST就是将资源的状态以最适合客户端或服务端的形式（Representational）从服务器端转移（Transfer）到客户端（或者反过来）。
+
+RPC是面向服务的，并关注于行为和动作；而REST是面向资源的，强调描述应用程序的事物和名词。
+
+REST资源是通过URL进行识别和定位的。
+
+REST中会有行为，它们是通过HTTP方法来定义的：
+
+- POST：创建（非幂等性）
+- GET：获取
+- PUT：更新
+- PATCH：部分更新
+- DELETE：删除
+
+## REST客户端
+
+## Spring HATEOAS
+
+## Spring REST Docs
 
 # Spring Web Flow
 
