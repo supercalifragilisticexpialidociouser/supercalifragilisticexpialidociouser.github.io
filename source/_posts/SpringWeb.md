@@ -1428,7 +1428,7 @@ public String handleDuplicateSpittle() {
 
 # Spring REST
 
-REST就是将资源的状态以最适合客户端或服务端的形式（Representational）从服务器端转移（Transfer）到客户端（或者反过来）。
+REST就是将资源的状态以最适合客户端或服务端的表现形式（Representational）从服务器端转移（Transfer）到客户端（或者反过来）。
 
 RPC是面向服务的，并关注于行为和动作；而REST是面向资源的，强调描述应用程序的事物和名词。
 
@@ -1441,6 +1441,152 @@ REST中会有行为，它们是通过HTTP方法来定义的：
 - PUT：更新
 - PATCH：部分更新
 - DELETE：删除
+
+## REST端点
+
+在Spring MVC中，REST端点实际上就是Spring MVC的控制器。之前编写的Spring MVC控制器可以看作是响应以HTML为表现形式的REST端点。
+
+### 内容协商
+
+Spring提供了两种方法将资源的Java表现形式转换为发送给客户端的表现形式：
+
+- 内容协商（Content Negotiation）：选择一个视图，它能够将模型渲染为呈现给客户端的表现形式；
+- 消息转换器（Message Convention）：通过一个消息转换器将控制器所返回的对象转换为呈现给客户端的表现形式。（推荐）
+
+#### 配置内容协商视图解析器
+
+```java
+@Bean
+public ViewResolver cnViewResolver() {
+	return new ContentNegotiatingViewResolver();
+}
+```
+
+首先，如果在URL结尾处有文件扩展名，则`ContentNegotiatingViewResolver`将会基于该扩展名确定所需的类型。例如，扩展名`.json`对应的内容类型是`application/json`。
+
+如果根据文件扩展名不能得到任何媒体类型的话，则就会考虑请求中的`Accept`头部信息中指定的内容类型。
+
+如果没有`Accept`头部信息，并且扩展名也无法提供帮助，则`ContentNegotiatingViewResolver`将会使用`/`作为默认的内容类型，即客户端必须要接收服务器发送的任何形式的表现形式。
+
+一旦内容类型确定之后，`ContentNegotiatingViewResolver`将会委托其他的视图解析器将逻辑视图名解析为社图。解析得到的每个视图都会放到一个列表中，这个列表装配完成之后，`ContentNegotiatingViewResolver` 会循环客户端请求的所有媒体类型，在候选的视图中查找能够产生对应内容类型的视图，第一个匹配的视图会用来渲染模型。
+
+#### 控制媒体类型的选择
+
+通过`ContentNegotiationManager`我们能够改变上面使用的确定请求媒体类型的默认策略。具体说，它能够：
+
+- 指定默认的内容类型，如果根据请求无法得到内容类型的话，将会使用默认值；
+- 通过请求参数指定内容类型；
+- 忽视请求的`Accept`头部信息；
+- 将请求的扩展名映射为特定的媒体类型；
+- 将JAF（Java Activation Framework）作为根据扩展名查找媒体类型的备用方案。
+
+有三种配置`ContentNegotiationManager`的方法：
+
+- 直接声明一个`ContentNegotiationManager`类型的Bean（比较复杂）；
+- 通过`ContentNegotiationManagerFactoryBean`间接创建Bean；
+- 重写`WebMvcConfigurerAdapter`的`configureContentNegotiation`方法。
+
+例如：将`application/json`作为默认的内容类型
+
+```xml
+<bean id="contentNegotiationManager"
+      class="org.springframework.http.ContentNegotiationManagerFactoryBean"
+      p:defaultContentType="application/json">
+```
+
+或者：
+
+```java
+@Override
+public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+  configurer.defaultContentType(MediaType.APPLICATION_JSON);
+}
+```
+
+有了`ContentNegotiationManager` Bean后，接下来就需要将它注入到`ContentNegotiatingViewResolver`的`contentNegotiationManager`属性中：
+
+```java
+@Bean
+public ViewResolver cnViewResolver(ContentNegotiationManager cnm) {
+  ContentNegotiatingViewResolver cnvr = new ContentNegotiatingViewResolver();
+  cnvr.setContentNegotiationManager(cnm);
+  return cnvr;
+}
+```
+
+#### ContentNegotiatingViewResolver 的优势和限制
+
+`ContentNegotiatingViewResolver`最大优势在于，它在Spring MVC之上构建了REST资源表现层，控制器代码无需修改。
+
+`ContentNegotiatingViewResolver`作为ViewResolver的实现，它只能决定资源该如何渲染到客户端，并没有涉及到客户端要发送什么样的表现形式给控制器使用。
+
+`ContentNegotiatingViewResolver`所选中的`View`会渲染**模型**给客户端，而不是资源。例如当客户端请求JSON格式的`Spittle`对象列表时，客户端希望得到的响应是：
+
+```json
+[
+  {
+    "id": 42,
+    "latitude": 28.419489,
+    "longitude": -81.581184,
+    "message": "Hello World!",
+    "time": 1400389200000
+  },
+  {
+    "id": 43,
+    "latitude": 28.419136,
+    "longitude": -81.577225,
+    "message": "Blast off!",
+    "time": 1400475600000
+  }
+]
+```
+
+而模型是键值对组成的`Map`，实际的响应可能是：
+
+```json
+{
+  "spittleList": [
+    {
+      "id": 42,
+      "latitude": 28.419489,
+      "longitude": -81.581184,
+      "message": "Hello World!",
+      "time": 1400389200000
+    },
+    {
+      "id": 43,
+      "latitude": 28.419136,
+      "longitude": -81.577225,
+      "message": "Blast off!",
+      "time": 1400475600000
+    }
+  ]
+}
+```
+
+### HTTP信息转换器
+
+消息转换器提供了一种更为直接的方式，它能够将控制器产生的数据转换为服务于客户端的表现形式。`DispatcherServlet`不再需要那么麻烦地将模型数据传到视图中。实际上，这里根本就没有模型，也没有视图，只有控制器产生的数据，以及消息转换器转换数据之后所产生的资源表现形式。
+
+Spring提供了多个HTTP信息转换器，用于实现资源表现与各种Java类型之间的互相转换：
+
+| 信息转换器                           | 说明                                                         |
+| ------------------------------------ | ------------------------------------------------------------ |
+| AtomFeedHttpMessageConverter         | Rome Feed对象和Atom feed（`application/atom+xml`）之间的互相转换。*如果Rome包在类路径下将会自动进行注册*。 |
+| BufferedImageHttpMessageConverter    | BufferedImages与图片二进制数据之间互相转换。默认注册。       |
+| ByteArrayHttpMessageConverter        | 读取/写入字节数组。从任意媒体类型（`*/*`）中读取，并以`application/octet-stream`格式写入。默认注册。 |
+| FormHttpMessageConverter             | 将`application/x-www-form-urlencoded`内容读入到`MultiValueMap<String, String>`中，也会将`MultiValueMap<String, String>`写入到`application/x-www-form-urlencoded`中，或将`MultiValueMap<String, Object>`写入到`multipart/form-data`中。默认注册。 |
+| Jaxb2RootElementHttpMessageConverter | 在XML（`text/xml`或`application/xml`）和使用JAXB2标注的对象间互相转换。*如果JAXB v2包在类路径下将会自动进行注册*。 |
+| MappingJacksonHttpMessageConverter   | 在JSON和类型化的对象或非类型化的HashMap间互相转换。*如果Jackson JSON包在类路径下将会自动进行注册*。 |
+| MappingJackson2HttpMessageConverter  | 在JSON和类型化的对象或非类型化的HashMap间互相转换。*如果Jackson 2 JSON包在类路径下将会自动进行注册*。 |
+| MarshallingHttpMessageConverter      | 使用注入的编排器（marshaller）和解排器（unmarshaller）来读取和写入XML。支持的编排器和解排器包括Castor、JAXB2、JIBX、XMLBeans以及Xstream。默认注册。 |
+| ResourceHttpMessageConverter         | 读取或写入Resource。默认注册。                               |
+| RssChannelHttpMessageConverter       | 在RSS feed和Rome Channel对象间互相转换。*如果Rome包在类路径下将会自动进行注册*。 |
+| SourceHttpMessageConverter           | 在XML和`javax.xml.transform.Source`对象间互相转换。默认注册。 |
+| StringHttpMessageConverter           | 将任意媒体类型（`*/*`）读取为`String`。将`String`写入为`text/plain`。默认注册。 |
+| XmlAwareFormHttpMessageConverter     | `FormHttpMessageConverter`的扩展，使用`SourceHttpMessageConverter`来支持基于XML的部分。默认注册。 |
+
+
 
 ## REST客户端
 
