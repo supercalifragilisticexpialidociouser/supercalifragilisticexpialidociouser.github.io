@@ -1586,9 +1586,237 @@ Spring提供了多个HTTP信息转换器，用于实现资源表现与各种Java
 | StringHttpMessageConverter           | 将任意媒体类型（`*/*`）读取为`String`。将`String`写入为`text/plain`。默认注册。 |
 | XmlAwareFormHttpMessageConverter     | `FormHttpMessageConverter`的扩展，使用`SourceHttpMessageConverter`来支持基于XML的部分。默认注册。 |
 
+#### 在响应体中返回资源状态
 
+正常情况下，当处理器方法返回Java对象（除了String或`View`实现以外）时，这个对象会放在模型中并在视图中渲染使用。但是，如果使用了消息转换功能，我们需要告诉Spring跳过正常的模型/视图流程，并使用消息转换器。最简单的做法是为控制器方法添加`@ResponseBody`标注，它会告知Spring，我们要将返回的对象作为资源发送给客户端，并将其转换为客户端可接受的表现形式。更具体地讲，`DispatcherServlet`将会考虑到请求中`Accept`头部信息，并查找能够为客户端提供所需要表现形式的消息转换器。
+
+```java
+@RequestMapping(method=RequestMethod.GET, produces="application/json")
+public @ResponseBody List<Spittle> spittles(
+    @RequestParam(value="max", defaultValue=MAX_LONG_AS_STRING) long max,
+    @RequestParam(value="count", defaultValue="20") int count) {
+  return spittleRepository.findSpittles(max, count);
+}
+```
+
+`produces`属性表明这个方法只处理预期输出为JSON的请求，即只会处理`Accept`头部信息包含`application/json`的请求。
+
+#### 在请求体中接收资源状态
+
+`@ResponseBody`能够告诉Spring在把数据发送给客户端时，要使用某个消息转换器。与之类似，`@RequestBody`也能告诉Spring查找一个消息转换器，将来自客户端的资源表现转换为对象。具体地说，`@RequestBody`会查看请求中的`Content-Type`头部信息，并查找能够将请求体转换为对象的消息转换器。
+
+```java
+@RequestMapping(method=RequestMethod.POST, consumes="application/json")
+public @ResponseBody Spittle saveSpittle(@RequestBody Spittle spittle) {
+	return spittleRepository.save(spittle);
+}
+```
+
+`consumes`属性表示这个方法只处理`Content-Type`头部信息包含`application/json`的请求。
+
+> `@RequestBody`是针对请求体中的数据，而`@RequestParam`是针对请求头中的参数。
+
+#### 为控制器设置默认消息转换
+
+Spring 4.0引入了`@RestController`标注，如果在控制器类上使用`@RestController`来代替`@Controller`，Spring将会为该控制器的所有处理器方法应用消息转换功能，而不必为每个方法添加`@ResponseBody`标注。
+
+```java
+@RestController
+@RequestMapping("/spittles")
+public class SpittleController {
+  private static final String MAX_LONG_AS_STRING="9223372036854775807";
+  private SpittleRepository spittleRepository;
+  @Autowired
+  public SpittleController(SpittleRepository spittleRepository) {
+    this.spittleRepository = spittleRepository;
+  }
+  @RequestMapping(method=RequestMethod.GET)
+  public List<Spittle> spittles(
+      @RequestParam(value="max",
+                    defaultValue=MAX_LONG_AS_STRING) long max,
+      @RequestParam(value="count", defaultValue="20") int count) {
+    return spittleRepository.findSpittles(max, count);
+  }
+  @RequestMapping(
+    method=RequestMethod.POST
+    consumes="application/json")
+  public Spittle saveSpittle(@RequestBody Spittle spittle) {
+    return spittleRepository.save(spittle);
+  }
+}
+```
+
+### 发送错误信息到客户端
+
+前面Spring MVC中我们已经学会了使用`@ResponseStatus`标注来将错误映射到HTTP状态码，也学会了如何使用异常处理器来处理异常。
+
+在Spring REST中，作为`@ResponseBody`的替代方案，控制器方法可以返回一个`ResponseEntity`对象，它可以包含响应相关的元数据（如头部信息和状态码）以及要转换成资源表现的对象。
+
+```java
+@RequestMapping(value="/{id}", method=RequestMethod.GET)
+public ResponseEntity<?> spittleById(@PathVariable long id) {
+  Spittle spittle = spittleRepository.findOne(id);
+  if (spittle == null) {
+    Error error = new Error(4, "Spittle [" + id + "] not found");
+    return new ResponseEntity<Error>(error, HttpStatus.NOT_FOUND);
+  }
+  return new ResponseEntity<Spittle>(spittle, HttpStatus.OK);
+}
+```
+
+错误对象：
+
+```java
+public class Error {
+  private int code;
+  private String message;
+  public Error(int code, String message) {
+    this.code = code;
+    this.message = message;
+  }
+  public int getCode() {
+    return code;
+  }
+  public String getMessage() {
+    return message;
+  }
+}
+```
+
+> 控制器方法如果返回`ResponseEntity`对象，就没必要在方法上使用`@ResponseBody`标注了。
+
+#### 分离异常处理
+
+前面的代码将异常处理与正常逻辑混杂在一起，并且方法返回`ResponseEntity<?>`泛型，增加了复杂性。下面我们使用异常处理器将异常处理部分从正常逻辑中分离出来。
+
+控制器方法：
+
+```java
+@RequestMapping(value="/{id}", method=RequestMethod.GET)
+public Spittle spittleById(@PathVariable long id) {
+  Spittle spittle = spittleRepository.findOne(id);
+  if (spittle == null) { throw new SpittleNotFoundException(id); }
+  return spittle;
+}
+```
+
+由于我们知道`spittleById`将会返回`Spittle`并且HTTP状态码始终会是200，因此就可以不使用`ResponseEntity`，而是将其替换为`@ResponseBody`。另外，假设这里控制器类使用了`@RestController`标注，则`@ResponseBody`也省略了。
+
+异常处理器：
+
+```java
+@ExceptionHandler(SpittleNotFoundException.class)
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public @ResponseBody Error spittleNotFound(SpittleNotFoundException e) {
+  long spittleId = e.getSpittleId();
+  return new Error(4, "Spittle [" + spittleId + "] not found");
+}
+```
+
+同样，如果控制器类使用了`@RestController`标注，则`@ResponseBody`也可以省略掉。
+
+异常：
+
+```java
+public class SpittleNotFoundException extends RuntimeException {
+  private long spittleId;
+  public SpittleNotFoundException(long spittleId) {
+    this.spittleId = spittleId;
+  }
+  public long getSpittleId() {
+    return spittleId;
+  }
+}
+```
+
+### 在响应中设置头部信息
+
+前面提到的`ResponseEntity`更主要的用途是为响应设置头部信息。
+
+假设我们希望在新建Spittle资源后，将新建资源的URL放在响应的`Location`头部信息中。
+
+```java
+@RequestMapping(method=RequestMethod.POST, consumes="application/json")
+public ResponseEntity<Spittle> saveSpittle(@RequestBody Spittle spittle, 
+                                           UriComponentsBuilder ucb) {
+  Spittle spittle = spittleRepository.save(spittle);
+  HttpHeaders headers = new HttpHeaders();
+  URI locationUri =
+    ucb.path("/spittles/")
+       .path(String.valueOf(spittle.getId())) //每次调用path()都会基于上次调用的结果。
+       .build() //构建UriComponents对象
+       .toUri(); //转换为URI对象
+  headers.setLocation(locationUri);
+  ResponseEntity<Spittle> responseEntity =
+    new ResponseEntity<Spittle>(spittle, headers, HttpStatus.CREATED)
+  return responseEntity;
+}
+```
+
+`UriComponentsBuilder`用于帮助构建URL，它会从请求中获取host、端口号等信息，从而构建出一个完整的URL。
 
 ## REST客户端
+
+### 使用Apache HTTP Client
+
+```java
+public Profile fetchFacebookProfile(String id) {
+  try {
+    //创建客户端
+    HttpClient client = HttpClients.createDefault();
+    //创建请求
+    HttpGet request = new HttpGet("http://graph.facebook.com/" + id);
+    request.setHeader("Accept", "application/json");
+    //执行请求
+    HttpResponse response = client.execute(request);
+    
+    HttpEntity entity = response.getEntity();
+    //将响应映射为对象
+    ObjectMapper mapper = new ObjectMapper();
+    return mapper.readValue(entity.getContent(), Profile.class);
+  } catch (IOException e) {
+    throw new RuntimeException(e);
+  }
+}
+```
+
+### 使用RestTemplate
+
+#### GET资源
+
+`RestTemplate`提供了两种执行GET请求的方法：`getForObject`方法和`getForEntity`方法。
+
+##### getForObject方法
+
+`getForObject`方法请求一个资源并按照所选择的Java类型接收该资源。
+
+```java
+public Profile fetchFacebookProfile(String id) {
+  RestTemplate rest = new RestTemplate();
+  return rest.getForObject("http://graph.facebook.com/{spitter}", Profile.class, id);
+}
+```
+
+`getForObject`方法有好几个重载版本，这个版本的最后一个参数是大小可变的参数列表，每个参数都会按出现顺序插入到第一个参数表示的URL的占位符中。例如本例中，`id`参数将插入到占位符`{spitter}`中。
+
+`getForObject`方法的另一个重载版本中，将参数放到`Map`中，这样占位符就可以根据key来引用参数，而不是基于参数的顺序：
+
+```java
+public Spittle[] fetchFacebookProfile(String id) {
+  Map<String, String> urlVariables = new HashMap<String, String();
+  urlVariables.put("id", id);
+  RestTemplate rest = new RestTemplate();
+  return rest.getForObject("http://graph.facebook.com/{id}", Profile.class, urlVariables);
+}
+```
+
+`getForObject`方法是使用消息转换器来将响应体转换为对象的。
+
+`getForObject`方法抛出的异常都是非检查型异常——`RestClientException`异常及其子类。
+
+##### getForEntity方法
+
+
 
 ## Spring HATEOAS
 
