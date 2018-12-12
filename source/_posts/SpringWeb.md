@@ -1786,6 +1786,8 @@ public Profile fetchFacebookProfile(String id) {
 
 `RestTemplate`提供了两种执行GET请求的方法：`getForObject`方法和`getForEntity`方法。
 
+这两个方法将使用消息转换器来将响应体转换为对象的。
+
 ##### getForObject方法
 
 `getForObject`方法请求一个资源并按照所选择的Java类型接收该资源。
@@ -1810,13 +1812,129 @@ public Spittle[] fetchFacebookProfile(String id) {
 }
 ```
 
-`getForObject`方法是使用消息转换器来将响应体转换为对象的。
-
 `getForObject`方法抛出的异常都是非检查型异常——`RestClientException`异常及其子类。
 
 ##### getForEntity方法
 
+`getForEntity`与`getForObject`的区别是，前者返回`ResponseEntity`对象，可以携带有关于响应的元数据。
 
+```java
+public Spittle fetchSpittle(long id) {
+  RestTemplate rest = new RestTemplate();
+  ResponseEntity<Spittle> response = rest.getForEntity(
+    "http://localhost:8080/spittr-api/spittles/{id}",
+    Spittle.class, id);
+  if(response.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+    throw new NotModifiedException();
+  }
+  return response.getBody();
+}
+```
+
+#### PUT资源
+
+```java
+public void updateSpittle(Spittle spittle) throws SpitterException {
+  RestTemplate rest = new RestTemplate();
+  Map<String, String> params = new HashMap<String, String>();
+  params.put("id", spittle.getId());
+  rest.put("http://localhost:8080/spittr-api/spittles/{id}",
+           spittle, params);
+}
+```
+
+`put`方法将使用消息转换器将对象转换成客户端需要的表现形式，并在请求体中将其发送给服务端。
+
+对象将被转换成什么样的内容类型很大程序上取决于传递给`put`方法的类型。如果给定一个`String`值，则将会使用`StringHttpMessageConverter`，内容类型为`text/plain`；如果给定一个`MultiValueMap`值，则会使用`FormHttpMessageConverter`，内容类型为`application/x-www-form-urlencoded`；如果给定的是一个复杂对象，并且类路径下有Jackson 2库，则可能使用`MappingJackson2HttpMessageConverter`，内容类型为`application/json`。
+
+#### DELETE资源
+
+```java
+public void deleteSpittle(long id) {
+	RestTemplate rest = new RestTemplate();
+	rest.delete("http://localhost:8080/spittr-api/spittles/{id}", id));
+}
+```
+
+#### POST资源
+
+`RestTemplate`提供了三种方法来发送POST请求：
+
+- postForEntity()：POST数据到一个URL，返回包含新创建资源的`ResponseEntity`对象；
+- postForLocation()：POST数据到一个URL，返回新创建资源的URL；
+- postForObject()：POST数据到一个URL，返回新创建资源的对象。
+
+##### postForObject方法
+
+```java
+public Spitter postSpitterForObject(Spitter spitter) {
+  RestTemplate rest = new RestTemplate();
+  return rest.postForObject("http://localhost:8080/spittr-api/spitters",
+                            spitter, Spitter.class);
+}
+```
+
+##### postForEntity方法
+
+```java
+RestTemplate rest = new RestTemplate();
+ResponseEntity<Spitter> response = rest.postForEntity(
+  "http://localhost:8080/spittr-api/spitters",
+  spitter, Spitter.class);
+Spitter spitter = response.getBody(); //获取包含的资源对象
+URI url = response.getHeaders().getLocation();
+```
+
+##### postForLocation方法
+
+```java
+public String postSpitter(Spitter spitter) {
+  RestTemplate rest = new RestTemplate();
+  return rest.postForLocation("http://localhost:8080/spittr-api/spitters", spitter)
+    	       .toString();
+}
+```
+
+#### HEAD资源
+
+可以使用`RestTemplate`的`headForHeaders`方法来发送HTTP HEAD请求，它返回包含特定资源URL的HTTP头。
+
+#### OPTIONS资源
+
+可以使用`RestTemplate`的`optionsForAllow`方法来发送HTTP OPTIONS请求，并返回对特定URL的Allow头信息。
+
+#### 通用操作
+
+##### exchange方法
+
+`exchange`方法在指定URL上执行特定的HTTP方法，返回包含对象的`ResponseEntity`。
+
+如果你想在发送给服务端的请求中设置头信息，就需要使用`exchange`方法。
+
+```java
+MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+headers.add("Accept", "application/json");
+HttpEntity<Object> requestEntity = new HttpEntity<Object>(headers);
+ResponseEntity<Spitter> response = rest.exchange(
+  "http://localhost:8080/spittr-api/spitters/{spitter}",
+  HttpMethod.GET, requestEntity, Spitter.class, spitterId);
+Spitter spitter = response.getBody();
+```
+
+头部信息：
+
+```
+GET /Spitter/spitters/habuma HTTP/1.1
+Accept: application/json
+Content-Length: 0
+User-Agent: Java/1.6.0_20
+Host: localhost:8080
+Connection: keep-alive
+```
+
+##### execute方法
+
+`execute`方法在指定URL上执行特定的HTTP方法，返回资源对象。
 
 ## Spring HATEOAS
 
