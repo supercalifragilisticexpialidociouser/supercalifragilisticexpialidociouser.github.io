@@ -426,6 +426,96 @@ public class AlertServiceImpl implements AlertService {
 
 # AMQP
 
+与JMS不同，AMQP的生产者并不会直接将消息发布到队列中，AMQP在消息的生产者和传递信息的队列之间引入了一种间接的机制：Exchange。消息生产者将信息发布到一个Exchange，Exchange会绑定到一个或多个队列上，它负责将信息路由到队列上。
+
+![AMQP](SpringMessage/AMQP.png)
+
+AMQP定义了四种不同类型的Exchange：
+
+- Direct：如果消息的routing key与binding的routing key直接匹配的话，消息将会路由到该队列上；
+- Topic：如果消息的routing key与binding的routing key符合通配符匹配，则消息将会路由到该队列上；
+- Headers：如果消息参数表中的头信息和值都与binding参数表中相匹配，则消息将会路由到该队列上；
+- Fanout：不管消息的routing key和参数表中的头信息/值是什么，消息将会路由到所有队列上。
+
+另外，Exchange可以绑定到另一个Exchange上。
+
+## 创建连接工厂
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/rabbit"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/rabbit
+                                 http://www.springframework.org/schema/rabbit/spring-rabbit-1.0.xsd
+                                 http://www.springframework.org/schema/beans
+                                 http://www.springframework.org/schema/beans/spring-beans.xsd">
+  <connection-factory id="connectionFactory"
+                      host="${rabbitmq.host}"
+                      port="${rabbitmq.port}"
+                      username="${rabbitmq.username}"
+                      password="${rabbitmq.password}" />
+  ...
+</beans:beans>
+```
+
+`host`、`port`、`username`和`password`都是可选，如果省略，则RabbitMQ默认监听`localhost`的5672端口，并且用户名和密码均为`guest`。
+
+## 声明队列、Exchange以及binding
+
+在JMS中，队列和主题的路由行为都是通过规范建立的，而AMQP则不同，它的路由方式可通过队列、Exchange以及binding的各种组合实现。
+
+例如：点对点模型
+
+```xml
+<admin connection-factory="connectionFactory" />
+<queue id="spittleAlertQueue" name="spittle.alerts" />
+```
+
+这里会有一个默认的没有名称的Direct Exchange，所有队列都会绑定到这个Exchange上，并且routing key与队列的名称相同。
+
+更复杂的例子：
+
+```xml
+<admin connection-factory="connectionFactory" />
+<queue name="spittle.alert.queue.1" >
+  <queue name="spittle.alert.queue.2" >
+    <queue name="spittle.alert.queue.3" >
+      <fanoutexchange name="spittle.fanout">
+        <bindings> <binding queue="spittle.alert.queue.1" />
+          <binding queue="spittle.alert.queue.2" />
+          <binding queue="spittle.alert.queue.3" />
+        </bindings>
+      </fanoutexchange>
+```
+
+## 发送信息
+
+### 注册RabbitTemplate
+
+```xml
+<template id="rabbitTemplate" connection-factory="connectionFactory" />
+```
+
+### 使用RabbitTemplate发送消息
+
+```java
+public class AlertServiceImpl implements AlertService {
+  private RabbitTemplate rabbit;
+  @Autowired
+  public AlertServiceImpl(RabbitTemplate rabbit) {
+    this.rabbit = rabbit;
+  }
+  public void sendSpittleAlert(Spittle spittle) {
+    rabbit.convertAndSend("spittle.alert.exchange", //Exchange名称
+                          "spittle.alerts",  //routing key
+                          spittle);  //发送的对象
+  }
+}
+```
+
+
+
 # WebSocket
 
 # STOMP
