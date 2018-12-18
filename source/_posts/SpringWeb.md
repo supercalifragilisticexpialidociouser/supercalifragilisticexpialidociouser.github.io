@@ -1422,8 +1422,6 @@ public String handleDuplicateSpittle() {
 
 ## HTTP缓存
 
-## WebSockets
-
 # Spring WebFlux
 
 # Spring REST

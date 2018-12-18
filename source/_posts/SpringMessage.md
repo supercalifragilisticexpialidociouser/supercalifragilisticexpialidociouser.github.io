@@ -478,18 +478,19 @@ AMQP定义了四种不同类型的Exchange：
 
 ```xml
 <admin connection-factory="connectionFactory" />
-<queue name="spittle.alert.queue.1" >
-  <queue name="spittle.alert.queue.2" >
-    <queue name="spittle.alert.queue.3" >
-      <fanoutexchange name="spittle.fanout">
-        <bindings> <binding queue="spittle.alert.queue.1" />
-          <binding queue="spittle.alert.queue.2" />
-          <binding queue="spittle.alert.queue.3" />
-        </bindings>
-      </fanoutexchange>
+<queue name="spittle.alert.queue.1" />
+<queue name="spittle.alert.queue.2" />
+<queue name="spittle.alert.queue.3" />
+<fanoutexchange name="spittle.fanout">
+  <bindings>
+    <binding queue="spittle.alert.queue.1" />
+    <binding queue="spittle.alert.queue.2" />
+    <binding queue="spittle.alert.queue.3" />
+  </bindings>
+</fanoutexchange>
 ```
 
-## 发送信息
+## 发送消息
 
 ### 注册RabbitTemplate
 
@@ -497,7 +498,7 @@ AMQP定义了四种不同类型的Exchange：
 <template id="rabbitTemplate" connection-factory="connectionFactory" />
 ```
 
-### 使用RabbitTemplate发送消息
+### 使用convertAndSend方法发送消息
 
 ```java
 public class AlertServiceImpl implements AlertService {
@@ -514,10 +515,361 @@ public class AlertServiceImpl implements AlertService {
 }
 ```
 
+另外，如果在`<template`上使用`exchange`和`routing-key`属性配置默认的Exchange名称和routint key，则在调用`convertAndSend`方法时，可以省略前两个参数：
 
+```xml
+<template id="rabbitTemplate"
+          connection-factory="connectionFactory"
+          exchange="spittle.alert.exchange"
+          routing-key="spittle.alerts" />
+```
+
+则：
+
+```java
+rabbit.convertAndSend(spittle);
+```
+
+最后，如果在`<template>`和`convertAndSend`方法中均未指定Exchange名称和routing key，则Exchange名称和routing key均默认为空。
+
+通过`convertAndSend`方法指定的Exchange名称和routing key，将覆盖`<template>`的相应配置。
+
+`convertAndSend`方法会自动将对象转换为`Message`对象。它需要借助一个消息转换器来完成该转换，默认的消息转换器是`SimpleMessageConverter`，它适用于`String`、`Serializable`实例以及字节数组。
+
+### 使用send方法发送消息
+
+我们还可以使用较低级的`send`方法来直接发送`org.springframework.amqp.core.Message`对象：
+
+```java
+Message helloMessage =
+  new Message("Hello World!".getBytes(), new MessageProperties());
+rabbit.send("hello.exchange", "hello.routing", helloMessage);
+```
+
+## 接收消息
+
+### 使用RabbitTemplate来同步接收消息
+
+#### 注册RabbitTemplate
+
+```xml
+<template id="rabbitTemplate"
+          connection-factory="connectionFactory"
+          exchange="spittle.alert.exchange"
+          routing-key="spittle.alerts"
+          queue="spittle.alert.queue" />
+```
+
+#### 使用receive方法接收消息
+
+```java
+Message message = rabbit.receive();
+```
+
+`receive`方法的其他重载版本可以显式指定Exchange名称和routing key来覆盖`<tempate>`中的配置。
+
+```java
+Message message = rabbit.receive("spittle.alert.queue2");
+```
+
+#### 使用receiveAndConvert方法接收消息
+
+`receiveAndConvert`方法会使用与`sendAndConvert`方法相同的消息转换器，来将`Message`对象转换为原始的类型。
+
+```java
+Spittle spittle = (Spittle) rabbit.receiveAndConvert();
+```
+
+#### 管理轮询
+
+调用`receive`和`receiveAndConvert`方法都会立即返回。如果队列中没有等待的消息时，将会得到`null`。这就需要我们来管理轮询（polling）以及必要的线程，实现队列的监控。
+
+### 使用消息驱动的POJO来异步接收消息
+
+我们并非必须同步轮询并等待消息到达，Spring AMQP还提供了消息驱动POJO的支持。
+
+#### 创建消息监听器POJO类
+
+我们可以完全重用JMS的消息监听器POJO类——`SpittleAlertHandler`，因为它丝毫没有依赖于JMS或AMQP。
+
+```java
+public class SpittleAlertHandler {
+  public void handleSpittleAlert(Spittle spittle) {
+    // ... implementation goes here ...
+  }
+}
+```
+
+#### 配置消息监听器
+
+首先，将上面创建的消息监听器类配置成Bean（与配置JMS消息监听器完全相同）：
+
+```xml
+<bean id="spittleListener"
+      class="com.habuma.spittr.alert.SpittleAlertHandler" />
+```
+
+然后，把这个Bean注册为消息监听器：
+
+```xml
+<rabbit:listener-container connection-factory="connectionFactory">
+  <rabbit:listener ref="spittleListener"
+                   method="handleSpittleAlert"
+                   queue-names="spittle.alert.queue" />
+</rabbit:listener-container>
+```
+
+`queue-names`可以设置多个队列的名称，用逗号分割。
+
+另外，还可以使用`queues`属性来引用一个或多个（用逗号分割）使用`<queue>`元素声明要监听的队列Bean。
+
+```xml
+<listener-container connection-factory="connectionFactory">
+  <listener ref="spittleListener"
+            method="handleSpittleAlert"
+            queues="spittleAlertQueue" />
+</listener-container>
+
+<queue id="spittleAlertQueue" name="spittle.alert.queue" />
+```
 
 # WebSocket
 
-# STOMP
+JMS和AMQP是用于应用程序之间的通讯，而如果某个应用是运行在Web浏览器中，则就需要使用WebSocket。
+
+WebSocket协议提供了通过一个套接字实现全双工通信（服务器和浏览器可以互相发送消息）的功能，位于WebSocket一端的应用发送消息，另一端处理消息。因为它是全双工的，所以每一端都可以发送和处理消息。
+
+![WebSocket](SpringMessage/WebSocket.png)
+
+WebSocket通信可以应用于任何类型的应用中，但是它最常见的应用场景是实现Web浏览器和服务器之间的异步通信。浏览器中的JavaScript客户端开启一个到服务器的连接，服务器通过这个连接发送更新给浏览器。相比历史上轮询服务端以查找更新的方案，这种技术更加高效和自然。
+
+## 使用Spring的低层级WebSocket API
+
+### 创建消息处理器
+
+WebSocket消息处理器是一个实现了`WebSocketHandler`接口的类。
+
+`WebSocketHandler`接口：
+
+```java
+public interface WebSocketHandler {
+  void afterConnectionEstablished(WebSocketSession session) 
+    throws Exception;
+  void handleMessage(WebSocketSession session, WebSocketMessage<?> message) 
+    throws Exception;
+  void handleTransportError(WebSocketSession session, Throwable exception) 
+    throws Exception;
+  void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) 
+    throws Exception;
+  boolean supportsPartialMessages();
+}
+```
+
+通常，创建消息处理器更简便的方法是扩展`AbstractWebSocketHandler`抽象类：
+
+```java
+public class MarcoHandler extends AbstractWebSocketHandler {
+  private static final Logger logger = LoggerFactory.getLogger(MarcoHandler.class);
+  protected void handleTextMessage(WebSocketSession session, TextMessage message) 
+    	throws Exception {
+    logger.info("Received message: " + message.getPayload());
+    Thread.sleep(2000); //模拟延时
+    session.sendMessage(new TextMessage("Polo!")); //发送文本消息
+  }
+}
+```
+
+`AbstractWebSocketHandler`额外定义了三个方法：
+
+- handleBinaryMessage()
+- handlePongMessage()
+- handleTextMessage()
+
+这三个方法只是`handleMessage()`的具体化，每个方法对应于某一种特定类型的消息。
+
+如果只是处理文本消息，则可扩展`TextWebSocketHandler`类。
+
+### 启用WebSocket
+
+启用WebSocket并注册消息处理器：
+
+```java
+@EnableWebSocket
+public class WebSocketConfig implements WebSocketConfigurer {
+  @Override
+  public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+    registry.addHandler(marcoHandler(), "/marco"); //将MarcoHandler映射到“/marco”
+  }
+  @Bean
+  public MarcoHandler marcoHandler() {
+    return new MarcoHandler();
+  }
+}
+```
+
+或者：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:websocket="http://www.springframework.org/schema/websocket"
+       xsi:schemaLocation="
+         http://www.springframework.org/schema/websocket
+         http://www.springframework.org/schema/websocket/spring-websocket.xsd
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+  <websocket:handlers>
+    <websocket:mapping handler="marcoHandler" path="/marco" />
+  </websocket:handlers>
+  <bean id="marcoHandler"
+        class="marcopolo.MarcoHandler" />
+</beans>
+```
+
+### JavaScript客户端
+
+```javascript
+var url = 'ws://' + window.location.host + '/websocket/marco';
+var sock = new WebSocket(url); //打开WebSocket
+sock.onopen = function() { //处理连接开启事件
+  console.log('Opening');
+  sayMarco();
+};
+sock.onmessage = function(e) { //处理消息
+  console.log('Received message: ', e.data);
+  setTimeout(function(){sayMarco()}, 2000);
+};
+sock.onclose = function() { //处理连接关闭事件
+  console.log('Closing');
+};
+function sayMarco() {
+  console.log('Sending Marco!');
+  sock.send("Marco!"); //发送消息
+}
+```
+
+URL使用了`ws://`前缀，表明这是一个基本的WebSocket连接。如果是安全WebSocket，则使用`wss://`前缀。
+
+### 关闭WebSocket连接
+
+下列三种场景均可关闭WebSocket连接：
+
+- 客户端调用`sock.close()`；
+- 服务器端调用`session.close()`；
+- 浏览器转向其他页面。
+
+## 应对不支持WebSocket的场景——SockJS
+
+当前不支持WebSocket场景主要由下列三种原因造成：
+
+- 某些浏览器不支持WebSocket；
+- 某些应用服务器不支持WebSocket；
+- 防火墙限制了WebSocket通信。
+
+SockJS是WebSocket技术的一种模拟，在表面上，它尽可能对应WebSocket API，但是在底层它非常智能。SockJS会优先选用WebSocket，但是如果WebSocket不可用，则它会从如下方案中挑选最优的可行方案：
+
+- XHR流
+- XDR流
+- iFrame事件源
+- iFrame HTML文件
+- XHR轮询
+- XDR轮询
+- iFrame XHR轮询
+- JSONP轮询
+
+### 在服务端启用SockJS
+
+```java
+@Override
+public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+	registry.addHandler(marcoHandler(), "/marco").withSockJS();
+}
+```
+
+通过简单地调用`withSockJS`方法，就能声明我们想要使用的SockJS功能，如果WebSocket不可用，则SockJS的备用方案就会发挥作用。
+
+或者使用XML来配置：
+
+```xml
+<websocket:handlers>
+  <websocket:mapping handler="marcoHandler" path="/marco" />
+  <websocket:sockjs />
+</websocket:handlers>
+```
+
+### 在客户端启用SockJS
+
+#### 加载SockJS客户端库
+
+```html
+<script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+```
+
+#### 编写客户端代码
+
+只需要在原来基于WebSocket API的代码上修改两行代码就可以使用SockJS：
+
+```javascript
+var url = 'marco';
+var sock = new SockJS(url);
+```
+
+第一个修改就是URL。SockJS所处理的URL是`http://`或`https://`模式，而不是`ws://`或`wss://`。而且可以使用相对URL，如果包含JavaScript的页面位于http://localhost:8080/websocket ，则本例给定的相对路径`marco`将对应于http://localhost:8080/websocket/marco。
+
+第二个修改是创建SockJS实例代替WebSocket。
+
+## 使用STOMP消息
+
+直接使用WebSocket（或SockJS）就类似于使用TCP套接字来编写Web应用，显得过于低级。因为没有高层级的线路协议（wire protocol），因此就需要我们定义应用之间所发送消息的语义，还需要确保连接的两端都能遵循这些语义。
+
+STOMP在WebSocket之上提供了一个基于帧的线路格式（frame-based wire format）层，用来定义消息的语义。
+
+STOMP帧由命令、一个或多个头信息以及负载所组成，非常类似于HTTP请求结构：
+
+```
+SEND
+destination:/app/marco
+content-length:20
+
+{\"message\":\"Marco!\"}
+```
+
+Spring为STOMP消息提供了基于Spring MVC的编程模型，在Spring MVC控制器中处理STOMP消息与处理HTTP请求并没有太大的差别。
+
+### 启用STOMP消息功能
+
+```java
+@Configuration
+@EnableWebSocketMessageBroker
+public class WebSocketStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
+  @Override
+  public void registerStompEndpoints(StompEndpointRegistry registry) {
+    //将“/marcopolo”注册为STOMP端点，客户端在订阅或发布消息到目的地路径前，要连接该端点。
+    registry.addEndpoint("/marcopolo").withSockJS();
+  }
+  @Override
+  public void configureMessageBroker(MessageBrokerRegistry registry) {
+    //使用内置消息代理进行订阅和广播，并将destination头以“/topic”或“/queue”开头的消息路由到代理。
+    registry.enableSimpleBroker("/queue", "/topic");
+    //destination头以“/app”为前缀的STOMP消息将路由到@Controller类中的@MessageMapping方法。
+    registry.setApplicationDestinationPrefixes("/app");
+  }
+}
+```
+
+![STOMP代理](SpringMessage/STOMP-broker.png)
+
+如果没有重写`configureMessageBroker`方法，则会自动配置一个简单的内存消息代理，用它来处理以`/topic`前缀的消息。
+
+#### 启用STOMP代理中继
+
+简单的代理是基于内存的，尽管它模拟了STOMP消息代理，但是它只支持STOMP命令的子集，并且它不适合集群环境。在生产环境中，我们会使用真正支持STOMP的代理（例如RabbitMQ或ActiveMQ）来支撑WebSocket消息。
+
+![STOMP代理中继](SpringMessage/STOMP-broker-relay.png)
+
+## 为目标用户发送消息
+
+## 处理消息异常
 
 # Email
