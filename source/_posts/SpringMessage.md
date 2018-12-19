@@ -825,15 +825,48 @@ var sock = new SockJS(url);
 
 STOMP在WebSocket之上提供了一个基于帧的线路格式（frame-based wire format）层，用来定义消息的语义。
 
-STOMP帧由命令、一个或多个头信息以及负载所组成，非常类似于HTTP请求结构：
+STOMP帧在HTTP上建模，由命令、一个或多个头信息以及负载（payloads）所组成，非常类似于HTTP请求结构：
+
+```
+COMMAND
+header1:value1
+header2:value2
+
+Body^@
+```
+
+例如：发送消息的STOMP帧
 
 ```
 SEND
 destination:/app/marco
 content-length:20
 
-{\"message\":\"Marco!\"}
+{\"message\":\"Marco!\"}^@
 ```
+
+订阅消息的STOMP帧：
+
+```
+SUBSCRIBE
+id:sub-1
+destination:/topic/price.stock.*
+
+^@
+```
+
+广播消息的STOMP帧：（STOMP服务器可以使用MESSAGE命令向所有订阅客户端广播消息）
+
+```
+MESSAGE
+message-id:nxahklf6-1
+subscription:sub-1
+destination:/topic/price.stock.MMM
+
+{"ticker":"MMM","price":129.45}^@
+```
+
+> 服务器无法发送未经请求的消息。来自服务器的所有消息必须响应特定的客户端订阅，并且服务器消息的subscription-id头必须与客户端订阅的id头匹配。
 
 Spring为STOMP消息提供了基于Spring MVC的编程模型，在Spring MVC控制器中处理STOMP消息与处理HTTP请求并没有太大的差别。
 
@@ -858,6 +891,28 @@ public class WebSocketStompConfig extends AbstractWebSocketMessageBrokerConfigur
 }
 ```
 
+或者：
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:websocket="http://www.springframework.org/schema/websocket"
+       xsi:schemaLocation="
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/websocket
+         http://www.springframework.org/schema/websocket/spring-websocket.xsd">
+  <websocket:message-broker application-destination-prefix="/app">
+    <websocket:stomp-endpoint path="/marcopolo">
+      <websocket:sockjs/>
+    </websocket:stomp-endpoint>
+    <websocket:simple-broker prefix="/queue, /topic"/>
+  </websocket:message-broker>
+</beans>
+```
+
+
+
 ![STOMP代理](SpringMessage/STOMP-broker.png)
 
 如果没有重写`configureMessageBroker`方法，则会自动配置一个简单的内存消息代理，用它来处理以`/topic`前缀的消息。
@@ -867,6 +922,36 @@ public class WebSocketStompConfig extends AbstractWebSocketMessageBrokerConfigur
 简单的代理是基于内存的，尽管它模拟了STOMP消息代理，但是它只支持STOMP命令的子集，并且它不适合集群环境。在生产环境中，我们会使用真正支持STOMP的代理（例如RabbitMQ或ActiveMQ）来支撑WebSocket消息。
 
 ![STOMP代理中继](SpringMessage/STOMP-broker-relay.png)
+
+首先，根据相关文档搭建STOMP代理。（略）
+
+然后，按如下方式重载`configureMessageBroker`方法：
+
+```java
+@Override
+public void configureMessageBroker(MessageBrokerRegistry registry) {
+  registry.enableStompBrokerRelay("/topic", "/queue");
+  registry.setApplicationDestinationPrefixes("/app");
+}
+```
+
+这里，`destination`头以“/topic”或“/queue”开头的消息都会发送到STOMP代理中。根据所选择的STOMP代理不同，`destination`头的可选前缀也会有所限制。例如，RabbitMQ只允许`destination`头以`/temp-queue`、`/exchange`、`/topic`、`/queue`、`/amq/queue`和`/reply-queue`。
+
+默认情况下，STOMP代理中继会假设代理监听`localhost`的61613端口，并且客户端的`username`和`password`均为`guest`。如果需要自己指定这些信息，则：
+
+```java
+@Override
+public void configureMessageBroker(MessageBrokerRegistry registry) {
+  registry.enableStompBrokerRelay("/topic", "/queue")
+    .setRelayHost("rabbit.someotherserver")
+    .setRelayPort(62623)
+    .setClientLogin("marcopolo")
+    .setClientPasscode("letmein01");
+  registry.setApplicationDestinationPrefixes("/app", "/foo");
+}
+```
+
+
 
 ## 为目标用户发送消息
 
