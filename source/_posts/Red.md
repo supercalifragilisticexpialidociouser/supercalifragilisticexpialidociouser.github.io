@@ -361,6 +361,28 @@ Red的字符是一个Unicode码点（范围从0到10FFFF），它也可以当作
 == 300.0
 ```
 
+### file!
+
+`file!`表示 文件类型。
+
+文件字面量是要以`%`开头：
+
+```red
+>> write %myfirstfile.txt "This is my first file"
+```
+
+`%myfirstfile.txt`表示当前路径下的`myfirstfile.txt`文件。
+
+如果文件不在当前路径下，则需要在双引号中写出完整路径：
+
+```red
+>> write %"C:\Users\André\Documents\RED\mysecondfile.txt" "This is my second file"
+```
+
+文件分隔符可以使用`/`或者`\`。
+
+### path!
+
 
 
 ## 获取值的类型
@@ -623,26 +645,6 @@ Your name is John
 ```
 
 ## 文件
-
-### 文件类型
-
-`file!`表示 文件类型。
-
-文件字面量是要以`%`开头：
-
-```red
->> write %myfirstfile.txt "This is my first file"
-```
-
-`%myfirstfile.txt`表示当前路径下的`myfirstfile.txt`文件。
-
-如果文件不在当前路径下，则需要在双引号中写出完整路径：
-
-```red
->> write %"C:\Users\André\Documents\RED\mysecondfile.txt" "This is my second file"
-```
-
-文件分隔符可以使用`/`或者`\`。
 
 # 异常
 
