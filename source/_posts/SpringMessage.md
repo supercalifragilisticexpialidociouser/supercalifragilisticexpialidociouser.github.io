@@ -825,6 +825,14 @@ var sock = new SockJS(url);
 
 STOMP在WebSocket之上提供了一个基于帧的线路格式（frame-based wire format）层，用来定义消息的语义。
 
+相比于使用原始的WebSocket，使用STOMP能够带来以下好处：
+
+- 无需发明自定义消息传递协议和消息格式。
+- 有可用的STOMP客户端，包括Spring Framework中的Java客户端。
+- 您可以（可选）使用现成的消息代理（例如RabbitMQ，ActiveMQ等）来管理订阅和广播消息。
+- 可以在任意数量的`@Controller`实例中组织应用程序逻辑，并且可以基于STOMP `destination`头将消息路由到它们，而无须使用给定连接的单个`WebSocketHandler`来处理原始WebSocket消息。
+- 您可以使用Spring Security根据STOMP`destination`和消息类型来保护消息。
+
 STOMP帧在HTTP上建模，由命令、一个或多个头信息以及负载（payloads）所组成，非常类似于HTTP请求结构：
 
 ```
@@ -835,7 +843,7 @@ header2:value2
 Body^@
 ```
 
-例如：发送消息的STOMP帧
+例如：客户端发送消息的STOMP帧
 
 ```
 SEND
@@ -845,7 +853,7 @@ content-length:20
 {\"message\":\"Marco!\"}^@
 ```
 
-订阅消息的STOMP帧：
+客户端订阅消息的STOMP帧：
 
 ```
 SUBSCRIBE
@@ -855,7 +863,7 @@ destination:/topic/price.stock.*
 ^@
 ```
 
-广播消息的STOMP帧：（STOMP服务器可以使用MESSAGE命令向所有订阅客户端广播消息）
+STOMP服务器广播消息的STOMP帧：（STOMP服务器可以使用MESSAGE命令向所有订阅客户端广播消息）
 
 ```
 MESSAGE
@@ -866,11 +874,15 @@ destination:/topic/price.stock.MMM
 {"ticker":"MMM","price":129.45}^@
 ```
 
-> 服务器无法发送未经请求的消息。来自服务器的所有消息必须响应特定的客户端订阅，并且服务器消息的subscription-id头必须与客户端订阅的id头匹配。
+> 服务器无法发送未经请求的消息给客户端。也就是说，所有来自服务器的消息都必须响应特定的客户端订阅，并且服务器消息的subscription头必须与客户端订阅的id头匹配。
+
+尽管STOMP是一种面向文本的协议，但消息负载可以是文本或二进制。
 
 Spring为STOMP消息提供了基于Spring MVC的编程模型，在Spring MVC控制器中处理STOMP消息与处理HTTP请求并没有太大的差别。
 
 ### 启用STOMP消息功能
+
+spring-messaging和spring-websocket模块提供WebSocket之上的STOMP 支持。一旦有了这些依赖项，就可以通过[SockJS Fallback](https://docs.spring.io/spring/docs/5.1.3.RELEASE/spring-framework-reference/web.html#websocket-fallback)在WebSocket上公开STOMP端点。
 
 ```java
 @Configuration
@@ -890,6 +902,8 @@ public class WebSocketStompConfig extends AbstractWebSocketMessageBrokerConfigur
   }
 }
 ```
+
+> 如果没有重写`configureMessageBroker`方法，则会自动配置一个简单的内存消息代理，用它来处理以`/topic`前缀的消息。只有需要显式配置一个消息代理时，才需要重写这个方法。
 
 或者：
 
@@ -915,7 +929,13 @@ public class WebSocketStompConfig extends AbstractWebSocketMessageBrokerConfigur
 
 ![STOMP代理](SpringMessage/STOMP-broker.png)
 
-如果没有重写`configureMessageBroker`方法，则会自动配置一个简单的内存消息代理，用它来处理以`/topic`前缀的消息。
+> 图中的三个消息通道如下：
+>
+> - clientInboundChannel：用于传递从WebSocket客户端接收到的消息。
+> - clientOutboundChannel：用于将服务器消息发送到WebSocket客户端。
+> - brokerChannel：用于从服务器端应用程序代码中向消息代理发送消息。
+>
+> 注意：向clientInboundChannel发送请求消息的客户端，与从clientOutboundChannel订阅响应消息的客户端并不一定是同一个客户端。而且，订阅响应消息的客户端有可能有多个。
 
 #### 启用STOMP代理中继
 
@@ -951,7 +971,112 @@ public void configureMessageBroker(MessageBrokerRegistry registry) {
 }
 ```
 
+### 编写JavaScript客户端
 
+要从浏览器连接，对于SockJS，您可以使用[sockjs-client](https://github.com/sockjs/sockjs-client)。对于STOMP，许多应用程序使用了[jmesnil/stomp-websocket](jmesnil/stomp-websocket)库（也称为stomp.js），它是功能完备的，已经在生产中使用多年但不再维护。目前，[JSteunou/webstomp-client](JSteunou/webstomp-client)是该库中最积极维护和不断发展的继任者。
+
+下面的示例代码基于webstomp-client：
+
+```javascript
+var url = '/' + window.location.host + '/stomp/marcopolo'; //这里“/stomp”是应用上下文路径
+var socket = new SockJS(url); //创建SockJS连接
+var stompClient = webstomp.over(socket); //创建STOMP客户端
+
+stompClient.connect({}, function(frame) { //连接STOMP端点
+  …
+}
+```
+
+或者，如果通过WebSocket连接（没有SockJS），则可以使用以下代码：
+
+```javascript
+var url = '/' + window.location.host + '/stomp/marcopolo';
+var socket = new WebSocket(url);
+var stompClient = Stomp.over(socket);
+
+stompClient.connect({}, function(frame) {
+  …
+}
+```
+
+#### 发送消息
+
+可以使用`stompClient.send`方法来向服务端发送STOMP消息（`SEND`帧）。
+
+##### 发往控制器方法
+
+在我们的例子中，`destination`头以`/app`为前缀的`SEND`帧将被路由到`@MessageMapping`方法或`@SubscribeMapping`方法进行处理。
+
+```javascript
+var payload = JSON.stringify({'message': 'Marco!'});
+stompClient.send("/app/marco", payload);
+```
+
+##### 发往代理
+
+在我们的例子中，`destination`头以“/topic”或“/queue”开头的消息都会发送到STOMP代理中存储。
+
+```javascript
+stompClient.send("/topic/marco", payload);
+```
+
+#### 订阅消息
+
+### 处理来自客户端的STOMP消息
+
+当从WebSocket连接接收客户端发来的STOMP消息时，它们被解码为STOMP帧，然后转换成Spring的 `Message`对象，并发送到clientInboundChannel以进行进一步处理。例如，destination 头以`/app`开头的STOMP消息可以路由到控制器中的`@MessageMapping`方法或`@SubscribeMapping`方法，而以`/topic`和`/queue`开头的消息可以直接路由到消息代理。
+
+带有`@Controller`标注的控制器可以用来处理来自客户端的destination 头以`/app`开头的STOMP消息（`SEND`帧）。并且，如果控制器处理方法有返回值，还会通过brokerChannel向代理发送消息。随后，代理通过clientOutboundChannel将消息广播给匹配的订户。
+
+#### `@MessageMapping`方法
+
+`@MessageMapping`可用在方法级别或类型级别。在类型级别，`@MessageMapping`用于表示控制器中所有方法的共享映射。
+
+`@MessageMapping`支持的路径模式与`@RequestMapping`相同。
+
+```java
+@Controller
+public class MarcoController {
+  private static final Logger logger =
+    LoggerFactory.getLogger(MarcoController.class);
+  @MessageMapping("/marco")
+  public void handleShout(Shout incoming) {
+    logger.info("Received message: " + incoming.getMessage());
+  }
+}
+```
+
+上面处理器将接收destination 头为`/app/marco`的STOMP消息（“/app”前缀是隐含的，因为我们将其配置为应用的目的地前缀——`registry.setApplicationDestinationPrefixes("/app")`。）
+
+这里处理器方法接收一个`Shout`参数，所以Spring会使用消息转换器将STOMP消息的负载转换为`Shout`对象。
+
+```java
+public class Shout {
+  private String message;
+  public String getMessage() {
+    return message;
+  }
+  public void setMessage(String message) {
+    this.message = message;
+  }
+}
+```
+
+#### `@SubscribeMapping`方法
+
+#### 消息负载转换器
+
+因为我们现在处理的不是HTTP，所以无法使用Spring的`HttpMessageConverter`实现将负载转换为`Shout`对象。Spring 4.0提供了几个消息转换器用于将消息负载转换为Java对象：
+
+| 消息转换器                      | 说明                                                         |
+| ------------------------------- | ------------------------------------------------------------ |
+| ByteArrayMessageConverter       | 实现MIME类型`application/octet-stream`的消息与`byte[]`之间的相互转换。 |
+| MappingJackson2MessageConverter | 实现MIME类型`application/json`的消息与Java对象之间的相互转换。 |
+| StringMessageConverter          | 实现MIME类型`text/plain`的消息与`String`之间的相互转换。     |
+
+
+
+### 向客户端发送消息
 
 ## 为目标用户发送消息
 
