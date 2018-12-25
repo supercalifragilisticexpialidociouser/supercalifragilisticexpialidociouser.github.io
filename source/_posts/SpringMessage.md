@@ -1064,6 +1064,23 @@ public class Shout {
 
 #### `@SubscribeMapping`方法
 
+`@SubscribeMapping`类似于`@MessageMapping`也是处理`destination` 头以`/app`开头的STOMP消息（`SEND`帧）。
+
+`@SubscribeMapping`只能用在方法级别上，但是，它可以与用在类型级别的`@MessageMapping`结合使用。
+
+`@SubscribeMapping`与`@MessageMapping`区别在于：`@SubscribeMapping`方法的返回值，默认情况下，将作为消息**直接发送回连接的客户端**，而不通过代理。而`@MessageMapping`方法如果有返回值，则是将返回值作为消息通过代理广播给订阅者。
+
+```java
+@SubscribeMapping({"/marco"})
+public Shout handleSubscription() {
+  Shout outgoing = new Shout();
+  outgoing.setMessage("Polo!");
+  return outgoing;
+}
+```
+
+`@SubscribeMapping`的主要应用场景是实现“请求-响应”模式，并且它是异步的，这不同于HTTP GET的同步式的“请求-响应”模式。
+
 #### 消息负载转换器
 
 因为我们现在处理的不是HTTP，所以无法使用Spring的`HttpMessageConverter`实现将负载转换为`Shout`对象。Spring 4.0提供了几个消息转换器用于将消息负载转换为Java对象：
@@ -1074,12 +1091,121 @@ public class Shout {
 | MappingJackson2MessageConverter | 实现MIME类型`application/json`的消息与Java对象之间的相互转换。 |
 | StringMessageConverter          | 实现MIME类型`text/plain`的消息与`String`之间的相互转换。     |
 
-
-
 ### 向客户端发送消息
 
-## 为目标用户发送消息
+#### 在处理消息之后发送消息
 
-## 处理消息异常
+`@SubscribeMapping`方法与`@MessageMapping`方法如果没有返回值（即`void`），则它们的任务只是处理消息，并不需要给客户端回应。如果想要在接收消息的时候，同时在响应中发送一条消息，则只需要将响应内容通过返回值返回。
+
+`@MessageMapping`方法：
+
+```java
+@MessageMapping("/marco")
+public Shout handleShout(Shout incoming) {
+  logger.info("Received message: " + incoming.getMessage());
+  Shout outgoing = new Shout();
+  outgoing.setMessage("Polo!");
+  return outgoing;
+}
+```
+
+`@SubscribeMapping`方法：
+
+```java
+@SubscribeMapping("/marco")
+public Shout handleSubscription() {
+  Shout outgoing = new Shout();
+  outgoing.setMessage("Polo!");
+  return outgoing;
+}
+```
+
+`handleShout`方法接收`destination` 头为`/app/marco`的消息，然后将返回的对象转换为STOMP帧通过brokerChannel发往目的地`/topic/marco`。
+
+`handleSubscription`方法也接收`destination` 头为`/app/marco`的消息，但由于它标有`@SubscribeMapping`，因此，它将返回对象进行转换并直接发送回客户端，而不通过消息代理。
+
+##### 重载目的地
+
+`@SubscribeMapping`方法与`@MessageMapping`方法都可以通过`@SendTo`标注重载通过返回值响应的消息的目的地：
+
+```java
+@MessageMapping("/marco")
+@SendTo("/topic/shout")
+public Shout handleShout(Shout incoming) {
+  logger.info("Received message: " + incoming.getMessage());
+  Shout outgoing = new Shout();
+  outgoing.setMessage("Polo!");
+  return outgoing;
+}
+```
+
+`handleShout`方法通过`@SendTo`标注将消息目的地重载为`/topic/shout`（默认是`/topic/marco`）。
+
+通过`@SendTo`标注重载目的地后，`@SubscribeMapping`方法也将返回的对象转换为STOMP帧通过brokerChannel发往目的地`/topic/marco`，而不是直接发送回客户端。
+
+#### 在应用的任意地方发送消息
+
+Spring的`SimpMessagingTemplate`能够在应用的任何地方通过消息代理（经过clientInboundChannel，而不是brokerChannel）发送消息给客户端，甚至不必以首先接收一条消息作为前提。
+
+例如，为了在Spittr首页提供实时的Spittle feed功能，可以在首页订阅一个STOMP主题，当`Spittle`创建时，该主题能够收到`Spittle`更新的实时feed。
+
+在首页添加如下JavaScript代码：
+
+```javascript
+<script>
+var sock = new SockJS('spittr');
+var stomp = webstomp.over(sock);
+stomp.connect('guest', 'guest', function(frame) {
+  console.log('Connected');
+  stomp.subscribe("/topic/spittlefeed", handleSpittle);
+});
+function handleSpittle(incoming) {
+  var spittle = JSON.parse(incoming.body);
+  console.log('Received: ', spittle);
+  var source = $("#spittle-template").html();
+  var template = Handlebars.compile(source);
+  var spittleHtml = template(spittle);
+  $('.spittleList').prepend(spittleHtml);
+}
+</script>
+```
+
+Handlebars模板定义在另一个单独的`<script>`中：
+
+```html
+<script id="spittle-template" type="text/x-handlebars-template">
+  <li id="preexist">
+    <div class="spittleMessage">{{message}}</div>
+    <div>
+      <span class="spittleTime">{{time}}</span>
+      <span class="spittleLocation">({{latitude}}, {{longitude}})</span>
+    </div>
+  </li>
+</script>
+```
+
+在服务端，我们可以使用`SimpMessagingTemplate`将所有新创建的`Spittle`以消息的形式发布到`/topic/spittlefeed`主题上：
+
+```java
+@Service
+public class SpittleFeedServiceImpl implements SpittleFeedService {
+  private SimpMessageSendingOperations messaging;
+  @Autowired
+  public SpittleFeedServiceImpl(SimpMessageSendingOperations messaging) {
+    this.messaging = messaging;
+  }
+  public void broadcastSpittle(Spittle spittle) {
+    messaging.convertAndSend("/topic/spittlefeed", spittle);
+  }
+}
+```
+
+> 注意：配置Spring支持STOMP时，会自动在Spring应用上下文中包含`SimpMessagingTemplate` Bean，不需要再创建一个新的实例。
+
+不管是通过什么方式向客户端发送消息，只要发送的消息是通过消息代理进行广播的，客户端都可以通过订阅来获取该消息。
+
+### 为目标用户发送消息
+
+### 处理消息异常
 
 # Email
