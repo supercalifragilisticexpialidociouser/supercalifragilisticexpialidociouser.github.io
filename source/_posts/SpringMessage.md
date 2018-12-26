@@ -1081,6 +1081,19 @@ public Shout handleSubscription() {
 
 `@SubscribeMapping`的主要应用场景是实现“请求-响应”模式，并且它是异步的，这不同于HTTP GET的同步式的“请求-响应”模式。
 
+#### 消息处理器方法参数
+
+`@SubscribeMapping`方法、`@MessageMapping`方法，以及`@MessageExceptionHandler`方法的参数：
+
+- `Message`：用于访问正在处理的完整消息。
+- `MessageHeaders`：用于访问所有消息头。
+- `MessageHeaderAccessor`、`SimpMessageHeaderAccessor`、`StompHeaderAccessor`：通过类型化访问器方法访问消息头。
+- `@Payload`：用于访问消息的有效负载，由已配置的`MessageConverter`转换。如果方法只有一个参数，则默认就是该参数，这时标注可省略。
+- `@Header`：用于访问特定的头值。
+- `@Headers`：用于访问消息中的所有头。此参数必须是`java.util.Map`。
+- `@DestinationVariable`：用于访问从消息destination中提取的模板变量。根据需要将值转换为声明的方法参数类型。
+- `java.security.Principal`：反映WebSocket HTTP握手时登录的用户。
+
 #### 消息负载转换器
 
 因为我们现在处理的不是HTTP，所以无法使用Spring的`HttpMessageConverter`实现将负载转换为`Shout`对象。Spring 4.0提供了几个消息转换器用于将消息负载转换为Java对象：
@@ -1206,6 +1219,179 @@ public class SpittleFeedServiceImpl implements SpittleFeedService {
 
 ### 为目标用户发送消息
 
+为了向目标用户发送消息，需要结合Spring Security来认证用户。
+
+#### 在控制器中处理用户信息
+
+在消息处理器方法中添加一个`Principal`参数，就可以获取发送请求的认证用户信息。
+
+```java
+@MessageMapping("/spittle")
+public Notification handleSpittle(Principal principal, SpittleForm form) {
+  Spittle spittle = new Spittle(principal.getName(), form.getText(), new Date());
+  spittleRepo.save(spittle);
+  return new Notification("Saved Spittle");
+}
+```
+
+#### 通过`@SendToUser`向指定用户发送消息
+
+消息处理器方法还可以使用`@SendToUser`标注（可标注在方法或类型上），来表明它的返回值要以消息的形式发送给某个认证用户或某个会话（Session）。
+
+```java
+@MessageMapping("/spittle")
+@SendToUser("/queue/notifications")
+public Notification handleSpittle(Principal principal, SpittleForm form) {
+  Spittle spittle = new Spittle(principal.getName(), form.getText(), new Date());
+  spittleRepo.save(spittle);
+  return new Notification("Saved Spittle");
+}
+```
+
+在内部，消息发送到目的地`/user/{username}/queue/notifications`。然后，以“/user”作为前缀的目的地，将由`UserDestinationMessageHandler`将其转换为一个或多个目的地（例如：`/queue/notifications-user6hr83v6t`。同一个用户可能会同时存在多个会话），每个目的地对应于与用户相关联的每个会话。
+
+客户端可以通过如下目的地来订阅上面处理器方法发布的消息：
+
+```javascript
+stompClient.subscribe("/user/queue/notifications", handleNotifications);
+```
+
+在内部，上面客户端请求的目的地以“/user”作为前缀，将通过`UserDestinationMessageHandler`重新路由到某个用户专有的目的地上（将目标地址中的“/user”前缀去掉，并基于用户的会话添加一个后缀，例如：`/queue/notifications-user6hr83v6t`）。
+
+![UserDestinationMessageHandler](SpringMessage/UserDestinationMessageHandler.png)
+
+如果用户具有多个会话，则默认情况下，该用户的所有会话都可以使用相同的目的地（例如`/user/queue/notifications`）来订阅这条消息。但是，有时，可能需要限制仅有原先在该目的地上发布消息的会话可以订阅该目的地上的消息。您可以通过将`broadcast`属性设置为`false`来实现此目的，如以下示例所示：
+
+```java
+@Controller
+public class MyController {
+  @MessageMapping("/action")
+  public void handleAction() throws Exception{
+    // raise MyBusinessException here
+  }
+
+  @MessageExceptionHandler
+  @SendToUser(destinations="/queue/errors", broadcast=false)
+  public ApplicationError handleException(MyBusinessException exception) {
+    // ...
+    return appError;
+  }
+}
+```
+
+> 虽然user destinations通常意味着经过身份验证的用户，但并不是严格要求的。与经过身份验证的用户无关的WebSocket会话可以订阅user destinations。在这种情况下，`@SendToUser`标注的行为与`broadcast = false`完全相同（即，仅定位发送正在处理的消息的会话）。
+
+#### 在应用的任意地方向指定用户发送消息
+
+借助消息模板（例如：`SimpMessagingTemplate`的`convertAndSendToUser`方法），您可以从任何应用程序组件向特定用户发送消息。
+
+例如，在Spittr应用中，当其他用户提交的Spittle提到某个用户时，将会提醒该用户。也就是说，如果Spittle文本中包含“@jbauer”，那么我们就应该发送一条消息给使用“jbauer”用户名登录的客户端。
+
+```java
+@Service
+public class SpittleFeedServiceImpl implements SpittleFeedService {
+  private SimpMessagingTemplate messaging;
+  private Pattern pattern = Pattern.compile("\\@(\\S+)"); //匹配用户提及功能的正则表达式
+  @Autowired
+  public SpittleFeedServiceImpl(SimpMessagingTemplate messaging) {
+    this.messaging = messaging;
+  }
+  public void broadcastSpittle(Spittle spittle) {
+    messaging.convertAndSend("/topic/spittlefeed", spittle);
+    Matcher matcher = pattern.matcher(spittle.getMessage());
+    if (matcher.find()) {
+      String username = matcher.group(1);
+      messaging.convertAndSendToUser(  //发送提醒给用户
+        username, "/queue/notifications", //内部是发送到“/user/用户名/queue/notifications”目的地
+        new Notification("You just got mentioned!"));
+    }
+  }
+}
+```
+
 ### 处理消息异常
 
+在处理消息的时候，有可能会出错并抛出异常。但是，由于STOMP消息异步的特点，发送者可能永远也不会知道出现了错误。除了Spring的日志记录以外，异常有可能会丢失，没有资源或机会恢复。类似于Spring MVC中的`@ExceptionHandler`，我们也可以在某个控制器方法上添加`@MessageExceptionHandler`标注，让它来处理`@MessageMapping`或`@SubscribeMapping`等消息处理器方法抛出的异常。
+
+处理消息处理器方法抛出的任何异常：
+
+```java
+@MessageExceptionHandler
+public void handleExceptions(Throwable t) {
+  logger.error("Error handling message: " + t.getMessage());
+}
+```
+
+处理消息处理器方法抛出的指定一个或多个异常：
+
+```java
+@MessageExceptionHandler(SpittleException.class)
+
+@MessageExceptionHandler({SpittleException.class, DatabaseException.class})
+```
+
+将错误发送给指定用户：
+
+```java
+@MessageExceptionHandler(SpittleException.class)
+@SendToUser("/queue/errors")  //UserDestinationMessageHandler会重新路由这个消息到特定用户所对应的唯一目的地
+public SpittleException handleExceptions(SpittleException e) {
+  logger.error("Error handling message: " + e.getMessage());
+  return e;
+}
+```
+
 # Email
+
+Spring的`MailSender`接口是Spring Email抽象API的核心组件，它把Email发送给邮件服务器，由服务器进行邮件投递。
+
+![MailSender](SpringMessage/MailSender.png)
+
+Spring自带了一个`MailSender`的实现——`JavaMailSenderImpl`，它会使用JavaMail API来发送Email。
+
+## 配置邮件发送器
+
+```java
+@Bean
+public MailSender mailSender(Environment env) {
+  JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+  mailSender.setHost(env.getProperty("mailserver.host")); //默认为底层JavaMail会话的主机
+  mailSender.setPort(env.getProperty("mailserver.port")); //默认为25
+  mailSender.setUsername(env.getProperty("mailserver.username"));
+  mailSender.setPassword(env.getProperty("mailserver.password"));
+  return mailSender;
+}
+```
+
+如果在JNDI中已经配置了`javax.mail.MailSession`，则先注册一个`JndiObjectFactoryBean`，它会从JNDI中查找MailSession：
+
+```java
+@Bean
+public JndiObjectFactoryBean mailSession() {
+  JndiObjectFactoryBean jndi = new JndiObjectFactoryBean();
+  jndi.setJndiName("mail/Session");
+  jndi.setProxyInterface(MailSession.class);
+  jndi.setResourceRef(true);
+  return jndi;
+}
+```
+
+或者：
+
+```xml
+<jee:jndi-lookup id="mailSession" jndi-name="mail/Session" resource-ref="true" />
+```
+
+然后，将`MailSession` Bean装配到`MailSender` Bean中：
+
+```java
+@Bean
+public MailSender mailSender(MailSession mailSession) {
+  JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+  mailSender.setSession(mailSession);
+  return mailSender;
+}
+```
+
+## 使用邮件发送器
+
