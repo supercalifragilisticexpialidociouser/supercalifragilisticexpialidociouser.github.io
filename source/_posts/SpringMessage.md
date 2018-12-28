@@ -1395,3 +1395,180 @@ public MailSender mailSender(MailSession mailSession) {
 
 ## 使用邮件发送器
 
+### 发送邮件
+
+邮件发送器已经配置完成，现在只需要将它装配到使用它的Bean中，就可以利用它构建和发送Email了：
+
+```java
+@Autowired
+JavaMailSender mailSender;
+
+public void sendSimpleSpittleEmail(String to, Spittle spittle) {
+  SimpleMailMessage message = new SimpleMailMessage(); //构建邮件
+  String spitterName = spittle.getSpitter().getFullName();
+  message.setFrom("noreply@spitter.com"); //发件人邮箱
+  message.setTo(to); //收件人邮箱
+  message.setSubject("New spittle from " + spitterName); //邮件主题
+  message.setText(spitterName + " says: " + spittle.getText()); //邮件正文
+  mailSender.send(message); //发送邮件
+}
+```
+
+### 添加附件
+
+发送带有附件的Email的关键技巧是创建multipart类型的消息——Email由多个部分组成，其中一个部分是Email体，其他部分是附件。
+
+为了发送multipart类型的Email，你需要创建一个MIME的消息：
+
+```java
+MimeMessage message = mailSender.createMimeMessage();
+```
+
+由于`javax.mail.internet.MimeMessage`本身的API有些笨重，Spring提供了`MimeMessageHelper`来帮助简化使用MIME消息：
+
+```java
+MimeMessageHelper helper = new MimeMessageHelper(message, true);
+```
+
+构造器的第二个参数为`true`表明这个消息是multipart类型的。
+
+为了添加附件，我们需要将文件加载为资源，然后将这个资源传递给`addAttachment`方法：
+
+```java
+FileSystemResource couponImage = new FileSystemResource("/collateral/coupon.png");
+helper.addAttachment("Coupon.png", couponImage);
+```
+
+`addAttachment`方法的第一个参数是要添加到Email中的附件名称，第二个参数是图片资源。
+
+完整的代码如下：
+
+```java
+public void sendSpittleEmailWithAttachment(String to, Spittle spittle) 
+  	throws MessagingException {
+  MimeMessage message = mailSender.createMimeMessage();
+  MimeMessageHelper helper = new MimeMessageHelper(message, true);
+  String spitterName = spittle.getSpitter().getFullName();
+  helper.setFrom("noreply@spitter.com");
+  helper.setTo(to);
+  helper.setSubject("New spittle from " + spitterName);
+  helper.setText(spitterName + " says: " + spittle.getText());
+  FileSystemResource couponImage = new FileSystemResource("/collateral/coupon.png");
+  helper.addAttachment("Coupon.png", couponImage);
+  mailSender.send(message);
+}
+```
+
+### 发送富文本内容的Email
+
+发送富文本的Email与发送简单文本的Email并没有太大的区别。关键是将消息的文本设置为HTML。要做到这一点只需要将HTML字符串传递给helper的`setText`方法，并将第二个参数设置为`true`（表明传递进来的第一个参数是HTML）。
+
+```java
+public void sendRichSpitterEmail(String to, Spittle spittle)
+  	throws MessagingException {
+  MimeMessage message = mailSender.createMimeMessage(); //创建一个MIME的消息
+  MimeMessageHelper helper = new MimeMessageHelper(message, true);
+  helper.setFrom("noreply@spitter.com");
+  helper.setTo("craig@habuma.com");
+  helper.setSubject("New spittle from " + spittle.getSpitter().getFullName());
+  //设置HTML邮件内容
+  helper.setText("<html><body><img src='cid:spitterLogo'>" +
+                 "<h4>" + spittle.getSpitter().getFullName() + " says...</h4>" +
+                 "<i>" + spittle.getText() + "</i>" +
+                 "</body></html>", true);
+  ClassPathResource image = new ClassPathResource("spitter_logo_50.png");
+  helper.addInline("spitterLogo", image); //添加内联图片
+  mailSender.send(message);
+}
+```
+
+要注意的是，传递进来的HTML包含一个`<img>`标签，它的`src`属性可以设置为标准的“http://” URL。但在这里，我们将图片嵌入到Email中。值`cid:spitterLogo`表明在消息中会有一部分是图片并以`spitterLogo`来进行标识。
+
+为消息添加嵌入式的图片与添加附件很类似，只不过是调用`addInline`方法。
+
+## 使用模板生成Email
+
+除了使用字符串拼接方式构建Email外，更好的方式是使用模板来生成Email。
+
+这边使用Thymeleaf HTML模板引擎。
+
+### 配置Thymeleaf
+
+在《SpringWeb》中配置的Thymeleaf是从Servlet上下文中解析模板的，而我们的Email模板需要从类路径中解析。因此，除了配置原来的三个Bean（`ThymeleafViewResolver`、`SpringTemplateEngine`和`ServletContextTemplateResolver`）之外，还需要一个`ClassLoaderTemplateResolver` Bean：
+
+```java
+@Bean
+public ClassLoaderTemplateResolver emailTemplateResolver() {
+  ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+  resolver.setPrefix("mail/");
+  resolver.setTemplateMode("HTML5");
+  resolver.setCharacterEncoding("UTF-8");
+  setOrder(1);
+  return resolver;
+}
+```
+
+这里将`prefix`属性设置为“mail/”，这表明它会在类路径根的“mail”目录下查找Thymeleaf模板。
+
+因为我们现在有两个模板解析器，所以需要使用`order`属性表明优先使用哪一个。`ClassLoaderTemplateResolver`的`order`属性为1，因此我们要修改一下`ServletContextTemplateResolver` Bean，将其`order`属性设置为2：
+
+```java
+@Bean
+public ServletContextTemplateResolver webTemplateResolver() {
+  ServletContextTemplateResolver resolver = new ServletContextTemplateResolver();
+  resolver.setPrefix("/WEB-INF/templates/");
+  resolver.setTemplateMode("HTML5");
+  resolver.setCharacterEncoding("UTF-8");
+  setOrder(2);
+  return resolver;
+}
+```
+
+然后，还要修改`SpringTemplateEngine` Bean的配置，让它使用这两个模板解析器：
+
+```java
+@Bean
+public SpringTemplateEngine templateEngine(Set<ITemplateResolver> resolvers) {
+  SpringTemplateEngine engine = new SpringTemplateEngine();
+  engine.setTemplateResolvers(resolvers);
+  return engine;
+}
+```
+
+这里`templateEngine`方法的参数是一个`Set<ITemplateResolver>`，它能将应用上下文中所有匹配`ITemplateResolver`的Bean都装配进来。
+
+### 创建Email模板
+
+在类路径根的“mail”目录下创建名为`emailTemplate.html`的邮件模板：
+
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <img src="spitterLogo.png" th:src='cid:spitterLogo'>
+  <h4><span th:text="${spitterName}">Craig Walls</span> says...</h4>
+  <i><span th:text="${spittleText}">Hello there!</span></i>
+</body>
+</html>
+```
+
+### 使用模板生成和发送Email
+
+```java
+@Autowired
+private SpringTemplateEngine thymeleaf;
+@Autowired
+private JavaMailSender mailSender;
+
+public void sendSimpleSpittleEmail(String to, Spittle spittle) {
+  Context ctx = new Context();
+  ctx.setVariable("spitterName", spitterName);
+  ctx.setVariable("spittleText", spittle.getText());
+  //将上下文中的模型数据合并到模板中
+  String emailText = thymeleaf.process("emailTemplate.html", ctx);
+  ...
+  helper.setText(emailText, true);
+  mailSender.send(message);
+}
+```
+

@@ -169,7 +169,9 @@ public class CDPlayer implements MediaPlayer {
 }
 ```
 
-`@Autowired`标注不仅能够用在构造器上，还能用在类的任何方法上（通常是属性的setter方法上）：
+> 从Spring Framework 4.3开始，如果目标bean只定义了一个构造函数，则不再需要在该构造函数上使用`@Autowired`标注。但是，如果有几个构造函数可用，则必须标注至少一个构造函数，以便指导容器使用哪一个。
+
+`@Autowired`标注不仅能够用在构造器上，还能用在类的任何方法上（通常是属性的setter方法上），方法甚至可以有多个参数：
 
 ```java
 @Autowired
@@ -181,7 +183,51 @@ public void setCompactDisc(CompactDisc cd) {
 public void insertDisc(CompactDisc cd) {
   this.cd = cd;
 }
+
+@Autowired
+public void prepare(MovieCatalog movieCatalog,
+                    CustomerPreferenceDao customerPreferenceDao) {
+  this.movieCatalog = movieCatalog;
+  this.customerPreferenceDao = customerPreferenceDao;
+}
 ```
+
+您也可以将`@Autowired`应用于字段，甚至将其与构造函数混合，如以下示例所示：
+
+```java
+public class MovieRecommender {
+  private final CustomerPreferenceDao customerPreferenceDao;
+
+  @Autowired
+  private MovieCatalog movieCatalog;
+
+  @Autowired
+  public MovieRecommender(CustomerPreferenceDao customerPreferenceDao) {
+    this.customerPreferenceDao = customerPreferenceDao;
+  }
+
+  // ...
+}
+```
+
+您还可以通过将`@Autowired`应用于指定类型数组或集合（Collections）的字段或方法，则从`ApplicationContext`中将所有匹配指定类型的bean都装配到这个数组或集合中：
+
+```java
+@Autowired
+private MovieCatalog[] movieCatalogs;
+
+@Autowired
+public void setMovieCatalogs(Set<MovieCatalog> movieCatalogs) {
+  this.movieCatalogs = movieCatalogs;
+}
+
+@Autowired
+public void setMovieCatalogs(Map<String, MovieCatalog> movieCatalogs) {
+  this.movieCatalogs = movieCatalogs;
+}
+```
+
+`Map`的键类型必须是`String`，它保存Bean的名称。
 
 `@Autowired`标注的`required`属性设置为`false`时，Spring会尝试执行自动装配，但是如果没有匹配的Bean，Spring将会让这个Bean处于未装配的状态。这时，如果在代码中没有进行null检查的话，这个处于未装配状态的属性有可能会出现`NullPointerException`异常。`required`属性的默认值是`true`，即如果没有匹配的Bean，那么在应用上下文创建的时候，Spring会抛出一个异常。
 
