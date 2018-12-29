@@ -66,7 +66,7 @@ Spring Tool Suite（STS）：一个基于Eclipse的IDE，可以很方便地开�
 	<groupId>com.example</groupId>
 	<artifactId>demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging><!-- 打包成jar包 -->
+	<packaging>jar</packaging><!-- 打包成jar包。如果要打包成war，只需在这里改成“war”即可。而且这个war既可部署到支持Servlet 3.0的容器中，也可以使用“java -jar”命令来直接运行。 -->
 
 	<name>demo</name>
 	<description>Demo project for Spring Boot</description>
@@ -1470,6 +1470,8 @@ management.endpoint.info.enabled=true
 
 # Spring Boot CLI
 
+Spring Boot CLI本身就是启动器，所以不需要创建`Application`启动类。Maven或Gradle构建文件也不再需要，因为我们将会通过CLI运行未编译的Groovy文件。
+
 ## 安装
 
 下载并解压就可以使用了。可以将`bin`目录加到`PATH`环境变量中。
@@ -2664,6 +2666,8 @@ mybatis.type-aliases-package=com.example.demo.dao   #指定DAO接口文件所在
 
 
 ## 初始化数据库
+
+在类路径根下（例如`src/main/resources`）下创建一个名为`schema.sql`的文件，并在里面编写创建数据库表的SQL语句，则当应用启动时，就会自动找到这个文件并进行数据加载。
 
 ## 使用JdbcTemplate
 

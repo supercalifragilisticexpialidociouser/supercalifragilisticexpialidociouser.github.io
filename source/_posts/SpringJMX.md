@@ -36,11 +36,36 @@ public MBeanExporter mbeanExporter(SpittleController spittleController) {
 
 每个`Map`条目的key就是MBean的名称（由管理域名字和一个key-value对组成）。
 
-> 根据以上配置，`MBeanExporter`会假设它正在一个应用服务器（例如Tomcat）或提供MBean服务器的其他上下文中运行。但是，如果Spring应用程序是独立的应用或运行的容器没有提供MBean服务器，我们就需要在Spring上下文中配置一个MBean服务器。
+> 根据以上配置，`MBeanExporter`会假设它正在一个且只有一个应用服务器（例如Tomcat）或提供MBean服务器的其他上下文中运行。但是，如果Spring应用程序是独立的应用或运行的容器没有提供MBean服务器，我们就需要在Spring上下文中配置一个MBean服务器。
 >
 > 在XML配置中，`<context:mbean-server>`元素可以为我们实现该功能。如果使用Java配置的话，就是直接配置类型为`MBeanServerFactoryBean`的Bean。
 >
 > `MBeanServerFactoryBean`会创建一个MBean服务器，并将其作为Spring应用上下文中的Bean。默认情况下，这个Bean的ID是`mbeanServer`。了解到这一点，我们就可以将它装配到`MBeanExporter`的`server`属性中用来指定MBean要暴露到哪个MBean服务器中。
+>
+> ```xml
+> <beans>
+>   <bean id="mbeanServer" 
+>         class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
+> 
+>   <!--
+>     this bean needs to be eagerly pre-instantiated in order for the exporting to occur;
+>     this means that it must not be marked as lazily initialized
+>     -->
+>   <bean id="exporter" class="org.springframework.jmx.export.MBeanExporter">
+>     <property name="beans">
+>       <map>
+>         <entry key="bean:name=testBean1" value-ref="testBean"/>
+>       </map>
+>     </property>
+>     <property name="server" ref="mbeanServer"/>
+>   </bean>
+> 
+>   <bean id="testBean" class="org.springframework.jmx.JmxTestBean">
+>     <property name="name" value="TEST"/>
+>     <property name="age" value="100"/>
+>   </bean>
+> </beans>
+> ```
 
 SpittleController.java：
 
@@ -229,3 +254,189 @@ public MBeanExporter mbeanExporter(SpittleController spittleController,
 }
 ```
 
+# 远程MBean
+
+现在我们已使用`MBeanExporter`注册了我们的MBean，我们还需要一种方式来访问它们并进行管理。正如之前所看到的，我们可以使用诸如JConsole之类的工具来访问本地的MBean服务器，进而显示和操纵MBean，但是像JConsole之类的工具并不适合在程序中对MBean进行管理。幸运的是，还存在另一种方式可以把MBean作为远程对象进行访问。
+
+## 暴露远程MBean
+
+使MBean成为远程对象的最简单方式是配置Spring的`ConnectorServerFactoryBean`：
+
+```java
+@Bean
+public ConnectorServerFactoryBean connectorServerFactoryBean() {
+	return new ConnectorServerFactoryBean();
+}
+```
+
+`ConnectorServerFactoryBean`会创建和启动JSR-160 `JMSConnectorServer`。默认情况下，服务器使用JMXMP协议并监听9875端口号，即它将绑定`service:jmx:jmxmp://localhost:9875`。
+
+除了JMXMP协议外，根据不同JMX实现，我们有多种远程访问协议可供选择，包括RMI、SOAP、Hessian/Burlap、IIOP等。为MBean绑定不同的远程访问协议，我们仅需要设置`ConnectorServerFactoryBean`的`serviceUrl`属性。例如，使用RMI远程访问MBean：
+
+```java
+@Bean
+public ConnectorServerFactoryBean connectorServerFactoryBean() {
+  ConnectorServerFactoryBean csfb = new ConnectorServerFactoryBean();
+  csfb.setServiceUrl("service:jmx:rmi://localhost/jndi/rmi://localhost:1099/spitter");
+  return csfb;
+}
+```
+
+在这里，我们将`ConnectorServerFactoryBean`绑定到一个RMI注册表，该注册表监听本机的1099端口。这意味着我们需要一个RMI注册表运行时，并监听该端口。在本示例中我们不使用`RmiServiceExporter`，而是通过在Spring中声明`RmiRegistryFactoryBean`来启动一个RMI注册表：
+
+```java
+@Bean
+public RmiRegistryFactoryBean rmiRegistryFB() {
+  RmiRegistryFactoryBean rmiRegistryFB = new RmiRegistryFactoryBean();
+  rmiRegistryFB.setPort(1099);
+  return rmiRegistryFB;
+}
+```
+
+## 访问远程MBean
+
+要想访问远程MBean服务器，我们需要在Spring上下文中配置`MBeanServerConnectionFactoryBean`：
+
+```java
+@Bean
+public MBeanServerConnectionFactoryBean connectionFactoryBean() {
+  MBeanServerConnectionFactoryBean mbscfb = new MBeanServerConnectionFactoryBean();
+  mbscfb.setServiceUrl("service:jmx:rmi://localhost/jndi/rmi://localhost:1099/spitter");
+  return mbscfb;
+}
+```
+
+由`MBeanServerConnectionFactoryBean`所生成的`MBeanServerConnection`实际上是作为远程MBean服务器的本地代理，它能够以`MBeanServerConnection`形式注入到其他Bean的属性中：
+
+```java
+@Bean
+public JmxClient jmxClient(MBeanServerConnection connection) {
+  JmxClient jmxClient = new JmxClient();
+  jmxClient.setMbeanServerConnection(connection);
+  return jmxClient;
+}
+```
+
+获取远程MBean服务器中已注册的MBean数量：
+
+```java
+int mbeanCount = mbeanServerConnection.getMBeanCount();
+```
+
+查询远程MBean服务器中所有MBean的名称：
+
+```java
+java.util.Set mbeanNames = mbeanServerConnection.queryNames(null, null);
+```
+
+获取MBean属性的值：
+
+```java
+String cronExpression = mbeanServerConnection.getAttribute(
+  new ObjectName("spitter:name=SpittleController"), "spittlesPerPage");
+```
+
+改变MBean属性的值：
+
+```java
+mbeanServerConnection.setAttribute(
+  new ObjectName("spitter:name=SpittleController"),
+  new Attribute("spittlesPerPage", 10));
+```
+
+调用MBean的操作：
+
+```java
+mbeanServerConnection.invoke(
+  new ObjectName("spitter:name=SpittleController"),
+  "setSpittlesPerPage",
+  new Object[] { 100 },
+  new String[] {"int"});
+```
+
+## 代理MBean
+
+直接使用`MBeanServerConnection`访问远程的MBean是一种很笨拙的方法。为了更直接地调用远程MBean的方法，我们需要代理远程MBean。
+
+Spring的`MBeanProxyFactoryBean`是一个代理工厂Bean，它可以让我们直接访问远程的MBean，就如同配置在本地的其他Bean一样。
+
+![代理MBean](SpringJMX/代理MBean.png)
+
+```java
+@Bean
+public MBeanProxyFactoryBean remoteSpittleControllerMBean(
+  	MBeanServerConnection mbeanServerClient) {
+  MBeanProxyFactoryBean proxy = new MBeanProxyFactoryBean();
+  proxy.setObjectName("spitter:name=SpittleController"); //指定远程MBean的对象名称
+  proxy.setServer(mbeanServerClient);
+  proxy.setProxyInterface(SpittleControllerManagedOperations.class); //指定了代理需要实现的接口
+  return proxy;
+}
+```
+
+现在，类型为`SpittleControllerManagedOperations`的任意Bean属性，都可以用`remoteSpittleControllerMBean` Bean来注入，它将代理远程的MBean。使用起来就像是本地配置的Bean。
+
+# JMX通知
+
+JMX通知（Notification）是MBean与外部世界**主动**通信的一种方法，而不是等待外部应用对MBean进行查询以获得信息。
+
+![JMX通知](SpringJMX/JMX-notification.png)
+
+## 发布通知
+
+Spring通过`NotificationPublisherAware`接口提供了发送JMX通知的支持。任何希望发送通知的MBean都必须实现这个接口。
+
+例如，我们希望每发布一百万Spittle时，发布一个JMX通知：
+
+```java
+@Component
+@ManagedResource("spitter:name=SpitterNotifier")
+@ManagedNotification(notificationTypes="SpittleNotifier.OneMillionSpittles",
+                     name="TODO")
+public class SpittleNotifierImpl
+  	implements NotificationPublisherAware, SpittleNotifier {
+  private NotificationPublisher notificationPublisher;
+  public void setNotificationPublisher(
+    	NotificationPublisher notificationPublisher) { //注入notificationPublisher
+    this.notificationPublisher = notificationPublisher;
+  }
+  public void millionthSpittlePosted() {
+    notificationPublisher.sendNotification( //发送JMX通知
+      new Notification(SpittleNotifier.OneMillionSpittles", this, 0));
+  }
+}
+```
+
+这样，只要到达一百万Spittle时，调用`millionthSpittlePosted`方法，就会发布一个JMX通知。
+
+## 监听通知
+
+接收MBean通知的标准方法是使用`MBeanExporter`注册一个实现`javax.management.NotificationListener`接口的监听器。
+
+首先，实现监听器：
+
+```java
+public class PagingNotificationListener implements NotificationListener {
+  public void handleNotification(Notification notification, Object handback) {
+    // ...
+  }
+}
+```
+
+当接收到JMX通知时，将会调用`handleNotification`方法处理通知。
+
+然后，使用`MBeanExporter`注册`PagingNotificationListener`：
+
+```java
+@Bean
+public MBeanExporter mbeanExporter() {
+  MBeanExporter exporter = new MBeanExporter();
+  Map<?, NotificationListener> mappings = new HashMap<?, NotificationListener>();
+  mappings.put("Spitter:name=PagingNotificationListener",
+               new PagingNotificationListener());
+  exporter.setNotificationListenerMappings(mappings);
+  return exporter;
+}
+```
+
+`MBeanExporter`的`setNotificationListenerMappings`属性用于在监听器和监听器所希望监听的MBean之间建立映射。
