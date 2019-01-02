@@ -1455,3 +1455,231 @@ public RedisTemplate<String, Product> redisTemplate(RedisConnectionFactory cf) {
 }
 ```
 
+# 事务管理
+
+事务（Transaction）允许你将几个操作组合成一个要么全部发生，要么全部不发生的工作单元。
+
+![购票事务](SpringDA/购票事务.png)
+
+## 事务的特性
+
+原子性（Atomic）：原子性确保事务中的所有操作全部发生或全部不发生。如果所有的活动都成功了，事务也就成功了。如果任意一个活动失败了，整个事务也失败并回滚。
+
+一致性（Consistent）：一旦事务完成（不管成功还是失败），系统必须确保它所建模的业务处于一致状态。现实的数据不应该被损坏。
+
+隔离性（Isolated）：事务允许多个用户对相同的数据进行操作，每个用户的操作不会与其他用户纠缠在一起。因此，事务应该被彼此隔离，避免发生同步读写相同数据的事情（注意：隔离性往往涉及到锁定数据库中的行或表）。
+
+持久性（Durable）：一旦事务完成，事务的结果应该持久化，这样就能从任何的系统崩溃中恢复过来。
+
+## Spring对事务管理的支持
+
+传统上，Java EE开发人员有两种事务管理选择：全局或本地事务，这两种事务都有很大的局限性。
+
+全局事务使您可以使用多个事务资源，通常是关系数据库和消息队列。应用程序服务器通过JTA管理全局事务，这是一个繁琐的API（部分原因是它的异常模型）。此外，JTA `UserTransaction`通常需要从JNDI获取，这意味着您还需要使用JNDI才能使用JTA。全局事务的使用限制了应用程序代码的任何潜在重用，因为JTA通常仅在应用程序服务器环境中可用。
+
+以前，使用全局事务的首选方法是通过EJB CMT（容器管理事务）。 CMT是一种声明式事务管理（与程序化事务管理不同）。 EJB CMT消除了与事务相关的JNDI查找的需要，尽管使用EJB本身需要使用JNDI。它消除了编写Java代码以控制事务的大部分但不是全部的需要。重要的缺点是CMT与JTA和应用服务器环境相关联。此外，仅当选择在EJB中（或至少在事务EJB外观之后）实现业务逻辑时，它才可用。
+
+本地事务是特定于资源的，例如与JDBC连接关联的事务。本地事务可能更容易使用，但具有明显的缺点：它们无法跨多个事务资源工作。例如，使用JDBC连接管理事务的代码无法在全局JTA事务中运行。由于应用程序服务器不参与事务管理，因此无法确保跨多个资源的正确性。 另一个缺点是本地事务对编程模型是侵入性的。
+
+Spring解决了全局和本地事务的缺点。它允许应用程序开发人员在任何环境中使用一致的编程模型您编写一次代码，它可以从不同环境中的不同事务管理策略中受益。 Spring Framework提供了声明式和编程式事务管理。大多数用户更喜欢声明式事务管理，我们建议在大多数情况下使用。
+
+不像EJB与JTA耦合在一起，Spring通过回调机制将实际的事务实现从事务性的代码中抽象出来。实际上，Spring对事务的支持甚至不需要JTA的实现。如果你的应用程序只使用一种持久化资源，Spring可以使用持久化机制本身所提供的事务性支持，这包括JDBC、Hibernate以及JPA。但是如果应用程序的事务跨多个资源，那么Spring会使用第三方（应用服务器）的JTA实现来支持分布式（XA）事务。
+
+## 事务管理器
+
+Spring并不直接管理事务，而是提供了多种事务管理器，它们将事务管理的职责委托给JTA或其他持久化机制所提供的平台相关的事务实现。
+
+![事务管理器](SpringDA/事务管理器.png)
+
+### JDBC事务
+
+```xml
+<bean id="transactionManager" 
+      class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	<property name="dataSource" ref="dataSource" />
+</bean>
+```
+
+### JPA事务
+
+```xml
+<bean id="txManager" 
+      class="org.springframework.orm.jpa.JpaTransactionManager">
+  <property name="entityManagerFactory" ref="entityManagerFactory" />
+</bean>
+```
+
+`JpaTransactionManager`将与由工厂所产生的JPA `EntityManager`合作来构建事务。
+
+`JpaTransactionManager`还支持将事务应用于简单的JDBC操作这中，这些JDBC操作所使用的`DataSource`与`EntityManagerFactory`所使用的`DataSource`必须是相同的。为了做到这一点，`JpaTransactionManager`必须装配一个`JpaDialect`实现。例如：
+
+```xml
+<bean id="jpaDialect"
+      class="org.springframework.orm.jpa.vendor.EclipseLinkJpaDialect" />
+```
+
+然后，将`JpaDialect` Bean装配到`JtaTransactionManager`中：
+
+```xml
+<bean id="txManager" 
+      class="org.springframework.orm.jpa.JtaTransactionManager">
+  <property name="entityManagerFactory" ref="entityManagerFactory" />
+  <property name="jpaDialect" ref="jpaDialect" />
+</bean>
+```
+
+### Hibernate事务
+
+```xml
+<bean id="txManager" 
+      class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+    <property name="sessionFactory" ref="sessionFactory"/>
+</bean>
+```
+
+### JTA事务
+
+```xml
+<bean id="txManager" 
+      class="org.springframework.transaction.jta.JtaTransactionManager" />
+```
+
+`JtaTransactionManager`不需要了解`DataSource`（或任何其他特定资源），因为它使用容器的全局事务管理基础结构。
+
+## 编程式事务
+
+声明式事务只能在方法级别声明事务，如果想更好地控制事务边界，则编码式事务是唯一的办法。
+
+首先，注入`TransactionTemplate` 实例：
+
+```xml
+<bean id="spitterService"
+      class="com.habuma.spitter.service.SpitterServiceImpl">
+  …
+	<property name="txTemplate">
+  	<bean class="org.springframework.transaction.support.TransactionTemplate">
+    	<property name="transactionManager" ref="transactionManager" />
+    </bean>
+  </property>
+</bean>
+```
+
+然后，通过`TransactionTemplate`来添加事务性边界：
+
+```java
+public void saveSpittle(final Spittle spittle) {
+  txTemplate.execute(new TransactionCallback<Void>() {
+    public void doInTransaction(TransactionStatus txStatus) {
+      try {
+        spitterDao.saveSpittle(spittle);
+      } catch (RuntimeException e) {
+        txStatus.setRollbackOnly();
+        throw e;
+      }
+      return null;
+    }
+  });
+}
+```
+
+## 声明式事务
+
+Spring对声明式事务的支持是通过使用Spring AOP框架实现的。
+
+Spring通过`tx`命名空间或`@Transactional`标注来声明事务。
+
+### 定义事务属性
+
+![事务属性](SpringDA/事务属性.png)
+
+#### 传播行为
+
+传播行为（Propagation Behavior）定义了客户端与被调用方法之间的事务边界。也就是说，定义了何时创建一个事务或何时使用已有的事务。
+
+| 传播行为                  | 含义                                                         |
+| ------------------------- | ------------------------------------------------------------ |
+| PROPAGATION_MANDATORY     | 表示该方法必须在事务中运行。如果当前事务不存在，则会抛出一个异常。 |
+| PROPAGATION_NESTED        | 表示如果当前已经存在一个事务，则该方法将会在嵌套事务中运行。嵌套的事务可以独立于当前事务进行单独地提交或回滚。如果当前事务不存在，则其行为与`PROPAGATION_REQUIRED`一样。注意各厂商对这种传播行为的支持是有所差异的。 |
+| PROPAGATION_NEVER         | 表示当前方法不应该运行在事务上下文中。如果当前正有一个事务在运行，则会抛出异常。 |
+| PROPAGATION_NOT_SUPPORTED | 表示该方法不应该运行在事务中，如果存在当前事务，在该方法运行期间，当前事务将被挂起。如果使用`JTATransactionManager`，则需要访问`TransactionManager`。 |
+| PROPAGATION_REQUIRED      | 表示当前方法必须运行在事务中。如果当前事务存在，方法将会在该事务中运行。否则，会启动一个新的事务。 |
+| PROPAGATION_REQUIRES_NEW  | 表示当前方法必须运行在它自己的事务中（这意味着事务边界与方法自己的边界是一样的：方法在开始执行时启动一个新事务，并在方法返回或抛出异常时结束该事务）。一个新的事务将被启动，如果存在当前事务，在该方法执行期间，当前事务会被挂起；如果使用`JTATransactionManager`，则需要访问`TransactionManager`。 |
+| PROPAGATION_SUPPORTS      | 表示当前方法不需要事务上下文，但是如果存在当前事务，则该方法会在这个事务中运行。 |
+
+#### 隔离级别
+
+隔离级别（Isolation Level）定义了一个事务可能受其他并发事务影响的程度。
+
+多个事务并发运行时，可能会导致以下问题：
+
+- 脏读（Dirty Reads）：脏读发生在一个事务读取了另一个事务改写但尚未提交的数据时。如果改写在稍后被回滚，则第一个事务获取的数据就是无效的。
+- 不可重复读（Nonrepeatable Read）：不可重复读发生在一个事务执行相同的查询两次或两次以上，但是每次都得到不同的数据时。这通常是因为另一个并发事务在两次查询期间更新了数据。
+- 幻读（Phantom Read）：幻读与不可重复读类似，它发生在一个事务（T1）读取了几行数据，接着另一个并发事务（T2）插入了一些数据时。在随后的查询中，第一个事务（T1）就会发现多了一些原本不存在的记录。
+
+| 隔离级别                   | 含义                                                         |
+| -------------------------- | ------------------------------------------------------------ |
+| ISOLATION_DEFAULT          | 使用后端数据库默认的隔离级别。                               |
+| ISOLATION_READ_UNCOMMITTED | 允许读取尚未提交的数据变更，可能会导致脏读、幻读或不可重复读。 |
+| ISOLATION_READ_COMMITTED   | 允许读取并发事务已经提交的数据。可以阻止脏读，但是幻读或不可重复读仍有可能发生。 |
+| ISOLATION_REPEATABLE_READ  | 对同一字段的多次读取结果是一致的，除非数据是被本事务自己所修改。可以阻止脏读和不可重复读，但幻读仍有可能发生。 |
+| ISOLATION_SERIALIZABLE     | 完全服从ACID的隔离级别，确保阻止脏读、不可重复读以及幻读。这是最慢的事务隔离级别，因为它通常是通过完全锁定事务相关的数据库表来实现的。 |
+
+#### 只读
+
+如果事务只对后端的数据库进行读操作，数据库可以利用事务的只读特性来进行一些特定的优化。
+
+因为只读优化是在事务启动的时候由数据库实施的，只有对那些具备启动一个新事务的传播行为（PROPAGATION_REQUIRED、PROPAGATION_REQUIRES_NEW、PROPAGATION_NESTED）的方法来说，将事务声明为只读才有意义。
+
+另外，如果采用Hibernate作为持久化机制，则将事务声明为只读会导致Hibernate的`flush`模式被设置为`FLUSH_NEVER`。这会告诉Hibernate避免和数据库进行不必要的对象同步，并将所有的更新延迟到事务结束。
+
+#### 事务超时
+
+事务不能运行太长时间，因为事务可能涉及对后端数据库的锁定，长时间的事务会不必要地占用数据库资源。事务超时（Timeout）是指声明一个事务，在特定的秒数后自动回滚，而不是等待其结束。
+
+因为超时时钟会在事务开始时启动，因此，只有对那些具备启动一个新事务的传播行为（PROPAGATION_REQUIRED、PROPAGATION_REQUIRES_NEW、PROPAGATION_NESTED）的方法来说，声明事务超时才有意义。
+
+#### 回滚规则
+
+回滚规则定义了哪些异常会导致事务回滚而哪些不会。默认情况下，事务只有在遇到运行期异常时才会回滚，而在遇到检查型异常时不会回滚（这一行为与EJB的回滚行为是一致的）。
+
+### 在XML中定义事务
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/tx
+         http://www.springframework.org/schema/tx/spring-tx.xsd
+         http://www.springframework.org/schema/aop
+         http://www.springframework.org/schema/aop/spring-aop.xsd">
+  <tx:advice id="txAdvice" transaction-manager="txManager"><!--声明事务性策略-->
+    <tx:attributes>
+    	<tx:method name="save*" propagation="REQUIRED" />
+      <tx:method name="*" propagation="SUPPORTS" read-only="true" />
+    </tx:attributes>
+  </tx:advice>
+  <aop:config>
+    <aop:pointcut id="spitterServiceOperation" expression="execution(* *..SpitterService.*(..))"/>
+    <aop:advisor advice-ref="txAdvice" pointcut-ref="spitterServiceOperation"/>
+  </aop:config>
+</beans>
+```
+
+事务属性是通过`<tx:method>`元素的属性来定义的：
+
+| 属性            | 含义                                           |
+| --------------- | ---------------------------------------------- |
+| isolation       | 指定事务的隔离级别。                           |
+| propagation     | 定义事务的传播规则。                           |
+| read-only       | 指定事务是否为只读。                           |
+| rollback-for    | 指定事务对于哪些检查型异常应当回滚，而不提交。 |
+| no-rollback-for | 指定事务对于哪些异常应当继续运行，而不回滚。   |
+| timeout         | 对于长时间运行的事务定义超时时间。             |
+
+当使用`<tx:advice>`来声明事务时，你还需要一个事务管理器。如果事务管理器的`id`为`transactionManager`，则可以省略`transaction-manager`属性。否则，必须显式指定。
+
+`<tx:advice>`只是定义了AOP通知，用于把事务边界通知给方法，但没有声明哪些Bean应该被通知——我们需要一个切点来做这件事。
