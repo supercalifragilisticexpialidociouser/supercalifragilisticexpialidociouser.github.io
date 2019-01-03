@@ -1663,9 +1663,11 @@ Spring通过`tx`命名空间或`@Transactional`标注来声明事务。
     </tx:attributes>
   </tx:advice>
   <aop:config>
-    <aop:pointcut id="spitterServiceOperation" expression="execution(* *..SpitterService.*(..))"/>
+    <aop:pointcut id="spitterServiceOperation" 
+                  expression="execution(* *..SpitterService.*(..))"/>
     <aop:advisor advice-ref="txAdvice" pointcut-ref="spitterServiceOperation"/>
   </aop:config>
+  …
 </beans>
 ```
 
@@ -1682,4 +1684,29 @@ Spring通过`tx`命名空间或`@Transactional`标注来声明事务。
 
 当使用`<tx:advice>`来声明事务时，你还需要一个事务管理器。如果事务管理器的`id`为`transactionManager`，则可以省略`transaction-manager`属性。否则，必须显式指定。
 
-`<tx:advice>`只是定义了AOP通知，用于把事务边界通知给方法，但没有声明哪些Bean应该被通知——我们需要一个切点来做这件事。
+`<tx:advice>`只是定义了AOP通知，用于把事务边界通知给方法，但没有声明哪些Bean应该被通知——我们需要一个切点来做这件事。这就是`<aop:pointcut>`和`<aop:advisor>`要做的事。
+
+### 定义标注驱动的事务
+
+首先，在XML中配置启用标注驱动的事务：
+
+```xml
+<tx:annotation-driven transaction-manager="txManager" />
+```
+
+`transaction-manager`属性的默认值是`transactionManager`。
+
+`<tx:annotation-driven`元素告诉Spring检查上下文中所有的Bean，并查找使用`@Transactional`标注的Bean（不管这个标注是用在类级别上，还是方法级别上）。对于每个使用`@Transactional`标注的Bean，`<tx:annotation-driven`会自动为它添加事务通知。通知的事务属性是通过`@Transactional`标注的参数来定义的。
+
+```java
+@Transactional(propagation=Propagation.SUPPORTS, readOnly=true)
+public class SpitterServiceImpl implements SpitterService {
+  …
+  @Transactional(propagation=Propagation.REQUIRED, readOnly=false)
+  public void addSpitter(Spitter spitter) {
+    …
+  }
+  …
+}
+```
+
