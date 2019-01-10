@@ -10,6 +10,8 @@ Spring Security是为基于Spring的应用程序提供声明式安全保护的�
 
 Spring Security最初被称为Acegi Security。
 
+<!--more-->
+
 # 架构
 
 | 模块             | 说明                                                         |

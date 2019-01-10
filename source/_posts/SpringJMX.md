@@ -13,6 +13,8 @@ JMX管理应用的核心组件是MBean（Managed Bean）。所谓的MBean就是�
 - 开发MBean：开发MBean是一种特殊的动态MBean，其属性和方法只限定于原始类型、原始类型的包装类以及可以分解为原始类型或原始类型包装类的任意类型；
 - 模型MBean：模型MBean也是一种特殊的动态MBean，用于充当管理接口与受管资源的中介。模型MBean并不像它们所声明的那样来编写。它们通常通过工厂生成，工厂会使用元信息来组装管理接口。
 
+<!--more-->
+
 # 将Spring Bean导出为MBean
 
 Spring的`MBeanExporter`可以把一个或多个Spring Bean导出为MBean服务器（MBean Server）内的模型MBean。MBean服务器（也称为MBean代理）是MBean生存的容器，对MBean的访问，是通过MBean服务器来实现的。

@@ -8,6 +8,8 @@ tags: [5.1.2]
 
 ![Spring-framework](SpringCore/Spring-framework.png)
 
+<!--more-->
+
 # IoC
 
 IoC（Inversion of Control，控制反转）也称为DI（依赖注入）。DI能够让相互协作的软件组件保持**松耦合**。

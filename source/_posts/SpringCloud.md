@@ -55,7 +55,7 @@ Spring Cloud是建立在Spring Boot基础之上，并添加了一些系统中所
 
 请求/响应（RPC、REST）、基于事件（消息代理、ATOM）。
 
-编排（orchestration）或**协同**（choreography）
+编排（orchestration）或协同（choreography）
 
 在微服务内部要遵守代码重用原则，但在跨服务的情况下可以适当违反代码重用原则。
 

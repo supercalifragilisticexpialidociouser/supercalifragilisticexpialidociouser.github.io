@@ -16,6 +16,8 @@ Red技术栈由两个层次组成：Red语言（高级）、Red/System（低级D
 
 Red社区：<https://gitter.im/red/red>
 
+<!--more-->
+
 # 开发环境
 
 ## 安装
@@ -383,7 +385,28 @@ Red的字符是一个Unicode码点（范围从0到10FFFF），它也可以当作
 
 ### path!
 
+`/`用于访问较大结构内的项目，例如：访问对象成员或函数的refinements。
 
+```red
+>> a: [23 45 89] 
+== [23 45 89] 
+>> print a/2 
+45
+```
+
+### time!
+
+### date!
+
+### pair!
+
+### percent!
+
+### tuple!
+
+## 单词的类型
+
+## 类
 
 ## 获取值的类型
 
