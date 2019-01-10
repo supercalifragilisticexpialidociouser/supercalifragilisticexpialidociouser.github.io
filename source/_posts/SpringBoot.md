@@ -130,6 +130,28 @@ Spring Boot提供了大量的“Starters”，实得添加相关特性到项目�
 导入方式只会导入依赖管理，而不会导入插件管理。
 
 > `spring-boot-starter-parent` 中`spring-boot-maven-plugin`包含了 `<executions>`，并绑定到 `repackage`目标。如果采用导入方式，则需要自己配置`spring-boot-maven-plugin`。
+>
+> ```xml
+> <plugin>
+>   <groupId>org.springframework.boot</groupId>
+>   <artifactId>spring-boot-maven-plugin</artifactId>
+>   <executions>
+>     <execution>
+>       <goals>
+>         <goal>repackage</goal>
+>       </goals>
+>     </execution>
+>   </executions>
+>   <configuration>
+>     <mainClass>${start-class}</mainClass>
+>     <executable>true</executable>
+>     <fork>true</fork>
+>     <!-- Enable the line below to have remote debugging of your application on port 5005
+>     <jvmArguments>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</jvmArguments>
+>     -->
+>   </configuration>
+> </plugin>
+> ```
 
 使用导入方式时，如果要覆盖spring boot中的依赖时，要将该依赖的定义放在`spring-boot-dependencies`之前。
 
