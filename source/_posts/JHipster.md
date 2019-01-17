@@ -102,7 +102,7 @@ $ ./mvnw package -Pprod verify jib:dockerBuild
 $ ./gradlew -Pprod bootWar jibDockerBuild
 ```
 
-这会生成一个名为`jhipster`的Docker镜像。
+这会生成一个以应用名为镜像名（例如`myapp`）的Docker镜像。
 
 
 
@@ -116,7 +116,7 @@ $ ./gradlew -Pprod bootWar jibDockerBuild
 $ ./mvnw
 ```
 
-应用启动完成后，在浏览器中打开：http://localhost:8080。
+应用启动完成后，在浏览器中打开：http://localhost:8081。
 
 注意：在执行上述命令之前，应该先启动应用依赖的第三方服务，例如数据库等。
 
@@ -130,7 +130,7 @@ JHipster生成项目时，也同时生成如下文件（位于文件夹`src/main
 通过执行如下Docker Compose命令：
 
 ```bash
-$ docker-compose -f src/main/docker/app.yml up
+$ docker-compose -f src/main/docker/app.yml up -d
 ```
 
 将启动您的应用程序及其依赖的服务（数据库、搜索引擎、JHipster Registry ...）。
