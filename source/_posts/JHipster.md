@@ -69,6 +69,12 @@ JHipster是一个开发平台，用于生成、开发和部署Spring Boot + Angu
 
 推荐使用Visual Studio Code。然后安装如下插件：
 
+- Java Extension Pack
+- Spring Initializr Java Support
+- Spring Boot Tools
+
+> 另外，也可以安装`Java IDE Pack`插件，它除了包含了上面所有插件外，还包含一些额外插件。
+
 ## 安装Docker及相关工具
 
 主要安装：
