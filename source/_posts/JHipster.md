@@ -93,7 +93,7 @@ JHipster是一个开发平台，用于生成、开发和部署Spring Boot + Angu
 可通过如下命令打包应用，并使用[Jib](https://github.com/GoogleContainerTools/jib)生成一个Docker镜像：
 
 ```bash
-$ ./mvnw package -Pprod verify jib:dockerBuild
+$ ./mvnw clean package -Pprod verify jib:dockerBuild
 ```
 
 或者：
@@ -102,7 +102,7 @@ $ ./mvnw package -Pprod verify jib:dockerBuild
 $ ./gradlew -Pprod bootWar jibDockerBuild
 ```
 
-这会生成一个以应用名为镜像名（例如`myapp`）的Docker镜像。
+这会生成一个Docker镜像，镜像名在Linux上是应用名（例如`myapp`），而在Windows上是`jhipster`。
 
 
 
