@@ -135,3 +135,5 @@ $ docker-compose -f src/main/docker/app.yml up -d
 
 将启动您的应用程序及其依赖的服务（数据库、搜索引擎、JHipster Registry ...）。
 
+`-d`表示在后台运行。
+
