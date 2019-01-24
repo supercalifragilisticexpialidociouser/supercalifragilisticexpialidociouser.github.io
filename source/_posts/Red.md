@@ -396,17 +396,284 @@ Red的字符是一个Unicode码点（范围从0到10FFFF），它也可以当作
 
 ### time!
 
+```red
+>> a: now/time/precise
+== 14:32:59.333
+>> type? a
+== time!
+>> a/hour
+== 14
+>> a/minute
+== 32
+>> a/minute: a/minute + 1
+== 33
+>> a
+== 14:33:59.333
+>> a/second
+== 59.33299999999872
+```
+
 ### date!
 
 ### pair!
 
+```red
+>> a: 12x23 
+== 12x23 
+>> a: 2 * a 
+== 24x46 
+>> print a/x 
+24 
+>> print a/y 
+46
+```
+
 ### percent!
+
+```red
+>> a: 100 * 11.2% 
+== 11.2 
+>> a: 1000 * 11.3% 
+== 113.0
+```
 
 ### tuple!
 
-## 单词的类型
+一个`tuple!`是一个由句点分隔的3到12个字节（字节范围从0到255）的列表。请注意，以句点分隔的2个数字是浮点数，不是一个元组！
+
+元组可用于表示版本号，IP地址和颜色等内容（例如：0.255.0）。 元组不是一个序列（series），所以大多数序列操作在应用时都会出错。
+
+```red
+>> a: 1.2.3.4 
+== 1.2.3.4 
+>> a: 2 * a 
+== 2.4.6.8 
+>> print pick a 3 
+6 
+>> a/3: random 255 
+== 41 
+>> a 
+== 2.4.41.8
+```
+
+### issue!
+
+用于对电话号码，型号，序列号和信用卡号等符号或标识符进行排序的字符系列。
+
+除了斜杠“/”外，可以包含其他任何字符。
+
+```red
+>> a: #333-444-555-999 
+== #333-444-555-999 
+
+>> a: #34-Ab.77-14 
+== #34-Ab.77-14
+```
+
+### url!
+
+格式：`<protocol>://<path>`
+
+```red
+>> a: read http://www.red-lang.org/p/about.html 
+== {<!DOCTYPE html>^/<html class='v2' dir='ltr' x
+```
+
+### email!
+
+只能包含一个`@`字符。
+
+```red
+>> a: myname@mysite.org 
+== myname@mysite.org 
+```
+
+### image!
+
+支持的外部图像格式是GIF，JPEG，PNG和BMP。
+
+```red
+>> a: make image! [30x40 #{ ; here goes the data... 
+;You can change or get information from your image using the actions that apply to series: 
+>> a: load %heart.bmp 
+== make image! [30x20 #{ 
+       00A2E800A2E800A2E800A 
+
+>> print a/size 
+30x20 
+
+>> print pick a 1                ; getting the RGBA data of pixel 1 
+0.162.232.0 
+
+>> poke a 1 255.255.255.0        ; changing the RGBA data of pixel 1 
+== 255.255.255.0
+```
+
+### refinement!
+
+### action!
+
+```red
+>> action? :take ; Colon is mandatory. 
+== true
+```
+
+### op!
+
+中缀操作符类型。
+
+### routine!
+
+用于链接外部代码。
+
+### datatype!
+
+所有数据类型的类型。
+
+### 单词的类型
+
+| 单词  | 类型        |
+| ----- | ----------- |
+| word  | word!       |
+| word: | set-word!   |
+| :word | get-word!   |
+| 'word | lit-word!   |
+| /word | refinement! |
+
+```red
+>> to-word "test"
+== test
+>> make set-word! "test"
+== test:
+>> make get-word! "test"
+== :test
+>> make lit-word! "test"
+== 'test
+```
+
+### event!
+
+### function!
+
+### object!
+
+### handle!
+
+### unset!
+
+### tag!
+
+### bitset!
+
+### typeset!
+
+### error!
+
+### native!
 
 ## 类
+
+### number!
+
+### scalar!
+
+## block!
+
+包含在方括号中。
+
+## paren!
+
+包含在圆括号中。
+
+## binary!
+
+字节序列。它是原始存储格式，它可以编码数据，如图像，声音，字符串（格式如UTF等），电影，压缩数据，加密数据等。
+
+```red
+#{3A1F5A}  ; base 16
+
+2#{01000101101010}  ; base 2
+
+64#{0aGvXmgUkVCu} ; base 64
+```
+
+
+
+## 序列
+
+### hash!
+
+`hash!`是一个搜索很快的序列。
+
+```red
+>> a: make hash! [a 33 b 44 c 52] 
+== make hash! [a 33 b 44 c 52] 
+
+>> select a [c] 
+== 52 
+
+>> select a 'c 
+== 52
+
+>> a/b
+== 44
+```
+
+### vector!
+
+向量是一个高性能的`integer!`、`float!`、`char!`或`percent!`序列。
+
+```red
+>> a: make vector! [33 44 52] 
+== make vector! [33 44 52] 
+
+>> print a 
+33 44 52 
+
+>> print a * 8 
+264 352 416
+```
+
+## map!
+
+`map!`是一个高性能的字典，它不是序列。
+
+```red
+>> a: make map! ["mini" 33 "winny" 44 "mo" 55] 
+== #( 
+       "mini" 33 
+       "winny" 44 
+       "mo" 55 
+... 
+
+>> print a 
+"mini" 33 
+"winny" 44 
+"mo" 55 
+
+>> print select a "winny" 
+44 
+
+>> put a "winny" 99 
+== 99 
+
+>> print a 
+"mini" 33 
+"winny" 99 
+"mo" 55
+
+>> extend a ["more" 23 "even more" 77]
+>> probe a
+#(
+   "mini" 33
+   "winny" 44
+   "mo" 55
+   "more" 23
+   "even more" 77
+)
+```
+
+
 
 ## 获取值的类型
 
@@ -414,6 +681,48 @@ Red的字符是一个Unicode码点（范围从0到10FFFF），它也可以当作
 >> type? 33
 == integer!
 ```
+
+## 类型转换
+
+### to
+
+是一个`action!`。
+
+```red
+>> to integer! 3.4 
+== 3
+```
+
+### to-time
+
+`function!`
+
+```red
+>> to-time [22 55 48]
+== 22:55:48
+>> to-time [22 65 70]
+== 23:06:10
+>> to-time "11:15"
+== 11:15:00
+```
+
+### as-pair
+
+`native!`
+
+```red
+>> as-pair 88 12.7
+== 88x12
+```
+
+### to-binary
+
+```red
+>> to-binary 33
+== #{00000021}
+```
+
+
 
 # 变量
 

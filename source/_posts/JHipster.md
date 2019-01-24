@@ -86,6 +86,16 @@ JHipster是一个开发平台，用于生成、开发和部署Spring Boot + Angu
 
 # 生成应用
 
+```bash
+$ mkdir myapplication
+$ cd myapplication/
+$ jhipster
+```
+
+1. 选择应用类型。
+2. 应用名
+3. 基包名
+
 # 开发应用
 
 # 构建应用
@@ -114,6 +124,12 @@ $ ./gradlew -Pprod bootWar jibDockerBuild
 
 ```bash
 $ ./mvnw
+```
+
+或者：
+
+```bash
+$ ./gradlew
 ```
 
 应用启动完成后，在浏览器中打开：http://localhost:8081。
