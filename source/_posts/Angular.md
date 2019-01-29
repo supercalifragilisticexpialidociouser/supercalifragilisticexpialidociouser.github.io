@@ -1,14 +1,16 @@
 ---
 title: Angular
 date: 2018-04-26 10:34:40
-tags: [6.0.0]
+tags: [7.2.3]
 ---
+
+Angular 是一个开发平台。它能帮你更轻松的构建 Web 应用。Angular 集声明式模板、依赖注入、端到端工具和一些最佳实践于一身，为你解决开发方面的各种挑战。Angular 为开发者提升构建 Web、手机或桌面应用的能力。
 
 # 准备开发环境
 
 ## 安装Node.js
 
-下载安装Node.js 10.0.0
+下载安装Node.js v10.15.0 LTS
 
 ## 安装angular-cli
 
@@ -20,15 +22,13 @@ angular-cli是一个命令行工具，可用于创建和管理Angular项目。
 $ npm install -g @angular/cli
 ```
 
-查看版本：`ng version`；
+查看版本：`ng version`。
 
-查看帮助：`ng help`；
+查看帮助：`ng help`。
 
 查看某个子命令的帮助：`ng new --help`或`ng help new`。
 
 ### 升级angular-cli
-
-v6.0.1
 
 全局包升级：
 
@@ -49,32 +49,58 @@ $ npm install
 
 ## 安装Git
 
-v2.17.0
+## 选择编辑器
+
+推荐使用[Visual Studio Code](https://code.visualstudio.com/)。
+
+## 选择浏览器
+
+推荐使用Chrome。
 
 <!--more-->
 
 # 入门
 
-## 创建项目
+## 创建工作空间和应用
+
+Angular 工作空间就是你开发应用的上下文环境。 每个工作空间包含一些供一个或多个项目使用的文件。 每个项目都是一组由应用、库或端到端（e2e）测试构成的文件。
+
+`ng new` 命令会创建一个包含项目的工作空间。而用来创建或操作应用和库的 `add` 和 `generate` 命令必须在工作空间目录下才能执行。
 
 ```bash
-$ ng new myng --style=scss
+$ ng new my-app
 ```
 
-> `--style=scss`表示使用scss，默认使用css。
+上述命令将生成：
 
-上面的命令执行时，会自动安装依赖，不需要再手动执行`npm install`。如果需要在创建项目时，略过安装依赖，则可以执行：`ng new myng --style=scss --skip-install`。
+- 一个新的工作空间，根目录名叫 `my-app`
+- 一个最初的骨架应用项目，也叫 `my-app`（但位于 `my-app/src` 子目录下，可以使用`--source-dir`指定自己的源码目录名，默认为`src`。）
+- 一个端到端测试项目（位于 `my-app/e2e` 子目录下）
+- 相关的配置文件
 
-项目的源码放在`myng/src`目录中，可以使用`--source-dir`指定自己的源码目录名，默认为`src`。
+上面的命令执行时，会自动安装依赖，不需要再手动执行`npm install`。如果需要在创建项目时，略过安装依赖，则可以执行：`ng new my-app --skip-install`。
 
-如果希望在项目中使用路由，则可以加上`--routing`选项。
-
-## 启动服务器
+上面的命令执行时，会提示你是否需要使用Angular Routing，以及使用哪种样式格式。你也可以，直接在命令行上加上`--routing`选项和`--style`选项。例如：
 
 ```bash
+$ ng new my-app --style=scss --routing
+```
+
+## 启动开发服务器
+
+Angular 包含一个开发服务器，以便你能轻易地在本地构建应用和启动开发服务器。
+
+```bash
+$ cd my-app
 $ ng serve --open
 ```
 
+> 首先，要进入工作空间目录（`my-app`）。
+>
+> `ng serve` 命令会启动开发服务器，并监视项目中文件的变化，当你修改这些文件时，它就会重新构建应用。因此，新增或修改代码不需要手动重启开发服务器。
+>
+> 在运行复杂项目时，有时可能无法重新加载应用，这时只需单击浏览器的刷新按钮或导航到 <http://localhost:4200/>即可。
+>
 > `--open`或`-o`表示在服务器启动后，自动打开浏览器并访问 <http://localhost:4200/>。
 
 默认的端口号是`4200`，要指定其他端口号，使用`--port`参数。另外，使用`--host`指定ip：
@@ -83,13 +109,7 @@ $ ng serve --open
 $ ng serve --open --port 3000 --host 0.0.0.0
 ```
 
-## 编码
-
-angular-cli的HTTP开发服务器在向浏览器发送的HTML内容中添加了一个JavaScript片段。JavaScript打开一个回连到服务器的连接，并等待信号重新加载页面。当服务器检测到项目目录中的任何文件发生变更时，就会发送信号。因此，新增或修改代码不需要手动重启开发服务器。
-
-在运行复杂项目时，有时可能无法重新加载应用，这时只需单击浏览器的刷新按钮或导航到 <http://localhost:4200/>即可。
-
-使用angular-cli方式创建项目，不需要手动将需要的css、js等资源（包括第三方资源）添加到`index.html`中。angular-cli使用了WebPack工具，会自动生成项目的css、javascript文件，并将它们自动注入HTTP开发服务器发送给浏览器的HTML文件中。
+## 开发应用
 
 ### 引导文件
 
@@ -114,15 +134,62 @@ platformBrowserDynamic().bootstrapModule(AppModule)
 
 ### 主页
 
-主页默认是`src/index.html`，是别人访问你的网站是看到的主页面的 HTML 文件。 大多数情况下你都不用编辑它。 在构建应用时，CLI 会自动把所有 `js` 和 `css` 文件添加进去，所以你不必在这里手动添加任何 `<script>` 或 `<link>` 标签。
+主页默认是`src/index.html`，是别人访问你的网站是看到的主页面的 HTML 文件。
 
-### 模板
+```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>MyApp</title>
+  <base href="/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
+```
+
+主页上通常会包含一个Angular根组件（例如`<app-root>`），它是Angular世界的入口。
+
+在构建应用时，CLI 会自动把所有 `js` 和 `css` 等资源（包括第三方资源）添加进去，所以你不必在这里手动添加任何 `<script>` 或 `<link>` 标签。angular-cli使用了WebPack工具，会自动生成项目的css、javascript文件，并将它们自动注入HTTP开发服务器发送给浏览器的HTML文件中。
+
+### 创建模板
 
 模板是指包含由Angular执行的指令的HTML片段，它用于向用户展示模型中的数据值。
 
-例如：`src/app/app.component.html`。
+例如：`src/app/app.component.html`：
 
-### 组件
+```html
+<!--The content below is only a placeholder and can be replaced.-->
+<div style="text-align:center">
+  <h1>
+    Welcome to {{ title }}!
+  </h1>
+  <img width="300" alt="Angular Logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj4KICAgIDxwYXRoIGZpbGw9IiNERDAwMzEiIGQ9Ik0xMjUgMzBMMzEuOSA2My4ybDE0LjIgMTIzLjFMMTI1IDIzMGw3OC45LTQzLjcgMTQuMi0xMjMuMXoiIC8+CiAgICA8cGF0aCBmaWxsPSIjQzMwMDJGIiBkPSJNMTI1IDMwdjIyLjItLjFWMjMwbDc4LjktNDMuNyAxNC4yLTEyMy4xTDEyNSAzMHoiIC8+CiAgICA8cGF0aCAgZmlsbD0iI0ZGRkZGRiIgZD0iTTEyNSA1Mi4xTDY2LjggMTgyLjZoMjEuN2wxMS43LTI5LjJoNDkuNGwxMS43IDI5LjJIMTgzTDEyNSA1Mi4xem0xNyA4My4zaC0zNGwxNy00MC45IDE3IDQwLjl6IiAvPgogIDwvc3ZnPg==">
+</div>
+<h2>Here are some links to help you start: </h2>
+<ul>
+  <li>
+    <h2><a target="_blank" rel="noopener" href="https://angular.io/tutorial">Tour of Heroes</a></h2>
+  </li>
+  <li>
+    <h2><a target="_blank" rel="noopener" href="https://angular.io/cli">CLI Documentation</a></h2>
+  </li>
+  <li>
+    <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
+  </li>
+</ul>
+
+<router-outlet></router-outlet>
+```
+
+`{{…}}`语法是 Angular 的*插值绑定*语法，Angular会对双花括号之间的内容（通常在组件中定义）进行求值，以获取要显示的值。 这里插值绑定的意思是把组件的 `title` 属性的值绑定到 HTML 中的 `h1` 标记中。
+
+### 创建组件
 
 Angular组件是一个带`@Component`装饰器的类。它负责管理模板，并为其提供所需的数据和逻辑。
 
@@ -137,18 +204,20 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'app';
+  title = 'my-app';
 }
 ```
 
-`selector`告诉Angular如何在HTML文档中应用该组件。
+`selector`告诉Angular如何匹配该组件所要应用的在HTML元素。（例如：`<app-root>…</app-root>`）
 
 `templateUrl`或`template`定义了组件将显示的内容的模板。其中，前者指定模板文件的位置，后者直接定义内联模板。
+
+`styleUrls`或`styles`则定义了一个或多个将应用于本组件模板的样式。其中，前者指定一个或多个指向CSS样式表文件的 URL，后者指定一个或多个内联 CSS 样式。
 
 要创建组件，可以使用命令：
 
 ```bash
-$ cd myng
+$ cd my-app
 $ ng generate component xxx
 或者
 $ ng g comonent xxx
@@ -166,8 +235,8 @@ $ ng g comonent xxx
 > 可以加上`-m`或`--module`参数来指定隶属的模块：
 >
 > ```bash
-> $ cd myng
-> $ ng generate component xxx --module modx
+> $ cd my-app
+> $ ng generate component xxx --module home
 > ```
 >
 > 上面代码将生成如下文件：
@@ -177,13 +246,13 @@ $ ng g comonent xxx
 > - src/app/xxx/xxx.component.ts
 > - src/app/xxx/xxx.component.scss
 >
-> 并且该组件将隶属于`modx`模块。注意：组件仍然生成在自己的目录中。
+> 并且该组件将隶属于`home`模块。注意：组件仍然生成在自己的目录中。
 >
 > 参数`--flat`指示是否创建自己的目录，默认是`false`，即创建自己的目录：
 >
 > ```bash
-> $ cd myng
-> $ ng generate component xxx --module modx --flat
+> $ cd my-app
+> $ ng generate component xxx --module home --flat
 > ```
 >
 > 生成如下文件：
@@ -194,36 +263,36 @@ $ ng g comonent xxx
 > - src/app/xxx.component.scss
 >
 > ```bash
-> $ cd myng/src/app/modx
-> $ ng generate component xxx --module modx --flat
+> $ cd my-app/src/app/modx
+> $ ng generate component xxx --module home --flat
 > ```
 >
 > 生成如下文件：
 >
-> - src/app/modx/xxx.component.html
-> - src/app/modx/xxx.component.spec.ts
-> - src/app/modx/xxx.component.ts
-> - src/app/modx/xxx.component.scss
+> - src/app/home/xxx.component.html
+> - src/app/home/xxx.component.spec.ts
+> - src/app/home/xxx.component.ts
+> - src/app/home/xxx.component.scss
 >
 > 如果组件名与模块名相同，则：
 >
 > ```bash
-> $ cd myng
-> $ ng generate component modx --module modx
+> $ cd my-app
+> $ ng generate component home --module home
 > ```
 >
 > 生成如下文件：
 >
-> - src/app/modx/modx.component.html
-> - src/app/modx/modx.component.spec.ts
-> - src/app/modx/modx.component.ts
-> - src/app/modx/modx.component.scss
+> - src/app/home/home.component.html
+> - src/app/home/home.component.spec.ts
+> - src/app/home/home.component.ts
+> - src/app/home/home.component.scss
 
-### 样式
+### 应用样式
 
 Angular应用的全局样式放在`src/styles.scss`中。另外，每个组件可以有自己的私有样式，它们放在由`styleUrls`指定的样式文件中。
 
-### 模块
+### 将应用程序组合起来
 
 Angular模块将相关功能封装起来，每个应用都至少有一个根模块。
 
@@ -233,6 +302,7 @@ Angular模块将相关功能封装起来，每个应用都至少有一个根模�
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
+import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
 @NgModule({
@@ -240,7 +310,8 @@ import { AppComponent } from './app.component';
     AppComponent
   ],
   imports: [
-    BrowserModule
+    BrowserModule,
+    AppRoutingModule
   ],
   providers: [],
   bootstrap: [AppComponent]
@@ -248,21 +319,29 @@ import { AppComponent } from './app.component';
 export class AppModule { }
 ```
 
+`declarations`属性指定了该模块包含哪些组件、指令和管道（统称可声明对象），即哪些可声明对象属于这个模块。
+
+`bootstrap`属性指定了当该模块引导时需要进行引导的组件。列在这里的所有组件都会自动添加到 `entryComponents` 属性中。
+
+`import`属性导入其他Angular模块的可声明对象，使得它们在当前Angular模块的**模板**中可用。
+
+`providers`属性指定了在当前模块的注入器中可用的一组可注入对象。
+
 创建模块：
 
 ```bash
-$ cd myng
-$ ng g module modx
+$ cd my-app
+$ ng g module home
 ```
 
-> 上面命令将生成：`src/app/modx/modx.module.ts`。
+> 上面命令将生成：`src/app/home/home.module.ts`。
 
 # 模块
 
 Angular开发中使用了两种类型的模块：
 
 - JavaScript模块：一个.js文件就是一个模块。通过`export`导出变量，通过`import`导入变量。
-- Angular模块：用于描述应用或一组相关功能。每个应用都有一个根模块（Root module），它为Angular提供启动应用所需的信息。Angular模块通过`@NgModule`装饰器来声明。
+- Angular模块：用于描述应用或一组相关功能。每个应用都有一个根模块（Root module），它为Angular提供启动应用所需的信息。Angular模块通过`@NgModule`装饰器来声明。Angular模块的目的是通过`@NgModule`装饰器定义的属性来提供配置信息。
 
 ## Angular模块
 
@@ -535,7 +614,7 @@ $ npm install bootstrap --save
 
 #### 使用CSS
 
-修改`.angular-cli.json`文件中的`apps`下的`styles`：
+修改`angular.json`文件中的`apps`下的`styles`：
 
 ```json
 "styles": [
@@ -546,7 +625,7 @@ $ npm install bootstrap --save
 
 它使得，外部的全局样式能够应用到项目中。
 
-> 修改了`.angular-cli.json`文件后，必须重启项目（`ng serve`）。
+> 修改了`angular.json`文件后，必须重启项目（`ng serve`）。
 
 #### 使用SCSS
 
