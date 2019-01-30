@@ -1,7 +1,7 @@
 ---
 title: Angular
 date: 2018-04-26 10:34:40
-tags: [7.2.3]
+tags: [7.2.0]
 ---
 
 Angular 是一个开发平台。它能帮你更轻松的构建 Web 应用。Angular 集声明式模板、依赖注入、端到端工具和一些最佳实践于一身，为你解决开发方面的各种挑战。Angular 为开发者提升构建 Web、手机或桌面应用的能力。
@@ -156,6 +156,8 @@ platformBrowserDynamic().bootstrapModule(AppModule)
 主页上通常会包含一个Angular根组件（例如`<app-root>`），它是Angular世界的入口。
 
 在构建应用时，CLI 会自动把所有 `js` 和 `css` 等资源（包括第三方资源）添加进去，所以你不必在这里手动添加任何 `<script>` 或 `<link>` 标签。angular-cli使用了WebPack工具，会自动生成项目的css、javascript文件，并将它们自动注入HTTP开发服务器发送给浏览器的HTML文件中。
+
+> 较早版本的Angular依赖于模块加载器，它将为应用程序所需的JavaScript文件发送单独的HTTP请求。开发工具的更改已经简化了此过程，并改用在构建过程中创建的bundle。
 
 ### 创建模板
 
