@@ -1954,7 +1954,7 @@ let john = new Person("John"); // Error: The 'Person' constructor is protected
 
 ## 参数属性
 
-参数属性是在构造器中声明的，显式带有访问修饰符的参数。参数属性会自动在类中创建一个相同的属性，并将值赋值给它：
+参数属性是在构造器中声明的，**显式**带有访问修饰符的参数（在这种情况，`public`访问修饰符也不能省略）。参数属性会自动在类中创建一个相同的属性，并将值赋值给它：
 
 ```typescript
 class Animal {

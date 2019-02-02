@@ -130,7 +130,7 @@ platformBrowserDynamic().bootstrapModule(AppModule)
   .catch(err => console.log(err));
 ```
 
-如果Angular应用要在非浏览器环境（例如Ionic移动开发框架）中运行，则需要使用引导文件中的代码来选择要使用的平台，并加载根模块。`platformBrowserDynamic().bootstrapModule()`是适合基于浏览器的应用的引导方法。
+如果Angular应用要在非浏览器环境（例如Ionic移动开发框架）中运行，则需要使用引导文件中的代码来选择要使用的平台，并加载**根模块**和启动应用程序。`platformBrowserDynamic().bootstrapModule()`是适合基于浏览器的应用的引导方法。
 
 ### 主页
 
@@ -323,7 +323,7 @@ export class AppModule { }
 
 `declarations`属性指定了该模块包含哪些组件、指令和管道（统称可声明对象），即哪些可声明对象属于这个模块。
 
-`bootstrap`属性指定了当该模块引导时需要进行引导的组件。列在这里的所有组件都会自动添加到 `entryComponents` 属性中。
+`bootstrap`属性指定了当该模块引导时需要进行引导的组件。列在这里的所有组件都会自动添加到 `entryComponents` 属性中。根模块的`bootstrap`属性通常用于指定根组件。
 
 `import`属性导入其他Angular模块的可声明对象，使得它们在当前Angular模块的**模板**中可用。
 
@@ -349,7 +349,7 @@ Angular开发中使用了两种类型的模块：
 
 Angular模块有两种类型：
 
-- 根模块（root module）：用于向Angular描述应用程序，主要包括：运行应用程序所需的功能模块、应该加载哪些自定义功能以及根组件的名称。
+- 根模块（root module）：用于向Angular描述应用程序，主要包括：运行应用程序所需的功能模块、应该加载哪些自定义功能以及根组件的名称。根模块在引导文件中加载。
 - 功能模块（feature module）：用于把相关的应用程序功能归集起来，使应用程序更易于管理。
 
 # 路由
@@ -644,7 +644,38 @@ $ npm install bootstrap --save
 
 # 服务
 
-## 使用json-server+faker+jsonwebtoke模拟后端服务
+## 使用json-server+faker+jsonwebtoken模拟后端服务
+
+json-server可以利用JSON数据或JavaScript代码快速创建Web服务。
+
+faker用于帮助生成各种JSON数据。
+
+jsonwebtoken是JWT的一个实现。
+
+### 安装
+
+```bash
+$ npm install --save-dev json-server
+$ npm install --save-dev jsonwebtoken
+$ npm install --save-dev faker
+```
+
+### 添加启动脚本
+
+package.json：
+
+```json
+{
+  …
+  "scripts": {
+  	…
+    "json": "json-server data.js -p 3500 -m authMiddleware.js"
+  },
+  …
+}
+```
+
+
 
 # Reactive Extensions
 
