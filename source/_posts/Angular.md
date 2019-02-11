@@ -356,6 +356,8 @@ Angular模块有两种类型：
 
 告诉Angular每个URL映射到组件的映射称为URL路由，简称路由。
 
+## `<base href>` 元素
+
 ## 定义路由
 
 最简单的创建路由的方式就是在根模块的`@NgModule`装饰器中定义路由：
@@ -421,6 +423,10 @@ export class StoreComponent {
 
 # 模板
 
+## 内联模板
+
+## 模板文件
+
 # 指令
 
 # 组件
@@ -435,7 +441,7 @@ export class StoreComponent {
 
 # 管道
 
-# UI
+# UI组件
 
 ## Angular Material
 
@@ -640,7 +646,7 @@ $ npm install bootstrap --save
 @import '../node_modules/bootstrap/scss/bootstrap';
 ```
 
-## 动画
+# 动画
 
 # 服务
 
@@ -673,6 +679,79 @@ package.json：
   },
   …
 }
+```
+
+### 准备静态数据
+
+#### 通过JSON提供静态数据
+
+#### 通过JavaScript代码提供静态数据
+
+data.js：
+
+```javascript
+module.exports = function () {
+  return {
+    products: [
+      { id: 1, name: "Kayak", category: "Watersports",
+        description: "A boat for one person", price: 275 },
+      { id: 2, name: "Lifejacket", category: "Watersports",
+        description: "Protective and fashionable", price: 48.95 },
+      …
+    ],
+    orders: […]
+  }
+}
+```
+
+### 提供身份验证和授权过程
+
+authMiddleware.js：
+
+```javascript
+const jwt = require("jsonwebtoken");
+const APP_SECRET = "myappsecret";
+const USERNAME = "admin";
+const PASSWORD = "secret";
+module.exports = function (req, res, next) {
+  if ((req.url == "/api/login" || req.url == "/login") && req.method == "POST") {
+    if (req.body != null && req.body.name == USERNAME
+        && req.body.password == PASSWORD) {
+      let token = jwt.sign({ data: USERNAME, expiresIn: "1h" }, APP_SECRET);
+      res.json({ success: true, token: token });
+    } else {
+      res.json({ success: false });
+    }
+    res.end();
+    return;
+  } else if (
+    ((
+      (req.url.startsWith("/api/products") || req.url.startsWith("/products"))
+      || (req.url.startsWith("/api/categories") || req.url.startsWith("/categories"))
+    ) && req.method != "GET")
+    || ((req.url.startsWith("/api/orders") || req.url.startsWith("/orders")) 
+        && req.method != "POST")) {
+    let token = req.headers["authorization"];
+    if (token != null && token.startsWith("Bearer<")) {
+      token = token.substring(7, token.length - 1);
+      try {
+        jwt.verify(token, APP_SECRET);
+        next();
+        return;
+      } catch (err) { }
+    }
+    res.statusCode = 401;
+    res.end();
+    return;
+  }
+  next();
+}
+```
+
+### 启动json-server
+
+```bash
+$ npm run json
 ```
 
 
