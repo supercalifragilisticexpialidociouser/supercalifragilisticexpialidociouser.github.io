@@ -212,9 +212,22 @@ export class AppComponent {
 
 `selector`告诉Angular如何匹配该组件所要应用的在HTML元素。（例如：`<app-root>…</app-root>`）
 
-`templateUrl`或`template`定义了组件将显示的内容的模板。其中，前者指定模板文件的位置，后者直接定义内联模板。
+`templateUrl`或`template`定义了组件将显示的内容的模板。其中，前者在单独的文件中定义模板，后者直接定义内联模板（由一个字符串或模板字符串（使用 “`” 包围）表示的模板）。
 
-`styleUrls`或`styles`则定义了一个或多个将应用于本组件模板的样式。其中，前者指定一个或多个指向CSS样式表文件的 URL，后者指定一个或多个内联 CSS 样式。
+`styleUrls`或`styles`则定义了一个或多个仅应用于本组件模板的样式。其中，前者指定一个或多个指向CSS样式表文件的 URL，后者指定一个或多个内联 CSS 样式。它们的作用域将仅限于该组件，而不会“泄露”到外部 HTML 中。
+
+另外，还可设置`moduleId`属性。当`moduleId`属性设置为`module.id`时，则模板和样式表中的相对路径将相对于组件类文件的位置。
+
+> 注意：要使用module.id，需要将tsconfig.json修改如下：
+>
+> ```json
+> "compilerOptions": {
+>   "module": "commonjs",
+>   …
+> }
+> ```
+
+如果没有设置`moduleId`，则可以使用相对当前文件的路径，或使用绝对路径（应用程序的根目录为基准。根目录就是index.html所在目录）。
 
 要创建组件，可以使用命令：
 
@@ -232,7 +245,7 @@ $ ng g comonent xxx
 > - src/app/xxx/xxx.component.ts
 > - src/app/xxx/xxx.component.scss
 >
-> 并且该组件将隶属于根模块。
+> 并且该组件将隶属于根模块。（如果没有显式指定隶属的模块，则默认隶属于根模块）
 >
 > 可以加上`-m`或`--module`参数来指定隶属的模块：
 >
@@ -321,7 +334,7 @@ import { AppComponent } from './app.component';
 export class AppModule { }
 ```
 
-`declarations`属性指定了该模块包含哪些组件、指令和管道（统称可声明对象），即哪些可声明对象属于这个模块。
+`declarations`属性指定了该模块包含哪些组件、指令和管道（统称可声明对象），即哪些可声明对象属于这个模块。每个可声明对象都必须声明在（且只能声明在）一个 [NgModule](https://angular.cn/guide/ngmodules) 中。
 
 `bootstrap`属性指定了当该模块引导时需要进行引导的组件。列在这里的所有组件都会自动添加到 `entryComponents` 属性中。根模块的`bootstrap`属性通常用于指定根组件。
 
@@ -431,7 +444,26 @@ export class StoreComponent {
 
 # 组件
 
+## 创建组件
 
+每个组件都以`@Component`装饰器标注：
+
+```typescript
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-heros',
+  templateUrl: './heros.component.html',
+  styleUrls: ['./heros.component.scss']
+})
+export class HerosComponent implements OnInit {
+  constructor() { }
+  ngOnInit() {
+  }
+}
+```
+
+`ngOnInit` 是一个[生命周期钩子](https://angular.cn/guide/lifecycle-hooks#oninit)，Angular 在创建完组件后很快就会调用 `ngOnInit`。这里是放置初始化逻辑的好地方。
 
 ## 根组件
 
