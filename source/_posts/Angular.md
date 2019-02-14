@@ -365,11 +365,23 @@ Angular模块有两种类型：
 - 根模块（root module）：用于向Angular描述应用程序，主要包括：运行应用程序所需的功能模块、应该加载哪些自定义功能以及根组件的名称。根模块在引导文件中加载。
 - 功能模块（feature module）：用于把相关的应用程序功能归集起来，使应用程序更易于管理。
 
+## 创建Angular模块
+
+```bash
+$ ng generate module app-routing --flat --module=app
+```
+
+> `--flat` 把这个文件放进了 `src/app` 中，而不是单独的目录中。
+>
+> `--module=app` 告诉 CLI 把它注册到 `AppModule` 的 `imports` 数组中。
+
 # 路由
 
 告诉Angular每个URL映射到组件的映射称为URL路由，简称路由。
 
 ## `<base href>` 元素
+
+Angular路由功能要求HTML文档（`index.html`）中有一个`<base>`元素，由其提供路由的基本URL。
 
 ## 定义路由
 
@@ -397,7 +409,7 @@ export class AppModule { }
 
 ## `<router-outlet>`元素
 
-当使用路由功能时，`<router-outlet>`元素相当于一个占位符，它指定了当前URL对应的组件的显示位置。
+当使用路由功能时，Angular会查找`<router-outlet>`元素，它相当于一个占位符，它指定了应该在什么位置显示当前URL对应的组件。
 
 ## 应用程序导航
 
@@ -426,23 +438,85 @@ export class StoreComponent {
 要在模板中使用`routerLink`属性，必须将`RouterModule`导入所在模块：
 
 ```typescript
+import {RouterModule} from "@angular/router";
+
 @NgModule({
   imports: [RouterModule, …],
   …
 })
 ```
 
+## 守卫路由
+
 # 数据绑定
 
 # 模板
 
-## 内联模板
+## 定义模板
 
-## 模板文件
+HTML 是 Angular 模板的语言，几乎所有的 HTML 语法都是有效的模板语法。但值得注意的例外是`<script>`元素，它被禁用了，以阻止脚本注入攻击的风险。
+
+另外，`<html>`、`<body>`和`<base>`这些元素用在模板中是没有意义的。
+
+模板除了可以使用像`<h2>`和`<p>`这样的典型的 HTML 元素，还可以通过组件、指令和插值表达式来扩展模板中的 HTML 词汇。它们看上去就是新元素和属性。 例如，`*ngFor`、`{{hero.name}}`、`(click)`、`[hero]`和`<hero-detail>`。
+
+### 模板引用变量
+
+模板引用变量是模板中对 DOM 元素或指令的引用。
+
+它能在原生 DOM 元素中使用，也能用于 Angular 组件 —— 实际上，它可以和任何自定义 Web 组件协同工作。
+
+#### 定义模板引用变量
+
+语法一：
+
+`#模板引用变量`
+
+例如：
+
+```html
+<input #phone placeholder="phone number">
+<button (click)="callPhone(phone.value)">Call</button>
+```
+
+语法二：
+
+`ref-模板引用变量`
+
+例如：
+
+```html
+<input ref-fax placeholder="fax number">
+<button (click)="callFax(fax.value)">Fax</button>
+```
+
+Angular 把模板引用变量的值设置为它所在的那个元素。 
+
+#### 引用模板引用变量
+
+可以在同一元素、兄弟元素或任何子元素中引用模板引用变量。
+
+## 模板的应用方式
+
+### 内联模板
+
+在创建组件时，可以通过`template`属性直接指定内联模板。
+
+内联模板是由一个字符串或模板字符串（使用 “`” 包围）表示的模板。
+
+### 模板文件
+
+在创建组件时，也可以通过`templateUrl`属性来指定一个外部模板文件。
 
 # 指令
 
 # 组件
+
+组件负责控制屏幕上的一小块区域，我们称之为视图。
+
+组件由 HTML 模板和组件类组成，组件类控制视图。
+
+当用户在这个应用中漫游时， Angular 会创建、更新和销毁组件。 
 
 ## 创建组件
 
@@ -463,11 +537,17 @@ export class HerosComponent implements OnInit {
 }
 ```
 
-`ngOnInit` 是一个[生命周期钩子](https://angular.cn/guide/lifecycle-hooks#oninit)，Angular 在创建完组件后很快就会调用 `ngOnInit`。这里是放置初始化逻辑的好地方。
+`ngOnInit` 是一个生命周期钩子，Angular 在创建完组件后很快就会调用 `ngOnInit`。这里是放置初始化逻辑的好地方。
 
 ## 根组件
 
-根组件由根模块的`@Component`装饰器的`bootstrap`属性指定。
+根组件由根模块的`@Component`装饰器的`bootstrap`属性指定。Angular应用必须至少有一个根组件。
+
+## 主从组件
+
+## 生命周期钩子
+
+应用可以通过生命周期钩子（如ngOnInit()）在组件生命周期的各个时间点上插入自己的操作。
 
 # 表单
 
@@ -681,6 +761,76 @@ $ npm install bootstrap --save
 # 动画
 
 # 服务
+
+## 创建服务
+
+使用 Angular CLI 创建一个名叫 `hero` 的服务：
+
+```bash
+$ cd my-app
+$ ng generate service hero
+```
+
+上面的命令将在`my-app/src/app/`目录下直接生成下面两个文件：
+
+- `hero.service.ts`
+- `hero.service.spec.ts`
+
+```typescript
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class HeroService {
+  constructor() { }
+}
+```
+
+如果上面的命令不是在项目根目录下执行，例如在`my-app/src/app/service/`下执行，则会在该目录下生成上述两个文件。
+
+如果希望在单独的目录中生成上述两个文件，则可以加上`--flat=false`选项：
+
+```bash
+$ ng g service hero --flat=false
+```
+
+如果在项目根目录下执行上面命令，则会在`my-app/src/app/hero/`目录下生成源文件；如果上面的命令不是在项目根目录下执行，例如在`my-app/src/app/service/`下执行，则会在`my-app/src/app/service/hero/`目录下生成源文件。
+
+## 将服务注册为提供者
+
+在Angular 6+中，创建服务时，可以通过`providedIn`属性指定使用什么注入器将服务注册为提供者。例如，本例中的`providedIn: root`表示用*根注入器*将服务注册成为提供商。
+
+在Angular 6之前，创建服务时，没有`providedIn`属性：
+
+```typescript
+import { Injectable } from '@angular/core';
+
+@Injectable()
+export class HeroService {
+  constructor() { }
+}
+```
+
+这时，注册提供商要通过`@NgModule`的`providers`属性来设置：
+
+```typescript
+@NgModule({
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    AppRoutingModule
+  ],
+  providers: [HeroService],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+```
+
+当你在顶层提供该服务时，Angular 就会为 `HeroService` 创建一个单一的、共享的实例，并把它注入到任何想要它的类上。 另外，在 `@Injectable` 元数据中注册该提供商，还能允许 Angular 通过移除那些完全没有用过的服务来进行优化。
 
 ## 使用json-server+faker+jsonwebtoken模拟后端服务
 
