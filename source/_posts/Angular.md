@@ -195,6 +195,8 @@ platformBrowserDynamic().bootstrapModule(AppModule)
 
 Angular组件是一个带`@Component`装饰器的类。它负责管理模板，并为其提供所需的数据和逻辑。
 
+> 装饰器用来附加一些元数据，来告诉Angular如何处理一个类。
+
 例如：`src/app/app.component.ts`：
 
 ```typescript
@@ -336,9 +338,11 @@ export class AppModule { }
 
 `declarations`属性指定了该模块包含哪些组件、指令和管道（统称可声明对象），即哪些可声明对象属于这个模块。每个可声明对象都必须声明在（且只能声明在）一个 [NgModule](https://angular.cn/guide/ngmodules) 中。
 
-`bootstrap`属性指定了当该模块引导时需要进行引导的组件。列在这里的所有组件都会自动添加到 `entryComponents` 属性中。根模块的`bootstrap`属性通常用于指定根组件。
+`bootstrap`属性指定了当该模块引导时需要进行引导的组件（根组件）。列在这里的所有组件都会自动添加到 `entryComponents` 属性中。只有根模块才能设置`bootstrap`属性。一个主页可以有多个根组件。
 
 `import`属性导入其他Angular模块的可声明对象，使得它们在当前Angular模块的**模板**中可用。
+
+`exports`属性导出本模块的可声明对象，它是declarations 的子集。只有声明导出的可声明对象，才能在其它模块中导入使用。通常，根模块不需要导出任何东西，因为其它组件不需要导入根模块。
 
 `providers`属性指定了在当前模块的注入器中可用的一组可注入对象。
 
@@ -355,7 +359,7 @@ $ ng g module home
 
 Angular开发中使用了两种类型的模块：
 
-- JavaScript模块：一个.js文件就是一个模块。通过`export`导出变量，通过`import`导入变量。
+- JavaScript模块：一个.js文件就是一个模块。通过`export`导出变量为公共的，通过`import`导入公共变量。
 - Angular模块：用于描述应用或一组相关功能。每个应用都有一个根模块（Root module），它为Angular提供启动应用所需的信息。Angular模块通过`@NgModule`装饰器来声明。Angular模块的目的是通过`@NgModule`装饰器定义的属性来提供配置信息。
 
 ## Angular模块
@@ -368,12 +372,16 @@ Angular模块有两种类型：
 ## 创建Angular模块
 
 ```bash
-$ ng generate module app-routing --flat --module=app
+$ ng generate module foo --flat --module=app
 ```
 
 > `--flat` 把这个文件放进了 `src/app` 中，而不是单独的目录中。
 >
 > `--module=app` 告诉 CLI 把它注册到 `AppModule` 的 `imports` 数组中。
+
+## 根模块
+
+每个应用都至少有一个 Angular 模块，也就是根模块，用来引导并运行应用。
 
 # 路由
 
@@ -449,6 +457,412 @@ import {RouterModule} from "@angular/router";
 ## 守卫路由
 
 # 数据绑定
+
+数据绑定是一种让模板的各部分与组件的各部分相互合作的机制。 我们往模板 HTML 中添加绑定标记，来告诉 Angular 如何把二者联系起来。
+
+Angular 在每个 JavaScript 事件循环中处理所有的数据绑定，它会从组件树的根部开始，递归处理全部子组件。
+
+## 组件到元素的绑定
+
+### property绑定
+
+属性绑定的语法：
+
+```
+{{模板表达式}}
+
+[目标] = "模板表达式"
+
+bind-目标 = "模板表达式"
+```
+
+注意：这里的“目标”是DOM 元素的property，或者是组件和指令的**输入**property（即组件或指令的`inputs`数组中所列的名字，或者是带有`@Input()`装饰器的property。 这些输入property被映射为组件或指令自己的property），而不是HTML的attribute。
+
+在 Angular 的世界中，HTML attribute 唯一的作用是用来初始化DOM 元素、组件和指令的 property。当进行数据绑定时，只是在与元素和指令的 property 和事件打交道，而 attribute 就完全靠边站了。即HTML attribute指定了初始值；DOM property 是当前值。
+
+property 的值可以改变，attribute 的值不能改变。
+
+例1：`<image>` 元素的`src`属性 (property)会被绑定到组件的`heroImageUrl`属性上
+
+```html
+<img [src]="heroImageUrl">
+```
+
+例2：设置指令的属性
+
+```html
+<div [ngClass]="classes">[ngClass] binding to the classes property</div>
+```
+
+例3：设置自定义组件的模型属性（这是父子组件之间通讯的重要途径）
+
+```html
+<hero-detail [hero]="currentHero"></hero-detail>
+```
+
+如果只是想给target设置一个字符串值，而不是表达式，则可以省略包围target的方括号：
+
+```html
+<hero-detail prefix="You are my" [hero]="currentHero"></hero-detail>
+```
+
+另外，下列几对绑定是等价的：
+
+```html
+<p><img src="{{heroImageUrl}}"> is the <i>interpolated</i> image.</p>
+
+<p><img [src]="heroImageUrl"> is the <i>property bound</i> image.</p>
+
+<p><span>"{{title}}" is the <i>interpolated</i> title.</span></p>
+
+<p>"<span [innerHTML]="title"></span>" is the <i>property bound</i> title.</p>
+```
+
+实际上，在渲染视图之前，Angular 把这些插值表达式翻译成相应的属性绑定。
+
+Angular 数据绑定对危险 HTML 有防备。 在显示它们之前，它对内容先进行消毒。 不管是插值表达式还是属性绑定，都不会允许带有 script 标签的 HTML 泄漏到浏览器中。例如：
+
+```typescript
+evilTitle = 'Template <script>alert("evil never sleeps")</script>Syntax';
+```
+
+```html
+<p>
+  <span>"{{evilTitle}}" is the <i>interpolated</i> evil title.</span>
+</p>
+<p>
+  "<span [innerHTML]="evilTitle"></span>" is the <i>property bound</i> evil title.
+</p>
+```
+
+将输出：
+
+### attribute绑定
+
+attribute绑定的目标是HTML attribute，这是唯一的能创建和设置 attribute 的绑定形式。
+
+之所以需要attribute绑定，是因为有些HTML attribute，例如 ARIA， SVG 和 table 中的 colspan/rowspan 等 attribute，它们是纯粹的 attribute，没有对应的property可供绑定。
+
+attribute绑定的目标都要以“attr.”为前缀：
+
+```html
+<td [attr.colspan]="1 + 1">One-Two</td>
+```
+
+而不能：
+
+```html
+<td colspan="{{1 + 1}}">Three-Four</td>
+```
+
+### class绑定
+
+借助 CSS 类绑定，可以从元素的class attribute 上添加和移除 CSS 类名。
+
+CSS 类绑定绑定的语法与属性绑定类似。 但方括号中的部分不是元素的属性名，而是由`class`前缀，一个点 (`.`)和 CSS 类的名字组成， 其中后两部分是可选的。形如：`[class.类名]`。
+
+例1：`[class]`形式
+
+```html
+<div class="bad curly special" 
+
+     [class]="badCurly">Bad curly</div>
+```
+
+当 badCurly 有值时 class 这个 attribute 设置的内容会被完全覆盖；如果badCurly没有值时 ，则class="bad curly special" 。
+
+例2：`[class.类名]`形式
+
+```html
+<div [class.special]="isSpecial">The class binding is special</div>
+```
+
+当`isSpecial`为`true`时，Angular 会添加`special`这个类，反之则移除它。
+
+```html
+<div class="special"
+     [class.special]="!isSpecial">This one is not so special</div>
+```
+
+同时存在同效的HTML attribute和attribute绑定时，attribute绑定将覆盖HTML attribute。
+
+> 注意：NgClass指令也可以用来管理class。
+
+### style绑定
+
+style绑定可以设置内联样式。
+
+样式绑定的语法与属性绑定类似。 但方括号中的部分不是元素的属性名，而由`style`前缀，一个点 (`.`)和 CSS 样式的属性名组成。 形如：`[style.样式属性]`。这里，CSS样式属性名可以用中线命名法，也可以用驼峰式命名法，如`fontSize`。
+
+```html
+<button [style.background-color]="canSave ? 'cyan': 'grey'">Save</button>
+```
+
+有些样式绑定中的样式带有单位，可以用 “em” 和 “%” 来设置字体大小的单位：
+
+```html
+<button [style.font-size.em]="isSpecial ? 3 : 1">Big</button>
+<button [style.font-size.%]="!isSpecial ? 150 : 50">Small</button>
+```
+
+注意：NgStyle指令也可以用来管理内联样式。
+
+## 元素到组件的绑定：事件绑定
+
+事件绑定的语法：
+
+```
+(目标) = "模板表达式"
+
+on-目标 = "模板表达式"
+```
+
+事件绑定语法由等号左侧带圆括号的目标事件（DOM元素的事件或指令的**输出**property）和右侧引号中的模板语句（可以是多条语句）组成。
+
+```html
+<button (click)="onClickMe()">Click me!</button>
+```
+
+或者
+
+```html
+<button on-click="onSave()">On Save</button>
+```
+
+出现在模板语句中的每个标识符都属于特定的上下文对象。 这个对象通常都是控制此模板的 Angular 组件。
+
+```typescript
+@Component({
+  selector: 'click-me',
+  template: `
+    <button (click)="onClickMe()">Click me!</button>
+    {{clickMessage}}`
+})
+export class ClickMeComponent {
+  clickMessage = '';
+  onClickMe() {
+    this.clickMessage = 'You are my hero!';
+  }
+}
+```
+
+### 获取用户输入
+
+#### 通过`$event`对象
+
+绑定会通过名叫`$event`的事件对象传递关于此事件的信息（包括数据值）。
+
+事件对象的形态取决于目标事件。如果目标事件是原生 DOM 元素事件，`$event`就是 DOM事件对象，它有像target和target.value这样的属性。
+
+```typescript
+template: `
+  <input (keyup)="onKey($event)">
+  <p>{{values}}</p>`
+```
+
+当用户按下并释放一个按键时，触发`keyup`事件，Angular 将一个相应的 DOM 事件对象提供给`$event`变量，并将它作为参数传递给`onKey()`方法的`event`参数。
+
+```typescript
+export class KeyUpComponent_v1 {
+  values = '';
+  onKey(event:any) { // without type info
+    this.values += event.target.value + ' | ';
+  }
+}
+```
+
+所有标准 DOM 事件对象都有一个`target`属性， 引用触发该事件的元素。 在本例中，`target`是`<input>`元素， `event.target.value`返回该元素的当前内容。
+
+上例将`$event`转换为`any`类型。 这样简化了代码，但是有成本。 没有任何类型信息能够揭示事件对象的属性，防止简单的错误。
+
+下面的例子，使用了带类型方法：
+
+```typescript
+export class KeyUpComponent_v1 {
+  values = '';
+  onKey(event: KeyboardEvent) { // with type info
+    this.values += (<HTMLInputElement>event.target).value + ' | ';
+  }
+}
+```
+
+
+
+#### 通过模板引用变量
+
+通过`$event`对象会获取整个 DOM 事件信息，这需要我们过多地了解HTML的实现细节。而通过模板引用变量则不需要我们了解HTML实现细节。
+
+下面的例子使用了局部模板变量，在一个超简单的模板中实现按键反馈功能。
+
+```typescript
+@Component({
+  selector: 'loop-back',
+  template: `
+    <input #box (keyup)="0">
+    <p>{{box.value}}</p>
+  `
+})
+export class LoopbackComponent { }
+```
+
+在标识符前加上井号 (`#`) 就能声明一个模板引用变量。上例中，在`<input>`元素声明了一个box的模板引用变量，它引用`<input>`元素本身。 可以在`<input>`元素的兄弟或子级元素中引用`box`。
+
+代码使用`box`获得输入元素的`value`值，并通过插值表达式把它显示在`<p>`元素中。
+
+这个模板完全是完全自包含的。它没有绑定到组件，组件也没做任何事情。
+
+注意：只有在应用做了些异步事件（如击键），Angular 才更新绑定（并最终影响到屏幕）。因此，必须绑定一个事件，否则将完全无法工作。本例代码将`keyup`事件绑定到了数字0，这是可能是最短的模板语句。 虽然这个语句不做什么，但它满足 Angular 的要求，所以 Angular 将更新屏幕。
+
+下面的代码重写了之前keyup示例，它使用变量来获得用户输入。
+
+```typescript
+@Component({
+  selector: 'key-up2',
+  template: `
+    <input #box (keyup)="onKey(box.value)">
+    <p>{{values}}</p>
+  `
+})
+export class KeyUpComponent_v2 {
+  values = '';
+  onKey(value: string) {
+    this.values += value + ' | ';
+  }
+}
+```
+
+这个方法最漂亮的一点是：组件代码从视图中获得了干净的数据值。再也不用了解`$event`变量及其结构了。（注意，最好传递给组件输入值，而不要直接传递元素`box`给组件。尽量将DOM相关的东西限制在模板中）
+
+### 自定义事件
+
+通常，指令使用 Angular `EventEmitter` 来触发自定义事件。 指令创建一个`EventEmitter`实例，并且把它作为属性暴露出来。 指令调用`EventEmitter.emit(payload)`来触发事件，可以传入任何东西作为消息载荷。 父指令通过绑定到这个属性来监听事件，并通过`$event`对象来访问载荷。
+
+假设`HeroDetailComponent`用于显示英雄的信息，并响应用户的动作。 虽然`HeroDetailComponent`包含删除按钮，但它自己并不知道该如何删除这个英雄。 最好的做法是触发事件来报告“删除用户”的请求。
+
+HeroDetailComponent.ts（模板）：
+
+```typescript
+template: `
+<div>
+  <img src="{{heroImageUrl}}">
+  <span [style.text-decoration]="lineThrough">
+    {{prefix}} {{hero?.fullName}}
+  </span>
+  <button (click)="delete()">Delete</button>
+</div>`
+```
+
+HeroDetailComponent.ts (删除逻辑)：
+
+```typescript
+// This component make a request but it can't actually delete a hero.
+@Output() deleteRequest = new EventEmitter<Hero>();
+delete() {
+  this.deleteRequest.emit(this.hero);
+}
+```
+
+现在，假设有个宿主的父组件，它绑定了`HeroDetailComponent`的`deleteRequest`事件。
+
+```html
+<hero-detail (deleteRequest)="deleteHero($event)" [hero]="currentHero"></hero-detail>
+```
+
+当`deleteRequest`事件触发时，Angular 调用父组件的`deleteHero`方法， 在`$event`变量中传入要删除的英雄（来自`HeroDetail`）。 
+
+### 常用事件监听器
+
+#### keyup.enter
+
+这不是DOM事件，而是一个Angular的模拟事件。只有当用户敲回车键时，Angular 才会调用事件处理器。
+
+#### blur
+
+blur事件在元素失去焦点时触发。
+
+```typescript
+@Component({
+  selector: 'key-up4',
+  template: `
+    <input #box
+      (keyup.enter)="update(box.value)"
+      (blur)="update(box.value)">
+    <p>{{value}}</p>
+  `
+})
+export class KeyUpComponent_v4 {
+  value = '';
+  update(value: string) { this.value = value; }
+}
+```
+
+上例在输入框失去焦点或按下回车键后都会更新组件的`value`值。
+
+## 双向绑定
+
+双向绑定的语法：
+
+```
+[(目标)] = "模板表达式"
+
+bindon-目标 = "模板表达式"
+```
+
+双向绑定的属性都可拆分成两个独立的单向绑定。
+
+当 Angular 在表单中看到`[(x)]`的绑定目标时， 它会期待这个`x`指令有一个名为`x`的输入属性，和一个名为`xChange`的输出属性。因此，`[(ngModel)]`可以拆分为`[ngModel]`和`(ngModelChange)`：
+
+```html
+<input type="text" class="form-control" id="name"
+       required
+       [ngModel]="model.name" name="name"
+       (ngModelChange)="model.name = $event" >
+```
+
+之前看到的`$event`对象来自 DOM 事件。 但`ngModelChange`属性不会生成 DOM 事件 —— 它是Angular `EventEmitter`类型的属性，当它触发时， 它返回的是输入框的值 —— 也正是希望赋给模型`name`属性的值。
+
+`[(ngModel)]`语法只能设置一个数据绑定属性。 如果需要做更多或不同的事情，就得自己用它的拆分形式。例如：
+
+```html
+<input
+  [ngModel]="currentHero.firstName"
+  (ngModelChange)="setUpperCaseFirstName($event)">
+```
+
+### NgModel指令
+
+像`<input>`和`<select>`这样的 HTML 元素，`value`接收输入，而`oninput`处理事件，不遵循`x`值和`xChange`事件的模式。因此，Angular 另以 NgModel 指令为桥梁，允许在表单元素上使用双向数据绑定。
+
+`<input>`元素如果不使用NgModel指令来实现双向绑定，则就必须使用下面的形式：
+
+```html
+<input [value]="currentHero.firstName"
+       (input)="currentHero.firstName=$event.target.value" >
+```
+
+而使用NgModel指令，则为：
+
+```html
+<input
+  [ngModel]="currentHero.firstName"
+  (ngModelChange)="currentHero.firstName=$event">
+```
+
+或者
+
+```html
+<input [(ngModel)]="currentHero.firstName">
+```
+
+每种元素的特点各不相同，所以NgModel指令只能在一些特定表单元素上使用，例如输入文本框，因为它们支持 `ControlValueAccessor`。
+
+除非写一个合适的值访问器，否则不能把`[(ngModel)]`用在自定义组件上。（通常自定义组件的双向绑定也不需要通过NgModel指令，直接使用 `[(自定义组件的属性)]` 就可以了）
+
+注：在使用NgModel做双向数据绑定之前，得先导入`FormsModule`，即把它加入 Angular 模块的`imports`列表。
+
+## 绑定目标
+
+## 脏值检测
 
 # 模板
 
@@ -611,6 +1025,269 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 在创建组件时，也可以通过`templateUrl`属性来指定一个外部模板文件。
 
 # 指令
+
+指令是一个带有“指令元数据”的类。在 TypeScript 中，要通过`@Directive`装饰器把元数据附加到类上。
+
+## 组件
+
+组件是一个带模板的指令；`@Component`装饰器实际上就是一个`@Directive`装饰器，只是扩展了一些面向模板的特性。
+
+详见“组件”。
+
+## 结构型指令
+
+结构型指令通过在 DOM 中添加、移除和替换元素来修改布局。例如：`*ngFor`。
+
+### NgIf指令
+
+当NgIf指令为`false`时，Angular 从 DOM 中物理地移除了这个元素子树。 它销毁了子树中的组件及其状态，也潜在释放了可观的资源，最终让用户体验到更好的性能。
+
+而通过class绑定或style绑定来显示和隐藏元素及其子元素，这些元素仍然留在 DOM 中。 子树中的组件及其状态仍然保留着。 即使对于不可见属性，Angular 也会继续检查变更。 子树可能占用相当可观的内存和运算资源。
+
+```html
+<hero-detail *ngIf="isActive"></hero-detail>
+```
+
+### NgSwitchCase、NgSwitchDefault指令
+
+### NgFor指令
+
+NgFor是一个重复器指令。
+
+NgFor指令既可以用在HTML元素上：
+
+```html
+<div *ngFor="let hero of heroes">{{hero.fullName}}</div>
+```
+
+也可以应用在一个组件元素上：
+
+```html
+<hero-detail *ngFor="let hero of heroes" [hero]="hero"></hero-detail>
+```
+
+赋值给`*ngFor`的字符串不是模板表达式，它是一个微语法 —— 由 Angular 自己解释的小型语言。在这个例子中，字符串"let hero of heroes"的含义是：
+
+取出`heroes`数组中的每个英雄，把它存入局部变量`hero`中，并在每次迭代时对模板 HTML 可用。
+
+`hero`前面的`let`关键字创建了名叫`hero`的模板输入变量。
+
+> 注意：模板输入变量和模板引用变量不是一回事！
+
+#### 索引
+
+NgFor指令支持可选的`index`，它在迭代过程中会从 0 增长到“数组的长度”。 可以通过模板输入变量来捕获这个 `index`，并在模板中使用。
+
+下例把 `index` 捕获到名叫`i`的变量中：
+
+```html
+<div *ngFor="let hero of heroes; let i=index">{{i + 1}} - {{hero.fullName}}</div>
+```
+
+除了`index`外，还有`first`、`last`、`even`、`odd`等局部变量可以获得索引。
+
+#### trackBy
+
+NgFor指令有时候会性能较差，特别是在大型列表中。 对一个条目的一丁点改动、移除或添加，都会导致级联的 DOM 操作。
+
+例如，我们可以通过重新从服务器查询来刷新英雄列表。 刷新后的列表可能包含很多（如果不是全部的话）以前显示过的英雄。
+
+我们知道这一点，是因为每个英雄的id没有变化。 但在 Angular 看来，它只是一个由新的对象引用构成的新列表， 它没有选择，只能清理旧列表、舍弃那些 DOM 元素，并且用新的 DOM 元素来重建一个新列表。
+
+如果给它一个追踪函数，Angular 就可以避免这种折腾。 追踪函数告诉 Angular：我们知道两个具有相同`hero.id`的对象其实是同一个英雄。 下面就是这样一个函数：
+
+```typescript
+trackByHeroes(index: number, hero: Hero) { return hero.id; }
+```
+
+现在，把NgForTrackBy指令设置为那个追踪函数。
+
+```html
+<div *ngFor="let hero of heroes; trackBy:trackByHeroes">
+  ({{hero.id}}) {{hero.fullName}}
+</div>
+```
+
+追踪函数不会阻止所有 DOM 更改。 如果同一个英雄的属性变化了，Angular 就可能不得不更新DOM元素。 但是如果这个属性没有变化 —— 而且大多数时候它们不会变化 —— Angular 就能留下这些 DOM 元素。列表界面就会更加平滑，提供更好的响应。
+
+## 属性型指令
+
+属性型指令修改一个现有元素的外观或行为。 例如：NgModel。
+
+### NgClass指令
+
+注意：class绑定是添加或删除单个类的最佳途径，而NgClass指令是同时添加或移除多个 CSS 类的更好选择。
+
+```typescript
+setClasses() {
+  let classes =  {
+    saveable: this.canSave,      // true
+    modified: !this.isUnchanged, // false
+    special: this.isSpecial,     // true
+  };
+  return classes;
+}
+```
+```html
+<div [ngClass]="setClasses()">This div is saveable and special</div>
+```
+
+### NgStyle指令
+
+注意：style绑定是添加或删除单个内联样式的最佳途径，而NgStyle指令是同时添加或移除多个内联样式的更好选择。
+
+```typescript
+setStyles() {
+  let styles = {
+    // CSS property names
+    'font-style':  this.canSave     ? 'italic' : 'normal',  // italic
+    'font-weight': !this.isUnchanged ? 'bold'   : 'normal',  // normal
+    'font-size':   this.isSpecial    ? '24px'   : '8px',     // 24px
+  };
+  return styles;
+}
+```
+```html
+<div [ngStyle]="setStyles()">
+  This div is italic, normal weight, and extra large (24px).
+</div>
+```
+
+### NgSwitch指令
+
+```html
+<span [ngSwitch]="toeChoice">
+  <span *ngSwitchCase="'Eenie'">Eenie</span>
+  <span *ngSwitchCase="'Meanie'">Meanie</span>
+  <span *ngSwitchCase="'Miney'">Miney</span>
+  <span *ngSwitchCase="'Moe'">Moe</span>
+  <span *ngSwitchDefault>other</span>
+</span>
+```
+
+`ngSwitchCase`的值可以是任何类型值。
+
+只有选中的元素才放进 DOM 中。任何时候，上例中的这些 `<span>` 中最多只有一个会出现在 DOM 中。
+
+## `*`前缀和`<template>`
+
+`*`前缀是一种语法糖，它会展开成`<template>`标签。
+
+`*ngIf`的展开：
+
+```html
+<hero-detail *ngIf="currentHero" [hero]="currentHero"></hero-detail>
+```
+
+首先展开为：
+
+```html
+<hero-detail template="ngIf:currentHero" [hero]="currentHero"></hero-detail>
+```
+
+最后展开为：
+
+```html
+<template [ngIf]="currentHero">
+  <hero-detail [hero]="currentHero"></hero-detail>
+</template>
+```
+
+`*ngSwitch`的展开：
+
+```html
+<span [ngSwitch]="toeChoice">
+  <span *ngSwitchCase="'Eenie'">Eenie</span>
+  <span *ngSwitchCase="'Meanie'">Meanie</span>
+  <span *ngSwitchCase="'Miney'">Miney</span>
+  <span *ngSwitchCase="'Moe'">Moe</span>
+  <span *ngSwitchDefault>other</span>
+</span>
+```
+
+展开为：
+
+```html
+<span [ngSwitch]="toeChoice">
+  <template [ngSwitchCase]="'Eenie'"><span>Eenie</span></template>
+  <template [ngSwitchCase]="'Meanie'"><span>Meanie</span></template>
+  <template [ngSwitchCase]="'Miney'"><span>Miney</span></template>
+  <template [ngSwitchCase]="'Moe'"><span>Moe</span></template>
+  <template ngSwitchDefault><span>other</span></template>
+</span>
+```
+
+`*ngFor`的展开：
+
+```html
+<hero-detail *ngFor="let hero of heroes; trackBy:trackByHeroes" [hero]="hero"></hero-detail>
+```
+
+首先展开为：
+
+```html
+<hero-detail template="ngFor let hero of heroes; trackBy:trackByHeroes" [hero]="hero"></hero-detail>
+```
+
+最后展开为：
+
+```html
+<template ngFor let-hero [ngForOf]="heroes" [ngForTrackBy]="trackByHeroes">
+  <hero-detail [hero]="hero"></hero-detail>
+</template>
+```
+
+## 输入输出属性
+
+输入属性通常接收数据值， 输出属性暴露事件生产者。
+
+输入属性通常是由方括号包围，而输出属性通常由圆括号包围。
+
+### 绑定目标和绑定源
+
+在绑定声明中，`=`号左侧部分是绑定目标，右侧部分是绑定源。
+
+指令中任何成员均可以出现在绑定源处，但只有显式标记为输入或输出属性的指令属性才能出现在绑定目标中。
+
+### 声明输入和输出属性
+
+方法一、使用装饰器`@Input`和`@Output`声明：
+
+```typescript
+@Input()  hero: Hero;
+@Output() deleteRequest = new EventEmitter<Hero>();
+```
+
+方法二、在`@Component`中的`inputs`和`outputs`中列出：
+
+```typescript
+@Component({
+  inputs: ['hero'],
+  outputs: ['deleteRequest'],
+})
+```
+
+对同一属性只能使用一种方法进行声明，不能同时使用两种方法。
+
+### 输入和输出属性别名
+
+有时需要让输入/输出属性的公开名字不同于内部名字。
+
+把别名传进`@Input`/`@Output`装饰器，就可以为属性指定别名，就像这样：
+
+```typescript
+@Output('myClick') clicks = new EventEmitter<string>(); //  @Output(alias) propertyName = ...
+```
+
+也可在`inputs`和`outputs`数组中为属性指定别名。 可以写一个冒号 (`:`) 分隔的字符串，左侧是指令中的属性名，右侧则是公开的别名。
+
+```typescript
+@Directive({
+  outputs: ['clicks:myClick']  // propertyName:alias
+})
+```
+
+
 
 # 组件
 
@@ -914,7 +1591,7 @@ export class HeroService {
 }
 ```
 
-这时，注册提供商要通过`@NgModule`的`providers`属性来设置：
+这时，注册提供商要通过`@NgModule`或`@Component`的`providers`属性来设置（在`@Component`中注册的提供者，只在当前组件及它的子组件中可见。）：
 
 ```typescript
 @NgModule({
