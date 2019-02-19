@@ -383,6 +383,8 @@ $ ng generate module foo --flat --module=app
 
 每个应用都至少有一个 Angular 模块，也就是根模块，用来引导并运行应用。
 
+## 动态加载模块
+
 # 路由
 
 告诉Angular每个URL映射到组件的映射称为URL路由，简称路由。
@@ -423,6 +425,8 @@ export class AppModule { }
 
 URL路由功能依赖浏览器提供的JavaScript API，因此用户无法简单地将目标URL输入到浏览器地址栏中进行导航。相反，导航必须由应用程序执行，具体的实现方法是在组件或其他构造块中编写JavaScript代码，或者向模板中的HTML元素添加属性。
 
+> 实际上，直接将目标URL输入浏览器地址栏中，是能跳转到目标页面，但无法保持目标页面的原有状态。特别是，如果目标页面是一个表单，则原先输入内容将丢失。但是，如果应用程序希望能从不同的URL开始导航，则这种直接通过浏览器地址栏导航是有意义的。
+
 在代码中导航，可以使用`Router`的`navigateByUrl()`方法：
 
 ```typescript
@@ -455,6 +459,8 @@ import {RouterModule} from "@angular/router";
 ```
 
 ## 守卫路由
+
+守卫路由可以实现，只有当某些条件满足时，该路由才会被激活。
 
 # 数据绑定
 
@@ -1495,7 +1501,7 @@ npm install material-design-icons --save
     @import 'assets/iconfont/iconfont.css';
    ```
 
-   ​
+   
 
 ## 使用Bootstrap
 
