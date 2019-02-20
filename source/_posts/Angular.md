@@ -381,9 +381,9 @@ $ ng generate module foo --flat --module=app
 
 ## 根模块
 
-每个应用都至少有一个 Angular 模块，也就是根模块，用来引导并运行应用。
+每个应用都至少有一个 Angular 模块，也就是根模块，用来引导并启动应用。
 
-## 动态加载模块
+## 惰性加载模块
 
 # 路由
 
@@ -457,6 +457,8 @@ import {RouterModule} from "@angular/router";
   …
 })
 ```
+
+路由器会根据你应用中的导航规则和数据状态来拦截 URL。 当用户点击按钮、选择下拉框或收到其它任何来源的输入时，你可以导航到一个新视图。 路由器会在浏览器的历史日志中记录这个动作，所以前进和后退按钮也能正常工作。
 
 ## 守卫路由
 
@@ -871,6 +873,8 @@ bindon-目标 = "模板表达式"
 ## 脏值检测
 
 # 模板
+
+组件和模板共同定义了 Angular 的视图。
 
 ## 定义模板
 
@@ -1326,7 +1330,7 @@ export class HerosComponent implements OnInit {
 
 ## 根组件
 
-根组件由根模块的`@Component`装饰器的`bootstrap`属性指定。Angular应用必须至少有一个根组件。
+根组件由根模块的`@Component`装饰器的`bootstrap`属性指定。每个Angular应用必须至少有一个根组件，它会把组件树和页面中的 DOM 连接起来。。
 
 ## 主从组件
 
@@ -1728,3 +1732,26 @@ $ npm run json
 # 异步HTTP请求
 
 # 测试
+
+# Linter
+
+linter是一种检查源代码的工具，以确保它符合一组编码约定和规则。使用ng new命令创建的项目包括一个名为TSLint的TypeScript linter，它支持的规则在https://github.com/palantir/tslint中描述，涵盖了可能导致意外结果的常见错误以及样式。您可以在`tslint.json`文件中启用和禁用linting规则。
+
+可以通过运行下列命令，来使用TSLint对源代码进行检查：
+
+```bash
+$ ng lint
+```
+
+如果要对某行代码禁用linter检查，则只需要在该行代码的上一行插入如下注释：
+
+```typescript
+// tslint:disable-next-line
+```
+
+如果要对整个文件禁用linter检查，则在文件的开头加上如下注释：
+
+```typescript
+/* tslint:disable */
+```
+
