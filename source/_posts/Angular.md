@@ -484,8 +484,6 @@ Angular 在每个 JavaScript 事件循环中处理所有的数据绑定，它会
 bind-目标 = "模板表达式"
 ```
 
-插件绑定实际上是一种特殊的property绑定，它将表达式的结果包含在宿主元素的文本内容中。
-
 注意：这里的“目标”是DOM 元素的property，或者是组件和指令的**输入**property（即组件或指令的`inputs`数组中所列的名字，或者是带有`@Input()`装饰器的property。 这些输入property被映射为组件或指令自己的property），而不是HTML的attribute。
 
 在 Angular 的世界中，HTML attribute 唯一的作用是用来初始化DOM 元素、组件和指令的 property。当进行数据绑定时，只是在与元素和指令的 property 和事件打交道，而 attribute 就完全靠边站了。即HTML attribute指定了初始值；DOM property 是当前值。
@@ -516,19 +514,35 @@ property 的值可以改变，attribute 的值不能改变。
 <hero-detail prefix="You are my" [hero]="currentHero"></hero-detail>
 ```
 
-另外，下列几对绑定是等价的：
+另外，下列绑定是等价的：
 
 ```html
 <p><img src="{{heroImageUrl}}"> is the <i>interpolated</i> image.</p>
 
 <p><img [src]="heroImageUrl"> is the <i>property bound</i> image.</p>
-
-<p><span>"{{title}}" is the <i>interpolated</i> title.</span></p>
-
-<p>"<span [innerHTML]="title"></span>" is the <i>property bound</i> title.</p>
 ```
 
-实际上，在渲染视图之前，Angular 把这些插值表达式翻译成相应的属性绑定。
+#### 插值绑定
+
+插件绑定将表达式的结果包含在宿主元素的文本内容中，它是一种特殊的property绑定。实际上，在渲染视图之前，Angular 把这些插值表达式翻译成相应的标准属性绑定，即利用`textContent`属性设置HTML元素的内容。
+
+```html
+<div [ngClass]="'text-white m-2 p-2 ' + getClasses()">
+  Name: {{ model.getProduct(1)?.name || 'None' }}
+</div>
+```
+
+等价于：
+
+```html
+<div [ngClass]="'text-white m-2 p-2 ' + getClasses()"
+     [textContent]="'Name: ' + (model.getProduct(1)?.name || 'None')">
+</div>
+```
+
+单个元素中可以包含多个字符串插值绑定。
+
+> `textContent`属性和`innerHTML`属性都可以用来设置或返回元素的内容。前者设置或者返回指定元素的**文本**内容，后者设置或返回指定元素从开始标签到结束标签之间的 **HTML**。
 
 Angular 数据绑定对危险 HTML 有防备。 在显示它们之前，它对内容先进行消毒。 不管是插值表达式还是属性绑定，都不会允许带有 script 标签的 HTML 泄漏到浏览器中。例如：
 
@@ -545,13 +559,11 @@ evilTitle = 'Template <script>alert("evil never sleeps")</script>Syntax';
 </p>
 ```
 
-将输出：
-
 ### attribute绑定
 
 attribute绑定（元素属性绑定）的目标是HTML attribute，这是唯一的能创建和设置 attribute 的绑定形式。
 
-之所以需要attribute绑定，是因为有些HTML attribute，例如 ARIA， SVG 和 table 中的 colspan/rowspan 等 attribute，它们是纯粹的 attribute，没有对应的property可供绑定。
+之所以需要attribute绑定，是因为有些HTML attribute，例如 ARIA（Accessible Rich Internet Application）， SVG 和 `<table>` 中的 `colspan`和`rowspan` 等HTML attribute，它们是纯粹的HTML attribute，没有对应的DOM property可供绑定。
 
 attribute绑定的目标都要以“attr.”为前缀：
 
@@ -567,21 +579,9 @@ attribute绑定的目标都要以“attr.”为前缀：
 
 ### class绑定
 
-借助 CSS 类属性绑定，可以从元素的class attribute 上添加和移除 CSS 类名。
+借助 CSS 类属性绑定，可以从元素的`class` attribute 上添加和移除 CSS 类名。
 
-CSS 类绑定绑定的语法与属性绑定类似。 但方括号中的部分不是元素的属性名，而是由`class`前缀，一个点 (`.`)和 CSS 类的名字组成， 其中后两部分是可选的。形如：`[class.类名]`。
-
-例1：`[class]`形式
-
-```html
-<div class="bad curly special" 
-
-     [class]="badCurly">Bad curly</div>
-```
-
-当 badCurly 有值时 class 这个 attribute 设置的内容会被完全覆盖；如果badCurly没有值时 ，则class="bad curly special" 。
-
-例2：`[class.类名]`形式
+CSS 类绑定绑定的语法与标准属性绑定类似。 但方括号中的部分不是元素的属性名，而是由`class`前缀，一个点 (`.`)和 CSS 类的名字组成， 其中后两部分是可选的。形如：`[class.类名]`。
 
 ```html
 <div [class.special]="isSpecial">The class binding is special</div>
@@ -590,13 +590,23 @@ CSS 类绑定绑定的语法与属性绑定类似。 但方括号中的部分不
 当`isSpecial`为`true`时，Angular 会添加`special`这个类，反之则移除它。
 
 ```html
-<div class="special"
+<div class="p-a-1 special"
      [class.special]="!isSpecial">This one is not so special</div>
 ```
 
-同时存在同效的HTML attribute和attribute绑定时，attribute绑定将覆盖HTML attribute。
+同时存在**同效的**HTML attribute和attribute绑定时，attribute绑定将覆盖HTML attribute。因此，上例中，当`isSpecial`为`true`时，最终`class="p-a-1"`。
 
-> 注意：NgClass指令也可以用来管理class。
+管理元素的CSS类，也可以使用标准属性绑定，即直接将模板表达式绑定到`class`属性上：
+
+```html
+<div class="bad curly special" 
+
+     [class]="badCurly">Bad curly</div>
+```
+
+当 `badCurly` 有值时，假设为`foo bar`，则 `class` 这个 attribute 设置的内容会被整个替换为该值，即最终`class="foo bar"`；如果`badCurly`没有值时 ，则`class="bad curly special"` 。
+
+另外，还可以使用`ngClass`指令来管理CSS类，详见“NgClass指令”。
 
 ### style绑定
 
@@ -886,7 +896,7 @@ bindon-目标 = "模板表达式"
 
 ## 理解括号
 
-数据绑定中的括号（包括方括号、圆括号）告诉Angular，这是一个具有待求值表达式的单向数据绑定。如果省略括号并且目标是一条指令，那么Angular仍然会处理绑定，但不会对表达式进行求值，而只是把引号之间的内容作为字面值传递给该指令。
+数据绑定中的括号（包括方括号、圆括号）告诉Angular，这是一个具有待求值表达式的单向数据绑定。如果省略括号并且目标是一条**指令**，那么Angular仍然会处理绑定，但不会对表达式进行求值，而只是把引号之间的内容作为字面值传递给该指令。
 
 ```html
 <div ngClass="'p-a-1 ' + getClasses()">
@@ -958,7 +968,7 @@ Angular 把模板引用变量的值设置为它所在的那个元素。
 
 插值表达式形如 `{{…}}` ，双花括号之间是**模板表达式**。它可以直接访问组件中的属性，并将表达式的值插入到视图的当前位置。
 
-插值表达式是一个特殊的语法，它是单向数据绑定的一种，Angular 把它转换成了属性绑定。
+插值表达式是一个特殊的语法，它是单向数据绑定的一种，Angular 把它转换成了标准属性绑定。
 
 ### 模板表达式
 
@@ -1055,8 +1065,6 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 5）模板表达式运算符
 
 和表达式中一样，模板语句无法引用全局命名空间的任何东西。它们不能引用`window`或者`document`， 不能调用`console.log`或者`Math.max`。语句只能引用语句上下文中 —— 通常是正在绑定事件的那个组件实例或者是模板引用变量。
-
-在事件绑定语句中，经常会看到被保留的`$event`符号，它代表触发事件的“消息”或“有效载荷（payload）”。
 
 #### 字符串字面量
 
@@ -1178,21 +1186,55 @@ trackByHeroes(index: number, hero: Hero) { return hero.id; }
 
 ### NgClass指令
 
-注意：class绑定是添加或删除单个类的最佳途径，而NgClass指令是同时添加或移除多个 CSS 类的更好选择。
+ngClass指令支持的表达式结果类型：
+
+| 结果类型 | 描述                                                         |
+| -------- | ------------------------------------------------------------ |
+| 字符串   | 为宿主元素添加字符串指定的CSS类。多个CSS类之间用空格分隔。   |
+| 数组     | 数组中的每个对象都是宿主元素要加入的CSS类的名称。            |
+| 对象     | 对象的每个属性均是一个或多个CSS类的名称（用空格分隔）。如果属性的值为真值，则宿主元素将加入该CSS类。 |
+
+例如：
+
+```html
+<div class="text-white m-2">
+  <div class="p-2" [ngClass]="getClassMap(1)">
+    The first product is {{model.getProduct(1).name}}.
+  </div>
+  <div class="p-2" [ngClass]="getClassMap(2)">
+    The second product is {{model.getProduct(2).name}}.
+  </div>
+  <div class="p-2" [ngClass]="{'bg-success': model.getProduct(3).price < 50,
+                              'bg-info': model.getProduct(3).price >= 50}">
+    The third product is {{model.getProduct(3).name}}
+  </div>
+</div>
+```
+
+TypeScript代码如下：
 
 ```typescript
-setClasses() {
-  let classes =  {
-    saveable: this.canSave,      // true
-    modified: !this.isUnchanged, // false
-    special: this.isSpecial,     // true
-  };
-  return classes;
+@Component({
+  selector: "app",
+  templateUrl: "template.html"
+})
+export class ProductComponent {
+  model: Model = new Model();
+  getClasses(key: number): string {
+    let product = this.model.getProduct(key);
+    return "p-2 " + (product.price < 50 ? "bg-info" : "bg-warning");
+  }
+  getClassMap(key: number): Object {
+    let product = this.model.getProduct(key);
+    return {
+      "text-center bg-danger": product.name == "Kayak",
+      "bg-info": product.price < 50
+    };
+  }
 }
 ```
-```html
-<div [ngClass]="setClasses()">This div is saveable and special</div>
-```
+
+注意：class绑定是添加或删除单个类的最佳途径，而NgClass指令是同时添加或移除多个 CSS 类的更好选择。
 
 ### NgStyle指令
 
