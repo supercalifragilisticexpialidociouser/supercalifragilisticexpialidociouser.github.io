@@ -468,6 +468,8 @@ import {RouterModule} from "@angular/router";
 
 数据绑定是一种让模板的各部分与组件的各部分相互合作的机制。 我们往模板 HTML 中添加绑定标记，来告诉 Angular 如何把二者联系起来。
 
+当绑定表达式所依赖的数据发生变化时，绑定表达式会重新求值。
+
 Angular 在每个 JavaScript 事件循环中处理所有的数据绑定，它会从组件树的根部开始，递归处理全部子组件。
 
 ## 组件到元素的绑定：属性绑定
@@ -600,7 +602,6 @@ CSS 类绑定绑定的语法与标准属性绑定类似。 但方括号中的部
 
 ```html
 <div class="bad curly special" 
-
      [class]="badCurly">Bad curly</div>
 ```
 
@@ -612,20 +613,27 @@ CSS 类绑定绑定的语法与标准属性绑定类似。 但方括号中的部
 
 style绑定（样式属性绑定）可以设置内联样式。
 
-样式绑定的语法与属性绑定类似。 但方括号中的部分不是元素的属性名，而由`style`前缀，一个点 (`.`)和 CSS 样式的属性名组成。 形如：`[style.样式属性]`。这里，CSS样式属性名可以用中线命名法，也可以用驼峰式命名法，如`fontSize`。
+样式绑定的语法与标准属性绑定类似。 但方括号中的部分不是元素的属性名，而由`style`前缀，一个点 (`.`)和 CSS 样式的属性名组成。 形如：`[style.样式属性]`。这里，CSS样式属性名可以用中线命名法（如`font-size`），也可以用驼峰式命名法（如`fontSize`）。
 
 ```html
 <button [style.background-color]="canSave ? 'cyan': 'grey'">Save</button>
 ```
 
-有些样式绑定中的样式带有单位，可以用 “em” 和 “%” 来设置字体大小的单位：
+有些样式绑定中的样式带有单位，例如用 “em” 和 “%” 来设置字体大小的单位：
 
 ```html
 <button [style.font-size.em]="isSpecial ? 3 : 1">Big</button>
 <button [style.font-size.%]="!isSpecial ? 150 : 50">Small</button>
+相当于：
+<button [style.font-size]="isSpecial ? '3em' : '1em'">Big</button>
+<button [style.font-size]="!isSpecial ? '150%' : '50%'">Small</button>
 ```
 
-注意：NgStyle指令也可以用来管理内联样式。
+style绑定一次只能为设置单个样式属性。如果要设置多个样式属性，就要为每个样式属性创建一个绑定。
+
+NgStyle指令也可以用来管理内联样式，而且可以一次设置多个样式属性。详见“NgStyle指令”。
+
+> 注意：不要直接以`style`属性为绑定目标来设置样式值。因为表示DOM宿主元素的JavaScript对象的`style`属性所返回的对象是只读的。一些浏览器忽略这一点，并允许进行更改，但结果是不可预测的，开发应用程序时不能依赖特殊情况。
 
 ## 元素到组件的绑定：事件绑定
 
@@ -1098,11 +1106,7 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 
 指令是一个带有“指令元数据”的类。在 TypeScript 中，要通过`@Directive`装饰器把元数据附加到类上。
 
-## 组件
-
-组件是一个带模板的指令；`@Component`装饰器实际上就是一个`@Directive`装饰器，只是扩展了一些面向模板的特性。
-
-详见“组件”。
+另外，组件是一个带模板的指令。`@Component`装饰器实际上就是一个`@Directive`装饰器，只是扩展了一些面向模板的特性。详见“组件”。
 
 ## 结构型指令
 
@@ -1112,7 +1116,7 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 
 当NgIf指令为`false`时，Angular 从 DOM 中物理地移除了这个元素子树。 它销毁了子树中的组件及其状态，也潜在释放了可观的资源，最终让用户体验到更好的性能。
 
-而通过class绑定或style绑定来显示和隐藏元素及其子元素，这些元素仍然留在 DOM 中。 子树中的组件及其状态仍然保留着。 即使对于不可见属性，Angular 也会继续检查变更。 子树可能占用相当可观的内存和运算资源。
+而通过属性绑定或样式绑定来显示和隐藏元素及其子元素（即通过将元素属性`hidden`设置为`true`或将样式属性`display`设置为`none`），这些元素仍然留在 DOM 中。 子树中的组件及其状态仍然保留着。 即使对于不可见属性，Angular 也会继续检查变更。 子树可能占用相当可观的内存和运算资源。
 
 ```html
 <hero-detail *ngIf="isActive"></hero-detail>
@@ -1180,6 +1184,62 @@ trackByHeroes(index: number, hero: Hero) { return hero.id; }
 
 追踪函数不会阻止所有 DOM 更改。 如果同一个英雄的属性变化了，Angular 就可能不得不更新DOM元素。 但是如果这个属性没有变化 —— 而且大多数时候它们不会变化 —— Angular 就能留下这些 DOM 元素。列表界面就会更加平滑，提供更好的响应。
 
+### 微模板
+
+在指令前加上`*`前缀表示它们依靠微模板来提供内容，它们会展开成`<template>`标签。这些使用微模板的指令就是结构型指令。
+
+`*ngIf`的展开：
+
+```html
+<hero-detail *ngIf="currentHero" [hero]="currentHero"></hero-detail>
+```
+
+展开为：
+
+```html
+<ng-template [ngIf]="currentHero">
+  <hero-detail [hero]="currentHero"></hero-detail>
+</ng-template>
+```
+
+`*ngSwitch`的展开：
+
+```html
+<span [ngSwitch]="toeChoice">
+  <span *ngSwitchCase="'Eenie'">Eenie</span>
+  <span *ngSwitchCase="'Meanie'">Meanie</span>
+  <span *ngSwitchCase="'Miney'">Miney</span>
+  <span *ngSwitchCase="'Moe'">Moe</span>
+  <span *ngSwitchDefault>other</span>
+</span>
+```
+
+展开为：
+
+```html
+<span [ngSwitch]="toeChoice">
+  <ng-template [ngSwitchCase]="'Eenie'"><span>Eenie</span></ng-template>
+  <ng-template [ngSwitchCase]="'Meanie'"><span>Meanie</span></ng-template>
+  <ng-template [ngSwitchCase]="'Miney'"><span>Miney</span></ng-template>
+  <ng-template [ngSwitchCase]="'Moe'"><span>Moe</span></ng-template>
+  <ng-template ngSwitchDefault><span>other</span></ng-template>
+</span>
+```
+
+`*ngFor`的展开：
+
+```html
+<hero-detail *ngFor="let hero of heroes; trackBy:trackByHeroes" [hero]="hero"></hero-detail>
+```
+
+展开为：
+
+```html
+<ng-template ngFor let-hero [ngForOf]="heroes" [ngForTrackBy]="trackByHeroes">
+  <hero-detail [hero]="hero"></hero-detail>
+</ng-template>
+```
+
 ## 属性型指令
 
 属性型指令修改一个现有元素的外观或行为。 例如：NgModel。
@@ -1241,7 +1301,8 @@ export class ProductComponent {
 注意：style绑定是添加或删除单个内联样式的最佳途径，而NgStyle指令是同时添加或移除多个内联样式的更好选择。
 
 ```typescript
-setStyles() {
+…
+getStyles() {
   let styles = {
     // CSS property names
     'font-style':  this.canSave     ? 'italic' : 'normal',  // italic
@@ -1252,10 +1313,21 @@ setStyles() {
 }
 ```
 ```html
-<div [ngStyle]="setStyles()">
+<div [ngStyle]="getStyles()">
   This div is italic, normal weight, and extra large (24px).
 </div>
 ```
+
+NgStyle指令能够支持两种属性绑定格式：在值中包含单位或在属性名称中包含单位：
+
+```javascript
+{
+  "fontSize": "30px",
+  "margin.px": 100
+}
+```
+
+
 
 ### NgSwitch指令
 
@@ -1272,74 +1344,6 @@ setStyles() {
 `ngSwitchCase`的值可以是任何类型值。
 
 只有选中的元素才放进 DOM 中。任何时候，上例中的这些 `<span>` 中最多只有一个会出现在 DOM 中。
-
-## `*`前缀和`<template>`
-
-`*`前缀是一种语法糖，它会展开成`<template>`标签。
-
-`*ngIf`的展开：
-
-```html
-<hero-detail *ngIf="currentHero" [hero]="currentHero"></hero-detail>
-```
-
-首先展开为：
-
-```html
-<hero-detail template="ngIf:currentHero" [hero]="currentHero"></hero-detail>
-```
-
-最后展开为：
-
-```html
-<template [ngIf]="currentHero">
-  <hero-detail [hero]="currentHero"></hero-detail>
-</template>
-```
-
-`*ngSwitch`的展开：
-
-```html
-<span [ngSwitch]="toeChoice">
-  <span *ngSwitchCase="'Eenie'">Eenie</span>
-  <span *ngSwitchCase="'Meanie'">Meanie</span>
-  <span *ngSwitchCase="'Miney'">Miney</span>
-  <span *ngSwitchCase="'Moe'">Moe</span>
-  <span *ngSwitchDefault>other</span>
-</span>
-```
-
-展开为：
-
-```html
-<span [ngSwitch]="toeChoice">
-  <template [ngSwitchCase]="'Eenie'"><span>Eenie</span></template>
-  <template [ngSwitchCase]="'Meanie'"><span>Meanie</span></template>
-  <template [ngSwitchCase]="'Miney'"><span>Miney</span></template>
-  <template [ngSwitchCase]="'Moe'"><span>Moe</span></template>
-  <template ngSwitchDefault><span>other</span></template>
-</span>
-```
-
-`*ngFor`的展开：
-
-```html
-<hero-detail *ngFor="let hero of heroes; trackBy:trackByHeroes" [hero]="hero"></hero-detail>
-```
-
-首先展开为：
-
-```html
-<hero-detail template="ngFor let hero of heroes; trackBy:trackByHeroes" [hero]="hero"></hero-detail>
-```
-
-最后展开为：
-
-```html
-<template ngFor let-hero [ngForOf]="heroes" [ngForTrackBy]="trackByHeroes">
-  <hero-detail [hero]="hero"></hero-detail>
-</template>
-```
 
 ## 输入输出属性
 
