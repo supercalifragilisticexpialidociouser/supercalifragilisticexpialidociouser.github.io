@@ -176,11 +176,11 @@ $ sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools
 ZSH_THEME="agnoster"
 ```
 
-官方主题位于：`oh-my-zsh/themes/`下，第三方主题位于：`oh-my-zsh/custom/`下。
+官方主题位于：`.oh-my-zsh/themes/`下，第三方主题位于：`.oh-my-zsh/custom/themes/`下。
 
 第三方主题Bullet Train也不错，安装步骤如下：
 
-1. 将[bullet-train.zsh-theme](http://raw.github.com/caiogondim/bullet-train-oh-my-zsh-theme/master/bullet-train.zsh-theme)下载到`$ZSH_CUSTOM/themes/`。
+1. 将[bullet-train.zsh-theme](http://raw.github.com/caiogondim/bullet-train-oh-my-zsh-theme/master/bullet-train.zsh-theme)下载到`.oh-my-zsh/custom/themes/`。
 2. 配置`~/.zshrc`：`ZSH_THEME="bullet-train"`。
 
 ## 更新oh-my-zsh
@@ -197,7 +197,7 @@ $ uninstall_oh_my_zsh
 
 # 配置dmenu
 
-编辑文件`~/.demurc`。
+编辑文件`~/.dmenurc`。
 
 # 配置i3
 
@@ -240,4 +240,26 @@ font = 'WenQuanYi Zen Hei:size=8',
 ```
 
 # 安装JDK
+
+查看所有己安装的JDK：
+
+```bash
+$ archlinux-java status
+```
+
+安装Oracle JDK：
+
+```bash
+$ sudo pacman -S jdk
+```
+
+设置`JAVA_HOME`环境变量：修改`~/.zshrc`。
+
+切换版本：
+
+```bash
+$ sudo archlinux-java set java-10-jdk
+```
+
+
 
