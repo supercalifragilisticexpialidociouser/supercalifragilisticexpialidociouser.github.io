@@ -1124,9 +1124,23 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 
 ### NgSwitchCase、NgSwitchDefault指令
 
+NgSwitchCase指令、NgSwitchDefault指令必须与NgSwitch指令一起使用。
+
+当使用NgSwitchCase指令指定字面量字符串时，要注意使用双重引号：
+
+```html
+<div class="bg-info p-2 mt-1" [ngSwitch]="getProduct(1).name">
+  <span *ngSwitchCase="targetName">Kayak</span>
+  <span *ngSwitchCase="'Lifejacket'">Lifejacket</span>
+  <span *ngSwitchDefault>Other Product</span>
+</div>
+```
+
+
+
 ### NgFor指令
 
-NgFor是一个重复器指令。
+NgFor是一个重复器指令，它对对象集合中的每个对象重复生成一段内容。
 
 NgFor指令既可以用在HTML元素上：
 
@@ -1144,21 +1158,84 @@ NgFor指令既可以用在HTML元素上：
 
 取出`heroes`数组中的每个英雄，把它存入局部变量`hero`中，并在每次迭代时对模板 HTML 可用。
 
-`hero`前面的`let`关键字创建了名叫`hero`的模板输入变量。
+`hero`前面的`let`关键字创建了名叫`hero`的局部**模板输入变量**，以便它可供嵌套元素使用。
+
+```html
+<table class="table table-sm table-bordered mt-1 text-dark">
+  <tr><th>Name</th><th>Category</th><th>Price</th></tr>
+  <tr *ngFor="let item of getProducts()">
+    <td>{{item.name}}</td>
+    <td>{{item.category}}</td>
+    <td>{{item.price}}</td>
+  </tr>
+</table>
+```
 
 > 注意：模板输入变量和模板引用变量不是一回事！
 
-#### 索引
+#### 使用索引
 
-NgFor指令支持可选的`index`，它在迭代过程中会从 0 增长到“数组的长度”。 可以通过模板输入变量来捕获这个 `index`，并在模板中使用。
+`ngFor`指令内置了一些方便使用索引的局部模板变量：
 
-下例把 `index` 捕获到名叫`i`的变量中：
+| 模板变量 | 描述                                                       |
+| -------- | ---------------------------------------------------------- |
+| index    | 当前对象的索引。`index`的值从0开始。                       |
+| odd      | 如果当前对象在数据源中的位置为奇数，则`odd`的值为`true`。  |
+| even     | 如果当前对象在数据源中的位置为偶数，则`even`的值为`true`。 |
+| first    | 如果当前对象是数据源的第一个对象，则`first`的值为`true`。  |
+| last     | 如果当前对象是数据源的最后一个对象，则`last`的值为`true`。 |
+
+> 注意：我们不能直接访问这些模板变量的值，而是必须将它们赋值给一个局部变量，即使名称相同。
+
+##### 使用 `index` 
 
 ```html
-<div *ngFor="let hero of heroes; let i=index">{{i + 1}} - {{hero.fullName}}</div>
+<table class="table table-sm table-bordered mt-1 text-dark">
+  <tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
+  <tr *ngFor="let item of getProducts(); let i = index">
+    <td>{{i +1}}</td>
+    <td>{{item.name}}</td>
+    <td>{{item.category}}</td>
+    <td>{{item.price}}</td>
+  </tr>
+</table>
 ```
 
-除了`index`外，还有`first`、`last`、`even`、`odd`等局部变量可以获得索引。
+##### 使用`odd`和`even`
+
+```html
+<table class="table table-sm table-bordered mt-1">
+  <tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
+  <tr *ngFor="let item of getProducts(); let i = index; let odd = odd"
+      [class.bg-primary]="odd" [class.bg-info]="!odd">
+    <td>{{i + 1}}</td>
+    <td>{{item.name}}</td>
+    <td>{{item.category}}</td>
+    <td>{{item.price}}</td>
+  </tr>
+</table>
+```
+
+> 注意：在一个元素上定义的局部模板变量，可以立即在同一个元素的表达式中使用，例如上例中`odd`局部变量。
+
+##### 使用`first`和`last`
+
+```html
+<table class="table table-sm table-bordered mt-1">
+  <tr class="text-dark">
+    <th></th><th>Name</th><th>Category</th><th>Price</th>
+  </tr>
+  <tr *ngFor="let item of getProducts(); let i = index; let odd = odd;
+              let first = first; let last = last"
+      [class.bg-primary]="odd" [class.bg-info]="!odd"
+      [class.bg-warning]="first || last">
+    <td>{{i + 1}}</td>
+    <td>{{item.name}}</td>
+    <td>{{item.category}}</td>
+    <td *ngIf="!last">{{item.price}}</td>
+  </tr>
+</table>
+```
 
 #### trackBy
 
@@ -1229,13 +1306,13 @@ trackByHeroes(index: number, hero: Hero) { return hero.id; }
 `*ngFor`的展开：
 
 ```html
-<hero-detail *ngFor="let hero of heroes; trackBy:trackByHeroes" [hero]="hero"></hero-detail>
+<hero-detail *ngFor="let hero of heroes; let i = index; trackBy:trackByHeroes" [hero]="hero"></hero-detail>
 ```
 
 展开为：
 
 ```html
-<ng-template ngFor let-hero [ngForOf]="heroes" [ngForTrackBy]="trackByHeroes">
+<ng-template ngFor let-hero [ngForOf]="heroes" let-i="index" [ngForTrackBy]="trackByHeroes">
   <hero-detail [hero]="hero"></hero-detail>
 </ng-template>
 ```
@@ -1332,18 +1409,18 @@ NgStyle指令能够支持两种属性绑定格式：在值中包含单位或在�
 ### NgSwitch指令
 
 ```html
-<span [ngSwitch]="toeChoice">
+<div [ngSwitch]="toeChoice">
   <span *ngSwitchCase="'Eenie'">Eenie</span>
   <span *ngSwitchCase="'Meanie'">Meanie</span>
   <span *ngSwitchCase="'Miney'">Miney</span>
   <span *ngSwitchCase="'Moe'">Moe</span>
   <span *ngSwitchDefault>other</span>
-</span>
+</div>
 ```
 
 `ngSwitchCase`的值可以是任何类型值。
 
-只有选中的元素才放进 DOM 中。任何时候，上例中的这些 `<span>` 中最多只有一个会出现在 DOM 中。
+只有选中的元素才放进 DOM 中。任何时候，上例中的这些 `<span>` 中最多只有一个会出现在 DOM 中。而应用了`ngSwitch`指令的`<div>`元素始终出现在HTML文档中。
 
 ## 输入输出属性
 
