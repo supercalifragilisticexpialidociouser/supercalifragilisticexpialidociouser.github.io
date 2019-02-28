@@ -241,12 +241,6 @@ font = 'WenQuanYi Zen Hei:size=8',
 
 # 安装JDK
 
-查看所有己安装的JDK：
-
-```bash
-$ archlinux-java status
-```
-
 安装Oracle JDK：
 
 ```bash
@@ -255,10 +249,20 @@ $ sudo pacman -S jdk
 
 设置`JAVA_HOME`环境变量：修改`~/.zshrc`。
 
+```
+export JAVA_HOME="/usr/lib/jvm/default"
+```
+
+查看所有己安装的JDK：
+
+```bash
+$ archlinux-java status
+```
+
 切换版本：
 
 ```bash
-$ sudo archlinux-java set java-10-jdk
+$ sudo archlinux-java set java-11-jdk
 ```
 
 
