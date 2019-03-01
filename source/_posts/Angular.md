@@ -1112,9 +1112,9 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 
 结构型指令通过在 DOM 中添加、移除和替换元素来修改布局。例如：`*ngFor`。
 
-### NgIf指令
+### ngIf指令
 
-当NgIf指令为`false`时，Angular 从 DOM 中物理地移除了这个元素子树。 它销毁了子树中的组件及其状态，也潜在释放了可观的资源，最终让用户体验到更好的性能。
+当`ngIf`指令为`false`时，Angular 从 DOM 中物理地移除了这个元素子树。 它销毁了子树中的组件及其状态，也潜在释放了可观的资源，最终让用户体验到更好的性能。
 
 而通过属性绑定或样式绑定来显示和隐藏元素及其子元素（即通过将元素属性`hidden`设置为`true`或将样式属性`display`设置为`none`），这些元素仍然留在 DOM 中。 子树中的组件及其状态仍然保留着。 即使对于不可见属性，Angular 也会继续检查变更。 子树可能占用相当可观的内存和运算资源。
 
@@ -1122,11 +1122,11 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 <hero-detail *ngIf="isActive"></hero-detail>
 ```
 
-### NgSwitchCase、NgSwitchDefault指令
+### ngSwitchCase、ngSwitchDefault指令
 
-NgSwitchCase指令、NgSwitchDefault指令必须与NgSwitch指令一起使用。
+`ngSwitchCase`指令、`ngSwitchDefault`指令必须与`ngSwitch`指令一起使用。
 
-当使用NgSwitchCase指令指定字面量字符串时，要注意使用双重引号：
+当使用`ngSwitchCase`指令指定字面量字符串时，要注意使用双重引号：
 
 ```html
 <div class="bg-info p-2 mt-1" [ngSwitch]="getProduct(1).name">
@@ -1136,13 +1136,11 @@ NgSwitchCase指令、NgSwitchDefault指令必须与NgSwitch指令一起使用。
 </div>
 ```
 
+### ngFor指令
 
+`ngFor`是一个重复器指令，它对对象集合中的每个对象重复生成一段内容。
 
-### NgFor指令
-
-NgFor是一个重复器指令，它对对象集合中的每个对象重复生成一段内容。
-
-NgFor指令既可以用在HTML元素上：
+`ngFor`指令既可以用在HTML元素上：
 
 ```html
 <div *ngFor="let hero of heroes">{{hero.fullName}}</div>
@@ -1239,7 +1237,7 @@ NgFor指令既可以用在HTML元素上：
 
 #### trackBy
 
-NgFor指令有时候会性能较差，特别是在大型列表中。 对一个条目的一丁点改动、移除或添加，都会导致级联的 DOM 操作。
+`ngFor`指令有时候会性能较差，特别是在大型列表中。 对一个条目的一丁点改动、移除或添加，都会导致级联的 DOM 操作。
 
 例如，我们可以通过重新从服务器查询来刷新英雄列表。 刷新后的列表可能包含很多（如果不是全部的话）以前显示过的英雄。
 
@@ -1319,11 +1317,11 @@ trackByHeroes(index: number, hero: Hero) { return hero.id; }
 
 ## 属性型指令
 
-属性型指令修改一个现有元素的外观或行为。 例如：NgModel。
+属性型指令修改一个现有元素的外观或行为。 例如：`ngModel`。
 
-### NgClass指令
+### ngClass指令
 
-ngClass指令支持的表达式结果类型：
+`ngClass`指令支持的表达式结果类型：
 
 | 结果类型 | 描述                                                         |
 | -------- | ------------------------------------------------------------ |
@@ -1371,11 +1369,11 @@ export class ProductComponent {
 }
 ```
 
-注意：class绑定是添加或删除单个类的最佳途径，而NgClass指令是同时添加或移除多个 CSS 类的更好选择。
+注意：class绑定是添加或删除单个类的最佳途径，而`ngClass`指令是同时添加或移除多个 CSS 类的更好选择。
 
-### NgStyle指令
+### ngStyle指令
 
-注意：style绑定是添加或删除单个内联样式的最佳途径，而NgStyle指令是同时添加或移除多个内联样式的更好选择。
+注意：style绑定是添加或删除单个内联样式的最佳途径，而`ngStyle`指令是同时添加或移除多个内联样式的更好选择。
 
 ```typescript
 …
@@ -1395,7 +1393,7 @@ getStyles() {
 </div>
 ```
 
-NgStyle指令能够支持两种属性绑定格式：在值中包含单位或在属性名称中包含单位：
+`ngStyle`指令能够支持两种属性绑定格式：在值中包含单位或在属性名称中包含单位：
 
 ```javascript
 {
@@ -1406,7 +1404,7 @@ NgStyle指令能够支持两种属性绑定格式：在值中包含单位或在�
 
 
 
-### NgSwitch指令
+### ngSwitch指令
 
 ```html
 <div [ngSwitch]="toeChoice">
@@ -1421,6 +1419,10 @@ NgStyle指令能够支持两种属性绑定格式：在值中包含单位或在�
 `ngSwitchCase`的值可以是任何类型值。
 
 只有选中的元素才放进 DOM 中。任何时候，上例中的这些 `<span>` 中最多只有一个会出现在 DOM 中。而应用了`ngSwitch`指令的`<div>`元素始终出现在HTML文档中。
+
+### ngTemplateOutlet指令
+
+`ngTemplateOutlet`指令用于在指定的位置重复一个内容块，当需要在不同地方生成相同内容并且希望避免重复操作时，这个指令可能很有用。
 
 ## 输入输出属性
 
