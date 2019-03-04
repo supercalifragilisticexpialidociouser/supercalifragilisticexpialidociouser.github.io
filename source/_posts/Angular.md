@@ -1249,6 +1249,8 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 trackByHeroes(index: number, hero: Hero) { return hero.id; }
 ```
 
+追踪函数必须定义两个参数：对象在数据源中的位置以及数据对象。该函数的返回结果唯一地标识一个对象，而如果两个对象产生相同的结果，则认为这两个对象相等。
+
 现在，把NgForTrackBy指令设置为那个追踪函数。
 
 ```html
@@ -1423,6 +1425,50 @@ getStyles() {
 ### ngTemplateOutlet指令
 
 `ngTemplateOutlet`指令用于在指定的位置重复一个内容块，当需要在不同地方生成相同内容并且希望避免重复操作时，这个指令可能很有用。
+
+```html
+<!--定义模板-->
+<ng-template #titleTemplate>
+  <h4 class="p-2 bg-success text-white">Repeated Content</h4>
+</ng-template>
+
+<!--应用模板-->
+<ng-template [ngTemplateOutlet]="titleTemplate"></ng-template>
+<div class="bg-info p-2 m-2 text-white">
+  There are {{getProductCount()}} products.
+</div>
+<ng-template [ngTemplateOutlet]="titleTemplate"></ng-template>
+```
+
+第一步是定义模板，其中包含欲借助该指令进行重复的内容。具体做法是使用`<ng-template>`元素并使用引用变量（reference variable）为其赋予一个名称。
+
+当Angular遇到一个引用变量时，会将该变量的值设置为定义它的元素（在这里是`<ng-template>`元素）。
+
+第二步是使用`ngTemplateOutlet`指令将内容插入到HTML文档中。这个指令将宿主元素替换为指定的`<ng-template>`元素的内容。无论是包含重复内容的`<ng-template>`元素，还是绑定所在的宿主元素，都不包含在HTML文档中。
+
+#### 提供上下文数据
+
+`ngTemplateOutlet`指令可用于为重复内容提供上下文对象，该对象可供`<ng-template>`元素内部定义的数据绑定使用。
+
+```html
+<!--定义模板-->
+<ng-template #titleTemplate let-text="title">
+  <h4 class="p-2 bg-success text-white">{{text}}</h4>
+</ng-template>
+
+<!--应用模板-->
+<ng-template [ngTemplateOutlet]="titleTemplate"
+             [ngTemplateOutletContext]="{title: 'Header'}">
+</ng-template>
+<div class="bg-info p-2 m-2 text-white">
+  There are {{getProductCount()}} products.
+</div>
+<ng-template [ngTemplateOutlet]="titleTemplate"
+             [ngTemplateOutletContext]="{title: 'Footer'}">
+</ng-template>
+```
+
+为了接收上下文数据，在包含重复内容的`<ng-template>`元素中定义一个`let-变量名`属性，用于指定变量名称，类似于`ngFor`指令的扩展语法。在这里，`let-`属性创建一个名为`text`的变量，并通过对表达式`title`进行求值为其赋值。为了提供表达式求值所需要的数据，`ngTemplateOutlet`指令所在的`<ng-template>`宿主元素提供了一个映射对象。这个新绑定目标是`ngOutletContext`，它看起来像另一个指令，但实际上是一个输入属性的例子（有些指令使用输入属性来接收数据值）。这个绑定表达式是一个映射对象，它的属性名对应于定义模板的`<ng-template>`元素上的`let-`属性。
 
 ## 输入输出属性
 
