@@ -826,6 +826,14 @@ export class KeyUpComponent_v4 {
 
 上例在输入框失去焦点或按下回车键后都会更新组件的`value`值。
 
+## 单向绑定的限制
+
+单向绑定必须是幂等的，这意味着它们可以重复进行求值，而不会更改应用程序的状态。
+
+如果单向数据绑定表达式中包含可用于更新数据的操作符，例如`=`、`+=`、`-=`、`++`和`--`，那么Angular将报告错误消息。
+
+另外，当Angular在开发模式下运行时，它会执行额外的检查，以确保在执行表达式求值之后，单向数据绑定未被修改。
+
 ## 双向绑定
 
 双向绑定的语法：
@@ -1084,6 +1092,40 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 <div [ngClass]="'p-a-1 ' + getClass()">
   …
 </div> 
+```
+
+#### 表达式的上下文
+
+当Angular对一个表达式进行求值时，它会在模板所属组件的上下文中进行求值。因此，模板能够访问组件的方法和属性，而不需要带任何类型的前缀。
+
+由于存在表达式上下文，因此模板表达式无法访问在模板组件外部定义的对象，特别是模板无法访问全局命名空间（例如`console`、`Math`等对象）。如果要访问全局命名空间中的功能，那么必须由组件提供，由它来代表模板进行访问。
+
+组件：
+
+```typescript
+@Component({
+  selector: "app",
+  templateUrl: "template.html"
+})
+export class ProductComponent {
+  model: Model = new Model();
+  // ...constructor and methods omitted for brevity...
+  counter: number = 1;
+  get nextProduct(): Product {
+    return this.model.getProducts().shift();
+  }
+  getProductPrice(index: number): number {
+    return Math.floor(this.getProduct(index).price);
+  }
+}
+```
+
+模板：
+
+```html
+<div class="bg-info p-2 text-white">
+  The rounded price is {{getProductPrice(1)}}
+</div>
 ```
 
 
@@ -1468,7 +1510,7 @@ getStyles() {
 </ng-template>
 ```
 
-为了接收上下文数据，在包含重复内容的`<ng-template>`元素中定义一个`let-变量名`属性，用于指定变量名称，类似于`ngFor`指令的扩展语法。在这里，`let-`属性创建一个名为`text`的变量，并通过对表达式`title`进行求值为其赋值。为了提供表达式求值所需要的数据，`ngTemplateOutlet`指令所在的`<ng-template>`宿主元素提供了一个映射对象。这个新绑定目标是`ngOutletContext`，它看起来像另一个指令，但实际上是一个输入属性的例子（有些指令使用输入属性来接收数据值）。这个绑定表达式是一个映射对象，它的属性名对应于定义模板的`<ng-template>`元素上的`let-`属性。
+为了接收上下文数据，在包含重复内容的`<ng-template>`元素中定义一个`let-变量名`属性，用于指定变量名称，类似于`ngFor`指令的扩展语法。在这里，`let-`属性创建一个名为`text`的变量，并通过对表达式`title`进行求值为其赋值。为了提供表达式求值所需要的数据，`ngTemplateOutlet`指令所在的`<ng-template>`宿主元素提供了一个映射对象。这个新绑定目标是`ngOutletContext`，它看起来像另一个指令，但实际上是一个**输入属性**的例子（有些指令使用输入属性来接收数据值）。这个绑定表达式是一个映射对象，它的属性名对应于定义模板的`<ng-template>`元素上的`let-`属性。
 
 ## 输入输出属性
 
