@@ -111,6 +111,8 @@ Unicode转义序列会在解析代码之前得到处理。例如，`\u0022+\u002
 
 上面的代码会产生一个语法错误， 因为\u 后面并未跟着4 个十六进制数。
 
+### 保留字
+
 ### 编码规范
 
 Java语言采用自由的编码格式，没有换行或缩排规则。
@@ -168,8 +170,6 @@ $ java com.ghoolooloo.java.CommandLineParameters -h these are parameters
 # 程序结构
 
 Java程序是由类组成的。
-
-## 保留字
 
 ## 注释
 
