@@ -385,552 +385,44 @@ $ ng generate module foo --flat --module=app
 
 ## 惰性加载模块
 
-# 路由
+# 组件
 
-告诉Angular每个URL映射到组件的映射称为URL路由，简称路由。
+组件负责控制屏幕上的一小块区域，我们称之为视图。
 
-## `<base href>` 元素
+组件由 HTML 模板和组件类组成，组件类控制视图。
 
-Angular路由功能要求HTML文档（`index.html`）中有一个`<base>`元素，由其提供路由的基本URL。
+当用户在这个应用中漫游时， Angular 会创建、更新和销毁组件。 
 
-## 定义路由
+## 创建组件
 
-最简单的创建路由的方式就是在根模块的`@NgModule`装饰器中定义路由：
-
-```typescript
-@NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    RoutingModule.forRoot([
-      {path: 'store', component: StoreComponent},
-      {path: 'cart', component: CartDetailComponent},
-      {path: 'checkout', component: CheckoutComponent},
-      {path: '**', redirectTo: '/store'}
-    ])
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
-export class AppModule { }
-```
-
-## `<router-outlet>`元素
-
-当使用路由功能时，Angular会查找`<router-outlet>`元素，它相当于一个占位符，它指定了应该在什么位置显示当前URL对应的组件。
-
-## 应用程序导航
-
-URL路由功能依赖浏览器提供的JavaScript API，因此用户无法简单地将目标URL输入到浏览器地址栏中进行导航。相反，导航必须由应用程序执行，具体的实现方法是在组件或其他构造块中编写JavaScript代码，或者向模板中的HTML元素添加属性。
-
-> 实际上，直接将目标URL输入浏览器地址栏中，是能跳转到目标页面，但无法保持目标页面的原有状态。特别是，如果目标页面是一个表单，则原先输入内容将丢失。但是，如果应用程序希望能从不同的URL开始导航，则这种直接通过浏览器地址栏导航是有意义的。
-
-在代码中导航，可以使用`Router`的`navigateByUrl()`方法：
+每个组件都以`@Component`装饰器标注：
 
 ```typescript
-export class StoreComponent {
-  …
-  constructor(private router: Router) {}
-  …
-  addProductToCart(product: Product) {
-    …
-    this.router.navigateByUrl('/cart');
-  }
-}
-```
+import { Component, OnInit } from '@angular/core';
 
-在模板中，可通过向元素添加`routerLink`属性来实现导航：
-
-```html
-<button [disabled]='cart.itemCount == 0' routerLink='/cart'>购物车</button>
-```
-
-要在模板中使用`routerLink`属性，必须将`RouterModule`导入所在模块：
-
-```typescript
-import {RouterModule} from "@angular/router";
-
-@NgModule({
-  imports: [RouterModule, …],
-  …
-})
-```
-
-路由器会根据你应用中的导航规则和数据状态来拦截 URL。 当用户点击按钮、选择下拉框或收到其它任何来源的输入时，你可以导航到一个新视图。 路由器会在浏览器的历史日志中记录这个动作，所以前进和后退按钮也能正常工作。
-
-## 守卫路由
-
-守卫路由可以实现，只有当某些条件满足时，该路由才会被激活。
-
-# 数据绑定
-
-数据绑定是一种让模板的各部分与组件的各部分相互合作的机制。 我们往模板 HTML 中添加绑定标记，来告诉 Angular 如何把二者联系起来。
-
-当绑定表达式所依赖的数据发生变化时，绑定表达式会重新求值。
-
-Angular 在每个 JavaScript 事件循环中处理所有的数据绑定，它会从组件树的根部开始，递归处理全部子组件。
-
-## 组件到元素的绑定：属性绑定
-
-### property绑定
-
-标准属性绑定的语法：
-
-```
-{{模板表达式}}
-
-[目标] = "模板表达式"
-
-bind-目标 = "模板表达式"
-```
-
-注意：这里的“目标”是DOM 元素的property，或者是组件和指令的**输入**property（即组件或指令的`inputs`数组中所列的名字，或者是带有`@Input()`装饰器的property。 这些输入property被映射为组件或指令自己的property），而不是HTML的attribute。
-
-在 Angular 的世界中，HTML attribute 唯一的作用是用来初始化DOM 元素、组件和指令的 property。当进行数据绑定时，只是在与元素和指令的 property 和事件打交道，而 attribute 就完全靠边站了。即HTML attribute指定了初始值；DOM property 是当前值。
-
-property 的值可以改变，attribute 的值不能改变。
-
-例1：`<image>` 元素的`src`属性 (property)会被绑定到组件的`heroImageUrl`属性上
-
-```html
-<img [src]="heroImageUrl">
-```
-
-例2：设置指令的属性
-
-```html
-<div [ngClass]="classes">[ngClass] binding to the classes property</div>
-```
-
-例3：设置自定义组件的模型属性（这是父子组件之间通讯的重要途径）
-
-```html
-<hero-detail [hero]="currentHero"></hero-detail>
-```
-
-如果只是想给target设置一个字符串值，而不是表达式，则可以省略包围target的方括号：
-
-```html
-<hero-detail prefix="You are my" [hero]="currentHero"></hero-detail>
-```
-
-另外，下列绑定是等价的：
-
-```html
-<p><img src="{{heroImageUrl}}"> is the <i>interpolated</i> image.</p>
-
-<p><img [src]="heroImageUrl"> is the <i>property bound</i> image.</p>
-```
-
-#### 插值绑定
-
-插件绑定将表达式的结果包含在宿主元素的文本内容中，它是一种特殊的property绑定。实际上，在渲染视图之前，Angular 把这些插值表达式翻译成相应的标准属性绑定，即利用`textContent`属性设置HTML元素的内容。
-
-```html
-<div [ngClass]="'text-white m-2 p-2 ' + getClasses()">
-  Name: {{ model.getProduct(1)?.name || 'None' }}
-</div>
-```
-
-等价于：
-
-```html
-<div [ngClass]="'text-white m-2 p-2 ' + getClasses()"
-     [textContent]="'Name: ' + (model.getProduct(1)?.name || 'None')">
-</div>
-```
-
-单个元素中可以包含多个字符串插值绑定。
-
-> `textContent`属性和`innerHTML`属性都可以用来设置或返回元素的内容。前者设置或者返回指定元素的**文本**内容，后者设置或返回指定元素从开始标签到结束标签之间的 **HTML**。
-
-Angular 数据绑定对危险 HTML 有防备。 在显示它们之前，它对内容先进行消毒。 不管是插值表达式还是属性绑定，都不会允许带有 script 标签的 HTML 泄漏到浏览器中。例如：
-
-```typescript
-evilTitle = 'Template <script>alert("evil never sleeps")</script>Syntax';
-```
-
-```html
-<p>
-  <span>"{{evilTitle}}" is the <i>interpolated</i> evil title.</span>
-</p>
-<p>
-  "<span [innerHTML]="evilTitle"></span>" is the <i>property bound</i> evil title.
-</p>
-```
-
-### attribute绑定
-
-attribute绑定（元素属性绑定）的目标是HTML attribute，这是唯一的能创建和设置 attribute 的绑定形式。
-
-之所以需要attribute绑定，是因为有些HTML attribute，例如 ARIA（Accessible Rich Internet Application）， SVG 和 `<table>` 中的 `colspan`和`rowspan` 等HTML attribute，它们是纯粹的HTML attribute，没有对应的DOM property可供绑定。
-
-attribute绑定的目标都要以“attr.”为前缀：
-
-```html
-<td [attr.colspan]="1 + 1">One-Two</td>
-```
-
-而不能：
-
-```html
-<td colspan="{{1 + 1}}">Three-Four</td>
-```
-
-### class绑定
-
-借助 CSS 类属性绑定，可以从元素的`class` attribute 上添加和移除 CSS 类名。
-
-CSS 类绑定绑定的语法与标准属性绑定类似。 但方括号中的部分不是元素的属性名，而是由`class`前缀，一个点 (`.`)和 CSS 类的名字组成， 其中后两部分是可选的。形如：`[class.类名]`。
-
-```html
-<div [class.special]="isSpecial">The class binding is special</div>
-```
-
-当`isSpecial`为`true`时，Angular 会添加`special`这个类，反之则移除它。
-
-```html
-<div class="p-a-1 special"
-     [class.special]="!isSpecial">This one is not so special</div>
-```
-
-同时存在**同效的**HTML attribute和attribute绑定时，attribute绑定将覆盖HTML attribute。因此，上例中，当`isSpecial`为`true`时，最终`class="p-a-1"`。
-
-管理元素的CSS类，也可以使用标准属性绑定，即直接将模板表达式绑定到`class`属性上：
-
-```html
-<div class="bad curly special" 
-     [class]="badCurly">Bad curly</div>
-```
-
-当 `badCurly` 有值时，假设为`foo bar`，则 `class` 这个 attribute 设置的内容会被整个替换为该值，即最终`class="foo bar"`；如果`badCurly`没有值时 ，则`class="bad curly special"` 。
-
-另外，还可以使用`ngClass`指令来管理CSS类，详见“NgClass指令”。
-
-### style绑定
-
-style绑定（样式属性绑定）可以设置内联样式。
-
-样式绑定的语法与标准属性绑定类似。 但方括号中的部分不是元素的属性名，而由`style`前缀，一个点 (`.`)和 CSS 样式的属性名组成。 形如：`[style.样式属性]`。这里，CSS样式属性名可以用中线命名法（如`font-size`），也可以用驼峰式命名法（如`fontSize`）。
-
-```html
-<button [style.background-color]="canSave ? 'cyan': 'grey'">Save</button>
-```
-
-有些样式绑定中的样式带有单位，例如用 “em” 和 “%” 来设置字体大小的单位：
-
-```html
-<button [style.font-size.em]="isSpecial ? 3 : 1">Big</button>
-<button [style.font-size.%]="!isSpecial ? 150 : 50">Small</button>
-相当于：
-<button [style.font-size]="isSpecial ? '3em' : '1em'">Big</button>
-<button [style.font-size]="!isSpecial ? '150%' : '50%'">Small</button>
-```
-
-style绑定一次只能为设置单个样式属性。如果要设置多个样式属性，就要为每个样式属性创建一个绑定。
-
-NgStyle指令也可以用来管理内联样式，而且可以一次设置多个样式属性。详见“NgStyle指令”。
-
-> 注意：不要直接以`style`属性为绑定目标来设置样式值。因为表示DOM宿主元素的JavaScript对象的`style`属性所返回的对象是只读的。一些浏览器忽略这一点，并允许进行更改，但结果是不可预测的，开发应用程序时不能依赖特殊情况。
-
-## 元素到组件的绑定：事件绑定
-
-事件绑定的语法：
-
-```
-(目标) = "模板表达式"
-
-on-目标 = "模板表达式"
-```
-
-事件绑定语法由等号左侧带圆括号的目标事件（DOM元素的事件或指令的**输出**property）和右侧引号中的模板语句（可以是多条语句）组成。
-
-```html
-<button (click)="onClickMe()">Click me!</button>
-```
-
-或者
-
-```html
-<button on-click="onSave()">On Save</button>
-```
-
-出现在模板语句中的每个标识符都属于特定的上下文对象。 这个对象通常都是控制此模板的 Angular 组件。
-
-```typescript
 @Component({
-  selector: 'click-me',
-  template: `
-    <button (click)="onClickMe()">Click me!</button>
-    {{clickMessage}}`
+  selector: 'app-heros',
+  templateUrl: './heros.component.html',
+  styleUrls: ['./heros.component.scss']
 })
-export class ClickMeComponent {
-  clickMessage = '';
-  onClickMe() {
-    this.clickMessage = 'You are my hero!';
+export class HerosComponent implements OnInit {
+  constructor() { }
+  ngOnInit() {
   }
 }
 ```
 
-### 获取用户输入
+`ngOnInit` 是一个生命周期钩子，Angular 在创建完组件后很快就会调用 `ngOnInit`。这里是放置初始化逻辑的好地方。
 
-#### 通过`$event`对象
+## 根组件
 
-绑定会通过名叫`$event`的事件对象传递关于此事件的信息（包括数据值）。
+根组件由根模块的`@Component`装饰器的`bootstrap`属性指定。每个Angular应用必须至少有一个根组件，它会把组件树和页面中的 DOM 连接起来。。
 
-事件对象的形态取决于目标事件。如果目标事件是原生 DOM 元素事件，`$event`就是 DOM事件对象，它有像target和target.value这样的属性。
+## 主从组件
 
-```typescript
-template: `
-  <input (keyup)="onKey($event)">
-  <p>{{values}}</p>`
-```
+## 生命周期钩子
 
-当用户按下并释放一个按键时，触发`keyup`事件，Angular 将一个相应的 DOM 事件对象提供给`$event`变量，并将它作为参数传递给`onKey()`方法的`event`参数。
-
-```typescript
-export class KeyUpComponent_v1 {
-  values = '';
-  onKey(event:any) { // without type info
-    this.values += event.target.value + ' | ';
-  }
-}
-```
-
-所有标准 DOM 事件对象都有一个`target`属性， 引用触发该事件的元素。 在本例中，`target`是`<input>`元素， `event.target.value`返回该元素的当前内容。
-
-上例将`$event`转换为`any`类型。 这样简化了代码，但是有成本。 没有任何类型信息能够揭示事件对象的属性，防止简单的错误。
-
-下面的例子，使用了带类型方法：
-
-```typescript
-export class KeyUpComponent_v1 {
-  values = '';
-  onKey(event: KeyboardEvent) { // with type info
-    this.values += (<HTMLInputElement>event.target).value + ' | ';
-  }
-}
-```
-
-
-
-#### 通过模板引用变量
-
-通过`$event`对象会获取整个 DOM 事件信息，这需要我们过多地了解HTML的实现细节。而通过模板引用变量则不需要我们了解HTML实现细节。
-
-下面的例子使用了局部模板变量，在一个超简单的模板中实现按键反馈功能。
-
-```typescript
-@Component({
-  selector: 'loop-back',
-  template: `
-    <input #box (keyup)="0">
-    <p>{{box.value}}</p>
-  `
-})
-export class LoopbackComponent { }
-```
-
-在标识符前加上井号 (`#`) 就能声明一个模板引用变量。上例中，在`<input>`元素声明了一个box的模板引用变量，它引用`<input>`元素本身。 可以在`<input>`元素的兄弟或子级元素中引用`box`。
-
-代码使用`box`获得输入元素的`value`值，并通过插值表达式把它显示在`<p>`元素中。
-
-这个模板完全是完全自包含的。它没有绑定到组件，组件也没做任何事情。
-
-注意：只有在应用做了些异步事件（如击键），Angular 才更新绑定（并最终影响到屏幕）。因此，必须绑定一个事件，否则将完全无法工作。本例代码将`keyup`事件绑定到了数字0，这是可能是最短的模板语句。 虽然这个语句不做什么，但它满足 Angular 的要求，所以 Angular 将更新屏幕。
-
-下面的代码重写了之前keyup示例，它使用变量来获得用户输入。
-
-```typescript
-@Component({
-  selector: 'key-up2',
-  template: `
-    <input #box (keyup)="onKey(box.value)">
-    <p>{{values}}</p>
-  `
-})
-export class KeyUpComponent_v2 {
-  values = '';
-  onKey(value: string) {
-    this.values += value + ' | ';
-  }
-}
-```
-
-这个方法最漂亮的一点是：组件代码从视图中获得了干净的数据值。再也不用了解`$event`变量及其结构了。（注意，最好传递给组件输入值，而不要直接传递元素`box`给组件。尽量将DOM相关的东西限制在模板中）
-
-### 自定义事件
-
-通常，指令使用 Angular `EventEmitter` 来触发自定义事件。 指令创建一个`EventEmitter`实例，并且把它作为属性暴露出来。 指令调用`EventEmitter.emit(payload)`来触发事件，可以传入任何东西作为消息载荷。 父指令通过绑定到这个属性来监听事件，并通过`$event`对象来访问载荷。
-
-假设`HeroDetailComponent`用于显示英雄的信息，并响应用户的动作。 虽然`HeroDetailComponent`包含删除按钮，但它自己并不知道该如何删除这个英雄。 最好的做法是触发事件来报告“删除用户”的请求。
-
-HeroDetailComponent.ts（模板）：
-
-```typescript
-template: `
-<div>
-  <img src="{{heroImageUrl}}">
-  <span [style.text-decoration]="lineThrough">
-    {{prefix}} {{hero?.fullName}}
-  </span>
-  <button (click)="delete()">Delete</button>
-</div>`
-```
-
-HeroDetailComponent.ts (删除逻辑)：
-
-```typescript
-// This component make a request but it can't actually delete a hero.
-@Output() deleteRequest = new EventEmitter<Hero>();
-delete() {
-  this.deleteRequest.emit(this.hero);
-}
-```
-
-现在，假设有个宿主的父组件，它绑定了`HeroDetailComponent`的`deleteRequest`事件。
-
-```html
-<hero-detail (deleteRequest)="deleteHero($event)" [hero]="currentHero"></hero-detail>
-```
-
-当`deleteRequest`事件触发时，Angular 调用父组件的`deleteHero`方法， 在`$event`变量中传入要删除的英雄（来自`HeroDetail`）。 
-
-### 常用事件监听器
-
-#### keyup.enter
-
-这不是DOM事件，而是一个Angular的模拟事件。只有当用户敲回车键时，Angular 才会调用事件处理器。
-
-#### blur
-
-blur事件在元素失去焦点时触发。
-
-```typescript
-@Component({
-  selector: 'key-up4',
-  template: `
-    <input #box
-      (keyup.enter)="update(box.value)"
-      (blur)="update(box.value)">
-    <p>{{value}}</p>
-  `
-})
-export class KeyUpComponent_v4 {
-  value = '';
-  update(value: string) { this.value = value; }
-}
-```
-
-上例在输入框失去焦点或按下回车键后都会更新组件的`value`值。
-
-## 单向绑定的限制
-
-单向绑定必须是幂等的，这意味着它们可以重复进行求值，而不会更改应用程序的状态。
-
-如果单向数据绑定表达式中包含可用于更新数据的操作符，例如`=`、`+=`、`-=`、`++`和`--`，那么Angular将报告错误消息。
-
-另外，当Angular在开发模式下运行时，它会执行额外的检查，以确保在执行表达式求值之后，单向数据绑定未被修改。
-
-## 双向绑定
-
-双向绑定的语法：
-
-```
-[(目标)] = "模板表达式"
-
-bindon-目标 = "模板表达式"
-```
-
-双向绑定的属性都可拆分成两个独立的单向绑定。
-
-当 Angular 在表单中看到`[(x)]`的绑定目标时， 它会期待这个`x`指令有一个名为`x`的输入属性，和一个名为`xChange`的输出属性。因此，`[(ngModel)]`可以拆分为`[ngModel]`和`(ngModelChange)`：
-
-```html
-<input type="text" class="form-control" id="name"
-       required
-       [ngModel]="model.name" name="name"
-       (ngModelChange)="model.name = $event" >
-```
-
-之前看到的`$event`对象来自 DOM 事件。 但`ngModelChange`属性不会生成 DOM 事件 —— 它是Angular `EventEmitter`类型的属性，当它触发时， 它返回的是输入框的值 —— 也正是希望赋给模型`name`属性的值。
-
-`[(ngModel)]`语法只能设置一个数据绑定属性。 如果需要做更多或不同的事情，就得自己用它的拆分形式。例如：
-
-```html
-<input
-  [ngModel]="currentHero.firstName"
-  (ngModelChange)="setUpperCaseFirstName($event)">
-```
-
-### NgModel指令
-
-像`<input>`和`<select>`这样的 HTML 元素，`value`接收输入，而`oninput`处理事件，不遵循`x`值和`xChange`事件的模式。因此，Angular 另以 NgModel 指令为桥梁，允许在表单元素上使用双向数据绑定。
-
-`<input>`元素如果不使用NgModel指令来实现双向绑定，则就必须使用下面的形式：
-
-```html
-<input [value]="currentHero.firstName"
-       (input)="currentHero.firstName=$event.target.value" >
-```
-
-而使用NgModel指令，则为：
-
-```html
-<input
-  [ngModel]="currentHero.firstName"
-  (ngModelChange)="currentHero.firstName=$event">
-```
-
-或者
-
-```html
-<input [(ngModel)]="currentHero.firstName">
-```
-
-每种元素的特点各不相同，所以NgModel指令只能在一些特定表单元素上使用，例如输入文本框，因为它们支持 `ControlValueAccessor`。
-
-除非写一个合适的值访问器，否则不能把`[(ngModel)]`用在自定义组件上。（通常自定义组件的双向绑定也不需要通过NgModel指令，直接使用 `[(自定义组件的属性)]` 就可以了）
-
-注：在使用NgModel做双向数据绑定之前，得先导入`FormsModule`，即把它加入 Angular 模块的`imports`列表。
-
-## 绑定目标
-
-目标指定数据绑定将执行的操作。有两种不同类型的目标：
-
-- 指令
-
-- 属性绑定（包括：property绑定、attribute绑定、class绑定和style绑定）
-
-当Angular处理数据绑定的目标时，它将首先进行检查以确定是否匹配某条指令。如果绑定目标未对应到某条指令，那么Angular将检查目标能否用于创建属性绑定。
-
-## 宿主元素
-
-宿主元素是将要受到绑定影响（通过改变元素的外观、内容或行为）的HTML元素。数据绑定可以应用于模板中的任何HTML元素，一个元素可以有多个绑定，每个绑定可以分别管理该元素的外观或行为的不同方面。
-
-## 理解括号
-
-数据绑定中的括号（包括方括号、圆括号）告诉Angular，这是一个具有待求值表达式的单向数据绑定。如果省略括号并且目标是一条**指令**，那么Angular仍然会处理绑定，但不会对表达式进行求值，而只是把引号之间的内容作为字面值传递给该指令。
-
-```html
-<div ngClass="'p-a-1 ' + getClasses()">
-  Hello, world.
-</div>
-```
-
-结果为：
-
-```html
-<div class="'p-a-1 ' + getClasses()">
-  Hello, world.
-</div>
-```
-
-
-
-## 脏值检测
+应用可以通过生命周期钩子（如ngOnInit()）在组件生命周期的各个时间点上插入自己的操作。
 
 # 模板
 
@@ -980,31 +472,24 @@ Angular 把模板引用变量的值设置为它所在的那个元素。
 
 可以在同一元素、兄弟元素或任何子元素中引用模板引用变量。
 
-### 插值表达式
-
-插值表达式形如 `{{…}}` ，双花括号之间是**模板表达式**。它可以直接访问组件中的属性，并将表达式的值插入到视图的当前位置。
-
-插值表达式是一个特殊的语法，它是单向数据绑定的一种，Angular 把它转换成了标准属性绑定。
-
 ### 模板表达式
 
-大部分JavaScript表达式也是合法的模板表达式，但下列表达式是不允许的，包括：
+大部分JavaScript表达式也是合法的模板表达式，但你不能使用那些具有或可能引发副作用的 JavaScript 表达式，包括：
 
 1. 赋值 (`=`、`+=`、`-=`、 ...)
+2. `new`、`typeof`、`instanceof` 等运算符
+3. 使用`;`或`,`串联起来的表达式
+4. 自增或自减运算符 `++`和`--`
+5. 一些 ES2015+ 版本的操作符
+6. 不支持位运算`|`和`&`
 
-2. `new`运算符
+模板表达式中支持JavaScript中没有的*模板表达式运算符*：
 
-3. 使用`;`或`,`的链式表达式
+1. 管道运算符`|`
+2. 安全导航运算符`?.`
+3. 非空断言运算符`!.`
 
-4. 自增或自减运算符 (`++`和`--`)
-
-5. 不支持位运算`|`和`&`
-6. 管道运算符`|`
-7. 安全导航运算符`?.`
-
-模板表达式不能引用全局命名空间中的任何东西， 不能引用window或document，不能调用console.log或Math.max。 它们被局限于只能访问来自表达式上下文中的成员。典型的表达式上下文就是这个组件实例，另外还有模板引用变量。
-
-不要在模板表达式中使用具有副作用的属性或方法。
+模板表达式不能引用全局命名空间中的任何东西， 不能引用`window`或`document`，不能调用`console.log`或`Math.max`。 它们被局限于只能访问来自表达式上下文中的成员。典型的表达式上下文就是这个组件实例，另外还有模板引用变量。
 
 Angular 执行模板表达式，产生一个值，并把它赋值给绑定目标的属性。这个绑定目标可能是 HTML 元素、组件或指令。
 
@@ -1060,27 +545,7 @@ The null hero's name is {{nullHero && nullHero.firstName}}
 
 Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路径中，它工作得很完美。
 
-#### 模板语句
-
-模板语句用来响应由绑定目标（如 HTML 元素、组件或指令）触发的事件。就像这样：`(event)="statement"`。
-
-模板语句有副作用。
-
- 模板语句解析器和模板表达式解析器有所不同，特别之处在于它支持基本赋值 (`=`) 和表达式链 (`;`和`,`)。
-
-但下列表达式是不允许的，包括：
-
-1）`new`运算符
-
-2）自增和自减运算符：`++`和`--`
-
-3）操作并赋值，例如`+=`和`-=`
-
-4）位运算符`|`和`&`
-
-5）模板表达式运算符
-
-和表达式中一样，模板语句无法引用全局命名空间的任何东西。它们不能引用`window`或者`document`， 不能调用`console.log`或者`Math.max`。语句只能引用语句上下文中 —— 通常是正在绑定事件的那个组件实例或者是模板引用变量。
+#### 非空断言运算符
 
 #### 字符串字面量
 
@@ -1094,11 +559,25 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 </div> 
 ```
 
-#### 表达式的上下文
+#### 表达式上下文
 
-当Angular对一个表达式进行求值时，它会在模板所属组件的上下文中进行求值。因此，模板能够访问组件的方法和属性，而不需要带任何类型的前缀。
+当Angular对一个表达式进行求值时，它会在表达式的上下文中进行求值。
 
-由于存在表达式上下文，因此模板表达式无法访问在模板组件外部定义的对象，特别是模板无法访问全局命名空间（例如`console`、`Math`等对象）。如果要访问全局命名空间中的功能，那么必须由组件提供，由它来代表模板进行访问。
+典型的表达式上下文就是这个组件实例。因此，模板能够访问组件的方法和属性，而不需要带任何类型的前缀。
+
+除了组件外，表达式上下文还可以包括组件之外的对象。 比如模板输入变量 (`let customer`)和模板引用变量(`#customerInput`)：
+
+```html
+<ul>
+  <li *ngFor="let customer of customers">{{customer.name}}</li>
+</ul>
+
+<input #customerInput>{{customerInput.value}}</label>
+```
+
+表达式中的上下文变量是由*模板变量*、指令的*上下文对象*（如果有）和组件的*成员*叠加而成的。 如果你要引用的名字存在于以上多个命名空间中，那么，模板变量优先级最高，其次是指令的上下文对象，最后是组件的成员。
+
+模板表达式不能引用全局命名空间中的任何东西，比如 `window` 或 `document`。它们也不能调用 `console.log` 或 `Math.max`。 它们只能引用表达式上下文中的成员。如果要访问全局命名空间中的功能，那么可以由组件提供，由它来代表模板进行访问。
 
 组件：
 
@@ -1128,7 +607,45 @@ export class ProductComponent {
 </div>
 ```
 
+### 模板语句
 
+模板语句用来响应由绑定目标（如 HTML 元素、组件或指令）触发的事件。就像这样：`(event)="statement"`。
+
+模板语句有副作用。
+
+和模板表达式一样，模板语句使用的语言也像 JavaScript。 模板语句解析器和模板表达式解析器有所不同，特别之处在于它支持基本赋值 (`=`) 和表达式链 (`;`和`,`)。
+
+但下列 JavaScript 语法仍然是不允许的，包括：
+
+1）`new`运算符
+
+2）自增和自减运算符：`++`和`--`
+
+3）操作并赋值，例如`+=`和`-=`
+
+4）位运算符`|`和`&`
+
+5）模板表达式运算符（管道运算符、安全导航运算符、非空断言运算符）
+
+#### 语句上下文
+
+和模板表达式中一样，模板语句无法引用全局命名空间的任何东西。它们不能引用`window`或者`document`， 不能调用`console.log`或者`Math.max`。语句只能引用语句上下文中 —— 通常是正在绑定事件的那个组件实例或者是模板引用变量。
+
+典型的*语句上下文*就是当前组件的实例。 `(click)="deleteHero()"` 中的 *deleteHero* 就是这个数据绑定组件上的一个方法。
+
+```html
+<button (click)="deleteHero()">Delete hero</button>
+```
+
+语句上下文可以引用模板自身上下文中的属性。 在下面的例子中，就把模板的 `$event` 对象、模板输入变量 (`let hero`)和模板引用变量 (`#heroForm`)传给了组件中的一个事件处理器方法。
+
+```html
+<button (click)="onSave($event)">Save</button>
+<button *ngFor="let hero of heroes" (click)="deleteHero(hero)">{{hero.name}}</button>
+<form #heroForm (ngSubmit)="onSubmit(heroForm)"> ... </form>
+```
+
+模板上下文中的变量名的优先级高于组件上下文中的变量名。在上面的 `deleteHero(hero)` 中，`hero` 是一个模板输入变量，而不是组件中的 `hero` 属性。
 
 ## 模板的应用方式
 
@@ -1562,52 +1079,558 @@ getStyles() {
 })
 ```
 
+# 数据绑定
 
+数据绑定是一种让模板的各部分与组件的各部分相互合作的机制。 我们往模板 HTML 中添加绑定标记，来告诉 Angular 如何把二者联系起来。
 
-# 组件
+当绑定表达式所依赖的数据发生变化时，绑定表达式会重新求值。
 
-组件负责控制屏幕上的一小块区域，我们称之为视图。
+Angular 在每个 JavaScript 事件循环中处理所有的数据绑定，它会从组件树的根部开始，递归处理全部子组件。
 
-组件由 HTML 模板和组件类组成，组件类控制视图。
+## 组件到元素的绑定：属性绑定
 
-当用户在这个应用中漫游时， Angular 会创建、更新和销毁组件。 
+### property绑定
 
-## 创建组件
+标准属性绑定的语法：
 
-每个组件都以`@Component`装饰器标注：
+```
+{{模板表达式}}
+
+[目标] = "模板表达式"
+
+bind-目标 = "模板表达式"
+```
+
+注意：这里的“目标”是DOM 元素的property，或者是组件和指令的**输入**property（即组件或指令的`inputs`数组中所列的名字，或者是带有`@Input()`装饰器的property。 这些输入property被映射为组件或指令自己的property），而不是HTML的attribute。
+
+在 Angular 的世界中，HTML attribute 唯一的作用是用来初始化DOM 元素、组件和指令的 property。当进行数据绑定时，只是在与元素和指令的 property 和事件打交道，而 attribute 就完全靠边站了。即HTML attribute指定了初始值；DOM property 是当前值。
+
+property 的值可以改变，attribute 的值不能改变。
+
+例1：`<image>` 元素的`src`属性 (property)会被绑定到组件的`heroImageUrl`属性上
+
+```html
+<img [src]="heroImageUrl">
+```
+
+例2：设置指令的属性
+
+```html
+<div [ngClass]="classes">[ngClass] binding to the classes property</div>
+```
+
+例3：设置自定义组件的模型属性（这是父子组件之间通讯的重要途径）
+
+```html
+<hero-detail [hero]="currentHero"></hero-detail>
+```
+
+如果只是想给target设置一个字符串值，而不是表达式，则可以省略包围target的方括号：
+
+```html
+<hero-detail prefix="You are my" [hero]="currentHero"></hero-detail>
+```
+
+另外，下列绑定是等价的：
+
+```html
+<p><img src="{{heroImageUrl}}"> is the <i>interpolated</i> image.</p>
+
+<p><img [src]="heroImageUrl"> is the <i>property bound</i> image.</p>
+```
+
+#### 插值绑定
+
+插值形如 `{{…}}` ，双花括号之间是**模板表达式**。
+
+插件绑定将表达式的结果包含在宿主元素的文本内容中，它是一种特殊的property绑定。实际上，在渲染视图之前，Angular 把这些插值表达式翻译成相应的标准属性绑定，即利用`textContent`属性设置HTML元素的内容。
+
+```html
+<div [ngClass]="'text-white m-2 p-2 ' + getClasses()">
+  Name: {{ model.getProduct(1)?.name || 'None' }}
+</div>
+```
+
+等价于：
+
+```html
+<div [ngClass]="'text-white m-2 p-2 ' + getClasses()"
+     [textContent]="'Name: ' + (model.getProduct(1)?.name || 'None')">
+</div>
+```
+
+单个元素中可以包含多个字符串插值绑定。
+
+> `textContent`属性和`innerHTML`属性都可以用来设置或返回元素的内容。前者设置或者返回指定元素的**文本**内容，后者设置或返回指定元素从开始标签到结束标签之间的 **HTML**。
+
+Angular 数据绑定对危险 HTML 有防备。 在显示它们之前，它对内容先进行消毒。 不管是插值表达式还是属性绑定，都不会允许带有 script 标签的 HTML 泄漏到浏览器中。例如：
 
 ```typescript
-import { Component, OnInit } from '@angular/core';
+evilTitle = 'Template <script>alert("evil never sleeps")</script>Syntax';
+```
 
+```html
+<p>
+  <span>"{{evilTitle}}" is the <i>interpolated</i> evil title.</span>
+</p>
+<p>
+  "<span [innerHTML]="evilTitle"></span>" is the <i>property bound</i> evil title.
+</p>
+```
+
+### attribute绑定
+
+attribute绑定（元素属性绑定）的目标是HTML attribute，这是唯一的能创建和设置 attribute 的绑定形式。
+
+之所以需要attribute绑定，是因为有些HTML attribute，例如 ARIA（Accessible Rich Internet Application）， SVG 和 `<table>` 中的 `colspan`和`rowspan` 等HTML attribute，它们是纯粹的HTML attribute，没有对应的DOM property可供绑定。
+
+attribute绑定的目标都要以“attr.”为前缀：
+
+```html
+<td [attr.colspan]="1 + 1">One-Two</td>
+```
+
+而不能：
+
+```html
+<td colspan="{{1 + 1}}">Three-Four</td>
+```
+
+### class绑定
+
+借助 CSS 类属性绑定，可以从元素的`class` attribute 上添加和移除 CSS 类名。
+
+CSS 类绑定绑定的语法与标准属性绑定类似。 但方括号中的部分不是元素的属性名，而是由`class`前缀，一个点 (`.`)和 CSS 类的名字组成， 其中后两部分是可选的。形如：`[class.类名]`。
+
+```html
+<div [class.special]="isSpecial">The class binding is special</div>
+```
+
+当`isSpecial`为`true`时，Angular 会添加`special`这个类，反之则移除它。
+
+```html
+<div class="p-a-1 special"
+     [class.special]="!isSpecial">This one is not so special</div>
+```
+
+同时存在**同效的**HTML attribute和attribute绑定时，attribute绑定将覆盖HTML attribute。因此，上例中，当`isSpecial`为`true`时，最终`class="p-a-1"`。
+
+管理元素的CSS类，也可以使用标准属性绑定，即直接将模板表达式绑定到`class`属性上：
+
+```html
+<div class="bad curly special" 
+     [class]="badCurly">Bad curly</div>
+```
+
+当 `badCurly` 有值时，假设为`foo bar`，则 `class` 这个 attribute 设置的内容会被整个替换为该值，即最终`class="foo bar"`；如果`badCurly`没有值时 ，则`class="bad curly special"` 。
+
+另外，还可以使用`ngClass`指令来管理CSS类，详见“NgClass指令”。
+
+### style绑定
+
+style绑定（样式属性绑定）可以设置内联样式。
+
+样式绑定的语法与标准属性绑定类似。 但方括号中的部分不是元素的属性名，而由`style`前缀，一个点 (`.`)和 CSS 样式的属性名组成。 形如：`[style.样式属性]`。这里，CSS样式属性名可以用中线命名法（如`font-size`），也可以用驼峰式命名法（如`fontSize`）。
+
+```html
+<button [style.background-color]="canSave ? 'cyan': 'grey'">Save</button>
+```
+
+有些样式绑定中的样式带有单位，例如用 “em” 和 “%” 来设置字体大小的单位：
+
+```html
+<button [style.font-size.em]="isSpecial ? 3 : 1">Big</button>
+<button [style.font-size.%]="!isSpecial ? 150 : 50">Small</button>
+相当于：
+<button [style.font-size]="isSpecial ? '3em' : '1em'">Big</button>
+<button [style.font-size]="!isSpecial ? '150%' : '50%'">Small</button>
+```
+
+style绑定一次只能为设置单个样式属性。如果要设置多个样式属性，就要为每个样式属性创建一个绑定。
+
+NgStyle指令也可以用来管理内联样式，而且可以一次设置多个样式属性。详见“NgStyle指令”。
+
+> 注意：不要直接以`style`属性为绑定目标来设置样式值。因为表示DOM宿主元素的JavaScript对象的`style`属性所返回的对象是只读的。一些浏览器忽略这一点，并允许进行更改，但结果是不可预测的，开发应用程序时不能依赖特殊情况。
+
+## 元素到组件的绑定：事件绑定
+
+事件绑定的语法：
+
+```
+(目标) = "模板表达式"
+
+on-目标 = "模板表达式"
+```
+
+事件绑定语法由等号左侧带圆括号的目标事件（DOM元素的事件或指令的**输出**property）和右侧引号中的模板语句（可以是多条语句）组成。
+
+```html
+<button (click)="onClickMe()">Click me!</button>
+```
+
+或者
+
+```html
+<button on-click="onSave()">On Save</button>
+```
+
+出现在模板语句中的每个标识符都属于特定的上下文对象。 这个对象通常都是控制此模板的 Angular 组件。
+
+```typescript
 @Component({
-  selector: 'app-heros',
-  templateUrl: './heros.component.html',
-  styleUrls: ['./heros.component.scss']
+  selector: 'click-me',
+  template: `
+    <button (click)="onClickMe()">Click me!</button>
+    {{clickMessage}}`
 })
-export class HerosComponent implements OnInit {
-  constructor() { }
-  ngOnInit() {
+export class ClickMeComponent {
+  clickMessage = '';
+  onClickMe() {
+    this.clickMessage = 'You are my hero!';
   }
 }
 ```
 
-`ngOnInit` 是一个生命周期钩子，Angular 在创建完组件后很快就会调用 `ngOnInit`。这里是放置初始化逻辑的好地方。
+### 获取用户输入
 
-## 根组件
+#### 通过`$event`对象
 
-根组件由根模块的`@Component`装饰器的`bootstrap`属性指定。每个Angular应用必须至少有一个根组件，它会把组件树和页面中的 DOM 连接起来。。
+绑定会通过名叫`$event`的事件对象传递关于此事件的信息（包括数据值）。
 
-## 主从组件
+事件对象的形态取决于目标事件。如果目标事件是原生 DOM 元素事件，`$event`就是 DOM事件对象，它有像target和target.value这样的属性。
 
-## 生命周期钩子
+```typescript
+template: `
+  <input (keyup)="onKey($event)">
+  <p>{{values}}</p>`
+```
 
-应用可以通过生命周期钩子（如ngOnInit()）在组件生命周期的各个时间点上插入自己的操作。
+当用户按下并释放一个按键时，触发`keyup`事件，Angular 将一个相应的 DOM 事件对象提供给`$event`变量，并将它作为参数传递给`onKey()`方法的`event`参数。
 
-# 表单
+```typescript
+export class KeyUpComponent_v1 {
+  values = '';
+  onKey(event:any) { // without type info
+    this.values += event.target.value + ' | ';
+  }
+}
+```
+
+所有标准 DOM 事件对象都有一个`target`属性， 引用触发该事件的元素。 在本例中，`target`是`<input>`元素， `event.target.value`返回该元素的当前内容。
+
+上例将`$event`转换为`any`类型。 这样简化了代码，但是有成本。 没有任何类型信息能够揭示事件对象的属性，防止简单的错误。
+
+下面的例子，使用了带类型方法：
+
+```typescript
+export class KeyUpComponent_v1 {
+  values = '';
+  onKey(event: KeyboardEvent) { // with type info
+    this.values += (<HTMLInputElement>event.target).value + ' | ';
+  }
+}
+```
+
+
+
+#### 通过模板引用变量
+
+通过`$event`对象会获取整个 DOM 事件信息，这需要我们过多地了解HTML的实现细节。而通过模板引用变量则不需要我们了解HTML实现细节。
+
+下面的例子使用了局部模板变量，在一个超简单的模板中实现按键反馈功能。
+
+```typescript
+@Component({
+  selector: 'loop-back',
+  template: `
+    <input #box (keyup)="0">
+    <p>{{box.value}}</p>
+  `
+})
+export class LoopbackComponent { }
+```
+
+在标识符前加上井号 (`#`) 就能声明一个模板引用变量。上例中，在`<input>`元素声明了一个box的模板引用变量，它引用`<input>`元素本身。 可以在`<input>`元素的兄弟或子级元素中引用`box`。
+
+代码使用`box`获得输入元素的`value`值，并通过插值表达式把它显示在`<p>`元素中。
+
+这个模板完全是完全自包含的。它没有绑定到组件，组件也没做任何事情。
+
+注意：只有在应用做了些异步事件（如击键），Angular 才更新绑定（并最终影响到屏幕）。因此，必须绑定一个事件，否则将完全无法工作。本例代码将`keyup`事件绑定到了数字0，这是可能是最短的模板语句。 虽然这个语句不做什么，但它满足 Angular 的要求，所以 Angular 将更新屏幕。
+
+下面的代码重写了之前keyup示例，它使用变量来获得用户输入。
+
+```typescript
+@Component({
+  selector: 'key-up2',
+  template: `
+    <input #box (keyup)="onKey(box.value)">
+    <p>{{values}}</p>
+  `
+})
+export class KeyUpComponent_v2 {
+  values = '';
+  onKey(value: string) {
+    this.values += value + ' | ';
+  }
+}
+```
+
+这个方法最漂亮的一点是：组件代码从视图中获得了干净的数据值。再也不用了解`$event`变量及其结构了。（注意，最好传递给组件输入值，而不要直接传递元素`box`给组件。尽量将DOM相关的东西限制在模板中）
+
+### 自定义事件
+
+通常，指令使用 Angular `EventEmitter` 来触发自定义事件。 指令创建一个`EventEmitter`实例，并且把它作为属性暴露出来。 指令调用`EventEmitter.emit(payload)`来触发事件，可以传入任何东西作为消息载荷。 父指令通过绑定到这个属性来监听事件，并通过`$event`对象来访问载荷。
+
+假设`HeroDetailComponent`用于显示英雄的信息，并响应用户的动作。 虽然`HeroDetailComponent`包含删除按钮，但它自己并不知道该如何删除这个英雄。 最好的做法是触发事件来报告“删除用户”的请求。
+
+HeroDetailComponent.ts（模板）：
+
+```typescript
+template: `
+<div>
+  <img src="{{heroImageUrl}}">
+  <span [style.text-decoration]="lineThrough">
+    {{prefix}} {{hero?.fullName}}
+  </span>
+  <button (click)="delete()">Delete</button>
+</div>`
+```
+
+HeroDetailComponent.ts (删除逻辑)：
+
+```typescript
+// This component make a request but it can't actually delete a hero.
+@Output() deleteRequest = new EventEmitter<Hero>();
+delete() {
+  this.deleteRequest.emit(this.hero);
+}
+```
+
+现在，假设有个宿主的父组件，它绑定了`HeroDetailComponent`的`deleteRequest`事件。
+
+```html
+<hero-detail (deleteRequest)="deleteHero($event)" [hero]="currentHero"></hero-detail>
+```
+
+当`deleteRequest`事件触发时，Angular 调用父组件的`deleteHero`方法， 在`$event`变量中传入要删除的英雄（来自`HeroDetail`）。 
+
+### 常用事件监听器
+
+#### keyup.enter
+
+这不是DOM事件，而是一个Angular的模拟事件。只有当用户敲回车键时，Angular 才会调用事件处理器。
+
+#### blur
+
+blur事件在元素失去焦点时触发。
+
+```typescript
+@Component({
+  selector: 'key-up4',
+  template: `
+    <input #box
+      (keyup.enter)="update(box.value)"
+      (blur)="update(box.value)">
+    <p>{{value}}</p>
+  `
+})
+export class KeyUpComponent_v4 {
+  value = '';
+  update(value: string) { this.value = value; }
+}
+```
+
+上例在输入框失去焦点或按下回车键后都会更新组件的`value`值。
+
+## 单向绑定的限制
+
+单向绑定必须是幂等的，这意味着它们可以重复进行求值，而不会更改应用程序的状态。
+
+如果单向数据绑定表达式中包含可用于更新数据的操作符，例如`=`、`+=`、`-=`、`++`和`--`，那么Angular将报告错误消息。
+
+另外，当Angular在开发模式下运行时，它会执行额外的检查，以确保在执行表达式求值之后，单向数据绑定未被修改。
+
+## 双向绑定
+
+双向绑定的语法：
+
+```
+[(目标)] = "模板表达式"
+
+bindon-目标 = "模板表达式"
+```
+
+双向绑定的属性都可拆分成两个独立的单向绑定。
+
+当 Angular 在表单中看到`[(x)]`的绑定目标时， 它会期待这个`x`指令有一个名为`x`的输入属性，和一个名为`xChange`的输出属性。因此，`[(ngModel)]`可以拆分为`[ngModel]`和`(ngModelChange)`：
+
+```html
+<input type="text" class="form-control" id="name"
+       required
+       [ngModel]="model.name" name="name"
+       (ngModelChange)="model.name = $event" >
+```
+
+之前看到的`$event`对象来自 DOM 事件。 但`ngModelChange`属性不会生成 DOM 事件 —— 它是Angular `EventEmitter`类型的属性，当它触发时， 它返回的是输入框的值 —— 也正是希望赋给模型`name`属性的值。
+
+`[(ngModel)]`语法只能设置一个数据绑定属性。 如果需要做更多或不同的事情，就得自己用它的拆分形式。例如：
+
+```html
+<input
+  [ngModel]="currentHero.firstName"
+  (ngModelChange)="setUpperCaseFirstName($event)">
+```
+
+### NgModel指令
+
+像`<input>`和`<select>`这样的 HTML 元素，`value`接收输入，而`oninput`处理事件，不遵循`x`值和`xChange`事件的模式。因此，Angular 另以 NgModel 指令为桥梁，允许在表单元素上使用双向数据绑定。
+
+`<input>`元素如果不使用NgModel指令来实现双向绑定，则就必须使用下面的形式：
+
+```html
+<input [value]="currentHero.firstName"
+       (input)="currentHero.firstName=$event.target.value" >
+```
+
+而使用NgModel指令，则为：
+
+```html
+<input
+  [ngModel]="currentHero.firstName"
+  (ngModelChange)="currentHero.firstName=$event">
+```
+
+或者
+
+```html
+<input [(ngModel)]="currentHero.firstName">
+```
+
+每种元素的特点各不相同，所以NgModel指令只能在一些特定表单元素上使用，例如输入文本框，因为它们支持 `ControlValueAccessor`。
+
+除非写一个合适的值访问器，否则不能把`[(ngModel)]`用在自定义组件上。（通常自定义组件的双向绑定也不需要通过NgModel指令，直接使用 `[(自定义组件的属性)]` 就可以了）
+
+注：在使用NgModel做双向数据绑定之前，得先导入`FormsModule`，即把它加入 Angular 模块的`imports`列表。
+
+## 绑定目标
+
+目标指定数据绑定将执行的操作。有两种不同类型的目标：
+
+- 指令
+
+- 属性绑定（包括：property绑定、attribute绑定、class绑定和style绑定）
+
+当Angular处理数据绑定的目标时，它将首先进行检查以确定是否匹配某条指令。如果绑定目标未对应到某条指令，那么Angular将检查目标能否用于创建属性绑定。
+
+## 宿主元素
+
+宿主元素是将要受到绑定影响（通过改变元素的外观、内容或行为）的HTML元素。数据绑定可以应用于模板中的任何HTML元素，一个元素可以有多个绑定，每个绑定可以分别管理该元素的外观或行为的不同方面。
+
+## 理解括号
+
+数据绑定中的括号（包括方括号、圆括号）告诉Angular，这是一个具有待求值表达式的单向数据绑定。如果省略括号并且目标是一条**指令**，那么Angular仍然会处理绑定，但不会对表达式进行求值，而只是把引号之间的内容作为字面值传递给该指令。
+
+```html
+<div ngClass="'p-a-1 ' + getClasses()">
+  Hello, world.
+</div>
+```
+
+结果为：
+
+```html
+<div class="'p-a-1 ' + getClasses()">
+  Hello, world.
+</div>
+```
+
+## 脏值检测
 
 # 管道
 
-# UI组件
+# 表单
+
+# 路由
+
+告诉Angular每个URL映射到组件的映射称为URL路由，简称路由。
+
+## `<base href>` 元素
+
+Angular路由功能要求HTML文档（`index.html`）中有一个`<base>`元素，由其提供路由的基本URL。
+
+## 定义路由
+
+最简单的创建路由的方式就是在根模块的`@NgModule`装饰器中定义路由：
+
+```typescript
+@NgModule({
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    BrowserModule,
+    RoutingModule.forRoot([
+      {path: 'store', component: StoreComponent},
+      {path: 'cart', component: CartDetailComponent},
+      {path: 'checkout', component: CheckoutComponent},
+      {path: '**', redirectTo: '/store'}
+    ])
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+```
+
+## `<router-outlet>`元素
+
+当使用路由功能时，Angular会查找`<router-outlet>`元素，它相当于一个占位符，它指定了应该在什么位置显示当前URL对应的组件。
+
+## 应用程序导航
+
+URL路由功能依赖浏览器提供的JavaScript API，因此用户无法简单地将目标URL输入到浏览器地址栏中进行导航。相反，导航必须由应用程序执行，具体的实现方法是在组件或其他构造块中编写JavaScript代码，或者向模板中的HTML元素添加属性。
+
+> 实际上，直接将目标URL输入浏览器地址栏中，是能跳转到目标页面，但无法保持目标页面的原有状态。特别是，如果目标页面是一个表单，则原先输入内容将丢失。但是，如果应用程序希望能从不同的URL开始导航，则这种直接通过浏览器地址栏导航是有意义的。
+
+在代码中导航，可以使用`Router`的`navigateByUrl()`方法：
+
+```typescript
+export class StoreComponent {
+  …
+  constructor(private router: Router) {}
+  …
+  addProductToCart(product: Product) {
+    …
+    this.router.navigateByUrl('/cart');
+  }
+}
+```
+
+在模板中，可通过向元素添加`routerLink`属性来实现导航：
+
+```html
+<button [disabled]='cart.itemCount == 0' routerLink='/cart'>购物车</button>
+```
+
+要在模板中使用`routerLink`属性，必须将`RouterModule`导入所在模块：
+
+```typescript
+import {RouterModule} from "@angular/router";
+
+@NgModule({
+  imports: [RouterModule, …],
+  …
+})
+```
+
+路由器会根据你应用中的导航规则和数据状态来拦截 URL。 当用户点击按钮、选择下拉框或收到其它任何来源的输入时，你可以导航到一个新视图。 路由器会在浏览器的历史日志中记录这个动作，所以前进和后退按钮也能正常工作。
+
+## 守卫路由
+
+守卫路由可以实现，只有当某些条件满足时，该路由才会被激活。
+
+# UI
 
 ## Angular Material
 
