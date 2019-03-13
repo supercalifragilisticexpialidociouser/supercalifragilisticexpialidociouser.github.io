@@ -1087,7 +1087,7 @@ getStyles() {
 
 Angular 在每个 JavaScript 事件循环中处理所有的数据绑定，它会从组件树的根部开始，递归处理全部子组件。
 
-## 从数据源到视图的绑定：属性绑定
+## 从数据源到视图的绑定
 
 ### property绑定
 
@@ -1170,12 +1170,12 @@ evilTitle = 'Template <script>alert("evil never sleeps")</script>Syntax';
 ```
 
 ```html
-<p>
-  <span>"{{evilTitle}}" is the <i>interpolated</i> evil title.</span>
-</p>
-<p>
-  "<span [innerHTML]="evilTitle"></span>" is the <i>property bound</i> evil title.
-</p>
+<!--
+  Angular generates warnings for these two lines as it sanitizes them
+  WARNING: sanitizing HTML stripped some content (see http://g.co/ng/security#xss).
+ -->
+<p><span>"{{evilTitle}}" is the <i>interpolated</i> evil title.</span></p>
+<p>"<span [innerHTML]="evilTitle"></span>" is the <i>property bound</i> evil title.</p>
 ```
 
 ### attribute绑定
@@ -1257,9 +1257,9 @@ NgStyle指令也可以用来管理内联样式，而且可以一次设置多个�
 事件绑定的语法：
 
 ```
-(目标) = "模板表达式"
+(目标) = "模板语句"
 
-on-目标 = "模板表达式"
+on-目标 = "模板语句"
 ```
 
 事件绑定语法由等号左侧带圆括号的目标事件（DOM元素的事件或指令的**输出**property）和右侧引号中的模板语句（可以是多条语句）组成。
@@ -1515,13 +1515,20 @@ bindon-目标 = "模板表达式"
 
 ## 绑定目标
 
-目标指定数据绑定将执行的操作。有两种不同类型的目标：
+目标指定数据绑定将执行的操作，它是 DOM 中的某些东西。
 
-- 指令
+这个目标可能是（元素、组件、指令的）property、（元素、组件、指令的）事件，或(极少数情况下) attribute 名。
 
-- 属性绑定（包括：property绑定、attribute绑定、class绑定和style绑定）
+| 绑定类型  | 目标                           |
+| --------- | ------------------------------ |
+| 属性      | （元素、组件、指令的）property |
+| 事件      | （元素、组件、指令的）事件     |
+| 双向      | 事件或property                 |
+| attribute | attribute                      |
+| CSS类     | class property                 |
+| 样式      | style property                 |
 
-当Angular处理数据绑定的目标时，它将首先进行检查以确定是否匹配某条指令。如果绑定目标未对应到某条指令，那么Angular将检查目标能否用于创建属性绑定。
+
 
 ## 宿主元素
 
