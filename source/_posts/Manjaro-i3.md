@@ -34,6 +34,8 @@ $ sudo pacman -Syyu
 $ sudo pacman -S archlinuxcn-keyring
 ```
 
+重启系统。
+
 # 设置时钟
 
 方法一：通过GUI配置界面
@@ -45,6 +47,14 @@ $ sudo hwclock --systohc
 同步时间：
 $ ntpdate -u ntp.api.bz
 ```
+
+让Windows和Linux时间显示一致：
+
+```bash
+$ timedatectl set-local-rtc 1 --adjust-system-clock
+```
+
+上面命令让Linux将本机的存储时间解释为当地时间，Linux将不再将时区调整应用于存储在主板上的时间，从而与Windows保持一致。 
 
 # 更换浏览器
 

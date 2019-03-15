@@ -1200,7 +1200,7 @@ attribute绑定的目标都要以“attr.”为前缀：
 
 借助 CSS 类属性绑定，可以从元素的`class` attribute 上添加和移除 CSS 类名。
 
-CSS 类绑定绑定的语法与标准属性绑定类似。 但方括号中的部分不是元素的属性名，而是由`class`前缀，一个点 (`.`)和 CSS 类的名字组成， 其中后两部分是可选的。形如：`[class.类名]`。
+CSS 类绑定绑定的语法与标准属性绑定类似。 但方括号中的部分不是元素的属性名，而是由`class`前缀，一个点 (`.`)和 CSS 类的名字组成， 其中后两部分是可选的（省略时，即`[class]`，这实际上就是标准属性绑定）。形如：`[class.类名]`。
 
 ```html
 <div [class.special]="isSpecial">The class binding is special</div>
@@ -1222,9 +1222,9 @@ CSS 类绑定绑定的语法与标准属性绑定类似。 但方括号中的部
      [class]="badCurly">Bad curly</div>
 ```
 
-当 `badCurly` 有值时，假设为`foo bar`，则 `class` 这个 attribute 设置的内容会被整个替换为该值，即最终`class="foo bar"`；如果`badCurly`没有值时 ，则`class="bad curly special"` 。
+当 `badCurly` 有值时，假设为`foo bar`，则 `class` 这个 attribute 设置的内容会被**整个替换**为该值，即最终`class="foo bar"`；如果`badCurly`没有值时 ，则`class="bad curly special"` 。
 
-另外，还可以使用`ngClass`指令来管理CSS类，详见“NgClass指令”。
+另外，还可以使用`ngClass`指令来管理多个CSS类，详见“NgClass指令”。
 
 ### style绑定
 
@@ -1330,8 +1330,6 @@ export class KeyUpComponent_v1 {
   }
 }
 ```
-
-
 
 #### 通过模板引用变量
 
