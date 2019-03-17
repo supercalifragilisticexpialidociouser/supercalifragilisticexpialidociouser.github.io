@@ -376,6 +376,10 @@ $ gcc -o foo foo.c bar.c
 $ gcc -E -C -o hello.i hello.c
 ```
 
+> `-E`选项表示仅作预处理，不进行编译、汇编或链接。
+>
+> `-C` 选项在执行预处理时保留注释。
+
 在命令中，可以使用`-D宏名[=定义]`方式来定义宏：
 
 ```bash
@@ -402,6 +406,8 @@ $ gcc hello.c -DFOO
 $ gcc -S hello.c
 ```
 
+> `-S`选项表示编译到汇编语言，不进行汇编和链接。
+
 如果想把C语言变量的名称作为汇编语言语句中的注释，可以加上`-fverbose-asm`选项：
 
 ```bash
@@ -418,9 +424,9 @@ $ gcc -S -fverbose-asm hello.c
 $ gcc -c hello.c
 ```
 
-`-c`选项指示GCC只编译不链接。
+> `-c`选项指示GCC只编译和汇编，不进行链接。
 
-可以使用GCC的`-Wa`选项（可以有多个）给汇编器传递参数：
+可以使用GCC的`-Wa,参数1,参数2,…`选项（参数可以有多个，之间使用逗号分隔）给汇编器传递参数：
 
 ```bash
 $ gcc -v -o hello -Wa,-as=hello.sym,-L hello.c
@@ -465,7 +471,7 @@ $ gcc foo.o -lbar1 -lbar2
 创建静态链接库：
 
 ```bash
-$ ar cr libfoo.a foo.o bar.o
+$ ar -cr libfoo.a foo.o bar.o
 ```
 
 创建动态链接库：
@@ -733,13 +739,88 @@ int main(int argc, char *argv[]) {
 
 > 可以在`limits.h`头文件中找到所采用编译器中整数类型的取值范围，它们定义为宏，例如宏`INT_MIN`、`INT_MAX`和`UINT_MAX`等。
 
+在整数的算术运算中，可能会发生溢出（overflow）情况。C语言仅对无符号整数类型指明了溢出的处理结果，对其他类型则没有定义。无符号整数运算的有效结果，等于除以`UTYPE_MAX + 1`之后的余数。其中`UTYPE_MAX`是该无符号类型所能表示的最大值。
+
+#### 确定位长的整数类型
+
+在C99中，头文件stdint.h中定义了确定位长的整数类型。
+
+| 类型                        | 含义                              | 实现版本              |
+| --------------------------- | --------------------------------- | --------------------- |
+| intN_t、uintN_t             | 位长为N的整数类型                 | 可选                  |
+| int_leastN_t、uint_leastN_t | 位长至少为N的整数类型             | 要求N = 8、16、32、64 |
+| int_fastN_t、uint_fastN_t   | 处理位长至少为N的最快速的整数类型 | 要求N = 8、16、32、64 |
+| intmax_t、uintmax_t         | 位长最大的整数类型                | 需要                  |
+| intptr_t、uintptr_t         | 位长足以存储指针值的整数类型      | 可选                  |
+
+带符号的确定位长整数类型有个特点：必须使用2的补码的二进制表示方式。因此，它们的最小值是-2^N-1^，最大值是2^N-1^-1。
+
+#### 整数字面量
+
+十进制整数字面量：起始数字不可为0。例如：255。
+
+八进制整数字面量：以0开始的数字。例如：047。
+
+十六进制整数字面量：以0x或0X作为前缀的数字。例如：0xFF、0Xff。
+
+整数字面量通常会认定为`int`类型，除非这个字面量值在`int`所能表示的范围之外。在这种情况下，编译器会按照类型层次自动选择第一个范围足够表示该值的类型。
+
+- 对于十进制字面量来说，类型层次为：`int`、`long`、`long long`。
+- 对于八进制和十六进制字面量来说，类型层次为：`int`、`unsigned int`、`long`、`unsigned long`、`long long`、`unsigned long long`。
+
+也可以利用后缀来显式地定义字面量的类型。如果字面量具有后缀`l`或`L`，其类型就是`long`（在必要情况下，还可以为一个范围更大的类型。这个“更大”对应于前面提到的类型层次）。类似地，如果后缀是`ll` 或`LL`，则类型至少为`long long`。后缀为`u` 或`U`则为无符号类型。`long`后缀与无符号后缀可以混合使用：
+
+```c
+512U     //unsigned int
+0Xf0fUL  //unsigned long
+0777LL   //long long
+0xAAAllu //unsigned long long
+```
+
 ### 浮点类型
+
+| 类型         | 存储大小 | 取值范围  | 最小正数值 | 精度 |
+| ------------ | -------- | --------- | ---------- | ---- |
+| float        | 4位      | ±3.4E38   | 1.2E-38    | 6位  |
+| double       | 8位      | ±1.7E308  | 2.3E-308   | 15位 |
+| long  double | 10位     | ±1.1E4932 | 3.4E-4932  | 19位 |
+
+C语言中，对浮点数进行算术运算时，通常需要采用`double`或者更高精度的类型。实现版本所采用的浮点精度由头文件float.h中定义的宏`FLT_EVAL_METHOD`指定。例如，如果宏`FLT_EVAL_METHOD`值为1,则下面的乘法运算采用`double`类型：
+
+```c
+float height = 1.2345, width = 2.3456;
+double area = height * width;
+```
+
+#### 浮点字面量
+
+
 
 ### 复数浮点类型
 
+C99支持复数浮点类型，并扩充了数学库以包括复数算术函数，它们声明在头文件complex.h中。
+
+C11标准中，对复数的支持是可选的。如果定义了宏`__STDC_NO_COMPLEX__`，则所采用的实现版本不支持复数，即不包含头文件complex.h。
+
+在C语言中，复数被表示成一对浮点数，这对浮点数分别是实部和虚部。两者的数据类型是一样的，可以是`float`、`double`或`long double`。相应地，有三种复数浮点类型：
+
+- `float _Complex`
+- `double _Complex`
+- `long double _Complex`
+
+另外，实现版本中可能还包括三种表示纯虚数的类型：
+
+- `float imaginary`
+- `double imaginary`
+- `long double imaginary`
+
+头文件complex.h定义了宏`complex`和`I`。宏`complex`是关键字`_Complex`的同义词。宏`I`代表虚数单位i，且其类型是`const float _Complex`。
+
+C11中提供了宏`CMPLX`、`CMPLXF`和`CMPLXL`，分别用于构造`double _Complex`、`float _Complex`和`long double _Complex`复数。例如：`CMPLX(1.0, 2.0)`。
+
 ## 字符类型
 
-C语言中的字符类型实际上都是整数类型，可以对它们做算术运算。
+C语言中的字符类型实际上都是整数类型，可以对它们做算术运算。由程序自身决定是否将字符类型变量的值解释为字符码或其他东西。
 
 ### 单字节字符
 
@@ -749,11 +830,11 @@ C语言中的字符类型实际上都是整数类型，可以对它们做算术�
 
 ### 宽字符
 
-C语言用`wchar_t`类型表示宽字符。当宽字符采用Unicode标准时（即定义了宏`__STDC_ISO_10646__`），`wchar_t`类型至少是16位或32位长，`wchar_t`类型的一个值代表一个Unicode字符。
+C语言用`wchar_t`类型（stddef.h）表示宽字符。当宽字符采用Unicode标准时（即定义了宏`__STDC_ISO_10646__`），`wchar_t`类型至少是16位或32位长，`wchar_t`类型的一个值代表一个Unicode字符。
 
 > 在Windows中，`wchar_t`有2个字节，存储UTF-16编码的字符。
 
-由于`wchar_t`的大小是由实现代码定义，当代码需要在不同的系统之间移植时，这种不确定性和可变性降低了其可用性。因此，C11引入额外的宽字符类型`char16_t`和`char32_t`。它们被定义为无符号整数类型，在定义了宏`_STDC_UTF_16__`的C实现中，类型`char16_t`的字符采用UTF-16编码；在定义了宏`_STDC_UTF_32__`的C实现中，类型`char32_t`的字符采用UTF-32编码。
+由于`wchar_t`的大小是由实现代码定义，当代码需要在不同的系统之间移植时，这种不确定性和可变性降低了其可用性。因此，C11引入额外的宽字符类型`char16_t`和`char32_t`（uchar.h）。它们被定义为无符号整数类型，在定义了宏`_STDC_UTF_16__`的C实现中，类型`char16_t`的字符采用UTF-16编码；在定义了宏`_STDC_UTF_32__`的C实现中，类型`char32_t`的字符采用UTF-32编码。
 
 `wchar_t`字符字面量必须有一个`L`前缀，`char16_t`字符字面量必须有一个`u`前缀，`char32_t`字符字面量必须有一个`U`前缀：
 
@@ -792,6 +873,48 @@ C99引入了无符号整数类型`_Bool`用来表示布尔类型。布尔值真�
 
 C语言中空类型使用`void`表示。
 
+ 不可以用`void`声明变量或常量。
+
+### void用于函数声明
+
+声明没有返回值的函数：
+
+```c
+void perror(const char *);
+```
+
+声明不带参数的函数：
+
+```c
+FILE *tmpfile(void);
+```
+
+### void类型表达式
+
+void类型表达式指的是没有值的表达式。例如，调用一个没有返回值的函数，就是一种void类型表达式：
+
+```c
+char filename[] = "memo.txt";
+if (fopen(filename, "r") == NULL)
+  perror(filename);  //void表达式
+```
+
+使用`(void)`对一个表达式进行强制类型转换，将显式地丢弃该表达式的值：
+
+```c
+(void)printf("I don't need this function's return value!\n");
+```
+
+### 指向void的指针
+
+一个`void *`类型的指针代表了对象的地址，但没有该对象的类型信息。这种“无数据类型”指针主要用于声明函数，让函数可使用各种类型的指针参数，或者返回一个“多用途”的指针。
+
+```c
+void *realloc(void *ptr, size_t size);
+```
+
+可将一个void指针值赋值给另一个对象指针类型，反之亦然，这都不需要进行显式的类型转换。
+
 # 声明
 
 ## 变量声明
@@ -818,6 +941,28 @@ char *str8 = u8"This is a Unicode string using UTF-8 encoding.";
 # 枚举类型
 
 基本类型和枚举类型统称算术类型（arithmetic type）。
+
+枚举类型是一种由用户在程序中定义的整数类型。
+
+```c
+enum color {black, red, green, yellow, blue, white=7, gray};
+enum color bgColor = blue, fgColor = yellow;
+void setFgColor(enum color fgc);
+```
+
+枚举常量的数据类型是`int`。
+
+对于给定枚举类型中的每个枚举常量都表示一个特定值，该值可以是隐式地由枚举值的位置所决定，也可以是显式地使用一个常量表达式来初始化。如果没有初始化，第一个枚举常量的值为0，其后面常量的值为前面枚举量值加1。因此，上面例子中的枚举常量的值依次为：0、1、2、3、4、7、8。
+
+由于枚举类型总是对应一种标准整数类型。因此，C程序可以使用枚举类型的变量进行一般算术运算。
+
+一个枚举中的不同枚举常量，可以具有相同的值。
+
+```c
+enum {OFF, ON, STOP=0, GO=1, CLOSED=0, OPEN=1};
+```
+
+枚举类型定义时，如果只想定义常量，而不想声明属于该枚举类型的变量， 则可以省略类型名。用这种方式定义整数常量，比使用一长串的`#define`命令更好，因为枚举同时提供编译器常量的名称及其数值，这会带来额外的好处，例如，在调试器中可以显示常量名称。
 
 # 表达式
 
@@ -893,6 +1038,8 @@ int test_func(char *s) {
 
 ### 结合性
 
+## 函数类型
+
 # 指针
 
 算术类型和指针类型统称标量类型（scalar type）。
@@ -951,7 +1098,39 @@ C语言有四种作用域：
 
 `sizeof 表达式` 或`sizeof(表达式)` 表示获取指定表达式类型的空间大小。
 
-`sizeof`的结果类型是`size_t`，它是作为一个无符号整数类型（如`unsigned long`）定义在头文件`stddef.h`、`stdio.h`以及其他头文件中。
+`sizeof`的结果类型是`size_t`（stddef.h），它是作为一个无符号整数类型（如`unsigned long`）定义在头文件`stddef.h`、`stdio.h`以及其他头文件中。
+
+## 对象在内存中的对齐方式
+
+类型指定了该类型中用于存储对象的内存地址形式，这些形式包括：
+
+- 所有地址都可以存储
+- 只有偶数地址可以存储
+- 只有被4整除的地址可以存储
+- ……
+
+一个类型的对齐用该类型中两个对象在内存中相距的字节数量来表示。类型对齐的具体值随C语言实现版本的不同而异，但是它们都是2的正整数指数，如1、2、4、8等。
+
+如果一个类型的对齐比另一个类型具有更大的值，则称该类型的对齐方式比另一个类型的对齐方式更严格。
+
+C11提供了操作符`_Alignof`来获取一个类型的对齐，修饰符`_Alignas`来指定一个对象的对齐。
+
+```c
+_Alignof(int)   //返回size_t类型的值4
+```
+
+如果一个对齐值小于等于`_Alignof(max_align_t)`，则称为基础对齐。所有基本类型和指针类型有一个基础对齐值。此外，实现版本可能也支持对齐值大于`_Alignof(max_align_t)`，这种情况被称为扩展对齐（extended alignment）。
+
+当一个对象用修饰符`_Alignas`定义时，它可拥有较其类型本身所需的对齐值更为严格的对齐值。`_Alignas`的参数可以是一个整数常量表达式，其值为一个有效的对齐值，或一个类型：
+
+```c
+_Alignas(4) short var;  //定义short类型的变量var，其拥有4字节的对齐值
+_Alignas(double) float x;  //定义float类型变量x，其拥有double类型的对齐值
+```
+
+`_Alignas(type)`等效于`_Alignas(_Alignof(type))`。
+
+头文件stdalign.h中定义了`alignof`和`alignas`作为`_Alignof`和`_Alignas`的同义词。
 
 # 别名
 
