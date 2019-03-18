@@ -124,6 +124,12 @@ $ sudo mhwd -a pci nonfree 0300
 $ pacman -S adobe-source-code-pro-fonts wqy-bitmapfont wqy-microhei wqy-zenhei wjy-microhei-lite
 ```
 
+可以使用`fc-list`显示系统已安字体的位置及字体名：
+
+```bash
+$ fc-list | grep Source
+```
+
 # 更改urxvt的字体
 
 Manjaro默认终端是urxvt。
@@ -132,8 +138,8 @@ Manjaro默认终端是urxvt。
 
 ```
 xft.dpi:125  #设置dpi，对4k高分屏需要设置，设置成默认值的2倍试试。
-URxvt.font: xft:Source Code Pro:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
-URxvt.boldfont: xft:Source Code Pro:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
+URxvt.font: xft:Source Code Pro:style=Regular:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
+URxvt.boldfont: xft:Source Code Pro:style=Bold:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
 ```
 
 # 配置Shell
@@ -192,6 +198,35 @@ ZSH_THEME="agnoster"
 
 1. 将[bullet-train.zsh-theme](http://raw.github.com/caiogondim/bullet-train-oh-my-zsh-theme/master/bullet-train.zsh-theme)下载到`.oh-my-zsh/custom/themes/`。
 2. 配置`~/.zshrc`：`ZSH_THEME="bullet-train"`。
+
+Powerlevel9k是另一个不错的第三方主题：
+
+1. 下载主题到指定目录：
+
+   ```bash
+   $ git clone https://github.com/bhilburn/powerlevel9k.git ~/.oh-my-zsh/custom/themes/powerlevel9k
+   ```
+
+2. 编辑 `~/.zshrc` 来启用主题：
+
+   ```
+   ZSH_THEME="powerlevel9k/powerlevel9k"
+   ```
+
+3. 安装[Nerd Fonts](https://github.com/ryanoasis/nerd-fonts)字体：
+
+   安装nerd-fonts-complete包。
+
+   然后，在`~/.zshrc`的指定powerlevel9k主题（即`ZSH_THEME="powerlevel9k/powerlevel9k"`）之前，添加：`POWERLEVEL9K_MODE='nerdfont-complete'`。
+
+   最后，修改`~/.Xresources`为：
+
+   ```
+   URxvt.font: xft:SauceCodePro Nerd Font:style=Regular:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
+   URxvt.boldfont: xft:SauceCodePro Nerd Font:style=Bold:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
+   ```
+
+4. 重启一下系统。
 
 ## 更新oh-my-zsh
 
