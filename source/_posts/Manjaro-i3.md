@@ -222,9 +222,11 @@ Powerlevel9k是另一个不错的第三方主题：
    最后，修改`~/.Xresources`为：
 
    ```
-   URxvt.font: xft:SauceCodePro Nerd Font:style=Regular:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
-   URxvt.boldfont: xft:SauceCodePro Nerd Font:style=Bold:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
+   URxvt.font: xft:SauceCodePro Nerd Font Mono:style=Regular:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
+   URxvt.boldfont: xft:SauceCodePro Nerd Font Mono:style=Bold:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
    ```
+
+   > 注意：这里一定要用等宽字体（即这里的带“Mono”后缀），否则，有些双宽度图标字符显示不出来。
 
 4. 重启一下系统。
 
