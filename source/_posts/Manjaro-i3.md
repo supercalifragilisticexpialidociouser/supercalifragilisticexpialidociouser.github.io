@@ -130,16 +130,26 @@ $ pacman -S adobe-source-code-pro-fonts wqy-bitmapfont wqy-microhei wqy-zenhei w
 $ fc-list | grep Source
 ```
 
-# 更改urxvt的字体
+# 配置URxvt
 
-Manjaro默认终端是urxvt。
+Manjaro默认终端是URxvt。
+
+## 更改URxvt的字体
 
 编辑`~/.Xresources`：
 
 ```
 xft.dpi:125  #设置dpi，对4k高分屏需要设置，设置成默认值的2倍试试。
-URxvt.font: xft:Source Code Pro:style=Regular:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
-URxvt.boldfont: xft:Source Code Pro:style=Bold:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
+URxvt.font: xft:Source Code Pro:style=Regular:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:antialias=True:pixelsize=18
+URxvt.boldfont: xft:Source Code Pro:style=Bold:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:antialias=True:pixelsize=18
+```
+
+## 使用Chromium打开链接
+
+编辑`~/.Xresources`：
+
+```
+URxvt*url-launcher:     chromium
 ```
 
 # 配置Shell
@@ -194,12 +204,16 @@ ZSH_THEME="agnoster"
 
 官方主题位于：`.oh-my-zsh/themes/`下，第三方主题位于：`.oh-my-zsh/custom/themes/`下。
 
-第三方主题Bullet Train也不错，安装步骤如下：
+### Bullet Train主题
+
+安装步骤：
 
 1. 将[bullet-train.zsh-theme](http://raw.github.com/caiogondim/bullet-train-oh-my-zsh-theme/master/bullet-train.zsh-theme)下载到`.oh-my-zsh/custom/themes/`。
 2. 配置`~/.zshrc`：`ZSH_THEME="bullet-train"`。
 
-Powerlevel9k是另一个不错的第三方主题：
+### Powerlevel9k主题
+
+安装步骤：
 
 1. 下载主题到指定目录：
 
@@ -207,13 +221,19 @@ Powerlevel9k是另一个不错的第三方主题：
    $ git clone https://github.com/bhilburn/powerlevel9k.git ~/.oh-my-zsh/custom/themes/powerlevel9k
    ```
 
-2. 编辑 `~/.zshrc` 来启用主题：
+2. 在 `~/.zshrc` 首行添加：
+
+   ```
+   export TERM="xterm-256color"
+   ```
+
+3. 编辑 `~/.zshrc` 来启用主题：
 
    ```
    ZSH_THEME="powerlevel9k/powerlevel9k"
    ```
 
-3. 安装[Nerd Fonts](https://github.com/ryanoasis/nerd-fonts)字体：
+4. 安装[Nerd Fonts](https://github.com/ryanoasis/nerd-fonts)字体：
 
    安装nerd-fonts-complete包。
 
@@ -222,13 +242,34 @@ Powerlevel9k是另一个不错的第三方主题：
    最后，修改`~/.Xresources`为：
 
    ```
-   URxvt.font: xft:SauceCodePro Nerd Font Mono:style=Regular:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
-   URxvt.boldfont: xft:SauceCodePro Nerd Font Mono:style=Bold:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:pixelsize=18
+   URxvt.font: xft:SauceCodePro Nerd Font Mono:style=Regular:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:antialias=True:pixelsize=18
+   URxvt.boldfont: xft:SauceCodePro Nerd Font Mono:style=Bold:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:antialias=True:pixelsize=18
    ```
 
    > 注意：这里一定要用等宽字体（即这里的带“Mono”后缀），否则，有些双宽度图标字符显示不出来。
 
-4. 重启一下系统。
+5. 常用Powerlevel9k配置
+
+   ```
+   # 左侧栏目显示的要素
+   POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon context dir vcs)
+   # 新起一行显示命令
+   POWERLEVEL9K_PROMPT_ON_NEWLINE=true
+   # 默认的上下行连线不好看，下面是比较美观的设置
+   # POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX="↱"
+   # POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="↳ "
+   # POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX=""
+   # POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="▶ "
+   POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX="%{%F{249}%}\u250f"
+   POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="%{%F{249}%}\u2517%{%F{default}%}▶ "
+   # 新的命令与上面的命令隔开一行
+   POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
+   # 设置分隔符
+   # POWERLEVEL9K_LEFT_SEGMENT_SEPARATOR='\UE0BC'
+   POWERLEVEL9K_RIGHT_SEGMENT_SEPARATOR='\UE0BA'
+   ```
+
+6. 重启一下系统。
 
 ## 更新oh-my-zsh
 
