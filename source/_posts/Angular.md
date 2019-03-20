@@ -53,6 +53,11 @@ $ npm install
 
 推荐使用[Visual Studio Code](https://code.visualstudio.com/)。
 
+安装如下VSCode扩展：
+
+- Angular Language Service
+- Angular 7 Snippets - TypeScript, Html, Angular Material, ngRx, RxJS & Flex Layout
+
 ## 选择浏览器
 
 推荐使用Chrome。
@@ -540,7 +545,7 @@ The null hero's name is {{nullHero && nullHero.firstName}}
 或
 
 ```html
-<div *ngIf="nullHero">The null hero's name is {{nullHero.firstName}}</div>
+The null hero's name is <span *ngIf="nullHero">{{nullHero.firstName}}</span>
 ```
 
 Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路径中，它工作得很完美。
@@ -611,7 +616,7 @@ export class ProductComponent {
 
 模板语句用来响应由绑定目标（如 HTML 元素、组件或指令）触发的事件。就像这样：`(event)="statement"`。
 
-模板语句有副作用。
+虽然模板表达式不应该有副作用，但是模板语句通常会有副作用。
 
 和模板表达式一样，模板语句使用的语言也像 JavaScript。 模板语句解析器和模板表达式解析器有所不同，特别之处在于它支持基本赋值 (`=`) 和表达式链 (`;`和`,`)。
 
@@ -625,7 +630,7 @@ export class ProductComponent {
 
 4）位运算符`|`和`&`
 
-5）模板表达式运算符（管道运算符、安全导航运算符、非空断言运算符）
+5）模板表达式运算符（即管道运算符、安全导航运算符、非空断言运算符）
 
 #### 语句上下文
 
@@ -671,7 +676,9 @@ export class ProductComponent {
 
 结构型指令通过在 DOM 中添加、移除和替换元素来修改布局。例如：`*ngFor`。
 
-### ngIf指令
+### 内置结构型指令
+
+#### ngIf指令
 
 当`ngIf`指令为`false`时，Angular 从 DOM 中物理地移除了这个元素子树。 它销毁了子树中的组件及其状态，也潜在释放了可观的资源，最终让用户体验到更好的性能。
 
@@ -681,7 +688,7 @@ export class ProductComponent {
 <hero-detail *ngIf="isActive"></hero-detail>
 ```
 
-### ngSwitchCase、ngSwitchDefault指令
+#### ngSwitchCase、ngSwitchDefault指令
 
 `ngSwitchCase`指令、`ngSwitchDefault`指令必须与`ngSwitch`指令一起使用。
 
@@ -695,7 +702,7 @@ export class ProductComponent {
 </div>
 ```
 
-### ngFor指令
+#### ngFor指令
 
 `ngFor`是一个重复器指令，它对对象集合中的每个对象重复生成一段内容。
 
@@ -730,7 +737,7 @@ export class ProductComponent {
 
 > 注意：模板输入变量和模板引用变量不是一回事！
 
-#### 使用索引
+##### 使用索引
 
 `ngFor`指令内置了一些方便使用索引的局部模板变量：
 
@@ -744,7 +751,7 @@ export class ProductComponent {
 
 > 注意：我们不能直接访问这些模板变量的值，而是必须将它们赋值给一个局部变量，即使名称相同。
 
-##### 使用 `index` 
+###### 使用 `index` 
 
 ```html
 <table class="table table-sm table-bordered mt-1 text-dark">
@@ -758,7 +765,7 @@ export class ProductComponent {
 </table>
 ```
 
-##### 使用`odd`和`even`
+###### 使用`odd`和`even`
 
 ```html
 <table class="table table-sm table-bordered mt-1">
@@ -775,7 +782,7 @@ export class ProductComponent {
 
 > 注意：在一个元素上定义的局部模板变量，可以立即在同一个元素的表达式中使用，例如上例中`odd`局部变量。
 
-##### 使用`first`和`last`
+###### 使用`first`和`last`
 
 ```html
 <table class="table table-sm table-bordered mt-1">
@@ -794,7 +801,7 @@ export class ProductComponent {
 </table>
 ```
 
-#### trackBy
+##### trackBy
 
 `ngFor`指令有时候会性能较差，特别是在大型列表中。 对一个条目的一丁点改动、移除或添加，都会导致级联的 DOM 操作。
 
@@ -880,7 +887,9 @@ trackByHeroes(index: number, hero: Hero) { return hero.id; }
 
 属性型指令修改一个现有元素的外观或行为。 例如：`ngModel`。
 
-### ngClass指令
+### 内置属性型指令
+
+#### ngClass指令
 
 `ngClass`指令支持的表达式结果类型：
 
@@ -932,7 +941,7 @@ export class ProductComponent {
 
 注意：class绑定是添加或删除单个类的最佳途径，而`ngClass`指令是同时添加或移除多个 CSS 类的更好选择。
 
-### ngStyle指令
+#### ngStyle指令
 
 注意：style绑定是添加或删除单个内联样式的最佳途径，而`ngStyle`指令是同时添加或移除多个内联样式的更好选择。
 
@@ -965,7 +974,7 @@ getStyles() {
 
 
 
-### ngSwitch指令
+#### ngSwitch指令
 
 ```html
 <div [ngSwitch]="toeChoice">
@@ -981,7 +990,7 @@ getStyles() {
 
 只有选中的元素才放进 DOM 中。任何时候，上例中的这些 `<span>` 中最多只有一个会出现在 DOM 中。而应用了`ngSwitch`指令的`<div>`元素始终出现在HTML文档中。
 
-### ngTemplateOutlet指令
+#### ngTemplateOutlet指令
 
 `ngTemplateOutlet`指令用于在指定的位置重复一个内容块，当需要在不同地方生成相同内容并且希望避免重复操作时，这个指令可能很有用。
 
@@ -1297,7 +1306,7 @@ export class ClickMeComponent {
 
 绑定会通过名叫`$event`的事件对象传递关于此事件的信息（包括数据值）。
 
-事件对象的形态取决于目标事件。如果目标事件是原生 DOM 元素事件，`$event`就是 DOM事件对象，它有像target和target.value这样的属性。
+事件对象的形态取决于目标事件。如果目标事件是原生 DOM 元素事件，`$event`就是 DOM事件对象，它有像`target`和`target.value`这样的属性。如果目标事件属于指令（注意，组件也是指令的一种），那么 `$event` 具体是什么由指令决定。
 
 ```typescript
 template: `
@@ -1354,7 +1363,7 @@ export class LoopbackComponent { }
 
 这个模板完全是完全自包含的。它没有绑定到组件，组件也没做任何事情。
 
-注意：只有在应用做了些异步事件（如击键），Angular 才更新绑定（并最终影响到屏幕）。因此，必须绑定一个事件，否则将完全无法工作。本例代码将`keyup`事件绑定到了数字0，这是可能是最短的模板语句。 虽然这个语句不做什么，但它满足 Angular 的要求，所以 Angular 将更新屏幕。
+> 注意：只有在应用做了些异步事件（如击键），Angular 才更新绑定（并最终影响到屏幕）。因此，必须绑定一个事件，否则将完全无法工作。本例代码将`keyup`事件绑定到了数字0，这是可能是最短的模板语句。 虽然这个语句不做什么，但它满足 Angular 的要求，所以 Angular 将更新屏幕。
 
 下面的代码重写了之前keyup示例，它使用变量来获得用户输入。
 
@@ -1374,11 +1383,11 @@ export class KeyUpComponent_v2 {
 }
 ```
 
-这个方法最漂亮的一点是：组件代码从视图中获得了干净的数据值。再也不用了解`$event`变量及其结构了。（注意，最好传递给组件输入值，而不要直接传递元素`box`给组件。尽量将DOM相关的东西限制在模板中）
+这个方法最漂亮的一点是：组件代码从视图中获得了干净的数据值。再也不用了解`$event`变量及其结构了。（注意，最好传递给组件的是输入值，而不要直接传递元素`box`给组件。尽量将DOM相关的东西限制在模板中）
 
 ### 自定义事件
 
-通常，指令使用 Angular `EventEmitter` 来触发自定义事件。 指令创建一个`EventEmitter`实例，并且把它作为属性暴露出来。 指令调用`EventEmitter.emit(payload)`来触发事件，可以传入任何东西作为消息载荷。 父指令通过绑定到这个属性来监听事件，并通过`$event`对象来访问载荷。
+通常，指令使用 Angular `EventEmitter` 来触发自定义事件。 指令创建一个`EventEmitter`实例，并且把它作为属性暴露出来。 指令调用`EventEmitter.emit(payload)`来触发事件，可以传入任何东西作为消息载荷（payload）。 父指令通过绑定到这个属性来监听事件，并通过`$event`对象来访问载荷。
 
 假设`HeroDetailComponent`用于显示英雄的信息，并响应用户的动作。 虽然`HeroDetailComponent`包含删除按钮，但它自己并不知道该如何删除这个英雄。 最好的做法是触发事件来报告“删除用户”的请求。
 
@@ -1459,26 +1468,68 @@ export class KeyUpComponent_v4 {
 bindon-目标 = "模板表达式"
 ```
 
-双向绑定的属性都可拆分成两个独立的单向绑定。
+双向绑定语法实际上是*property绑定*和*事件绑定*的语法糖，都可拆分成两个独立的单向绑定。
 
-当 Angular 在表单中看到`[(x)]`的绑定目标时， 它会期待这个`x`指令有一个名为`x`的输入属性，和一个名为`xChange`的输出属性。因此，`[(ngModel)]`可以拆分为`[ngModel]`和`(ngModelChange)`：
+当 Angular 在表单中看到`[(x)]`的绑定目标时， 它会期待这个`x`指令有一个名为`x`的输入属性，和一个名为`xChange`的输出属性。而`$event` 变量是`xChange`事件的荷载（即指令通过调用`EventEmitter.emit(payload)`发出的`payload`）。
+
+例如，下面的 `SizerComponent`，它有 `size` 属性和配套的 `sizeChange` 事件：
 
 ```html
-<input type="text" class="form-control" id="name"
-       required
-       [ngModel]="model.name" name="name"
-       (ngModelChange)="model.name = $event" >
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+
+@Component({
+  selector: 'app-sizer',
+  template: `
+  <div>
+    <button (click)="dec()" title="smaller">-</button>
+    <button (click)="inc()" title="bigger">+</button>
+    <label [style.font-size.px]="size">FontSize: {{size}}px</label>
+  </div>`
+})
+export class SizerComponent {
+  @Input()  size: number | string;
+  @Output() sizeChange = new EventEmitter<number>();
+
+  dec() { this.resize(-1); }
+  inc() { this.resize(+1); }
+
+  resize(delta: number) {
+    this.size = Math.min(40, Math.max(8, +this.size + delta));
+    this.sizeChange.emit(this.size);
+  }
+}
 ```
 
-之前看到的`$event`对象来自 DOM 事件。 但`ngModelChange`属性不会生成 DOM 事件 —— 它是Angular `EventEmitter`类型的属性，当它触发时， 它返回的是输入框的值 —— 也正是希望赋给模型`name`属性的值。
+`size` 的初始值是一个输入值（注意 `size` 前面的 `@Input`），来自属性绑定。 点击按钮，在最小/最大值范围内增加或者减少 `size`。 然后用调整后的 `size` 触发 `sizeChange` 事件。
 
-`[(ngModel)]`语法只能设置一个数据绑定属性。 如果需要做更多或不同的事情，就得自己用它的拆分形式。例如：
+下面的例子中，`AppComponent.fontSize` 被双向绑定到 `SizerComponent`：（app.component.html）
+
+```html
+<app-sizer [(size)]="fontSizePx"></app-sizer>
+<div [style.font-size.px]="fontSizePx">Resizable Text</div>
+```
+
+`SizerComponent.size` 初始值是 `AppComponent.fontSizePx`。 点击按钮时，通过双向绑定更新 `AppComponent.fontSizePx`。 被修改的 `AppComponent.fontSizePx` 通过*style*绑定，改变文本的显示大小。
+
+这里，Angular将 `SizerComponent` 的绑定分解成这样：
+
+```html
+<app-sizer [size]="fontSizePx" (sizeChange)="fontSizePx=$event"></app-sizer>
+```
+
+`$event` 变量是 `SizerComponent.sizeChange` 事件的荷载（即`this.sizeChange.emit(this.size)`中的`this.size`）。 当用户点击按钮时，Angular 将 `$event` 赋值给 `AppComponent.fontSizePx`。
+
+虽然双向数据绑定语法显得非常方便，但是`[(x)]`语法只能设置一个数据绑定属性。 如果需要做更多或不同的事情，就得自己用它的拆分形式。例如：
 
 ```html
 <input
   [ngModel]="currentHero.firstName"
   (ngModelChange)="setUpperCaseFirstName($event)">
 ```
+
+> 如果能在像 `<input>` 和 `<select>` 这样的 HTML 元素上使用双向数据绑定就更好了。 可惜，原生 HTML 元素不遵循 `x`值和 `xChange` 事件的模式。
+>
+> 幸运的是，Angular 以 *NgModel* 指令为桥梁，允许在表单元素上使用双向数据绑定。
 
 ### NgModel指令
 
