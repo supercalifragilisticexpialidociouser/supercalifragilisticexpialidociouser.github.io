@@ -443,7 +443,7 @@ HTML 是 Angular 模板的语言，几乎所有的 HTML 语法都是有效的模
 
 ### 模板引用变量
 
-模板引用变量是模板中对 DOM 元素或指令的引用。
+模板引用变量是模板中对 DOM 元素或指令的引用。当Angular在模板中遇到引用变量时，它将引用变量的值设置为引用变量所在的那个元素。
 
 它能在原生 DOM 元素中使用，也能用于 Angular 组件 —— 实际上，它可以和任何自定义 Web 组件协同工作。
 
@@ -468,10 +468,8 @@ HTML 是 Angular 模板的语言，几乎所有的 HTML 语法都是有效的模
 
 ```html
 <input ref-fax placeholder="fax number">
-<button (click)="callFax(fax.value)">Fax</button>
+<button (click)="callFax(fax.value)">Fax</button> 
 ```
-
-Angular 把模板引用变量的值设置为它所在的那个元素。 
 
 #### 引用模板引用变量
 
@@ -670,7 +668,13 @@ export class ProductComponent {
 
 指令是一个带有“指令元数据”的类。在 TypeScript 中，要通过`@Directive`装饰器把元数据附加到类上。
 
-另外，组件是一个带模板的指令。`@Component`装饰器实际上就是一个`@Directive`装饰器，只是扩展了一些面向模板的特性。详见“组件”。
+Angular支持三种类型的指令：
+
+- 组件
+- 结构型指令
+- 属性型指令
+
+> 组件是一个带模板的指令。`@Component`装饰器实际上就是一个`@Directive`装饰器，只是扩展了一些面向模板的特性。详见“组件”。
 
 ## 结构型指令
 
@@ -883,9 +887,13 @@ trackByHeroes(index: number, hero: Hero) { return hero.id; }
 </ng-template>
 ```
 
+### 创建结构型指令
+
+> 前缀`Ng`或`ng`被保留用于内置的Angular功能，因此自定义指令不应该使用这些前缀。
+
 ## 属性型指令
 
-属性型指令修改一个现有元素的外观或行为。 例如：`ngModel`。
+属性型指令会监听和修改宿主 HTML 元素、元素属性（Attribute）、DOM 属性（Property）或组件的行为和外观。 它们通常会作为 HTML 属性的名称而应用在元素上。 例如：`ngModel`。
 
 ### 内置属性型指令
 
@@ -1014,7 +1022,7 @@ getStyles() {
 
 第二步是使用`ngTemplateOutlet`指令将内容插入到HTML文档中。这个指令将宿主元素替换为指定的`<ng-template>`元素的内容。无论是包含重复内容的`<ng-template>`元素，还是绑定所在的宿主元素，都不包含在HTML文档中。
 
-#### 提供上下文数据
+##### 提供上下文数据
 
 `ngTemplateOutlet`指令可用于为重复内容提供上下文对象，该对象可供`<ng-template>`元素内部定义的数据绑定使用。
 
@@ -1037,6 +1045,137 @@ getStyles() {
 ```
 
 为了接收上下文数据，在包含重复内容的`<ng-template>`元素中定义一个`let-变量名`属性，用于指定变量名称，类似于`ngFor`指令的扩展语法。在这里，`let-`属性创建一个名为`text`的变量，并通过对表达式`title`进行求值为其赋值。为了提供表达式求值所需要的数据，`ngTemplateOutlet`指令所在的`<ng-template>`宿主元素提供了一个映射对象。这个新绑定目标是`ngOutletContext`，它看起来像另一个指令，但实际上是一个**输入属性**的例子（有些指令使用输入属性来接收数据值）。这个绑定表达式是一个映射对象，它的属性名对应于定义模板的`<ng-template>`元素上的`let-`属性。
+
+### 创建属性指令
+
+attr.directive.ts：
+
+```typescript
+import { Directive, ElementRef } from "@angular/core";
+
+@Directive({
+  selector: "[pa-attr]",
+})
+export class PaAttrDirective {
+  constructor(element: ElementRef) {
+    element.nativeElement.classList.add("bg-success", "text-white");
+  }
+}
+```
+
+首先，指令是一个带有`@Directive`装饰器的类。装饰器的`selector`属性值是一个CSS样式选择器，它指定了任何具有“pa-attr”属性的元素都将应用该指令。
+
+其次，指令构造器有一个`ElementRef`参数，它表示宿主元素，它的唯一属性`nativeElement`，返回浏览器用来表示DOM元素的对象。该对象提供的方法和属性可用于操纵DOM元素及其内容。
+
+### 应用属性指令
+
+应用自定义的属性指令包括两个步骤：
+
+第一步：更新模板，让一个或多个元素与指令所用的选择器相匹配。对于示例指令而言，这意味着将`pa-attr`属性添加到一个元素中：
+
+```html
+...
+<table class="table table-sm table-bordered table-striped">
+  <tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
+  <tr *ngFor="let item of getProducts(); let i = index" pa-attr>
+    <td>{{i + 1}}</td>
+    <td>{{item.name}}</td>
+    <td>{{item.category}}</td>
+    <td>{{item.price}}</td>
+  </tr>
+</table>
+...
+```
+
+该指令的选择器匹配任何具有`pa-attr`属性的元素，而不管该属性是否被赋值以及赋的是什么值。
+
+第二步：修改Angular模块的配置：
+
+```typescript
+import { NgModule } from "@angular/core";
+import { BrowserModule } from "@angular/platform-browser";
+import { ProductComponent } from "./component";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { PaAttrDirective } from "./attr.directive";
+@NgModule({
+  imports: [BrowserModule, FormsModule, ReactiveFormsModule],
+  declarations: [ProductComponent, PaAttrDirective],
+  bootstrap: [ProductComponent]
+})
+export class AppModule { }
+```
+
+`declarations`属性声明了`PaAttrDirective`指令属于`AppModule`模块。这样，`PaAttrDirective`指令就可以在`AppModule`模块，以及所有导入`AppModule`模块的Angular模块中使用。
+
+### 在指令中访问应用程序数据
+
+#### 读取宿主元素属性
+
+下面代码将`pa-attr`指令应用于模板中的某些`td`元素上，并为宿主元素`td`添加了一个`pa-attr-class`属性以指定要加入的CSS类：
+
+```html
+...
+<table class="table table-sm table-bordered table-striped">
+  <tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
+  <tr *ngFor="let item of getProducts(); let i = index" pa-attr>
+    <td>{{i + 1}}</td>
+    <td>{{item.name}}</td>
+    <td pa-attr pa-attr-class="bg-warning">{{item.category}}</td>
+    <td pa-attr pa-attr-class="bg-info">{{item.price}}</td>
+  </tr>
+</table>
+...
+```
+
+接下来显示如何修改指令来获取`pa-attr-class`属性的值，并使用该值来改变宿主元素：
+
+```typescript
+import { Directive, ElementRef, Attribute } from "@angular/core";
+@Directive({
+  selector: "[pa-attr]",
+})
+export class PaAttrDirective {
+  constructor(element: ElementRef, @Attribute("pa-attr-class") bgClass: string) {
+    element.nativeElement.classList.add(bgClass || "bg-success", "text-white");
+  }
+}
+```
+
+为了接收`pa-attr-class`属性的值，这里添加了一个新的名为`bgClass`的构造器参数，并为其应用了`@Attribute`装饰器。Angular为每个与指令选择器匹配的元素分别创建一个新的装饰器实例，并使用这些元素的属性为指令构造器中那些带有`@Attribute`装饰器的参数提供值。
+
+##### 使用单个宿主元素属性
+
+使用一个属性来应用指令，再使用另一个属性进行配置，这种做法显然是多余的，使用单个属性执行双重任务显然更加合理。
+
+```typescript
+import { Directive, ElementRef, Attribute } from "@angular/core";
+@Directive({
+  selector: "[pa-attr]",
+})
+export class PaAttrDirective {
+  constructor(element: ElementRef, @Attribute("pa-attr") bgClass: string) {
+    element.nativeElement.classList.add(bgClass || "bg-success", "text-white");
+  }
+}
+```
+
+现在，`@Attribute`装饰器将`pa-attr`属性指定为`bgClass`参数值的来源。
+
+```html
+...
+<table class="table table-sm table-bordered table-striped">
+  <tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
+  <tr *ngFor="let item of getProducts(); let i = index" pa-attr>
+    <td>{{i + 1}}</td>
+    <td>{{item.name}}</td>
+    <td pa-attr="bg-warning">{{item.category}}</td>
+    <td pa-attr="bg-info">{{item.price}}</td>
+  </tr>
+</table>
+...
+```
+
+
 
 ## 输入输出属性
 
@@ -1263,6 +1402,8 @@ NgStyle指令也可以用来管理内联样式，而且可以一次设置多个�
 
 ## 从视图到数据源的绑定：事件绑定
 
+事件绑定（event binding）用于响应宿主元素发送的事件。
+
 事件绑定的语法：
 
 ```
@@ -1271,7 +1412,12 @@ NgStyle指令也可以用来管理内联样式，而且可以一次设置多个�
 on-目标 = "模板语句"
 ```
 
-事件绑定语法由等号左侧带圆括号的目标事件（DOM元素的事件或指令的**输出**property）和右侧引号中的模板语句（可以是多条语句）组成。
+事件绑定由4个部分组成：
+
+- 宿主元素：绑定的事件源。
+- 圆括号：告诉Angular这是一个事件绑定，且是一种单向绑定——数据从元素流向应用程序的其余部分。
+- 目标事件：要绑定的事件。它可以是DOM元素的事件或指令的**输出**property。
+- 模块语句（可多条）：在事件触发时执行。
 
 ```html
 <button (click)="onClickMe()">Click me!</button>
@@ -1385,7 +1531,7 @@ export class KeyUpComponent_v2 {
 
 这个方法最漂亮的一点是：组件代码从视图中获得了干净的数据值。再也不用了解`$event`变量及其结构了。（注意，最好传递给组件的是输入值，而不要直接传递元素`box`给组件。尽量将DOM相关的东西限制在模板中）
 
-### 自定义事件
+### 自定义事件绑定
 
 通常，指令使用 Angular `EventEmitter` 来触发自定义事件。 指令创建一个`EventEmitter`实例，并且把它作为属性暴露出来。 指令调用`EventEmitter.emit(payload)`来触发事件，可以传入任何东西作为消息载荷（payload）。 父指令通过绑定到这个属性来监听事件，并通过`$event`对象来访问载荷。
 
@@ -1495,7 +1641,7 @@ export class SizerComponent {
 
   resize(delta: number) {
     this.size = Math.min(40, Math.max(8, +this.size + delta));
-    this.sizeChange.emit(this.size);
+    this.sizeChange.emit(this.size); //触发sizeChange事件
   }
 }
 ```
@@ -1519,7 +1665,7 @@ export class SizerComponent {
 
 `$event` 变量是 `SizerComponent.sizeChange` 事件的荷载（即`this.sizeChange.emit(this.size)`中的`this.size`）。 当用户点击按钮时，Angular 将 `$event` 赋值给 `AppComponent.fontSizePx`。
 
-虽然双向数据绑定语法显得非常方便，但是`[(x)]`语法只能设置一个数据绑定属性。 如果需要做更多或不同的事情，就得自己用它的拆分形式。例如：
+虽然双向数据绑定语法显得非常方便，但是`[(x)]`语法只能设置一个数据绑定属性。 如果需要做更多或做点不一样的事情，就得自己用它的拆分形式。例如：
 
 ```html
 <input
@@ -1542,6 +1688,8 @@ export class SizerComponent {
        (input)="currentHero.firstName=$event.target.value" >
 ```
 
+> 上面的`$event`是原生的DOM事件对象。
+
 而使用NgModel指令，则为：
 
 ```html
@@ -1550,15 +1698,17 @@ export class SizerComponent {
   (ngModelChange)="currentHero.firstName=$event">
 ```
 
+> 上面的`$event`是`ngModel`指令发出的荷载，即input表单元素的`value`属性值。
+
 或者
 
 ```html
 <input [(ngModel)]="currentHero.firstName">
 ```
 
-每种元素的特点各不相同，所以NgModel指令只能在一些特定表单元素上使用，例如输入文本框，因为它们支持 `ControlValueAccessor`。
+每种元素的特点各不相同，所以NgModel指令只能在基础的HTML表单元素上使用，例如输入文本框，因为它们支持 `ControlValueAccessor`。
 
-除非写一个合适的值访问器，否则不能把`[(ngModel)]`用在自定义组件上。（通常自定义组件的双向绑定也不需要通过NgModel指令，直接使用 `[(自定义组件的属性)]` 就可以了）
+除非写一个合适的值访问器，否则不能把`[(ngModel)]`用在非表单类的原生元素或自定义组件上。（通常自定义组件的双向绑定也不需要通过NgModel指令，因为你可以让值和事件的属性名符合 Angular 的双向绑定语法（例如：x和xChange），而不使用 NgModel。）
 
 注：在使用NgModel做双向数据绑定之前，得先导入`FormsModule`，即把它加入 Angular 模块的`imports`列表。
 
@@ -1606,6 +1756,24 @@ export class SizerComponent {
 # 管道
 
 # 表单
+
+## 导入表单模块
+
+Angular的表单模块位于`@angular/forms`包中，要使用表单功能，需要将表单模块导入自己的Angular模块中：
+
+```typescript
+import { FormsModule } from "@angular/forms";
+
+@NgModule({
+declarations: [ProductComponent],
+imports: [BrowserModule, FormsModule],
+providers: [],
+bootstrap: [ProductComponent]
+})
+export class AppModule { }
+```
+
+
 
 # 路由
 
