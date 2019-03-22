@@ -443,9 +443,7 @@ HTML 是 Angular 模板的语言，几乎所有的 HTML 语法都是有效的模
 
 ### 模板引用变量
 
-模板引用变量是模板中对 DOM 元素或指令的引用。当Angular在模板中遇到引用变量时，它将引用变量的值设置为引用变量所在的那个元素。
-
-它能在原生 DOM 元素中使用，也能用于 Angular 组件 —— 实际上，它可以和任何自定义 Web 组件协同工作。
+模板引用变量是模板中对 DOM 元素的引用，另外，它还可以引用 Angular 组件或指令或[Web Component](https://developer.mozilla.org/en-US/docs/Web/Web_Components)。当Angular在模板中遇到引用变量时，它将引用变量的值设置为引用变量所在的那个元素。
 
 #### 定义模板引用变量
 
@@ -473,7 +471,7 @@ HTML 是 Angular 模板的语言，几乎所有的 HTML 语法都是有效的模
 
 #### 引用模板引用变量
 
-可以在同一元素、兄弟元素或任何子元素中引用模板引用变量。
+模板引用变量的作用范围是*整个模板*。
 
 ### 模板表达式
 
@@ -490,7 +488,7 @@ HTML 是 Angular 模板的语言，几乎所有的 HTML 语法都是有效的模
 
 1. 管道运算符`|`
 2. 安全导航运算符`?.`
-3. 非空断言运算符`!.`
+3. 非空断言运算符`!`
 
 模板表达式不能引用全局命名空间中的任何东西， 不能引用`window`或`document`，不能调用`console.log`或`Math.max`。 它们被局限于只能访问来自表达式上下文中的成员。典型的表达式上下文就是这个组件实例，另外还有模板引用变量。
 
@@ -524,11 +522,26 @@ Angular 执行模板表达式，产生一个值，并把它赋值给绑定目标
 <div>Birthdate: {{currentHero?.birthdate | date:'longDate'}}</div>
 ```
 
+`json` 管道对调试绑定特别有用：
+
+```html
+<div>{{currentHero | json}}</div>
+```
+
+它生成的输出是这样的：
+
+```json
+{ "id": 0, "name": "Hercules", "emotion": "happy",
+  "birthdate": "1970-02-25T08:00:00.000Z",
+  "url": "http://www.imdb.com/title/tt0065832/",
+  "rate": 325 }
+```
+
 #### 安全导航运算符
 
 `?.` 与 `.` 一样用于属性的限定名中。
 
-`?.` 会在它遇到第一个空值的时候跳出，并显示是空的，而不会抛出异常。
+`?.` 会在它遇到第一个空值（ `null` 和 `undefined` ）的时候跳出，并显示是空的，而不会抛出异常。
 
 ```html
 The null hero's name is {{nullHero?.firstName}}
@@ -550,6 +563,29 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 
 #### 非空断言运算符
 
+在 TypeScript 2.0 中，你可以使用 `--strictNullChecks` 标志强制开启[严格空值检查](http://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html)。TypeScript 就会确保不存在意料之外的 null 或 undefined。
+
+在这种模式下，有类型的变量默认是不允许 null 或 undefined 值的，如果有未赋值的变量，或者试图把 null 或 undefined 赋值给不允许为空的变量，类型检查器就会抛出一个错误。
+
+如果类型检查器在运行期间无法确定一个变量是 null 或 undefined，那么它也会抛出一个错误。 你自己可能知道它不会为空，但类型检查器不知道。 所以你要告诉类型检查器，它不会为空，这时就要用到[*非空断言操作符*](http://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html#non-null-assertion-operator)。
+
+*Angular* 模板中的非空断言操作符（`!`）也是同样的用途。
+
+例如，在用`*ngIf`来检查过 `hero` 是已定义的之后，就可以断言 `hero` 属性一定是已定义的：
+
+```html
+<!--No hero, no text -->
+<div *ngIf="hero">
+  The hero's name is {{hero!.name}}
+</div>
+```
+
+在 Angular 编译器把你的模板转换成 TypeScript 代码时，这个操作符会防止 TypeScript 报告 "`hero.name` 可能为 null 或 undefined"的错误。
+
+与[*安全导航操作符*](https://angular.cn/guide/template-syntax#safe-navigation-operator)不同的是，**非空断言操作符**不会防止出现 `null` 或 `undefined`。 它只是告诉 TypeScript 的类型检查器对特定的属性表达式，不做“严格空值检测”。
+
+如果你打开了严格控制检测，那就要用到这个模板操作符，而其它情况下则是可选的。
+
 #### 字符串字面量
 
 在模板表达式中，字符串字面量要记得加上引号，特别是出现在属性绑定中时。
@@ -562,11 +598,35 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 </div> 
 ```
 
+#### 类型转换函数`$any`
+
+有时候，绑定表达式可能会报类型错误，并且它不能或很难指定类型。要消除这种报错，你可以使用 `$any` 转换函数来把表达式转换成 [`any` 类型](http://www.typescriptlang.org/docs/handbook/basic-types.html#any)。
+
+```html
+<!-- Accessing an undeclared member -->
+<div>
+  The hero's marker is {{$any(hero).marker}}
+</div>
+```
+
+在这个例子中，当 Angular 编译器把模板转换成 TypeScript 代码时，`$any` 表达式可以防止 TypeScript 编译器报错说 `marker` 不是 `Hero` 接口的成员。
+
+`$any` 转换函数可以和 `this` 联合使用，以便访问组件中未声明过的成员：
+
+```html
+<!-- Accessing an undeclared member -->
+<div>
+  Undeclared members is {{$any(this).member}}
+</div>
+```
+
+`$any` 转换函数可以在绑定表达式中任何可以进行方法调用的地方使用。
+
 #### 表达式上下文
 
 当Angular对一个表达式进行求值时，它会在表达式的上下文中进行求值。
 
-典型的表达式上下文就是这个组件实例。因此，模板能够访问组件的方法和属性，而不需要带任何类型的前缀。
+典型的表达式上下文就是这个组件实例。因此，模板能够访问组件的公共（public）方法和公共属性，而不需要带任何类型的前缀。
 
 除了组件外，表达式上下文还可以包括组件之外的对象。 比如模板输入变量 (`let customer`)和模板引用变量(`#customerInput`)：
 
@@ -678,7 +738,9 @@ Angular支持三种类型的指令：
 
 ## 结构型指令
 
-结构型指令通过在 DOM 中添加、移除和替换元素来修改布局。例如：`*ngFor`。
+结构型指令通过在 DOM 中添加、移除和操纵它们所附加到的宿主元素来修改布局。例如：`*ngFor`。
+
+只能往一个元素上应用一个结构型指令。
 
 ### 内置结构型指令
 
@@ -1175,13 +1237,31 @@ export class PaAttrDirective {
 ...
 ```
 
+#### 通过输入属性接收表达式
 
+采用`@Attribute`读取属性的主要限制是元素属性值是静态的，而使用输入属性则可以接收表达式。
+
+有关输入属性用法，详见“输入输出属性”。
 
 ## 输入输出属性
+
+输入属性是一个带有 `@Input` 装饰器的可设置属性。当它通过property绑定的形式被绑定时，值会“流入”这个属性。
+
+输出属性是一个带有 `@Output` 装饰器的可观察对象型的属性。 这个属性几乎总是返回 Angular 的`EventEmitter`。 当它通过事件绑定的形式被绑定时，值会“流出”这个属性。
 
 输入属性通常接收数据值， 输出属性暴露事件生产者。
 
 输入属性通常是由方括号包围，而输出属性通常由圆括号包围。
+
+*输入*和*输出*这两个词是从目标指令的角度来说的：
+
+![Inputs and outputs](Angular/input-output.png)
+
+从 `HeroDetailComponent` 角度来看，`HeroDetailComponent.hero` 是个**输入**属性， 因为数据流从模板绑定表达式流*入*那个属性。
+
+从 `HeroDetailComponent` 角度来看，`HeroDetailComponent.deleteRequest` 是个**输出**属性， 因为事件从那个属性流*出*，流向模板绑定语句中的处理器。
+
+注意：Angular是在指令的构造器执行完毕且已经生成新的指令对象之后，才设置输入输出属性的。这意味着指令构造器无法访问输入输出属性的值。为了解决这个问题，指令可以实现生命周期钩子方法。
 
 ### 绑定目标和绑定源
 
@@ -1226,6 +1306,14 @@ export class PaAttrDirective {
   outputs: ['clicks:myClick']  // propertyName:alias
 })
 ```
+
+这样，就可以通过别名使用输入输出属性：
+
+```html
+<div (myClick)="clickMessage=$event" clickable>click with myClick</div>
+```
+
+## 生命周期钩子
 
 # 数据绑定
 
@@ -1773,7 +1861,9 @@ bootstrap: [ProductComponent]
 export class AppModule { }
 ```
 
-
+> 如果你没有导入过 `FormsModule`，Angular 就不会控制`<form>`元素，那么对`<form>`元素的模板引用变量就是一个[HTMLFormElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement)实例。如果有导入`FormsModule`，则<form>`元素的模板引用变量就是一个对 Angular NgForm 指令的引用。
+>
+> 注意：原生的 `<form>` 元素没有 `form` 属性，但 `NgForm` 指令有。
 
 # 路由
 
