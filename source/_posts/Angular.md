@@ -398,7 +398,7 @@ $ ng generate module foo --flat --module=app
 
 当用户在这个应用中漫游时， Angular 会创建、更新和销毁组件。 
 
-## 创建组件
+## 创建组件类
 
 每个组件都以`@Component`装饰器标注：
 
@@ -425,15 +425,13 @@ export class HerosComponent implements OnInit {
 
 ## 主从组件
 
-## 生命周期钩子
+@ContentChild（“生命周期钩子”的“AfterContent 钩子”）
 
-应用可以通过生命周期钩子（如ngOnInit()）在组件生命周期的各个时间点上插入自己的操作。
+## 模板
 
-# 模板
+组件类和模板共同定义了 Angular 的视图。
 
-组件和模板共同定义了 Angular 的视图。
-
-## 定义模板
+### 定义模板
 
 HTML 是 Angular 模板的语言，几乎所有的 HTML 语法都是有效的模板语法。但值得注意的例外是`<script>`元素，它被禁用了，以阻止脚本注入攻击的风险。
 
@@ -441,11 +439,11 @@ HTML 是 Angular 模板的语言，几乎所有的 HTML 语法都是有效的模
 
 模板除了可以使用像`<h2>`和`<p>`这样的典型的 HTML 元素，还可以通过组件、指令和插值表达式来扩展模板中的 HTML 词汇。它们看上去就是新元素和属性。 例如，`*ngFor`、`{{hero.name}}`、`(click)`、`[hero]`和`<hero-detail>`。
 
-### 模板引用变量
+#### 模板引用变量
 
 模板引用变量是模板中对 DOM 元素的引用，另外，它还可以引用 Angular 组件或指令或[Web Component](https://developer.mozilla.org/en-US/docs/Web/Web_Components)。当Angular在模板中遇到引用变量时，它将引用变量的值设置为引用变量所在的那个元素。
 
-#### 定义模板引用变量
+##### 定义模板引用变量
 
 语法一：
 
@@ -469,11 +467,11 @@ HTML 是 Angular 模板的语言，几乎所有的 HTML 语法都是有效的模
 <button (click)="callFax(fax.value)">Fax</button> 
 ```
 
-#### 引用模板引用变量
+##### 引用模板引用变量
 
 模板引用变量的作用范围是*整个模板*。
 
-### 模板表达式
+#### 模板表达式
 
 大部分JavaScript表达式也是合法的模板表达式，但你不能使用那些具有或可能引发副作用的 JavaScript 表达式，包括：
 
@@ -496,7 +494,7 @@ Angular 执行模板表达式，产生一个值，并把它赋值给绑定目标
 
 > 由于模板表达式不会接受TypeScript编译器的检查，而且也不易于进行单元测试。因此，模板表达式应该尽可能保持简单，在理想情况下，仅用于从组件检索数据并进行格式化，然后用于显示。所有复杂的检索和处理逻辑都应该放在组件或模型中进行定义。
 
-#### 管道运算符
+##### 管道运算符
 
 管道是一个简单的函数，它接受一个输入值，并返回转换结果。
 
@@ -537,7 +535,7 @@ Angular 执行模板表达式，产生一个值，并把它赋值给绑定目标
   "rate": 325 }
 ```
 
-#### 安全导航运算符
+##### 安全导航运算符
 
 `?.` 与 `.` 一样用于属性的限定名中。
 
@@ -561,7 +559,7 @@ The null hero's name is <span *ngIf="nullHero">{{nullHero.firstName}}</span>
 
 Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路径中，它工作得很完美。
 
-#### 非空断言运算符
+##### 非空断言运算符
 
 在 TypeScript 2.0 中，你可以使用 `--strictNullChecks` 标志强制开启[严格空值检查](http://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html)。TypeScript 就会确保不存在意料之外的 null 或 undefined。
 
@@ -586,7 +584,7 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 
 如果你打开了严格控制检测，那就要用到这个模板操作符，而其它情况下则是可选的。
 
-#### 字符串字面量
+##### 字符串字面量
 
 在模板表达式中，字符串字面量要记得加上引号，特别是出现在属性绑定中时。
 
@@ -598,7 +596,7 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 </div> 
 ```
 
-#### 类型转换函数`$any`
+##### 类型转换函数`$any`
 
 有时候，绑定表达式可能会报类型错误，并且它不能或很难指定类型。要消除这种报错，你可以使用 `$any` 转换函数来把表达式转换成 [`any` 类型](http://www.typescriptlang.org/docs/handbook/basic-types.html#any)。
 
@@ -622,7 +620,7 @@ Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路�
 
 `$any` 转换函数可以在绑定表达式中任何可以进行方法调用的地方使用。
 
-#### 表达式上下文
+##### 表达式上下文
 
 当Angular对一个表达式进行求值时，它会在表达式的上下文中进行求值。
 
@@ -670,7 +668,7 @@ export class ProductComponent {
 </div>
 ```
 
-### 模板语句
+#### 模板语句
 
 模板语句用来响应由绑定目标（如 HTML 元素、组件或指令）触发的事件。就像这样：`(event)="statement"`。
 
@@ -690,7 +688,7 @@ export class ProductComponent {
 
 5）模板表达式运算符（即管道运算符、安全导航运算符、非空断言运算符）
 
-#### 语句上下文
+##### 语句上下文
 
 和模板表达式中一样，模板语句无法引用全局命名空间的任何东西。它们不能引用`window`或者`document`， 不能调用`console.log`或者`Math.max`。语句只能引用语句上下文中 —— 通常是正在绑定事件的那个组件实例或者是模板引用变量。
 
@@ -710,19 +708,21 @@ export class ProductComponent {
 
 模板上下文中的变量名的优先级高于组件上下文中的变量名。在上面的 `deleteHero(hero)` 中，`hero` 是一个模板输入变量，而不是组件中的 `hero` 属性。
 
-## 模板的应用方式
+### 模板的应用方式
 
 > 在浏览器（Chrome）上，点击查看网页源代码时，只会看到模板的静态内容。如果要查看最终生成的网页内容，可以通过右键单击浏览器窗口并从弹出菜单中选择Inspect，或者打开开发者工具查看。
 
-### 内联模板
+#### 内联模板
 
 在创建组件时，可以通过`template`属性直接指定内联模板。
 
 内联模板是由一个字符串或模板字符串（使用 “`” 包围）表示的模板。
 
-### 模板文件
+#### 模板文件
 
 在创建组件时，也可以通过`templateUrl`属性来指定一个外部模板文件。
+
+## 组件样式
 
 # 指令
 
@@ -1315,6 +1315,90 @@ export class PaAttrDirective {
 
 ## 生命周期钩子
 
+指令和组件的实例有一个生命周期：当 Angular 新建、更新和销毁它们时触发。 通过实现一个或多个 Angular `core` 库里定义的*生命周期钩子*接口，开发者可以介入该生命周期中的这些关键时刻。
+
+每个接口都有唯一的一个钩子方法，它们的名字是由接口名再加上 `ng` 前缀构成的。比如，`OnInit` 接口的钩子方法叫做 `ngOnInit`， Angular 在创建组件后立刻调用它，：
+
+```typescript
+export class PeekABoo implements OnInit {
+  constructor(private logger: LoggerService) { }
+
+  // implement OnInit's `ngOnInit` method
+  ngOnInit() { this.logIt(`OnInit`); }
+
+  logIt(msg: string) {
+    this.logger.log(`#${nextId++} ${msg}`);
+  }
+}
+```
+
+> 有些钩子只对组件有意义。
+
+### 钩子方法
+
+| 钩子方法              | 用途及时机                                                   |
+| --------------------- | ------------------------------------------------------------ |
+| ngOnChanges           | 当 Angular（重新）设置数据绑定输入属性时响应（不包括输入属性的属性的变化）。 该方法接受 `SimpleChanges` 对象，该对象包含了每个发生变化的属性，并且包含了属性的当前值和前一个值。此方法的调用发生在`ngOnInit()` 之前以及所绑定的一个或多个输入属性的值发生变化时。 |
+| ngOnInit              | 在 Angular 第一次显示数据绑定和设置指令/组件的输入属性之后，用于初始化指令/组件。此方法的调用发生在第一轮 `ngOnChanges()` 完成之后，只调用一次。另外还要记住，在指令的构造器完成之前，那些被绑定的输入属性还都没有值。 如果你需要基于这些属性的值来初始化这个指令，就需要使用`ngOnInit()`。 因为，当 `ngOnInit()` 执行的时候，这些属性都已经被正确的赋值过了。 |
+| ngDoCheck             | 在每个变更检测周期中，紧跟在 `ngOnChanges()` 和 `ngOnInit()` 后面调用。用于检测那些 Angular 自身无法捕获的变更并采取行动，以便指令有机会更新与输入属性不直接关联的任何状态。（例如可以检测输入属性的属性变化） |
+| ngAfterContentInit    | 每当 Angular 把外部内容投影进组件/指令的视图之后调用。第一次 `ngDoCheck()` 之后调用，只调用一次。 |
+| ngAfterContentChecked | 每当 Angular 完成被投影组件内容的变更检测之后调用。`ngAfterContentInit()` 和每次 `ngDoCheck()` 之后调用。 |
+| ngAfterViewInit       | 每当 Angular 初始化完组件视图及其子视图之后调用。第一次 `ngAfterContentChecked()` 之后调用，只调用一次。 |
+| ngAfterViewChecked    | 每当 Angular 做完组件视图和子视图的变更检测之后调用。`ngAfterViewInit()` 和每次 `ngAfterContentChecked()` 之后调用。 |
+| ngOnDestroy           | 每当 Angular 每次销毁指令/组件之前调用并清扫。 这里是用来释放那些不会被垃圾收集器自动回收的各类资源的地方：取消那些对可观察对象和 DOM 事件的订阅、停止定时器、注销该指令曾注册到全局服务或应用级服务中的各种回调函数。如果不这么做，就会有导致内存泄露的风险。 |
+
+> Angular 的其它子系统除了有这些组件钩子外，还可能有它们自己的生命周期钩子。
+>
+> 第三方库也可能会实现它们自己的钩子，以便让这些开发者在使用时能做更多的控制。
+
+### 接口是可选的
+
+从纯技术的角度讲，接口对 JavaScript 和 TypeScript 的开发者都是可选的。Angular 会去检测这些指令和组件的类，一旦发现钩子方法被定义了，就调用它们。 Angular 会找到并调用像 `ngOnInit()` 这样的钩子方法，有没有接口无所谓。
+
+虽然如此，在 TypeScript 指令类中添加接口是一项最佳实践，它可以获得强类型和 IDE 等编辑器带来的好处。
+
+### 遵循单向数据流规则
+
+Angular 的“单向数据流”规则禁止在一个视图已经被组合好之后再更新视图。 而`ngAfterViewInit`和`ngAfterViewChecked`这两个钩子都是在组件的视图已经被组合好之后触发的。为了在这些钩子方法中更新视图，可以采用“延迟一拍（tick）”的技巧，即把更新的操作延迟到下一个周期。例如：
+
+```typescript
+export class AfterViewComponent implements  AfterViewChecked, AfterViewInit {
+  private prevHero = '';
+
+  // Query for a VIEW child of type `ChildViewComponent`
+  @ViewChild(ChildViewComponent) viewChild: ChildViewComponent;
+
+  ngAfterViewInit() {
+    // viewChild is set after the view has been initialized
+    this.logIt('AfterViewInit');
+    this.doSomething();
+  }
+
+  ngAfterViewChecked() {
+    // viewChild is updated after the view has been checked
+    if (this.prevHero === this.viewChild.hero) {
+      this.logIt('AfterViewChecked (no change)');
+    } else {
+      this.prevHero = this.viewChild.hero;
+      this.logIt('AfterViewChecked');
+      this.doSomething();
+    }
+  }
+  
+  // This surrogate for real business logic sets the `comment`
+  private doSomething() {
+    let c = this.viewChild.hero.length > 10 ? `That's a long name` : '';
+    if (c !== this.comment) {
+      // Wait a tick because the component's view has already been checked
+      this.logger.tick_then(() => this.comment = c);
+    }
+  }
+  // ...
+}
+```
+
+`ngAfterContentInit`和`ngAfterContentChecked`钩子方法则无需担心单向数据流规则，它是在视图完成之前被调用。
+
 # 数据绑定
 
 数据绑定是一种让模板的各部分与组件的各部分相互合作的机制。 我们往模板 HTML 中添加绑定标记，来告诉 Angular 如何把二者联系起来。
@@ -1538,7 +1622,7 @@ export class ClickMeComponent {
 
 #### 通过`$event`对象
 
-绑定会通过名叫`$event`的事件对象传递关于此事件的信息（包括数据值）。
+绑定会通过名叫`$event`的事件对象（也称事件荷载）传递关于此事件的信息（包括数据值）。
 
 事件对象的形态取决于目标事件。如果目标事件是原生 DOM 元素事件，`$event`就是 DOM事件对象，它有像`target`和`target.value`这样的属性。如果目标事件属于指令（注意，组件也是指令的一种），那么 `$event` 具体是什么由指令决定。
 
@@ -1660,7 +1744,23 @@ delete() {
 
 #### keyup.enter
 
-这不是DOM事件，而是一个Angular的模拟事件。只有当用户敲回车键时，Angular 才会调用事件处理器。
+这不是DOM事件，而是一个Angular的模拟事件。只有当用户敲**回车键**时，Angular 才会调用事件处理器。
+
+```typescript
+@Component({
+  selector: 'app-key-up3',
+  template: `
+    <input #box (keyup.enter)="onEnter(box.value)">
+    <p>{{value}}</p>
+  `
+})
+export class KeyUpComponent_v3 {
+  value = '';
+  onEnter(value: string) { this.value = value; }
+}
+```
+
+> 按键事件过滤的通用方法是：绑定`keyup`事件监听器，然后检查每个 `$event.keyCode`，以确定按键类型。
 
 #### blur
 
@@ -1682,7 +1782,7 @@ export class KeyUpComponent_v4 {
 }
 ```
 
-上例在输入框失去焦点或按下回车键后都会更新组件的`value`值。
+上例在输入框失去焦点或按下回车键后都会更新组件的`value`值。（这种技术用于解决：用户没有先按回车键，而是移开了鼠标，点击了页面中其它地方，导致输入框的当前值丢失。 因为，只有当用户按下了回车键候，组件的 `values` 属性才能更新。）
 
 ## 单向绑定的限制
 
