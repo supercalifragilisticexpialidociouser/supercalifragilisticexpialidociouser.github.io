@@ -423,7 +423,101 @@ export class HerosComponent implements OnInit {
 
 根组件由根模块的`@Component`装饰器的`bootstrap`属性指定。每个Angular应用必须至少有一个根组件，它会把组件树和页面中的 DOM 连接起来。。
 
-## 主从组件
+## 主从组件及其交互
+
+把所有特性都放在同一个组件中，将会使应用“长大”后变得不可维护。 你要把大型组件拆分成小一点的子组件，每个子组件都要集中精力处理某个特定的任务或工作流。
+
+### 通过输入属性把数据从父组件传到子组件
+
+`HeroChildComponent` 有两个**输入型属性**：
+
+```typescript
+import { Component, Input } from '@angular/core';
+
+import { Hero } from './hero';
+
+@Component({
+  selector: 'app-hero-child',
+  template: `
+    <h3>{{hero.name}} says:</h3>
+    <p>I, {{hero.name}}, am at your service, {{masterName}}.</p>
+  `
+})
+export class HeroChildComponent {
+  @Input() hero: Hero;
+  @Input('master') masterName: string;
+}
+```
+
+父组件 `HeroParentComponent` 把子组件的 `HeroChildComponent` 放到 `*ngFor` 循环器中，把自己的 `master` 字符串属性绑定到子组件的 `master` 别名上，并把每个循环的 `hero` 实例绑定到子组件的 `hero` 属性：
+
+```typescript
+import { Component } from '@angular/core';
+
+import { HEROES } from './hero';
+
+@Component({
+  selector: 'app-hero-parent',
+  template: `
+    <h2>{{master}} controls {{heroes.length}} heroes</h2>
+    <app-hero-child *ngFor="let hero of heroes"
+      [hero]="hero"
+      [master]="master">
+    </app-hero-child>
+  `
+})
+export class HeroParentComponent {
+  heroes = HEROES;
+  master = 'Master';
+}
+```
+
+### 通过 setter 截听输入属性值的变化
+
+使用一个输入属性的 setter，以拦截父组件中值的变化，并采取行动。
+
+子组件 `NameChildComponent` 的输入属性 `name` 上的这个 setter，会 trim 掉名字里的空格，并把空值替换成默认字符串。
+
+```typescript
+import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'app-name-child',
+  template: '<h3>"{{name}}"</h3>'
+})
+export class NameChildComponent {
+  private _name = '';
+
+  @Input()
+  set name(name: string) {
+    this._name = (name && name.trim()) || '<no name set>';
+  }
+
+  get name(): string { return this._name; }
+}
+```
+
+下面的 `NameParentComponent` 展示了各种名字的处理方式，包括一个全是空格的名字。
+
+```typescript
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-name-parent',
+  template: `
+  <h2>Master controls {{names.length}} names</h2>
+  <app-name-child *ngFor="let name of names" [name]="name"></app-name-child>
+  `
+})
+export class NameParentComponent {
+  // Displays 'Mr. IQ', '<no name set>', 'Bombasto'
+  names = ['Mr. IQ', '   ', '  Bombasto  '];
+}
+```
+
+
+
+
 
 @ContentChild（“生命周期钩子”的“AfterContent 钩子”）
 
@@ -1338,7 +1432,7 @@ export class PeekABoo implements OnInit {
 
 | 钩子方法              | 用途及时机                                                   |
 | --------------------- | ------------------------------------------------------------ |
-| ngOnChanges           | 当 Angular（重新）设置数据绑定输入属性时响应（不包括输入属性的属性的变化）。 该方法接受 `SimpleChanges` 对象，该对象包含了每个发生变化的属性，并且包含了属性的当前值和前一个值。此方法的调用发生在`ngOnInit()` 之前以及所绑定的一个或多个输入属性的值发生变化时。 |
+| ngOnChanges           | 当 Angular（重新）设置数据绑定输入属性时响应（不包括输入属性的属性的变化）。 该方法接受 `SimpleChanges` 对象，该对象包含了每个发生变化的输入属性，并且包含了属性的当前值和前一个值。此方法的调用发生在`ngOnInit()` 之前以及所绑定的一个或多个输入属性的值发生变化时。 |
 | ngOnInit              | 在 Angular 第一次显示数据绑定和设置指令/组件的输入属性之后，用于初始化指令/组件。此方法的调用发生在第一轮 `ngOnChanges()` 完成之后，只调用一次。另外还要记住，在指令的构造器完成之前，那些被绑定的输入属性还都没有值。 如果你需要基于这些属性的值来初始化这个指令，就需要使用`ngOnInit()`。 因为，当 `ngOnInit()` 执行的时候，这些属性都已经被正确的赋值过了。 |
 | ngDoCheck             | 在每个变更检测周期中，紧跟在 `ngOnChanges()` 和 `ngOnInit()` 后面调用。用于检测那些 Angular 自身无法捕获的变更并采取行动，以便指令有机会更新与输入属性不直接关联的任何状态。（例如可以检测输入属性的属性变化） |
 | ngAfterContentInit    | 每当 Angular 把外部内容投影进组件/指令的视图之后调用。第一次 `ngDoCheck()` 之后调用，只调用一次。 |
@@ -1398,6 +1492,10 @@ export class AfterViewComponent implements  AfterViewChecked, AfterViewInit {
 ```
 
 `ngAfterContentInit`和`ngAfterContentChecked`钩子方法则无需担心单向数据流规则，它是在视图完成之前被调用。
+
+### 响应输入属性变化
+
+输入属性发生变化后，只是触发了生命周期钩子方法，至于指令应该做出什么样的响应（例如，更新模型），则要通过实现钩子方法，自己处理。
 
 # 数据绑定
 
