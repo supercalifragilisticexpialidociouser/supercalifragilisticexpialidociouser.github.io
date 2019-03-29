@@ -1905,7 +1905,21 @@ export class AfterViewComponent implements  AfterViewChecked, AfterViewInit {
 
 ### 响应输入属性变化
 
-输入属性发生变化后，只是触发了生命周期钩子方法，至于指令应该做出什么样的响应（例如，更新模型），则要通过实现钩子方法，自己处理。
+输入属性发生变化后，只是触发了生命周期钩子方法，至于指令应该做出什么样的响应（例如，更新模型），则要通过实现钩子方法，自己处理。通常，可以通过实现`ngOnChanges`钩子方法来处理输入属性的变化。
+
+```typescript
+ngOnChanges(changes: {[property: string]: SimpleChange })
+```
+
+SimpleChange类定义了如下成员：
+
+| 成员            | 描述                                                         |
+| --------------- | ------------------------------------------------------------ |
+| previousValue   | 输入属性的原值。                                             |
+| currentValue    | 输入属性的新值。                                             |
+| isFirstChange() | 如果`ngOnChanges`调用发生在`ngOnInit`之前，即首次调用，则这个方法返回`true`；否则，返回`false`。 |
+
+
 
 # 数据绑定
 
