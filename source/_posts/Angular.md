@@ -1200,7 +1200,33 @@ Angular 应用使用标准的 CSS 来设置样式。另外，Angular 还能把�
 
 ### 全局样式
 
-Angular应用的全局样式放在`src/styles.scss`中。
+当使用 CLI 进行构建时，Angular应用的全局样式默认放在`src/styles.scss`中。也可以通过配置 `angular.json` 文件，自定义要包含的全局样式：
+
+```json
+"architect": {
+  "build": {
+    "builder": "@angular-devkit/build-angular:browser",
+    "options": {
+      "styles": [
+        "src/styles.css",
+        "src/more-styles.css",
+        { "input": "src/lazy-style.scss", "lazy": true },  //懒加载
+        { "input": "src/pre-rename-style.scss", "bundleName": "renamed-style" } //重命名
+      ],
+      ...
+```
+
+当使用`@import`导入样式时，可以从项目的任何位置导入，而无需相对路径：
+
+```scss
+// src/app/app.component.scss
+// A relative path works, "src/style-paths/_variables.scss"
+@import '../style-paths/variables';
+// But now this works as well
+@import 'variables';
+```
+
+
 
 ### 组件样式
 
@@ -1220,13 +1246,179 @@ Angular应用的全局样式放在`src/styles.scss`中。
 - 你可以让每个组件的 CSS 代码和它的 TypeScript、HTML 代码放在一起，这将促成清爽整洁的项目结构。
 - 将来你可以修改或移除组件的 CSS 代码，而不用遍历整个应用来看它有没有在别处用到。
 
+#### 元数据中的样式
+
+你可以给 `@Component` 装饰器添加一个 `styles` 数组型属性，这个数组中的每一个字符串（通常也只有一个）定义一份 CSS。
+
+```typescript
+@Component({
+  selector: 'app-root',
+  template: `
+    <h1>Tour of Heroes</h1>
+    <app-hero-main [hero]="hero"></app-hero-main>
+  `,
+  styles: ['h1 { font-weight: normal; }']
+})
+export class HeroAppComponent {
+/* . . . */
+}
+```
+
+当使用 `--inline-styles` 标识创建组件时，Angular CLI 的 `ng generate component` 命令就会定义一个空的 `styles`数组：
+
+```bash
+$ ng generate component hero-app --inline-style
+```
+
+#### 元数据中的样式文件
+
+你可以通过把外部 CSS 文件添加到 `@Component` 的 `styleUrls` 属性中来加载外部样式。
+
+```typescript
+@Component({
+  selector: 'app-root',
+  template: `
+    <h1>Tour of Heroes</h1>
+    <app-hero-main [hero]="hero"></app-hero-main>
+  `,
+  styleUrls: ['./hero-app.component.css']
+})
+export class HeroAppComponent {
+/* . . . */
+}
+```
+
+> 你可以指定多个样式文件，甚至可以组合使用 `style` 和 `styleUrls` 方式。
+
+当你使用 Angular CLI 的 `ng generate component` 命令但不带 `--inline-style` 标志时，CLI 会为你创建一个空白的样式表文件，并且在所生成组件的 `styleUrls` 中引用该文件。
+
+#### 模板内联样式
+
+你也可以直接在组件的 HTML 模板中写 `<style>` 标签来内嵌 CSS 样式。
+
+```typescript
+@Component({
+  selector: 'app-hero-controls',
+  template: `
+    <style>
+      button {
+        background-color: white;
+        border: 1px solid #777;
+      }
+    </style>
+    <h3>Controls</h3>
+    <button (click)="activate()">Activate</button>
+  `
+})
+```
+
+#### 模板中的 `<link>` 标签
+
+你也可以在组件的 HTML 模板中写 `<link>` 标签。
+
+```typescript
+@Component({
+  selector: 'app-hero-team',
+  template: `
+    <!-- We must use a relative URL so that the AOT compiler can find the stylesheet -->
+    <link rel="stylesheet" href="../assets/hero-team.component.css">
+    <h3>Team</h3>
+    <ul>
+      <li *ngFor="let member of hero.team">
+        {{member}}
+      </li>
+    </ul>`
+})
+```
+
+#### CSS `@imports` 语法
+
+你还可以利用标准的 CSS [`@import` 规则](https://developer.mozilla.org/en/docs/Web/CSS/@import)来把其它 CSS 文件导入到 CSS 文件中。
+
+在这种情况下，URL 是相对于你正在导入的 CSS 文件的。
+
+```typescript
+/* The AOT compiler needs the `./` to show that this is local */
+@import './hero-details-box.css';
+```
+
+
+
 ### 特殊的选择器
 
-#### `:host`
+组件样式中有一些从影子(Shadow) DOM 样式范围领域（记录在[W3C](https://www.w3.org/)的[CSS Scoping Module Level 1](https://www.w3.org/TR/css-scoping-1)中） 引入的特殊选择器。
+
+#### :host
 
 使用 `:host` 伪类选择器，用来选择组件*宿主*元素中的元素（相对于组件模板*内部*的元素）。
 
+```css
+:host {
+  display: block;
+  border: 1px solid black;
+}
+```
 
+`:host` 选择是是把宿主元素作为目标的*唯一*方式。除此之外，你将没办法指定它， 因为宿主不是组件自身模板的一部分，而是父组件模板的一部分。
+
+以函数形式，即在`host`之后的括号内包含另一个选择器，就可以有条件地应用`:host`样式。
+
+下面例子再次把宿主元素作为目标，但是只有当它同时带有 `active` CSS 类的时候才会生效。
+
+```css
+:host(.active) {
+  border-width: 3px;
+}
+```
+
+#### :host-context
+
+ `:host-context()` 伪类选择器在当前组件宿主元素的*祖先节点*中查找 CSS 类， 直到文档的根节点为止。
+
+在下面的例子中，只有当某个祖先元素有 CSS 类 `theme-light` 时，才会把 `background-color` 样式应用到组件*内部*的所有 `<h2>` 元素中：
+
+```css
+:host-context(.theme-light) h2 {
+  background-color: #eef;
+}
+```
+
+### 非CSS新式文件
+
+如果使用 CLI 进行构建，那么你可以用 [sass](http://sass-lang.com/)、[less](http://lesscss.org/) 或 [stylus](http://stylus-lang.com/) 来编写样式，并使用相应的扩展名（`.scss`、`.less`、`.styl`）把它们指定到 `@Component.styleUrls` 元数据中。例子如下：
+
+```scss
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
+})
+...
+```
+
+CLI 的构建过程会运行相关的预处理器。
+
+> 添加到 `@Component.styles` 数组中的样式字符串*必须写成 CSS语法*，因为 CLI 没法对这些内联的样式使用任何 CSS 预处理器。
+
+### 视图封装模式
+
+默认情况下，组件的 CSS 样式被封装进了自己的视图中，而不会影响到应用程序的其它部分。这实际上是由*视图封装模式*控制的。
+
+通过在组件的元数据上设置视图封装模式，你可以分别控制*每个组件*的封装模式。 可选的封装模式有：
+
+- `ShadowDom` 模式使用浏览器原生的 Shadow DOM 实现（参见 [MDN](https://developer.mozilla.org/) 上的 [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Shadow_DOM)）来为组件的宿主元素附加一个 Shadow DOM。组件的视图被附加到这个 Shadow DOM 中，组件的样式也被包含在这个 Shadow DOM 中。
+- `Native` 视图包装模式使用浏览器原生 Shadow DOM 的一个废弃实现。
+- `Emulated` 模式（**默认值**）通过预处理（并改名）CSS 代码来模拟 Shadow DOM 的行为，以达到把 CSS 样式局限在组件视图中的目的。
+- `None` 意味着 Angular 不使用视图封装。 Angular 会把 CSS 添加到全局样式中。而不会应用上前面讨论过的那些作用域规则、隔离和保护等。 从本质上来说，这跟把组件的样式直接放进 HTML 是一样的。
+
+通过组件元数据中的 `encapsulation` 属性来设置组件封装模式：
+
+```typescript
+// warning: few browsers support shadow DOM encapsulation at this time
+encapsulation: ViewEncapsulation.Native
+```
+
+> `ShadowDom` 模式只适用于提供了原生 Shadow DOM 支持的浏览器（参见 [Can I use](http://caniuse.com/) 上的 [Shadow DOM v1](https://caniuse.com/#feat=shadowdomv1) 部分）。 它仍然受到很多限制，这就是为什么仿真 (`Emulated`) 模式是默认选项，并建议将其用于大多数情况。
 
 # 指令
 
@@ -1623,7 +1815,7 @@ import { Directive, ElementRef } from "@angular/core";
   selector: "[pa-attr]",
 })
 export class PaAttrDirective {
-  constructor(element: ElementRef) {
+  constructor(private element: ElementRef) {
     element.nativeElement.classList.add("bg-success", "text-white");
   }
 }
@@ -1631,7 +1823,43 @@ export class PaAttrDirective {
 
 首先，指令是一个带有`@Directive`装饰器的类。装饰器的`selector`属性值是一个CSS样式选择器，它指定了任何具有“pa-attr”属性的元素都将应用该指令。
 
-其次，指令构造器有一个`ElementRef`参数，它表示宿主元素，它的唯一属性`nativeElement`，返回浏览器用来表示DOM元素的对象。该对象提供的方法和属性可用于操纵DOM元素及其内容。
+其次，指令构造器有一个`ElementRef`参数，它表示宿主元素，它的唯一属性`nativeElement`，返回浏览器用来表示DOM元素的对象。该对象提供的方法和属性可用于操纵DOM元素及其内容。例如，下面的指令响应宿主元素上的DOM事件并生成自己的自定义事件：
+
+```typescript
+import { Directive, ElementRef, Attribute, Input,
+        SimpleChange, Output, EventEmitter } from "@angular/core";
+import { Product } from "./product.model";
+@Directive({
+  selector: "[pa-attr]"
+})
+export class PaAttrDirective {
+  constructor(private element: ElementRef) {
+    this.element.nativeElement.addEventListener("click", e => {
+      if (this.product != null) {
+        this.click.emit(this.product.category); //发送自定义事件
+      }
+    });
+  }
+  @Input("pa-attr")
+  bgClass: string;
+  @Input("pa-product")
+  product: Product;
+  @Output("pa-category")
+  click = new EventEmitter<string>();
+  ngOnChanges(changes: {[property: string]: SimpleChange }) {
+    let change = changes["bgClass"];
+    let classList = this.element.nativeElement.classList;
+    if (!change.isFirstChange() && classList.contains(change.previousValue)) {
+      classList.remove(change.previousValue);
+    }
+    if (!classList.contains(change.currentValue)) {
+      classList.add(change.currentValue);
+    }
+  }
+}
+```
+
+> 注意：该指令在构造器上能够引用输入属性（`this.product`）的值，这是因为Angular在调用负责处理DOM事件的函数（这里是匿名函数）之前已经设置该属性的值。
 
 ### 应用属性指令
 
@@ -2227,7 +2455,7 @@ export class KeyUpComponent_v2 {
 
 ### 自定义事件绑定
 
-通常，指令使用 Angular `EventEmitter` 来触发自定义事件。 指令创建一个`EventEmitter`实例，并且把它作为属性暴露出来。 指令调用`EventEmitter.emit(payload)`来触发事件，可以传入任何东西作为消息载荷（payload）。 父指令通过绑定到这个属性来监听事件，并通过`$event`对象来访问载荷。
+通常，指令使用 Angular `EventEmitter` 来触发自定义事件（实际上是响应DOM事件并生成自己的自定义事件）。 指令创建一个`EventEmitter`实例，并且把它作为属性暴露出来。 指令调用`EventEmitter.emit(payload)`来触发事件，可以传入任何东西作为消息载荷（payload）。 父指令通过绑定到这个属性来监听事件，并通过`$event`对象来访问载荷。
 
 假设`HeroDetailComponent`用于显示英雄的信息，并响应用户的动作。 虽然`HeroDetailComponent`包含删除按钮，但它自己并不知道该如何删除这个英雄。 最好的做法是触发事件来报告“删除用户”的请求。
 
@@ -2260,7 +2488,7 @@ delete() {
 <hero-detail (deleteRequest)="deleteHero($event)" [hero]="currentHero"></hero-detail>
 ```
 
-当`deleteRequest`事件触发时，Angular 调用父组件的`deleteHero`方法， 在`$event`变量中传入要删除的英雄（来自`HeroDetail`）。 
+当`deleteRequest`事件触发时，Angular 调用父组件的`deleteHero`方法（侦听器）， 在`$event`变量中传入要删除的英雄（来自`HeroDetail`）。 
 
 ### 常用事件监听器
 
