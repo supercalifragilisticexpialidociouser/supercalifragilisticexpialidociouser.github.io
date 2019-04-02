@@ -1420,6 +1420,32 @@ encapsulation: ViewEncapsulation.Native
 
 > `ShadowDom` 模式只适用于提供了原生 Shadow DOM 支持的浏览器（参见 [Can I use](http://caniuse.com/) 上的 [Shadow DOM v1](https://caniuse.com/#feat=shadowdomv1) 部分）。 它仍然受到很多限制，这就是为什么仿真 (`Emulated`) 模式是默认选项，并建议将其用于大多数情况。
 
+## Angular自定义元素*
+
+*Angular 元素*就是打包成*自定义元素*的 Angular 组件。所谓自定义元素就是一套与具体框架无关的用于定义新 HTML 元素的 Web 标准。
+
+自定义元素扩展了 HTML，它允许你定义一个由 JavaScript 代码创建和控制的标签。 浏览器会维护一个自定义元素（也叫 Web Components）的注册表 `CustomElementRegistry`，它把一个可实例化的 JavaScript 类映射到 HTML 标签上。
+
+把组件转换成自定义元素可以让所有所需的 Angular 基础设施都在浏览器中可用。 创建自定义元素的方式简单直观，它会自动把你组件定义的视图连同变更检测与数据绑定等 Angular 的功能映射为相应的原生 HTML 等价物。
+
+自定义元素会自举启动 —— 它们在添加到 DOM 中时就会自行启动自己，并在从 DOM 中移除时自行销毁自己。一旦自定义元素添加到了任何页面的 DOM 中，它的外观和行为就和其它的 HTML 元素一样了，不需要对 Angular 的术语或使用约定有任何特殊的了解。
+
+![customElement](Angular/customElement1.png)
+
+### 把组件转换成自定义元素
+
+Angular 提供了 `createCustomElement()` 函数，以支持把 Angular 组件及其依赖转换成自定义元素。该函数会收集该组件的 `Observable` 型属性，提供浏览器创建和销毁实例时所需的 Angular 功能，还会对变更进行检测并做出响应。
+
+这个转换过程实现了 `NgElementConstructor` 接口，并创建了一个构造器类，用于生成该组件的一个自举型实例。
+
+然后用 JavaScript 的 `customElements.define()` 函数把这个配置好的构造器和相关的自定义元素标签注册到浏览器的 `CustomElementRegistry` 中。 当浏览器遇到这个已注册元素的标签时，就会使用该构造器来创建一个自定义元素的实例。
+
+![Transform a component to a custom element](Angular/createElement.png)
+
+使用 [Angular CLI](https://cli.angular.io/) 可以自动为你的项目添加正确的polyfill脚本：`ng add @angular/elements --name=*your_project_name*`。
+
+### 为自定义元素添加类型支持
+
 # 指令
 
 指令是一个带有“指令元数据”的类。在 TypeScript 中，要通过`@Directive`装饰器把元数据附加到类上。
