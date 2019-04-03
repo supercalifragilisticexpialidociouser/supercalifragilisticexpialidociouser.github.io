@@ -767,7 +767,7 @@ export class CountdownViewChildParentComponent implements AfterViewInit {
 
 使用 `setTimeout()` 来等下一轮，然后改写 `seconds()` 方法，这样它接下来就会从注入的这个计时器组件里获取秒数的值。
 
-### *内容投影
+### 内容投影*
 
 @ContentChild（“生命周期钩子”的“AfterContent 钩子”）
 
