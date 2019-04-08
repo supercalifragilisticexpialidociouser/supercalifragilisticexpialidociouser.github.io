@@ -10,7 +10,11 @@ tags: [3.7.0]
 
 ## 安装
 
-## 交互式环境
+### IDE
+
+[PyCharm](http://www.jetbrains.com/pycharm/)
+
+## 交互模式
 
 安装完Python后，执行命令`python`将进入交互式环境。如果同时安装了版本2和3的Python，则命令`python`通常是指Python 3，另外还有命令`python2`和`python3`。
 
@@ -33,47 +37,7 @@ $ python
 
 > 提示：按下 `q` 退出帮助。
 
-## IDE
-
-[PyCharm](http://www.jetbrains.com/pycharm/)
-
-# 入门
-
-## 编码
-
-### 第一个程序
-
-hello.py：
-
-```python
-print("Hello world!")
-```
-
-### 源文件
-
-Python程序的源代码保存在扩展名是`.py`的源文件中。
-
-### 字符集
-
-Python 2默认采用US-ASCII字符集，Python 3默认采用UTF-8字符集。
-
-如果源文件要使用其他编码，可使用特殊的注释来指定：
-
-```python
-# -*- coding: latin-1 -*-
-```
-
-
-
-### 转义序列
-
-### 保留字
-
-### 编码规范
-
-## 构建
-
-## 运行
+## 解释模式
 
 ### 直接运行脚本
 
@@ -107,7 +71,37 @@ hello
 ['-c', '123']
 ```
 
+## 编译模式
+
+## 调试模式
+
 # 程序结构
+
+## 第一个程序
+
+hello.py：
+
+```python
+print("Hello world!")
+```
+
+## 源文件
+
+Python程序的源代码保存在扩展名是`.py`的源文件中。
+
+## 编码
+
+Python 2默认采用US-ASCII字符集，Python 3默认采用UTF-8字符集。
+
+如果源文件要使用其他编码，可使用特殊的注释来指定：
+
+```python
+# -*- coding: latin-1 -*-
+```
+
+### 转义序列
+
+## 保留字
 
 ## 注释
 
@@ -143,7 +137,9 @@ square(x)
 Calculates the square of the number x.
 ```
 
+## 程序入口
 
+## 编码规范
 
 # 基本类型
 
