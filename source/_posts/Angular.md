@@ -1422,6 +1422,8 @@ encapsulation: ViewEncapsulation.Native
 
 ## 动态组件
 
+（核心知识.组件与模板.动态组件）
+
 ## Angular自定义元素*
 
 *Angular 元素*就是打包成*自定义元素*的 Angular 组件。所谓自定义元素就是一套与具体框架无关的用于定义新 HTML 元素的 Web 标准。
@@ -1849,9 +1851,17 @@ export class PaAttrDirective {
 }
 ```
 
-首先，指令是一个带有`@Directive`装饰器的类。装饰器的`selector`属性值是一个CSS样式选择器，它指定了任何具有“pa-attr”属性的元素都将应用该指令。
+> 可以使用 CLI 命令 ng generate directive 创建指令类文件：
+>
+> ```bash
+> $ ng generate directive paAttr --selector pa-attr
+> ```
+>
+> 上面的 CLI 命令会创建 `src/app/paAttr.directive.ts` 及相应的测试文件（`.../spec.ts`），并且在根模块 `AppModule` 中声明这个指令类。
 
-其次，指令构造器有一个`ElementRef`参数，它表示宿主元素，它的唯一属性`nativeElement`，返回浏览器用来表示DOM元素的对象。该对象提供的方法和属性可用于操纵DOM元素及其内容。例如，下面的指令响应宿主元素上的DOM事件并生成自己的自定义事件：
+首先，指令是一个带有`@Directive`装饰器的类。装饰器的`selector`属性值是一个CSS样式选择器，它指定了任何具有“pa-attr”属性的元素都将应用该指令。这里的方括号(`[]`)表示它是属性型选择器。
+
+其次，指令构造器有一个`ElementRef`参数，它表示宿主元素（就是包含`pa-attr`属性的那个元素），它的唯一属性`nativeElement`，返回浏览器用来表示DOM元素的对象。该对象提供的方法和属性可用于操纵DOM元素及其内容。例如，下面的指令响应宿主元素上的DOM事件并生成自己的自定义事件：
 
 ```typescript
 import { Directive, ElementRef, Attribute, Input,
@@ -2002,6 +2012,69 @@ export class PaAttrDirective {
 采用`@Attribute`读取属性的主要限制是元素属性值是静态的，而使用输入属性则可以接收表达式。
 
 有关输入属性用法，详见“输入输出属性”。
+
+### 宿主元素的属性绑定
+
+前面的例子中，通过`pa-attr`属性接收样式信息，并在指令构造器中通过DOM API将样式应用到宿主元素上。而通过`@HostBinding`装饰器，可以将输入属性与HTML属性直接绑定起来。这样，就不需要直接使用DOM  API来操纵宿主元素了：
+
+```typescript
+import { Directive, ElementRef, Attribute, Input,
+        SimpleChange, Output, EventEmitter, HostListener, HostBinding }
+from "@angular/core";
+import { Product } from "./product.model";
+@Directive({
+  selector: "[pa-attr]"
+})
+export class PaAttrDirective {
+  @Input("pa-attr")
+  @HostBinding("class")
+  bgClass: string;
+  @Input("pa-product")
+  product: Product;
+  …
+}
+```
+
+上面代码将宿主元素上的`class`属性和装饰器的`bgClass`属性绑定在一起。
+
+> 如果要管理宿主元素的内容，那么可以使用`@HostBinding`装饰器绑定到`textContent`属性。
+
+### 响应用户引发的事件
+
+`@HostListener` 装饰器可以让你订阅某个属性型指令所在的宿主 DOM 元素的事件。这样，我们就不需要在指令构造器中通过`ElementRef.nativeElement.addEventListener()`来为宿主元素添加事件监听器了：
+
+```typescript
+import { Directive, ElementRef, Attribute, Input,
+        SimpleChange, Output, EventEmitter, HostListener, HostBinding }
+from "@angular/core";
+import { Product } from "./product.model";
+@Directive({
+  selector: "[pa-attr]"
+})
+export class PaAttrDirective {
+  @Input("pa-attr")
+  @HostBinding("class")
+  bgClass: string;
+  @Input("pa-product")
+  product: Product;
+  @Output("pa-category")
+  click = new EventEmitter<string>();
+  @HostListener("click")
+  triggerCustomEvent() {
+    if (this.product != null) {
+      this.click.emit(this.product.category);
+    }
+  }
+}
+```
+
+这段代码为`click`事件创建了一个事件绑定，当按下并释放鼠标按键时调用`triggerCustomEvent`方法。
+
+> 当然，你可以通过标准的 JavaScript 方式手动给宿主 DOM 元素附加一个事件监听器。 但这种方法至少有三个问题：
+>
+> 1. 必须正确的书写事件监听器。
+> 2. 当指令被销毁的时候，必须*拆卸*事件监听器，否则会导致内存泄露。
+> 3. 必须直接和 DOM API 打交道，应该避免这样做。
 
 ## 输入输出属性
 
