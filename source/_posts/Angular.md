@@ -1466,7 +1466,9 @@ Angular支持三种类型的指令：
 
 结构型指令通过在 DOM 中添加、移除和操纵它们所附加到的宿主元素来修改布局。例如：`*ngFor`。
 
-只能往一个元素上应用一个结构型指令。
+结构型指令都以“\*”为前缀。赋值给结构型指令的字符串不是模板表达式，而是一个**微语法** —— 由 Angular 自己解释的小型语言。
+
+只能往一个宿主元素上应用一个结构型指令。
 
 ### 内置结构型指令
 
@@ -1510,7 +1512,7 @@ Angular支持三种类型的指令：
 <hero-detail *ngFor="let hero of heroes" [hero]="hero"></hero-detail>
 ```
 
-赋值给`*ngFor`的字符串不是模板表达式，它是一个微语法 —— 由 Angular 自己解释的小型语言。在这个例子中，字符串"let hero of heroes"的含义是：
+赋值给`*ngFor`的字符串不是模板表达式，它是一个**微语法** 。在这个例子中，字符串"let hero of heroes"的含义是：
 
 取出`heroes`数组中的每个英雄，把它存入局部变量`hero`中，并在每次迭代时对模板 HTML 可用。
 
@@ -1619,9 +1621,9 @@ trackByHeroes(index: number, hero: Hero) { return hero.id; }
 
 追踪函数不会阻止所有 DOM 更改。 如果同一个英雄的属性变化了，Angular 就可能不得不更新DOM元素。 但是如果这个属性没有变化 —— 而且大多数时候它们不会变化 —— Angular 就能留下这些 DOM 元素。列表界面就会更加平滑，提供更好的响应。
 
-### 微模板
+### 微语法
 
-在指令前加上`*`前缀表示它们依靠微模板来提供内容，它们会展开成`<template>`标签。这些使用微模板的指令就是结构型指令。
+在指令前加上`*`前缀表示它们依靠**微语法**来提供内容，它们会展开成`<ng-template>`元素，并用它来包裹宿主元素。这些使用微语法的指令就是结构型指令。
 
 `*ngIf`的展开：
 
@@ -1675,13 +1677,198 @@ trackByHeroes(index: number, hero: Hero) { return hero.id; }
 </ng-template>
 ```
 
+> `*ngFor` 属性之外的每一样东西都会留在宿主元素（`<hero-detail>`）上，也就是说它移到了 `<ng-template>` 内部。 在这个例子中，`[hero]="hero"` 留在了 `<hero-detail>` 上。
+
+Angular 微语法能让你通过简短的、友好的字符串来配置一个指令。 微语法解析器把这个字符串翻译成 `<ng-template>` 上的属性：
+
+- `let` 关键字声明一个[模板输入变量](https://angular.cn/guide/structural-directives#template-input-variable)，你会在模板中引用它。上面例子中，这个输入变量就是 `hero`和`i` 。 解析器会把 `let hero`和`let i`  翻译成命名变量 `let-hero`和`let-i` 。
+- 微语法解析器接收 `of` 和 `trackby`，把它们首字母大写（`of` -> `Of`, `trackBy` -> `TrackBy`）， 并且给它们加上指令的属性名（`ngFor`）前缀，最终生成的名字是 `ngForOf` 和 `ngForTrackBy`。 还有两个 `NgFor` 的*输入属性*，指令据此了解到列表是 `heroes`，而 track-by 函数是 `trackByHeroes`。
+- `NgFor` 指令在列表上循环，每个循环中都会设置和重置它自己的*上下文*对象上的属性。 这些属性包括 `index` 和 `odd` 以及一个特殊的属性名 `$implicit`（隐式变量）。
+- `let-i` 变量是通过 `let i=index` 来定义的。 Angular 把它们设置为*上下文*对象中的 `index` 属性的当前值。
+- 这里并没有指定 `let-hero` 的上下文属性。它的来源是隐式的。 Angular 将 `let-hero` 设置为此上下文中 `$implicit` 属性的值， 它是由 `NgFor` 用当前迭代中的英雄初始化的。
+- [API 参考手册](https://angular.cn/api/common/NgForOf)中描述了 `NgFor` 指令的其它属性和上下文属性。
+- `NgFor` 是由 `NgForOf` 指令来实现的。请参阅 [NgForOf API 参考手册](https://angular.cn/api/common/NgForOf)来了解 `NgForOf` 指令的更多属性及其上下文属性。
+
+这些微语法机制在你写自己的结构型指令时也同样有效。
+
+#### `<ng-template>`指令
+
+`<ng-template>`是一个 Angular 元素，用来渲染 HTML。 它永远不会直接显示出来。 事实上，在渲染视图之前，Angular 会把 `<ng-template>` 及其内容*替换为*一个注释。
+
+如果没有使用结构型指令，而仅仅把一些别的元素包装进 `<ng-template>` 中，那些元素就是不可见的。 在下面的这个短语"Hip! Hip! Hooray!"中，中间的这个 "Hip!"（欢呼声） 就是如此。
+
+```html
+<p>Hip!</p>
+<ng-template>
+  <p>Hip!</p>
+</ng-template>
+<p>Hooray!</p>
+```
+
+Angular 抹掉了中间的那个 "Hip!" ：
+
+```html
+<p _ngcontent-c0>Hip!</p>
+<!---->
+<p _ngcontent-c0>Hooray!</p>
+```
+
+结构型指令会让 `<ng-template>` 正常工作。
+
+### 使用`<ng-container>`把一些兄弟元素归为一组
+
+通常都需要一个*根*元素作为结构型指令的宿主。例如：`<li>`元素就是一个典型的供 `NgFor` 使用的宿主元素：
+
+```html
+<li *ngFor="let hero of heroes">{{hero.name}}</li>
+```
+
+当没有这样一个单一的宿主元素时，你可以把这些内容包裹在一个原生的 HTML 容器元素中，比如 `<div>`，并且把结构型指令附加到这个"包裹"上。
+
+```html
+<div *ngIf="hero" class="name">{{hero.name}}</div>
+```
+
+但引入另一个容器元素（通常是 `<span>` 或 `<div>`）来把一些元素归到一个单一的*根元素*下，通常也会带来问题。注意，是“通常”而不是“总会”。
+
+这种用于分组的元素可能会破坏模板的外观表现，从而导致 CSS 的样式失效或以不期待的方式被应用。
+
+另一个问题是：有些 HTML 元素需要所有的直属下级都具有特定的类型。 比如，`<select>` 元素要求直属下级必须为 `<option>`，那就没办法把这些选项包装进 `<div>` 或 `<span>` 中。
+
+Angular 的 `<ng-container>` 是一个分组元素，但它不会污染样式或元素布局，因为 Angular *压根不会把它放进 DOM*中。
+
+```html
+<div>
+  Pick your favorite hero
+  (<label><input type="checkbox" checked (change)="showSad = !showSad">show sad</label>)
+</div>
+<select [(ngModel)]="hero">
+  <ng-container *ngFor="let h of heroes">
+    <ng-container *ngIf="showSad || h.emotion !== 'sad'">
+      <option [ngValue]="h">{{h.name}} ({{h.emotion}})</option>
+    </ng-container>
+  </ng-container>
+</select>
+```
+
+`<ng-container>` 是一个由 Angular 解析器负责识别处理的语法元素。 它不是一个指令、组件、类或接口，更像是 JavaScript 中 `if` 块中的*花括号*。没有这些花括号，JavaScript 只会执行第一句，而你原本的意图是把其中的所有语句都视为一体来根据条件执行。 而 `<ng-container>` 满足了 Angular 模板中类似的需求。
+
 ### 创建结构型指令
 
+创建指令很像创建组件。
+
+- 导入 `Directive` 装饰器（而不再是 `Component`）。
+- 导入符号 `Input`、`TemplateRef` 和 `ViewContainerRef`，你在*任何*结构型指令中都会需要它们。
+- 给指令类添加装饰器。
+- 设置 CSS *属性选择器* ，以便在模板中标识出这个指令该应用于哪个元素。
+
+例如：我们写一个名叫 `UnlessDirective` 的结构型指令，它是 `NgIf` 的反义词。 `NgIf` 在条件为 `true` 的时候显示模板内容，而 `UnlessDirective` 则会在条件为 `false` 时显示模板内容。
+
+```html
+<p *appUnless="condition">Show this sentence unless the condition is true.</p>
+```
+
+指令类：
+
+```typescript
+import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
+
+/**
+ * Add the template content to the DOM unless the condition is true.
+ */
+@Directive({ selector: '[appUnless]'})
+export class UnlessDirective {
+  private hasView = false;
+
+  constructor(
+    private templateRef: TemplateRef<any>,
+    private viewContainer: ViewContainerRef) { }
+
+  @Input() set appUnless(condition: boolean) {
+    if (!condition && !this.hasView) {
+      this.viewContainer.createEmbeddedView(this.templateRef);
+      this.hasView = true;
+    } else if (condition && this.hasView) {
+      this.viewContainer.clear();
+      this.hasView = false;
+    }
+  }
+}
+```
+
+指令的*选择器*通常是把指令的属性名括在方括号中，如 `[appUnless]`。 这个方括号定义了一个 CSS [属性选择器](https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors)。
+
+指令的*属性名*应该拼写成*小驼峰*形式，并且带有一个前缀。在这个例子中，前缀是 `app`。
+
 > 前缀`Ng`或`ng`被保留用于内置的Angular功能，因此自定义指令不应该使用这些前缀。
+
+指令的*类名*用 `Directive` 结尾，参见[风格指南](https://angular.cn/guide/styleguide#02-03)。 但 Angular 自己的指令例外。
+
+指令创建好后，还需要将它添加到所属模块（例如`AppModule`）的 `declarations` 数组中，这样才可以在其他模板中使用。
+
+```typescript
+import { NgModule }      from '@angular/core';
+import { FormsModule }   from '@angular/forms';
+import { BrowserModule } from '@angular/platform-browser';
+
+import { AppComponent }         from './app.component';
+import { heroSwitchComponents } from './hero-switch.components';
+import { UnlessDirective }    from './unless.directive';
+
+@NgModule({
+  imports: [ BrowserModule, FormsModule ],
+  declarations: [
+    AppComponent,
+    heroSwitchComponents,
+    UnlessDirective
+  ],
+  bootstrap: [ AppComponent ]
+})
+export class AppModule { }
+```
+
+#### TemplateRef 和 ViewContainerRef
+
+像上面例子一样的简单结构型指令会从 Angular 生成的 `<ng-template>` 元素中创建一个[*内嵌的视图*](https://angular.cn/api/core/EmbeddedViewRef)，并把这个视图插入到一个[*视图容器*](https://angular.cn/api/core/ViewContainerRef)中，紧挨着本指令原来的宿主元素 `<p>`（译注：注意不是子节点，而是兄弟节点）。
+
+你可以使用[`TemplateRef`](https://angular.cn/api/core/TemplateRef)取得 `<ng-template>` 的内容，并通过[`ViewContainerRef`](https://angular.cn/api/core/ViewContainerRef)来访问这个*视图容器*。
+
+你可以把它们都注入到指令的构造函数中，作为该类的私有属性。
+
+```typescript
+constructor(
+  private templateRef: TemplateRef<any>,
+  private viewContainer: ViewContainerRef) { }
+```
+
+#### appUnless 属性
+
+该指令的使用者会把一个 true/false 条件绑定到 `[appUnless]` 属性上。 也就是说，该指令需要一个带有 `@Input` 的 `appUnless` 属性。
+
+```typescript
+@Input() set appUnless(condition: boolean) {
+  if (!condition && !this.hasView) {
+    this.viewContainer.createEmbeddedView(this.templateRef);
+    this.hasView = true;
+  } else if (condition && this.hasView) {
+    this.viewContainer.clear();
+    this.hasView = false;
+  }
+}
+```
+
+一旦该值的条件发生了变化，Angular 就会去设置 `appUnless` 属性。
+
+- 如果条件为假，并且以前尚未创建过该视图，就告诉*视图容器（ViewContainer）*根据模板创建一个*内嵌视图*。
+- 如果条件为真，并且视图已经显示出来了，就会清除该容器，并销毁该视图。
+
+没有人会读取 `appUnless` 属性，因此它不需要定义 getter。
 
 ## 属性型指令
 
 属性型指令会监听和修改宿主 HTML 元素、元素属性（Attribute）、DOM 属性（Property）或组件的行为和外观。 它们通常会作为 HTML 属性的名称而应用在元素上。 例如：`ngModel`。
+
+可以在一个宿主元素上应用多个*属性型*指令。
 
 ### 内置属性型指令
 
@@ -1859,7 +2046,7 @@ export class PaAttrDirective {
 >
 > 上面的 CLI 命令会创建 `src/app/paAttr.directive.ts` 及相应的测试文件（`.../spec.ts`），并且在根模块 `AppModule` 中声明这个指令类。
 
-首先，指令是一个带有`@Directive`装饰器的类。装饰器的`selector`属性值是一个CSS样式选择器，它指定了任何具有“pa-attr”属性的元素都将应用该指令。这里的方括号(`[]`)表示它是属性型选择器。
+首先，指令是一个带有`@Directive`装饰器的类。装饰器的`selector`属性值是一个CSS样式选择器，它指定了任何具有“pa-attr”属性的元素都将应用该指令。这里的方括号(`[]`)表示它是CSS属性选择器。
 
 其次，指令构造器有一个`ElementRef`参数，它表示宿主元素（就是包含`pa-attr`属性的那个元素），它的唯一属性`nativeElement`，返回浏览器用来表示DOM元素的对象。该对象提供的方法和属性可用于操纵DOM元素及其内容。例如，下面的指令响应宿主元素上的DOM事件并生成自己的自定义事件：
 
@@ -2078,9 +2265,9 @@ export class PaAttrDirective {
 
 ## 输入输出属性
 
-输入属性是一个带有 `@Input` 装饰器的可设置属性。当它通过property绑定的形式被绑定时，值会“流入”这个属性。
+模板输入属性是一个带有 `@Input` 装饰器的可设置属性。当它通过property绑定的形式被绑定时，值会“流入”这个属性。
 
-输出属性是一个带有 `@Output` 装饰器的可观察对象型的属性。 这个属性几乎总是返回 Angular 的`EventEmitter`。 当它通过事件绑定的形式被绑定时，值会“流出”这个属性。
+模板输出属性是一个带有 `@Output` 装饰器的可观察对象型的属性。 这个属性几乎总是返回 Angular 的`EventEmitter`。 当它通过事件绑定的形式被绑定时，值会“流出”这个属性。
 
 输入属性通常接收数据值， 输出属性暴露事件生产者。
 
@@ -2094,7 +2281,7 @@ export class PaAttrDirective {
 
 从 `HeroDetailComponent` 角度来看，`HeroDetailComponent.deleteRequest` 是个**输出**属性， 因为事件从那个属性流*出*，流向模板绑定语句中的处理器。
 
-注意：Angular是在指令的构造器执行完毕且已经生成新的指令对象之后，才设置输入输出属性的。这意味着指令构造器无法访问输入输出属性的值。为了解决这个问题，指令可以实现生命周期钩子方法。
+> 注意：Angular是在指令的构造器执行完毕且已经生成新的指令对象之后，才设置输入输出属性的。这意味着指令构造器无法访问输入输出属性的值。为了解决这个问题，指令可以实现生命周期钩子方法。
 
 ### 绑定目标和绑定源
 
@@ -2145,6 +2332,12 @@ export class PaAttrDirective {
 ```html
 <div (myClick)="clickMessage=$event" clickable>click with myClick</div>
 ```
+
+### 模板输入输出变量的作用域
+
+模板输入输出变量的作用范围被限制在所重复模板的*单一实例*上。 事实上，你可以在其它结构型指令中使用同样的变量名。
+
+> 模板输入变量和模板引用变量是不同的，它们具有各自独立的命名空间。
 
 ## 生命周期钩子
 
