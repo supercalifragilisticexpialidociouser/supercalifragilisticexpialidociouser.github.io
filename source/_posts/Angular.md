@@ -939,6 +939,45 @@ HTML 是 Angular 模板的语言，几乎所有的 HTML 语法都是有效的模
 <button (click)="callFax(fax.value)">Fax</button> 
 ```
 
+##### 显式设置模板引用变量的值
+
+模板引用变量的值默认是声明它的那个元素（即宿主元素），但也可以显式地给它设置其他值。例如，下面的示例将模板引用变量显式地设置为Angular的`ngForm`指令：
+
+```html
+<form (ngSubmit)="onSubmit(heroForm)" #heroForm="ngForm">
+  <div class="form-group">
+    <label for="name">Name
+      <input class="form-control" name="name" required [(ngModel)]="hero.name">
+    </label>
+  </div>
+  <button type="submit" [disabled]="!heroForm.form.valid">Submit</button>
+</form>
+<div [hidden]="!heroForm.form.valid">
+  {{submitMessage}}
+</div>
+```
+
+原生的 `<form>` 元素没有 `form` 属性，但 `NgForm` 指令有。这就解释了为何当 `heroForm.form.valid` 是无效时你可以禁用提交按钮， 并能把整个表单控件树传给父组件的 `onSubmit` 方法。
+
+##### 导出指令用于模板引用变量
+
+`@Directive`装饰器的`exportAs`属性指定了一个名称，在模板引用变量中将使用该名称来引用指令。上面的示例中，使用的`ngForm`就是在`NgForm`指令类中通过`exportsAs`属性指定的：
+
+```typescript
+@Directive({
+  selector: 'form:not([ngNoForm]):not([formGroup]),ngForm,ng-form,[ngForm]',
+  providers: [formDirectiveProvider],
+  host: {'(submit)': 'onSubmit($event)', '(reset)': 'onReset()'},
+  outputs: ['ngSubmit'],
+  exportAs: 'ngForm'
+})
+export class NgForm extends ControlContainer implements Form, AfterViewInit {
+  …
+}
+```
+
+当使用`exportAs`装饰器属性时，在模板表达式和数据绑定中可以使用指定定义的所有方法和属性，包括那些名称以下划线为前缀或应用`private`关键字的方法和属性。
+
 ##### 引用模板引用变量
 
 模板引用变量的作用范围是*整个模板*。
@@ -2262,6 +2301,91 @@ export class PaAttrDirective {
 > 1. 必须正确的书写事件监听器。
 > 2. 当指令被销毁的时候，必须*拆卸*事件监听器，否则会导致内存泄露。
 > 3. 必须直接和 DOM API 打交道，应该避免这样做。
+
+### 创建双向绑定
+
+Angular为创建支持双向绑定的指令提供了特殊的支持，因此可以采用`ngModel`使用的“[()]”括号样式，并可以双向绑定到模型属性。
+
+双向绑定功能依赖命名约定，参见“数据绑定·双向绑定”部分。
+
+```typescript
+import { Input, Output, EventEmitter, Directive,
+        HostBinding, HostListener, SimpleChange } from "@angular/core";
+
+@Directive({
+  selector: "input[paModel]"
+})
+export class PaModel {
+  @Input("paModel")
+  modelProperty: string;
+  @HostBinding("value")
+  fieldValue: string = "";
+  ngOnChanges(changes: { [property: string]: SimpleChange }) {
+    let change = changes["modelProperty"];
+    if (change.currentValue != this.fieldValue) {
+      this.fieldValue = changes["modelProperty"].currentValue || "";
+    }
+  }
+  @Output("paModelChange")
+  update = new EventEmitter<string>();
+  @HostListener("input", ["$event.target.value"])
+  updateValue(newValue: string) {
+    this.fieldValue = newValue;
+    this.update.emit(newValue);
+  }
+}
+```
+
+这个指令的`selector`属性指定它将匹配所有具有`paModel`属性的`<input>`元素。
+
+`paModel`绑定的实现使用输入属性和`ngOnChanges`方法，该方法响应表达式值的变化：通过`input`元素的`value`属性的宿主绑定来更新`input`元素的内容。
+
+`paModelChange`事件使用`input`事件的宿主监听器实现，然后通过输出属性发送更新。
+
+`@HostListener`装饰器的第一个参数指定将由侦听器处理的事件的名称；第二个参数是一个数组，将用于为被装饰的方法（这里即`updateValue`方法）提供实参。在这个示例中，`input`事件将由侦听器处理，并且在调用`updateValue`方法时，其`newValue`参数将被设置为`Event`对象（即`$event`引用的对象）的`targer.value`属性。
+
+为了启用该指令，将其添加到Angular模块中：
+
+```typescript
+import { NgModule } from "@angular/core";
+import { BrowserModule } from "@angular/platform-browser";
+import { ProductComponent } from "./component";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { PaAttrDirective } from "./attr.directive";
+import { PaModel } from "./twoway.directive";
+@NgModule({
+  imports: [BrowserModule, FormsModule, ReactiveFormsModule],
+  declarations: [ProductComponent, PaAttrDirective, PaModel],
+  bootstrap: [ProductComponent]
+})
+export class AppModule { }
+```
+
+这样，就可以使用该双向绑定的指令了：
+
+```html
+...
+<div class="col-6">
+  <div class="form-group bg-info text-white p-2">
+    <label>Name:</label>
+    <input class="bg-primary text-white" [(paModel)]="newProduct.name" />
+  </div>
+  <table class="table table-sm table-bordered table-striped">
+    <tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
+    <tr *ngFor="let item of getProducts(); let i = index"
+        [pa-attr]="getProducts().length < 6 ? 'bg-success' : 'bg-warning'"
+        [pa-product]="item" (pa-category)="newProduct.category=$event">
+      <td>{{i + 1}}</td>
+      <td>{{item.name}}</td>
+      <td [pa-attr]="item.category == 'Soccer' ? 'bg-info' : null">
+        {{item.category}}
+      </td>
+      <td [pa-attr]="'bg-info'">{{item.price}}</td>
+    </tr>
+  </table>
+</div>
+...
+```
 
 ## 输入输出属性
 
