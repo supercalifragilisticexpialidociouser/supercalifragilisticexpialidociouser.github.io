@@ -1903,6 +1903,10 @@ constructor(
 
 没有人会读取 `appUnless` 属性，因此它不需要定义 getter。
 
+### 启用结构型指令
+
+即将指令类添加到所属模块的`declarations`属性中。
+
 ## 属性型指令
 
 属性型指令会监听和修改宿主 HTML 元素、元素属性（Attribute）、DOM 属性（Property）或组件的行为和外观。 它们通常会作为 HTML 属性的名称而应用在元素上。 例如：`ngModel`。
@@ -2125,29 +2129,9 @@ export class PaAttrDirective {
 
 > 注意：该指令在构造器上能够引用输入属性（`this.product`）的值，这是因为Angular在调用负责处理DOM事件的函数（这里是匿名函数）之前已经设置该属性的值。
 
-### 应用属性指令
+### 启用属性指令
 
-应用自定义的属性指令包括两个步骤：
-
-第一步：更新模板，让一个或多个元素与指令所用的选择器相匹配。对于示例指令而言，这意味着将`pa-attr`属性添加到一个元素中：
-
-```html
-...
-<table class="table table-sm table-bordered table-striped">
-  <tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
-  <tr *ngFor="let item of getProducts(); let i = index" pa-attr>
-    <td>{{i + 1}}</td>
-    <td>{{item.name}}</td>
-    <td>{{item.category}}</td>
-    <td>{{item.price}}</td>
-  </tr>
-</table>
-...
-```
-
-该指令的选择器匹配任何具有`pa-attr`属性的元素，而不管该属性是否被赋值以及赋的是什么值。
-
-第二步：修改Angular模块的配置：
+修改Angular模块的配置：
 
 ```typescript
 import { NgModule } from "@angular/core";
@@ -2164,6 +2148,26 @@ export class AppModule { }
 ```
 
 `declarations`属性声明了`PaAttrDirective`指令属于`AppModule`模块。这样，`PaAttrDirective`指令就可以在`AppModule`模块，以及所有导入`AppModule`模块的Angular模块中使用。
+
+### 应用属性指令
+
+应用自定义的属性指令，让一个或多个元素与指令所用的选择器相匹配。对于示例指令而言，这意味着将`pa-attr`属性添加到一个元素中：
+
+```html
+...
+<table class="table table-sm table-bordered table-striped">
+  <tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
+  <tr *ngFor="let item of getProducts(); let i = index" pa-attr>
+    <td>{{i + 1}}</td>
+    <td>{{item.name}}</td>
+    <td>{{item.category}}</td>
+    <td>{{item.price}}</td>
+  </tr>
+</table>
+...
+```
+
+该指令的选择器匹配任何具有`pa-attr`属性的元素，而不管该属性是否被赋值以及赋的是什么值。
 
 ### 在指令中访问应用程序数据
 
