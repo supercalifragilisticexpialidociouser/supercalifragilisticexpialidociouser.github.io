@@ -1903,6 +1903,254 @@ constructor(
 
 没有人会读取 `appUnless` 属性，因此它不需要定义 getter。
 
+### 创建迭代结构型指令
+
+Angular为需要遍历数据源的指令提供特殊的支持。
+
+示例：创建一个类似`ngFor`指令的`paFor`指令。
+
+`paFor`指令的应用：
+
+```html
+<div class="m-2">
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" [(ngModel)]="showTable" />
+      Show Table
+    </label>
+  </div>
+  <table *paIf="showTable"
+         class="table table-sm table-bordered table-striped">
+    <tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
+    <ng-template [paForOf]="getProducts()" let-item>
+      <tr><td colspan="4">{{item.name}}</td></tr>
+    </ng-template>
+  </table>
+</div>
+```
+
+`paFor`指令类：
+
+```typescript
+import { Directive, ViewContainerRef, TemplateRef,
+         Input, SimpleChange } from "@angular/core";
+@Directive({
+  selector: "[paForOf]"
+})
+export class PaIteratorDirective {
+  constructor(private container: ViewContainerRef,
+              private template: TemplateRef<Object>) {}
+  @Input("paForOf")
+  dataSource: any;
+  ngOnInit() {
+    this.container.clear(); //清空视图容器
+    for (let i = 0; i < this.dataSource.length; i++) {
+      this.container.createEmbeddedView(this.template,
+                                        new PaIteratorContext(this.dataSource[i]));
+    }
+  }
+}
+
+class PaIteratorContext {
+  constructor(public $implicit: any) {}
+}
+```
+
+`@Directive`装饰器中的`selector`属性匹配那些具有`paForOf`属性的元素，`paForOf`属性也是`dataSource`输入属性的数据来源，并提供待迭代的对象源，它的名称必须以`Of`结尾，以便支持简洁语法。
+
+`let-item`属性，它没有赋值，用于告诉Angular，想要把隐式值（implicit value，即`$implicit`）赋给一个名为`item`的模板引用变量。在本例中，`$implicit`被赋予了数据源中当前处理的对象。
+
+`createEmbeddedView`方法为数据源中每次迭代的对象添加一个新的视图到视图容器中。该方法提供了两个参数：
+
+- `TemplateRef`对象：提供了要插入视图容器中的内容；
+- 上下文对象：为`$implicit`提供数据。本示例中，就是通过`PaIteratorContext`的构造器给`$implicit`设置值。另外，在下面例子可以看到，这个对象的属性可以在模板中被赋给模板引用变量。
+
+#### 提供额外的上下文数据
+
+除了隐式值外，结构型指令还可以为模板提供任意的额外值，以赋给模板引用变量并用于绑定。例如，我们这里为`paFor`指令提供`odd`、`even`、`first`和`last`值：
+
+```typescript
+import { Directive, ViewContainerRef, TemplateRef,
+         Input, SimpleChange } from "@angular/core";
+@Directive({
+  selector: "[paForOf]"
+})
+export class PaIteratorDirective {
+  constructor(private container: ViewContainerRef,
+              private template: TemplateRef<Object>) {}
+  @Input("paForOf")
+  dataSource: any;
+  ngOnInit() {
+    this.container.clear();
+    for (let i = 0; i < this.dataSource.length; i++) {
+      this.container.createEmbeddedView(this.template,
+                                        new PaIteratorContext(this.dataSource[i],
+                                                              i, this.dataSource.length));
+    }
+  }
+}
+class PaIteratorContext {
+  odd: boolean; even: boolean;
+  first: boolean; last: boolean;
+  constructor(public $implicit: any,
+              public index: number, total: number ) {
+    this.odd = index % 2 == 1;
+    this.even = !this.odd;
+    this.first = index == 0;
+    this.last = index == total - 1;
+  }
+}
+```
+
+这样，在模板上就可以创建模板引用变量来接收这些上下文属性。
+
+```html
+<div class="m-2">
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" [(ngModel)]="showTable" />
+      Show Table
+    </label>
+  </div>
+  <table *paIf="showTable"
+         class="table table-sm table-bordered table-striped">
+    <tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
+    <ng-template [paForOf]="getProducts()" let-item let-i="index"
+                 let-odd="odd" let-even="even">
+      <tr [class.bg-info]="odd" [class.bg-warning]="even">
+        <td>{{i + 1}}</td>
+        <td>{{item.name}}</td>
+        <td>{{item.category}}</td>
+        <td>{{item.price}}</td>
+      </tr>
+    </ng-template>
+  </table>
+</div>
+```
+
+迭代结构指令支持简洁语法，并且省略了`ng-template`元素。当使用简洁语法时，属性的`Of`后缀将被省略，在名称前加上一个星号，并且省略括号。
+
+另一处变化是将所有上下文值并入指令的表达式中，将所有的“let-”属性替换掉。主数据值成为初始表达式的一部分，而其他上下文值以分号进行分隔。
+
+```html
+<div class="m-2">
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" [(ngModel)]="showTable" />
+      Show Table
+    </label>
+  </div>
+  <table *paI
+         <td>{{item.category}}</td>
+<td>{{item.price}}</td>
+</tr>
+</table>
+</div>f="showTable"
+class="table table-sm table-bordered table-striped">
+<tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
+<tr *paFor="let item of getProducts(); let i = index; let odd = odd;
+            let even = even" [class.bg-info]="odd" [class.bg-warning]="even">
+  <td>{{i + 1}}</td>
+  <td>{{item.name}}</td>
+  <td>{{item.category}}</td>
+  <td>{{item.price}}</td>
+</tr>
+</table>
+</div>
+```
+
+#### 处理数据源变量
+
+迭代结构型指令使用的数据源可能发生两种变更：属性级数据变更和集合级数据变更。
+
+属性级数据变更是指数据源中的单个对象的属性发生改变。Angular会自动处理这种变更，在那些依赖上下文数据的绑定中反映上下文数据出现的任何变化。
+
+集合级数据变更是指，向数据源集合中添加、删除或替换对象。Angular不会自动检测到这种变更，因此迭代指令的`ngOnChanges`方法将没机会得到调用。要接收关于集合级数据变更的通知，必须实现`ngDoCheck`方法：无论哪里发生变更或发生什么样的变更，在应用程序中检测到数据变更时都会调用这个方法。`ngDoCheck`方法可以让指令响应变更，即使Angular没有自动检测到这些变更。然而，实现`ngDoCheck`方法需要谨慎，这是因为它可能会破坏Web应用程序的性能。这是因为，每当Angular在应用程序中的任何地方检测到变更时，都会调用`ngDoCheck`方法，并且这些变更发生的频率要比预期的更快。鉴于此，Angular提供了一些能更加有效管理更新的工具，使得只有在需要时才更新内容。
+
+##### 差异器
+
+```typescript
+import { Directive, ViewContainerRef, TemplateRef,
+         Input, SimpleChange, IterableDiffer, IterableDiffers,
+         ChangeDetectorRef, CollectionChangeRecord, DefaultIterableDiffer
+       } from "@angular/core";
+@Directive({
+  selector: "[paForOf]"
+})
+export class PaIteratorDirective {
+  private differ: DefaultIterableDiffer<any>;
+  constructor(private container: ViewContainerRef,
+              private template: TemplateRef<Object>,
+              private differs: IterableDiffers,
+              private changeDetector: ChangeDetectorRef) {
+  }
+  @Input("paForOf")
+  dataSource: any;
+  ngOnInit() {
+    this.differ =
+      <DefaultIterableDiffer<any>> this.differs.find(this.dataSource).create();
+  }
+  ngDoCheck() {
+    let changes = this.differ.diff(this.dataSource);
+    if (changes != null) {
+      console.log("ngDoCheck called, changes detected");
+      changes.forEachAddedItem(addition => {
+        this.container.createEmbeddedView(this.template,
+                                          new PaIteratorContext(addition.item,
+                                                                addition.currentIndex, changes.length));
+      });
+    }
+  }
+}
+class PaIteratorContext {
+  odd: boolean; even: boolean;
+  first: boolean; last: boolean;
+  constructor(public $implicit: any,
+              public index: number, total: number ) {
+    this.odd = index % 2 == 1;
+    this.even = !this.odd;
+    this.first = index == 0;
+    this.last = index == total - 1;
+  }
+}
+```
+
+Angular内置了一些叫做差异器（differ）的类，可以检测不同类型对象中发生的变更。`IterableDiffers.find`方法接受一个对象并返回一个能够为该对象创建差异器的`IterableDifferFactory`对象。`IterableDifferFactory`类定义了一个`create`方法，该方法返回一个`IterableDiffer`对象，该对象将执行实际的变更检测。
+
+`IterableDifferFactory.create`方法接受一个可选参数，该参数指定变更跟踪函数，这正是`ngFor`指令实现其`trackBy`功能的方式。
+
+`IterableDiffer.diff`方法接受一个对象进行比较，并返回变更列表（`IterableChanges`）。如果没有变更，则返回`null`。当应用程序的其他地方发生变更而调用`ngDoCheck`方法时，检查变更列表是否为`null`可以让该指令避免不必要的工作。
+
+变更列表（默认实现：`DefaultIterableDiffer`）的方法和属性：
+
+| 名称                        | 描述                                               |
+| --------------------------- | -------------------------------------------------- |
+| collection                  | 返回发生过变更的对象集合。                         |
+| length                      | 返回发生过变更的对象个数。                         |
+| forEachItem(func)           | 对变更集合中的每个对象调用`func`函数。             |
+| forEachPreviousItem(func)   | 对先前版本的集合中的每个对象调用`func`函数。       |
+| forEachAddedItem(func)      | 对变更集合中的每个**新**对象调用`func`函数。       |
+| forEachMovedItem(func)      | 对变更集合中位置发生变更的每个对象调用`func`函数。 |
+| forEachRemovedItem(func)    | 对变更集合中删除的每个对象调用`func`函数。         |
+| forEachIdentityChange(func) | 对变更集合中标识发生变更的每个对象调用`func`函数。 |
+
+上表中的函数参数都接收一个`IterableChangeRecord`对象，该对象使用下表中的属性来描述数据项以及数据如何变更：
+
+| 名称          | 描述                                          |
+| ------------- | --------------------------------------------- |
+| item          | 返回数据项。                                  |
+| trackById     | 如果使用`trackBy`函数，则这个属性返回标识值。 |
+| currentIndex  | 返回集合中数据项的当前索引。                  |
+| previousIndex | 返回集合中数据项的之前索引。                  |
+
+使用差异器检查变更后，虽然减少了许多不必要的更新，但`ngDoCheck`方法仍然会被调用，并且该指令每次都必须检查数据变更，因此仍然有不必要的工作要做。
+
+> Angular还提供了键/值对的变更跟踪，这样就可以监测`Map`对象以及使用属性作为映射键的对象。
+
+##### 跟踪视图
+
+
+
 ### 启用结构型指令
 
 即将指令类添加到所属模块的`declarations`属性中。
