@@ -2149,11 +2149,321 @@ Angular内置了一些叫做差异器（differ）的类，可以检测不同类�
 
 ##### 跟踪视图
 
+上一节在处理新增数据项的创建时，数据变更检测的处理非常简单。这一节介绍的删除或修改的处理则更复杂，这要求指令跟踪哪个视图与哪个数据对象相关联。
+
+示例：
+
+首先，在component.ts中添加一个从数据模型中删除Product对象的方法：
+
+```typescript
+import { ApplicationRef, Component } from "@angular/core";
+import { NgForm } from "@angular/forms";
+import { Model } from "./repository.model";
+import { Product } from "./product.model";
+import { ProductFormGroup } from "./form.model";
+@Component({
+  selector: "app",
+  templateUrl: "template.html"
+})
+export class ProductComponent {
+  model: Model = new Model();
+  form: ProductFormGroup = new ProductFormGroup();
+  getProduct(key: number): Product {
+    return this.model.getProduct(key);
+  }
+  getProducts(): Product[] {
+    return this.model.getProducts();
+  }
+  newProduct: Product = new Product();
+  addProduct(p: Product) {
+    this.model.saveProduct(p);
+  }
+  deleteProduct(key: number) { //根据产品键值，从数据模型中删除产品
+    this.model.deleteProduct(key);
+  }
+  formSubmitted: boolean = false;
+  submitForm(form: NgForm) {
+    this.formSubmitted = true;
+    if (form.valid) {
+      this.addProduct(this.newProduct);
+      this.newProduct = new Product();
+      form.reset();
+      this.formSubmitted = false;
+    }
+  }
+  showTable: boolean = true;
+}
+```
+
+template.html：
+
+```html
+...
+<table *paIf="showTable"
+       class="table table-sm table-bordered table-striped">
+  <tr><th></th><th>Name</th><th>Category</th><th>Price</th><th></th></tr>
+  <tr *paFor="let item of getProducts(); let i = index; let odd = odd;
+              let even = even" [class.bg-info]="odd" [class.bg-warning]="even">
+    <td style="vertical-align:middle">{{i + 1}}</td>
+    <td style="vertical-align:middle">{{item.name}}</td>
+    <td style="vertical-align:middle">{{item.category}}</td>
+    <td style="vertical-align:middle">{{item.price}}</td>
+    <td class="text-center">
+      <button class="btn btn-danger btn-sm" (click)="deleteProduct(item.id)">
+        Delete
+      </button>
+    </td>
+  </tr>
+</table>
+...
+```
+
+然后，要在结构型指令`paFor`中处理数据变更，即当从数据源删除对象时进行响应：
+
+```typescript
+import {
+  Directive, ViewContainerRef, TemplateRef,
+  Input, SimpleChange, IterableDiffer, IterableDiffers,
+  ChangeDetectorRef, CollectionChangeRecord, DefaultIterableDiffer, ViewRef
+} from "@angular/core";
+
+@Directive({
+  selector: "[paForOf]"
+})
+export class PaIteratorDirective {
+  private differ: DefaultIterableDiffer<any>;
+  //使用一个Map对象来收集数据对象与其视图之间的映射
+  private views: Map<any, PaIteratorContext> = new Map<any, PaIteratorContext>();
+  constructor(private container: ViewContainerRef,
+               private template: TemplateRef<Object>,
+               private differs: IterableDiffers,
+               private changeDetector: ChangeDetectorRef) {
+  }
+  @Input("paForOf")
+  dataSource: any;
+  ngOnInit() {
+    this.differ =
+      <DefaultIterableDiffer<any>>this.differs.find(this.dataSource).create();
+  }
+  ngDoCheck() {
+    let changes = this.differ.diff(this.dataSource);
+    if (changes != null) {
+      changes.forEachAddedItem(addition => {
+        let context = new PaIteratorContext(addition.item,
+                                            addition.currentIndex, changes.length);
+        context.view = this.container.createEmbeddedView(this.template,
+                                                         context);
+        this.views.set(addition.trackById, context);
+      });
+      let removals = false;
+      changes.forEachRemovedItem(removal => {
+        removals = true;
+        let context = this.views.get(removal.trackById);
+        if (context != null) {
+          this.container.remove(this.container.indexOf(context.view));
+          this.views.delete(removal.trackById);
+        }
+      });
+      if (removals) {
+        let index = 0;
+        //更新后续的索引和数据总数
+        this.views.forEach(context =>
+                           context.setData(index++, this.views.size));
+      }
+    }
+  }
+}
+
+class PaIteratorContext {
+  index: number;
+  odd: boolean; even: boolean;
+  first: boolean; last: boolean;
+  view: ViewRef;
+  constructor(public $implicit: any,
+               public position: number, total: number ) {
+    this.setData(position, total);
+  }
+  setData(index: number, total: number) {
+    this.index = index;
+    this.odd = index % 2 == 1;
+    this.even = !this.odd;
+    this.first = index == 0;
+    this.last = index == total - 1;
+  }
+}
+```
+
 
 
 ### 启用结构型指令
 
 即将指令类添加到所属模块的`declarations`属性中。
+
+### `@ContentChild`
+
+`@ContentChild`装饰器的参数是一个或多个指令类，也可以是模板引用变量的名称（例如：`@ContentChild("myVariable")`）。它指示Angular在宿主元素的内容中查找与参数匹配的指令，并将其赋给被装饰的属性。
+
+父指令：
+
+```typescript
+import { Directive, Input, Output, EventEmitter,
+        SimpleChange, ContentChild } from "@angular/core";
+import { PaCellColor } from "./cellColor.directive";
+
+@Directive({
+  selector: "table"
+})
+export class PaCellColorSwitcher {
+  @Input("paCellDarkColor")
+  modelProperty: Boolean;
+  @ContentChild(PaCellColor)
+  contentChild: PaCellColor;
+  ngOnChanges(changes: { [property: string]: SimpleChange }) {
+    if (this.contentChild != null) {
+      //调用子指令的方法
+      this.contentChild.setColor(changes["modelProperty"].currentValue);
+    }
+  }
+}
+```
+
+子指令：
+
+```typescript
+import { Directive, HostBinding } from "@angular/core";
+@Directive({
+  selector: "td"
+})
+export class PaCellColor {
+  @HostBinding("class")
+  bgClass: string = "";
+  setColor(dark: Boolean) {
+    this.bgClass = dark ? "bg-dark" : "";
+  }
+}
+```
+
+模板：
+
+```html
+...
+<div class="col-8">
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" [(ngModel)]="showTable" />
+      Show Table
+    </label>
+  </div>
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" [(ngModel)]="darkColor" />
+      Dark Cell Color
+    </label>
+  </div>
+  <table *paIf="showTable" [paCellDarkColor]="darkColor"
+         class="table table-sm table-bordered table-striped">
+    <tr><th></th><th>Name</th><th>Category</th><th>Price</th><th></th></tr>
+    <tr *paFor="let item of getProducts(); let i = index; let odd = odd;
+                let even = even" [class.bg-info]="odd" [class.bg-warning]="even">
+      <td style="vertical-align:middle">{{i + 1}}</td>
+      <td style="vertical-align:middle">{{item.name}}</td>
+      <td style="vertical-align:middle">{{item.category}}</td>
+      <td style="vertical-align:middle">{{item.price}}</td>
+      <td class="text-xs-center">
+        <button class="btn btn-danger btn-sm" (click)="deleteProduct(i)">
+          Delete
+        </button>
+      </td>
+    </tr>
+  </table>
+</div>
+...
+```
+
+如果要在结果中包含子内容的后代，则使用`@ContentChild(PaCellColor, {descendants: true})`。
+
+### `@ContentChildren`
+
+`@ContentChild`装饰器只接收第一个与参数匹配的指令对象，而`@ContentChildren`接收所有与参数匹配的指令对象。
+
+```typescript
+import { Directive, Input, Output, EventEmitter,
+        SimpleChange, ContentChildren, QueryList } from "@angular/core";
+import { PaCellColor } from "./cellColor.directive";
+
+@Directive({
+  selector: "table"
+})
+export class PaCellColorSwitcher {
+  @Input("paCellDarkColor")
+  modelProperty: Boolean;
+  @ContentChildren(PaCellColor)
+  contentChildren: QueryList<PaCellColor>;
+  ngOnChanges(changes: { [property: string]: SimpleChange }) {
+    this.updateContentChildren(changes["modelProperty"].currentValue);
+  }
+  private updateContentChildren(dark: Boolean) {
+    if (this.contentChildren != null && dark != undefined) {
+      this.contentChildren.forEach((child, index) => {
+        child.setColor(index % 2 ? dark : !dark);
+      });
+    }
+  }
+}
+```
+
+`QueryList的成员：`
+
+| 成员          | 描述                                                         |
+| ------------- | ------------------------------------------------------------ |
+| length        | 匹配的指令对象个数。                                         |
+| first         | 第一个匹配的指令对象。                                       |
+| last          | 最后一个匹配的指令对象。                                     |
+| map(func)     | 对每个匹配的指令对象调用`func`函数，以创建一个与`Array.map`方法相同的新数组。 |
+| filter(func)  | 对每个匹配的指令对象调用`func`函数，以创建一个数组，该数组包含`func`函数返回`true`的对象。等同于`Array.filter`方法。 |
+| reduce(func)  | 对每个匹配的指令对象调用`func`函数，以创建等价于`Array.reduce`方法的单个值。 |
+| forEach(func) | 对每个匹配的指令对象调用`func`函数，相当于`Array.forEach`方法。 |
+| some(func)    | 对每个匹配的指令对象调用`func`函数，如果`func`函数至少返回`true`一次，则返回`true`。相当于`Array.some`方法。 |
+| changes       | 用于监视子内容集合（即`QueryList`）变更的结果。              |
+
+### 接收子内容查询变更通知
+
+`@ContentChild`和`@ContentChildren`对内容查询的结果是实时的，这意味着它们会自动更新，以反映宿主元素内容中的添加、更改或删除变化。要想在查询结果发生变更时接收通知，就需要使用`Observable`接口，该接口是Reactive Extensions程序包提供的。
+
+```typescript
+import { Directive, Input, Output, EventEmitter,
+        SimpleChange, ContentChildren, QueryList } from "@angular/core";
+import { PaCellColor } from "./cellColor.directive";
+
+@Directive({
+  selector: "table"
+})
+export class PaCellColorSwitcher {
+  @Input("paCellDarkColor")
+  modelProperty: Boolean;
+  @ContentChildren(PaCellColor)
+  contentChildren: QueryList<PaCellColor>;
+  ngOnChanges(changes: { [property: string]: SimpleChange }) {
+    this.updateContentChildren(changes["modelProperty"].currentValue);
+  }
+  ngAfterContentInit() {
+    this.contentChildren.changes.subscribe(() => {
+      setTimeout(() => this.updateContentChildren(this.modelProperty), 0);
+    });
+  }
+  private updateContentChildren(dark: Boolean) {
+    if (this.contentChildren != null && dark != undefined) {
+      this.contentChildren.forEach((child, index) => {
+        child.setColor(index % 2 ? dark : !dark);
+      });
+    }
+  }
+}
+```
+
+`QueryList`类定义了一个`changes`方法，该方法返回一个Reactive Extensions Observable对象，该对象定义了一个`subscribe`方法，该方法接受一个函数参数，当`QueryList`的内容改变（这意味着`@ContentChildren`的实参所匹配的指令集合发生了一些变化）时调用该函数。
+
+这里使用`setTimeout`函数来延迟`updateContentChildren`方法调用，直到`subscribe`回调函数完成。如果没有调用`setTimeout`，那么Angular将报告一个错误，这是因为该指令尝试在当前更新尚未完成的情况下开始新的内容更新。
 
 ## 属性型指令
 
