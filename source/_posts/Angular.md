@@ -710,7 +710,7 @@ export class CountdownLocalVarParentComponent { }
 
 把本地变量(`#timer`)放到(`<countdown-timer>`)标签中，用来代表子组件。这样父组件的模板就得到了子组件的引用，于是可以在父组件的模板中访问子组件的所有属性和方法。
 
-### 父组件调用@ViewChild()
+### @ViewChild
 
 *本地变量*方法是个简单便利的方法，但是它也有局限性。因为父组件-子组件的连接必须全部在父组件的**模板**中进行，而父组件类本身的代码对子组件没有访问权。如果父组件的*类*需要读取子组件的属性值或调用子组件的方法，就不能使用*本地变量*方法，这时需要把子组件作为 *ViewChild*，**注入**到父组件里面。
 
@@ -767,9 +767,54 @@ export class CountdownViewChildParentComponent implements AfterViewInit {
 
 使用 `setTimeout()` 来等下一轮，然后改写 `seconds()` 方法，这样它接下来就会从注入的这个计时器组件里获取秒数的值。
 
-### 内容投影*
+### @ViewChildren
 
-@ContentChild（“生命周期钩子”的“AfterContent 钩子”）
+### 内容投影
+
+如果组件的宿主元素包含内容，那么可以使用特殊的`ng-content`元素将其包含在组件模板中，这称为内容投影（content projection）。也就是说，组件模板中的`ng-content`元素引用组件宿主元素的内容。
+
+```typescript
+import { Component } from "@angular/core";
+
+@Component({
+  selector: "paToggleView",
+  templateUrl: "toggleView.component.html"
+})
+export class PaToggleView {
+  showContent: boolean = true;
+}
+```
+
+该组件定义了一个`showContent`属性，用于确定是否在模板中显示宿主元素内容。
+
+toggleView.component.html：
+
+```html
+<div class="checkbox">
+  <label>
+    <input type="checkbox" [(ngModel)]="showContent" />
+    Show Content
+  </label>
+</div>
+<ng-content *ngIf="showContent"></ng-content>
+```
+
+应用这个组件：
+
+```html
+<div class="row m-2">
+  <div class="col-4 p-2">
+    <paProductForm (paNewProduct)="addProduct($event)"></paProductForm>
+  </div>
+  <div class="col-8 p-2">
+    <paToggleView>
+      <paProductTable [model]="model"></paProductTable>
+    </paToggleView>
+  </div>
+</div>
+```
+
+`<paToggleView>`是`PaToggleView`组件的宿主元素，它的内容包含`<paProductTable>`元素。`PaToggleView`组件不知道它的宿主元素的内容，并且只能通过`<ng-content>`元素将其包含在模板中。
 
 ### 父组件和子组件通过服务来通讯
 
@@ -1265,7 +1310,7 @@ Angular 应用使用标准的 CSS 来设置样式。另外，Angular 还能把�
 @import 'variables';
 ```
 
-
+另外，在HTML文档的`<head>`中定义的样式也适用于所有元素。
 
 ### 组件样式
 
@@ -1381,15 +1426,33 @@ export class HeroAppComponent {
 @import './hero-details-box.css';
 ```
 
+#### 视图封装模式
 
+默认情况下，组件的 CSS 样式被封装进了自己的视图中，而不会影响到应用程序的其它部分。这实际上是由*视图封装模式*控制的。
 
-### 特殊的选择器
+通过在组件的元数据上设置视图封装模式，你可以分别控制*每个组件*的封装模式。 可选的封装模式有：
+
+- `ShadowDom` 模式使用浏览器原生的 Shadow DOM 实现（参见 [MDN](https://developer.mozilla.org/) 上的 [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Shadow_DOM)）来为组件的宿主元素附加一个 Shadow DOM。组件的视图被附加到这个 Shadow DOM 中，组件的样式也被包含在这个 Shadow DOM 中。从而使得DOM的各个部分彼此隔离。
+- `Native` 视图包装模式使用浏览器原生 Shadow DOM 的一个废弃实现。
+- `Emulated` 模式（**默认值**）通过预处理（并改名）CSS 代码来模拟 Shadow DOM 的行为，以达到把 CSS 样式局限在组件视图中的目的。
+- `None` 意味着 Angular 不使用视图封装。 Angular 会把 CSS 添加到全局样式中。而不会应用上前面讨论过的那些作用域规则、隔离和保护等。 从本质上来说，这跟把组件的样式直接放进 HTML的`<head>`中是一样的。
+
+通过组件元数据中的 `encapsulation` 属性来设置组件封装模式：
+
+```typescript
+// warning: few browsers support shadow DOM encapsulation at this time
+encapsulation: ViewEncapsulation.Native
+```
+
+> `ShadowDom` 模式只适用于提供了原生 Shadow DOM 支持的浏览器（参见 [Can I use](http://caniuse.com/) 上的 [Shadow DOM v1](https://caniuse.com/#feat=shadowdomv1) 部分）。 它仍然受到很多限制，这就是为什么仿真 (`Emulated`) 模式是默认选项，并建议将其用于大多数情况。
+
+#### 特殊的选择器
 
 组件样式中有一些从影子(Shadow) DOM 样式范围领域（记录在[W3C](https://www.w3.org/)的[CSS Scoping Module Level 1](https://www.w3.org/TR/css-scoping-1)中） 引入的特殊选择器。
 
-#### :host
+##### :host
 
-使用 `:host` 伪类选择器，用来选择组件*宿主*元素中的元素（相对于组件模板*内部*的元素）。
+使用 `:host` 伪类选择器，用来选择组件的*宿主*元素。
 
 ```css
 :host {
@@ -1398,7 +1461,7 @@ export class HeroAppComponent {
 }
 ```
 
-`:host` 选择是是把宿主元素作为目标的*唯一*方式。除此之外，你将没办法指定它， 因为宿主不是组件自身模板的一部分，而是父组件模板的一部分。
+`:host` 选择器是把宿主元素作为目标的*唯一*方式。除此之外，你将没办法指定它， 因为宿主元素不是组件自身模板的一部分，而是父组件模板的一部分。
 
 以函数形式，即在`host`之后的括号内包含另一个选择器，就可以有条件地应用`:host`样式。
 
@@ -1410,9 +1473,9 @@ export class HeroAppComponent {
 }
 ```
 
-#### :host-context
+##### :host-context
 
- `:host-context()` 伪类选择器在当前组件宿主元素的*祖先节点*中查找 CSS 类， 直到文档的根节点为止。
+ `:host-context()` 伪类选择器在当前组件宿主元素的*祖先节点*中查找 **CSS 类**（只支持CSS类选择器）， 直到文档的根节点为止。
 
 在下面的例子中，只有当某个祖先元素有 CSS 类 `theme-light` 时，才会把 `background-color` 样式应用到组件*内部*的所有 `<h2>` 元素中：
 
@@ -1422,7 +1485,7 @@ export class HeroAppComponent {
 }
 ```
 
-### 非CSS新式文件
+### 非CSS样式文件
 
 如果使用 CLI 进行构建，那么你可以用 [sass](http://sass-lang.com/)、[less](http://lesscss.org/) 或 [stylus](http://stylus-lang.com/) 来编写样式，并使用相应的扩展名（`.scss`、`.less`、`.styl`）把它们指定到 `@Component.styleUrls` 元数据中。例子如下：
 
@@ -1438,26 +1501,6 @@ export class HeroAppComponent {
 CLI 的构建过程会运行相关的预处理器。
 
 > 添加到 `@Component.styles` 数组中的样式字符串*必须写成 CSS语法*，因为 CLI 没法对这些内联的样式使用任何 CSS 预处理器。
-
-### 视图封装模式
-
-默认情况下，组件的 CSS 样式被封装进了自己的视图中，而不会影响到应用程序的其它部分。这实际上是由*视图封装模式*控制的。
-
-通过在组件的元数据上设置视图封装模式，你可以分别控制*每个组件*的封装模式。 可选的封装模式有：
-
-- `ShadowDom` 模式使用浏览器原生的 Shadow DOM 实现（参见 [MDN](https://developer.mozilla.org/) 上的 [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Shadow_DOM)）来为组件的宿主元素附加一个 Shadow DOM。组件的视图被附加到这个 Shadow DOM 中，组件的样式也被包含在这个 Shadow DOM 中。
-- `Native` 视图包装模式使用浏览器原生 Shadow DOM 的一个废弃实现。
-- `Emulated` 模式（**默认值**）通过预处理（并改名）CSS 代码来模拟 Shadow DOM 的行为，以达到把 CSS 样式局限在组件视图中的目的。
-- `None` 意味着 Angular 不使用视图封装。 Angular 会把 CSS 添加到全局样式中。而不会应用上前面讨论过的那些作用域规则、隔离和保护等。 从本质上来说，这跟把组件的样式直接放进 HTML 是一样的。
-
-通过组件元数据中的 `encapsulation` 属性来设置组件封装模式：
-
-```typescript
-// warning: few browsers support shadow DOM encapsulation at this time
-encapsulation: ViewEncapsulation.Native
-```
-
-> `ShadowDom` 模式只适用于提供了原生 Shadow DOM 支持的浏览器（参见 [Can I use](http://caniuse.com/) 上的 [Shadow DOM v1](https://caniuse.com/#feat=shadowdomv1) 部分）。 它仍然受到很多限制，这就是为什么仿真 (`Emulated`) 模式是默认选项，并建议将其用于大多数情况。
 
 ## 动态组件
 
