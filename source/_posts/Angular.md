@@ -714,6 +714,8 @@ export class CountdownLocalVarParentComponent { }
 
 *本地变量*方法是个简单便利的方法，但是它也有局限性。因为父组件-子组件的连接必须全部在父组件的**模板**中进行，而父组件类本身的代码对子组件没有访问权。如果父组件的*类*需要读取子组件的属性值或调用子组件的方法，就不能使用*本地变量*方法，这时需要把子组件作为 *ViewChild*，**注入**到父组件里面。
 
+`@ViewChild`装饰器告诉Angular在模板中查询与参数指定的类型或模板引用变量相匹配的第一个指令或组件对象，并将其指派给被装饰属性。参数可以有多个类或模板引用变量，它们之间使用逗号分隔。
+
 ```typescript
 import { AfterViewInit, ViewChild } from '@angular/core';
 import { Component }                from '@angular/core';
@@ -753,7 +755,7 @@ export class CountdownViewChildParentComponent implements AfterViewInit {
 
 把子组件的视图插入到父组件类需要做一点额外的工作。
 
-首先，你必须导入对装饰器 `ViewChild` 以及生命周期钩子 `AfterViewInit` 的引用。
+首先，你必须导入对装饰器 `@ViewChild` 以及生命周期钩子 `AfterViewInit` 的引用。
 
 接着，通过 `@ViewChild` 属性装饰器，将子组件 `CountdownTimerComponent` 注入到私有属性 `timerComponent` 里面。
 
@@ -768,6 +770,51 @@ export class CountdownViewChildParentComponent implements AfterViewInit {
 使用 `setTimeout()` 来等下一轮，然后改写 `seconds()` 方法，这样它接下来就会从注入的这个计时器组件里获取秒数的值。
 
 ### @ViewChildren
+
+`@ViewChildren`装饰器告诉Angular在模板中查询与参数指定的类型或模板引用变量相匹配的所有指令或组件对象，并将他们指派给被装饰属性。参数可以有多个类或模板引用变量，它们之间使用逗号分隔。
+
+```typescript
+import { Component, Input, ViewChildren, QueryList } from "@angular/core";
+import { Model } from "./repository.model";
+import { Product } from "./product.model";
+import { PaCellColor } from "./cellColor.directive";
+
+@Component({
+  selector: "paProductTable",
+  templateUrl: "productTable.component.html"
+})
+export class ProductTableComponent {
+  @Input("model")
+  dataModel: Model;
+  getProduct(key: number): Product {
+    return this.dataModel.getProduct(key);
+  }
+  getProducts(): Product[] {
+    return this.dataModel.getProducts();
+  }
+  deleteProduct(key: number) {
+    this.dataModel.deleteProduct(key);
+  }
+  showTable: boolean = true;
+  @ViewChildren(PaCellColor)
+  viewChildren: QueryList<PaCellColor>;
+  ngAfterViewInit() {
+    this.viewChildren.changes.subscribe(() => {
+      this.updateViewChildren();
+    });
+    this.updateViewChildren();
+  }
+  private updateViewChildren() {
+    setTimeout(() => {
+      this.viewChildren.forEach((child, index) => {
+        child.setColor(index % 2 ? true : false);
+      })
+    }, 0);
+  }
+}
+```
+
+
 
 ### 内容投影
 
@@ -2344,7 +2391,7 @@ class PaIteratorContext {
 
 ### `@ContentChild`
 
-`@ContentChild`装饰器的参数是一个或多个指令类，也可以是模板引用变量的名称（例如：`@ContentChild("myVariable")`）。它指示Angular在宿主元素的内容中查找与参数匹配的指令，并将其赋给被装饰的属性。
+`@ContentChild`装饰器的参数是一个或多个指令类，也可以是一个或多个模板引用变量的名称（例如：`@ContentChild("myVariable")`），它们之间使用逗号分隔。它指示Angular在宿主元素的内容中查找与参数匹配的指令，并将其赋给被装饰的属性。
 
 父指令：
 
@@ -3715,6 +3762,14 @@ export class SizerComponent {
 ## 脏值检测
 
 # 管道
+
+管道把数据作为输入，然后转换它，给出期望的输出。
+
+![管道](Angular/pipe.png)
+
+## 使用内置管道
+
+
 
 # 表单
 
