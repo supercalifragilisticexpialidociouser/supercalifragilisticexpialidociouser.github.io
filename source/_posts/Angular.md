@@ -3767,9 +3767,17 @@ export class SizerComponent {
 
 ![管道](Angular/pipe.png)
 
+管道的参数以`:`开头。
+
 ## 使用内置管道
 
+## 组合管道
 
+## 自定义管道
+
+### 创建管道类
+
+### 注册管道
 
 # 表单
 
