@@ -3773,11 +3773,104 @@ export class SizerComponent {
 
 ## 组合管道
 
+通过使用竖线字符，可以将多个管道串联起来，数据从左到右依次流动到各管道，每个管道处理完后再将结果交给下一个管道继续处理。
+
+```html
+...
+<td style="vertical-align:middle">
+  {{item.price | addTax:(taxRate || 0) | currency:"USD":"symbol" }}
+</td>
+...
+```
+
+
+
 ## 自定义管道
 
 ### 创建管道类
 
+```typescript
+import { Pipe } from "@angular/core";
+@Pipe({
+  name: "addTax"
+})
+export class PaAddTaxPipe {
+  defaultRate: number = 10;
+  transform(value: any, rate?: any): number {
+    let valueNumber = Number.parseFloat(value);
+    let rateNumber = rate == undefined ?
+        this.defaultRate : Number.parseInt(rate);
+    return valueNumber + (valueNumber * (rateNumber / 100));
+  }
+}
+```
+
+管道类是一个应用了`@Pipe`装饰器的类，这个类实现了一个名为`transform`的方法。当然，管道类也可以显式实现`PipeTransform`接口。
+
+`transform`方法必须至少传入一个参数，该参数就是管道要处理的数据值。除了这个必须参数外，`transform`方法还可定义任意多个额外参数，它们就是那些以“:”开头的管道参数。
+
+`@Pipe`装饰器的属性：
+
+| 属性 | 描述                                                         |
+| ---- | ------------------------------------------------------------ |
+| name | 管道在模板上使用时的名称。                                   |
+| pure | 值为`true`（默认值）时表示：仅当这个管道的输入值（即模板中竖线前面的数据值）或参数发生变化时，管道才会重新使用`transform`方法产生一个新值。这种管道称为纯管道。 |
+
 ### 注册管道
+
+管道使用Angular模块的`declarations`属性注册：
+
+```typescript
+…
+import { PaAddTaxPipe } from "./addTax.pipe";
+
+@NgModule({
+  imports: [BrowserModule, FormsModule, ReactiveFormsModule],
+  declarations: [ProductComponent, PaAttrDirective, PaModel,
+                 PaStructureDirective, PaIteratorDirective,
+                 PaCellColor, PaCellColorSwitcher, ProductTableComponent,
+                 ProductFormComponent, PaToggleView, PaAddTaxPipe],
+  bootstrap: [ProductComponent]
+})
+export class AppModule { }
+```
+
+### 应用自定义管道
+
+一旦成功注册了自定义管道，就可以在数据绑定表达式中使用这个管道了。
+
+```html
+<div>
+  <label>Tax Rate:</label>
+  <select [value]="taxRate || 0" (change)="taxRate=$event.target.value">
+    <option value="0">None</option>
+    <option value="10">10%</option>
+    <option value="20">20%</option>
+    <option value="50">50%</option>
+  </select>
+</div>
+<table class="table table-sm table-bordered table-striped">
+  <tr><th></th><th>Name</th><th>Category</th><th>Price</th><th></th></tr>
+  <tr *paFor="let item of getProducts(); let i = index; let odd = odd;
+              let even = even" [class.bg-info]="odd" [class.bg-warning]="even">
+    <td style="vertical-align:middle">{{i + 1}}</td>
+    <td style="vertical-align:middle">{{item.name}}</td>
+    <td style="vertical-align:middle">{{item.category}}</td>
+    <td style="vertical-align:middle">
+      {{item.price | addTax:(taxRate || 0) }}
+    </td>
+    <td class="text-center">
+      <button class="btn btn-danger btn-sm" (click)="deleteProduct(item.id)">
+        Delete
+      </button>
+    </td>
+  </tr>
+</table>
+```
+
+## 非纯管道
+
+
 
 # 表单
 
