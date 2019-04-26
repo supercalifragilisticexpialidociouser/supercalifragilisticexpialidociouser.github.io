@@ -3771,6 +3771,8 @@ export class SizerComponent {
 
 ## 使用内置管道
 
+参见[pipe API 参考手册](https://angular.cn/api?type=pipe)。
+
 ## 组合管道
 
 通过使用竖线字符，可以将多个管道串联起来，数据从左到右依次流动到各管道，每个管道处理完后再将结果交给下一个管道继续处理。
@@ -3780,10 +3782,8 @@ export class SizerComponent {
 <td style="vertical-align:middle">
   {{item.price | addTax:(taxRate || 0) | currency:"USD":"symbol" }}
 </td>
-...
+..
 ```
-
-
 
 ## 自定义管道
 
@@ -3807,7 +3807,7 @@ export class PaAddTaxPipe {
 
 管道类是一个应用了`@Pipe`装饰器的类，这个类实现了一个名为`transform`的方法。当然，管道类也可以显式实现`PipeTransform`接口。
 
-`transform`方法必须至少传入一个参数，该参数就是管道要处理的数据值。除了这个必须参数外，`transform`方法还可定义任意多个额外参数，它们就是那些以“:”开头的管道参数。
+`transform`方法必须至少传入一个参数，该参数就是管道要处理的数据值。除了这个必须参数（方法的第一个参数）外，`transform`方法还可定义任意多个额外参数，它们就是那些以“:”开头的管道参数。
 
 `@Pipe`装饰器的属性：
 
@@ -3868,7 +3868,80 @@ export class AppModule { }
 </table>
 ```
 
+管道的参数值可以是任何有效的模板表达式。
+
 ## 非纯管道
+
+有两类管道：**纯**的与**非纯**的。
+
+Angular 只有在它检测到输入值发生了*纯变更*时才会执行*纯管道*。 **纯变更**是指对原始类型值(`String`、`Number`、`Boolean`、`Symbol`)的更改， 或者对对象引用(`Date`、`Array`、`Function`、`Object`)的更改。
+
+Angular 会忽略(复合)对象*内部*的更改。 如果你更改了输入日期(`Date`)中的月份、往一个输入数组(`Array`)中添加新值或者更新了一个输入对象(`Object`)的属性，它都不会调用纯管道。
+
+将`pure`装饰器属性设置为`false`会产生一种非纯（impure）管道，此时Angular会让管道拥有自己的状态数据，或者让Angular知道管道依赖这样的数据（当这些数据产生新值时，Angular变更检测过程无法检出这些变更）。
+
+Angular 会在每个组件的变更检测周期中执行*非纯管道*（即调用它的`transform`方法），即使数据值或参数没有发生变更。
+
+非纯管道最常见的用法是处理元素发生变更的数组内容。
+
+应节制使用非纯管道，即使使用非纯管道，也应尽可能地简化这个管道，否则会严重影响Angular应用程序的性能。
+
+categoryFilter.pipe.ts：
+
+```typescript
+import { Pipe } from "@angular/core";
+import { Product } from "./product.model";
+@Pipe({
+  name: "filter",
+  pure: false
+})
+export class PaCategoryFilterPipe {
+  transform(products: Product[], category: string): Product[] {
+    return category == undefined ?
+      products : products.filter(p => p.category == category);
+  }
+}
+```
+
+productTable.component.html：
+
+```html
+<div>
+  <label>Tax Rate:</label>
+  <select [value]="taxRate || 0" (change)="taxRate=$event.target.value">
+    <option value="0">None</option>
+    <option value="10">10%</option>
+    <option value="20">20%</option>
+    <option value="50">50%</option>
+  </select>
+</div>
+<div>
+  <label>Category Filter:</label>
+  <select [(ngModel)]="categoryFilter">
+    <option>Watersports</option>
+    <option>Soccer</option>
+    <option>Chess</option>
+  </select>
+</div>
+<table class="table table-sm table-bordered table-striped">
+  <tr><th></th><th>Name</th><th>Category</th><th>Price</th><th></th></tr>
+  <tr *paFor="let item of getProducts() | filter:categoryFilter;
+              let i = index; let odd = odd; let even = even"
+      [class.bg-info]="odd" [class.bg-warning]="even">
+    <td style="vertical-align:middle">{{i + 1}}</td>
+    <td style="vertical-align:middle">{{item.name}}</td>
+    <td style="vertical-align:middle">{{item.category}}</td>
+    <td style="vertical-align:middle">
+      {{item.price | addTax:(taxRate || 0) | currency:"USD":"symbol" }}
+    </td>
+    <td class="text-center">
+      <button class="btn btn-danger btn-sm" (click)="deleteProduct(item.id)">
+        Delete
+      </button>
+    </td>
+  </tr>
+</table>
+```
 
 
 
