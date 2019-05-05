@@ -3947,9 +3947,29 @@ productTable.component.html：
 
 # 表单
 
+Angular 提供了两种不同的方法来通过表单处理用户输入：响应式表单（模型驱动）和模板驱动表单。 两者都从视图中捕获用户输入事件、验证用户输入、创建表单模型、修改数据模型，并提供跟踪这些更改的途径。
+
 ## 导入表单模块
 
-Angular的表单模块位于`@angular/forms`包中，要使用表单功能，需要将表单模块导入自己的Angular模块中：
+### 导入响应式表单模块
+
+要使用响应式表单，就要从 `@angular/forms` 包中导入 `ReactiveFormsModule` ，并把它添加到你的 NgModule 的 `imports` 数组中。
+
+```typescript
+import { ReactiveFormsModule } from '@angular/forms';
+
+@NgModule({
+  imports: [
+    // other imports ...
+    ReactiveFormsModule
+  ],
+})
+export class AppModule { }
+```
+
+### 导入模板驱动表单模块
+
+要使用模板驱动表单，就要从`@angular/forms`包中导入`FormsModule`，并把它添加到你的 NgModule 的 `imports` 数组中。
 
 ```typescript
 import { FormsModule } from "@angular/forms";
@@ -3966,6 +3986,222 @@ export class AppModule { }
 > 如果你没有导入过 `FormsModule`，Angular 就不会控制`<form>`元素，那么对`<form>`元素的模板引用变量就是一个[HTMLFormElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement)实例。如果有导入`FormsModule`，则<form>`元素的模板引用变量就是一个对 Angular NgForm 指令的引用。
 >
 > 注意：原生的 `<form>` 元素没有 `form` 属性，但 `NgForm` 指令有。
+
+## 建立表单模型
+
+响应式表单和模板驱动表单都是用表单模型来跟踪 Angular 表单和表单输入元素之间值的变化。
+
+### 在响应式表单中建立
+
+在响应式表单中，表单模式充当事实上的数据源，并且表单模型是显式定义在组件类中的，即 FormControl 的实例。接着，响应式表单指令（这里是 FormControlDirective）会把这个现有的表单控件实例通过数据访问器（ControlValueAccessor 的实例）来指派给视图中的表单元素。
+
+```typescript
+import { Component } from '@angular/core';
+import { FormControl } from '@angular/forms';
+
+@Component({
+  selector: 'app-reactive-favorite-color',
+  template: `
+    Favorite Color: <input type="text" [formControl]="favoriteColorControl">
+  `
+})
+export class FavoriteColorComponent {
+  favoriteColorControl = new FormControl('');
+}
+```
+
+1. 在组件中导入 `FormControl`类，并创建一个 `FormControl` 的新实例，把它保存在类的某个属性中。
+2. 使用模板绑定语法，把该表单控件注册给了模板中名为 `favoriteColorControl` 的输入元素。这样，表单控件和 DOM 元素就可以互相通讯了：视图会反映模型的变化，模型也会反映视图中的变化。
+
+![Reactive forms](Angular/reactive-forms.png)
+
+### 在模板驱动表单中建立
+
+在模板驱动表单中，事实上的数据源是模板。模板驱动表单的 NgModel 指令负责创建和管理指定表单元素上的表单控件实例，你不必再直接操纵表单模型了。
+
+```typescript
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-template-favorite-color',
+  template: `
+    Favorite Color: <input type="text" [(ngModel)]="favoriteColor">
+  `
+})
+export class FavoriteColorComponent {
+  favoriteColor = '';
+}
+```
+
+![Template-driven forms](Angular/td-forms.png)
+
+## 表单中的数据流
+
+### 响应式表单中的数据流
+
+在响应式表单中，视图中的每个表单元素都直接链接到一个表单模型（`FormControl` 实例）。 从视图到模型的修改以及从模型到视图的修改都是同步的，不依赖于所呈现的 UI。
+
+####  从视图到模型数据流
+
+![Reactive forms data flow - view to model](Angular/dataflow-reactive-forms-vtm.png)
+
+1. 最终用户在输入框元素中键入了一个值，这里是 "Blue"。
+2. 这个输入框元素会发出一个带有最新值的 "input" 事件。
+3. 这个控件值访问器 `ControlValueAccessor` 会监听表单输入框元素上的事件，并立即把新值传给 `FormControl`实例。
+4. `FormControl` 实例会通过 `valueChanges` 这个可观察对象发出这个新值。
+5. `valueChanges` 的任何一个订阅者都会收到这个新值。
+
+#### 从模型到视图的数据流
+
+![Reactive forms data flow - model to view](Angular/dataflow-reactive-forms-mtv.png)
+
+1. `favoriteColorControl.setValue()` 方法被调用，它会更新这个 `FormControl` 的值。
+2. `FormControl` 实例会通过 `valueChanges` 这个可观察对象发出新值。
+3. `valueChanges` 的任何订阅者都会收到这个新值。
+4. 该表单输入框元素上的控件值访问器会把控件更新为这个新值。
+
+### 模板驱动表单中的数据流
+
+在模板驱动表单中，每个表单元素都链接到一个指令上，该指令负责管理其内部表单模型。
+
+#### 从视图到模型的数据流
+
+![Template-driven forms data flow - view to model](Angular/dataflow-td-forms-vtm.png)
+
+1. 最终用户在输入框元素中敲 "Blue"。
+2. 该输入框元素会发出一个 "input" 事件，带着值 "Blue"。
+3. 附着在该输入框上的控件值访问器会触发 `FormControl` 实例上的 `setValue()` 方法。
+4. `FormControl` 实例通过 `valueChanges` 这个可观察对象发出新值。
+5. `valueChanges` 的任何订阅者都会收到新值。
+6. 控件值访问器 `ControlValueAccessory` 还会调用 `NgModel.viewToModelUpdate()` 方法，它会发出一个 `ngModelChange` 事件。
+7. 由于该组件模板双向数据绑定到了 `favoriteColor`，组件中的 `favoriteColor` 属性就会修改为 `ngModelChange` 事件所发出的值（"Blue"）。
+
+#### 从模型到视图的数据流
+
+![Template-driven forms data flow - model to view](Angular/dataflow-td-forms-mtv.png)
+
+1. 组件中修改了 `favoriteColor` 的值。
+2. 变更检测开始。
+3. 在变更检测期间，由于这些输入框之一的值发生了变化，Angular 就会调用 `NgModel` 指令上的 `ngOnChanges` 生命周期钩子。
+4. `ngOnChanges()` 方法会把一个异步任务排入队列，以设置内部 `FormControl` 实例的值。
+5. 变更检测完成。
+6. 在下一个检测周期，用来为 `FormControl` 实例赋值的任务就会执行。
+7. `FormControl` 实例通过可观察对象 `valueChanges` 发出最新值。
+8. `valueChanges` 的任何订阅者都会收到这个新值。
+9. 控件值访问器 `ControlValueAccessor` 会使用 `favoriteColor` 的最新值来修改表单的输入框元素。
+
+## 使用表单
+
+### 使用响应式表单
+
+### 使用模板驱动表单
+
+## 表单验证
+
+响应式表单把自定义验证器定义成函数，它以要验证的控件作为参数。
+
+模板驱动表单和模板指令紧密相关，并且必须提供包装了验证函数的自定义验证器指令。
+
+## 测试表单
+
+测试响应式表单和模板驱动表单的差别之一在于它们是否需要渲染 UI 才能基于表单控件和表单字段变化来执行断言。
+
+### 测试响应式表单
+
+响应式表单提供了相对简单的测试策略，因为它们能提供对表单和数据模型的同步访问，而且不必渲染 UI 就能测试它们。在这些测试中，控件和数据是通过控件进行查询和操纵的，不需要和变更检测周期打交道。
+
+#### 测试从视图到模型的数据流
+
+```typescript
+it('should update the value of the input field', () => {
+  const input = fixture.nativeElement.querySelector('input');
+  const event = createNewEvent('input');
+
+  input.value = 'Red';
+  input.dispatchEvent(event);
+
+  expect(fixture.componentInstance.favoriteColorControl.value).toEqual('Red');
+});
+```
+
+1. 查询表单输入框元素的视图，并为测试创建自定义的 "input" 事件
+2. 把输入的新值设置为 *Red*，并在表单输入元素上调度 "input" 事件。
+3. 断言该组件的 `favoriteColorControl` 的值与来自输入框的值是匹配的。
+
+#### 测试从模型到视图的数据流
+
+```typescript
+it('should update the value in the control', () => {
+  component.favoriteColorControl.setValue('Blue');
+
+  const input = fixture.nativeElement.querySelector('input');
+
+  expect(input.value).toBe('Blue');
+});
+```
+
+1. 使用 `favoriteColorControl` 这个 `FormControl` 实例来设置新值。
+2. 查询表单中输入框的视图。
+3. 断言控件上设置的新值与输入中的值是匹配的。
+
+### 测试模板驱动表单
+
+使用模板驱动表单编写测试就需要详细了解变更检测过程，以及指令在每个变更检测周期中如何运行，以确保在正确的时间查询、测试或更改元素。
+
+#### 测试从视图到模型的数据流
+
+```typescript
+it('should update the favorite color in the component', fakeAsync(() => {
+  const input = fixture.nativeElement.querySelector('input');
+  const event = createNewEvent('input');
+
+  input.value = 'Red';
+  input.dispatchEvent(event);
+
+  fixture.detectChanges();
+
+  expect(component.favoriteColor).toEqual('Red');
+}));
+```
+
+1. 查询表单输入元素中的视图，并为测试创建自定义 "input" 事件。
+2. 把输入框的新值设置为 *Red*，并在表单输入框元素上派发 "input" 事件。
+3. 通过测试夹具（Fixture）来运行变更检测。
+4. 断言该组件 `favoriteColor` 属性的值与来自输入框的值是匹配的。
+
+#### 测试从模型到视图的数据流
+
+```typescript
+it('should update the favorite color on the input field', fakeAsync(() => {
+  component.favoriteColor = 'Blue';
+
+  fixture.detectChanges();
+
+  tick();
+
+  const input = fixture.nativeElement.querySelector('input');
+
+  expect(input.value).toBe('Blue');
+}));
+```
+
+1. 使用组件实例来设置 `favoriteColor` 的值。
+2. 通过测试夹具（Fixture）来运行变更检测。
+3. 在 `fakeAsync()` 任务中使用 `tick()` 方法来模拟时间的流逝。
+4. 查询表单输入框元素的视图。
+5. 断言输入框的值与该组件实例的 `favoriteColor` 属性值是匹配的。
+
+## 可变性
+
+追踪变更的方法对于应用的运行效率有着重要作用。
+
+- **响应式表单**通过将数据模型提供为不可变数据结构来保持数据模型的纯粹性。每当在数据模型上触发更改时，`FormControl` 实例都会返回一个新的数据模型，而不是直接修改原来的。这样能让你通过该控件的可观察对象来跟踪那些具有唯一性的变更。这种方式可以让变更检测更高效，因为它只需要在发生了唯一性变更的时候进行更新。它还遵循与操作符相结合使用的 "响应式" 模式来转换数据。
+- **模板驱动表单**依赖于可变性，它使用双向数据绑定，以便在模板中发生变更时修改数据模型。因为在使用双向数据绑定时无法在数据模型中跟踪具有唯一性的变更，因此变更检测机制在要确定何时需要更新时效率较低。
+
+## 可伸缩性
+
+- **响应式表单**通过提供对底层 API 的访问和对表单模型的同步访问，让创建大型表单更轻松。
+- **模板驱动表单**专注于简单的场景，它不可重用、对底层 API 进行抽象，而且对表单模型的访问是异步的。 在测试过程中，模板驱动表单的抽象也会参与测试。而测试响应式表单需要更少的准备代码，并且当测试期间修改和验证表单模型与数据模型时，不依赖变更检测周期。
 
 # 路由
 
