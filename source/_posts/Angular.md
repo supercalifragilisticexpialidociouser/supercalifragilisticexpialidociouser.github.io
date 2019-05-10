@@ -242,7 +242,7 @@ export class AppComponent {
 $ cd my-app
 $ ng generate component xxx
 或者
-$ ng g comonent xxx
+$ ng g component xxx
 ```
 
 > 上面代码将生成如下文件：
@@ -4317,7 +4317,7 @@ export class PizzaPartyAppModule { }
 $ npm install --save @angular/animations
 ```
 
->  `@angular/animations` 使用了仍未被所有浏览器支持的 WebAnimation API，如果想在这些浏览器上支持Material组件的动画，需要包含一个[ployfill](https://github.com/web-animations/web-animations-js)：
+>  `@angular/animations` 使用了仍未被所有浏览器支持的 WebAnimation API，如果想在这些浏览器上支持Material组件的动画，需要包含一个[ployfill](https://github.com/web-animations/web-animations-js)：（新版本好像不需要了）
 >
 >  ```html
 >  <script src="web-animations.min.js"></script>
