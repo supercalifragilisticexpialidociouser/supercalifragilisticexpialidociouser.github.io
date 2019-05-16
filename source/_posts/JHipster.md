@@ -1,7 +1,7 @@
 ---
 title: JHipster
 date: 2019-01-16 14:34:09
-tags: [5.7.2]
+tags: [6.0.1]
 ---
 
 JHipster是一个开发平台，用于生成、开发和部署Spring Boot + Angular / React的Web应用程序和Spring微服务。
@@ -10,7 +10,7 @@ JHipster是一个开发平台，用于生成、开发和部署Spring Boot + Angu
 
 ## 前端
 
-- [Angular](https://angular.io/) 或 [React](https://reactjs.org/)
+- [Angular](https://angular.io/) 或 [React](https://reactjs.org/) 或 Vue
 - 响应式网页设计：[Twitter Bootstrap](https://getbootstrap.com/)
 - [HTML5 Boilerplate](http://html5boilerplate.com/)
 - 兼容现代浏览器（Chrome、FireFox、Microsoft Edge ......）
@@ -27,6 +27,7 @@ JHipster是一个开发平台，用于生成、开发和部署Spring Boot + Angu
 - [Spring Boot](https://projects.spring.io/spring-boot/)
 - 构建工具：[Maven](https://maven.apache.org/) 或 [Gradle](http://www.gradle.org/)
 - [Spring Security](https://docs.spring.io/spring-security/site/index.html)
+- “development”和“production” profiles
 - [Spring MVC REST](https://spring.io/guides/gs/rest-service/) + [Jackson](https://github.com/FasterXML/jackson)
 - Spring Websocket
 - [Spring Data JPA](https://projects.spring.io/spring-data-jpa/) + Bean Validation
@@ -57,7 +58,7 @@ JHipster是一个开发平台，用于生成、开发和部署Spring Boot + Angu
 
 ## 安装JHipster
 
-1. 安装Java 8+
+1. 安装Java 11
 2. 安装Node.js，并将NPM更新到最新版本：`npm install -g npm`
 3. 安装JHipster：`npm install -g generator-jhipster`
 4. 如果要使用JHipster Marketplace，还要安装Yeoman：`npm install -g yo`
