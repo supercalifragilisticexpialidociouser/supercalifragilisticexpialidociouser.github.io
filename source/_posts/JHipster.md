@@ -58,7 +58,7 @@ JHipster是一个开发平台，用于生成、开发和部署Spring Boot + Angu
 
 ## 安装JHipster
 
-1. 安装Java 11
+1. 安装Java 11（实际上还是需要Java 8才能构建成功）
 2. 安装Node.js，并将NPM更新到最新版本：`npm install -g npm`
 3. 安装JHipster：`npm install -g generator-jhipster`
 4. 如果要使用JHipster Marketplace，还要安装Yeoman：`npm install -g yo`
@@ -137,7 +137,7 @@ $ ./gradlew
 
 注意：在执行上述命令之前，应该先启动应用依赖的第三方服务，例如数据库等。
 
-## 使用Docker Compose部署
+## 使用Docker Compose部署单个应用
 
 JHipster生成项目时，也同时生成如下文件（位于文件夹`src/main/docker/`中）：
 
@@ -153,4 +153,33 @@ $ docker-compose -f src/main/docker/app.yml up -d
 将启动您的应用程序及其依赖的服务（数据库、搜索引擎、JHipster Registry ...）。
 
 `-d`表示在后台运行。
+
+要停止并移除所有容器，可以运行：
+
+```bash
+$ docker-compose -f src/main/docker/app.yml down
+```
+
+## 使用Docker Compose部署多个应用
+
+首先，你所有应用必须位于同一个目录下（例如：`~/jee/`）。
+
+然后：
+
+```bash
+$ cd ~/jee
+$ mkdir docker-compose   （目录可随意）
+$ cd docker-compose
+$ jhipster docker-compose
+```
+
+子生成器将询问您希望在架构中使用哪些应用程序，以及是否要使用ELK或Prometheus设置监视。然后，就将生成全局Docker Compose配置。
+
+你只需要运行：`docker-compose up`命令，就可以启动所有应用。
+
+要停止并移除所有容器，可以运行：
+
+```bash
+$ docker-compose down
+```
 
