@@ -1187,6 +1187,8 @@ spring.profiles.active=dev,hsqldb  #可以一次激活多个Profiles
 
 也可以使用命令行参数`--spring.profiles.active=dev,hsqldb`。
 
+用`java -jar`运行应用时，使用`java -Dspring.profiles.active=dev -jar foo.jar`。
+
 还可以使用`spring.profiles.include`应用属性（可者通过在`SpringApplication.run`运行之前，调用`SpringApplication.setAdditionalProfiles()`方法）来指定，当某个Profile激活时，也一起激活的Profiles。
 
 ```yaml
@@ -1450,6 +1452,8 @@ Acturator提供的内置端点可分成三类：
 | `shutdown`       | Lets the application be gracefully shutdown.                 | No                 |
 | `threaddump`     | Performs a thread dump.                                      | Yes                |
 
+> 上面的端点路径要加上`…/actuator/`。例如：`…/actuator/env`
+
 Spring MVC、Spring WebFlux或Jersey等框架专用的端点：
 
 | ID           | Description                                                  | Enabled by default |
@@ -1485,6 +1489,20 @@ management.endpoint.info.enabled=true
 要远程访问端点，还必须通过JMX或HTTP进行公布。
 
 通过HTTP公布的端点，将被映射到`/actuator/端点ID`的URL上。例如，`health`端点被映射到`/actuator/health`上。
+
+默认情况下，只有`health`、`info`等几个端点被公布出来。如果要公布其他端点，需要进行如下配置：
+
+```properties
+management.endpoints.web.exposure.include=env,sessions
+```
+
+如果要公布所有端点，则使用：
+
+```properties
+management.endpoints.web.exposure.include=*
+```
+
+
 
 ### 自定义端点
 
