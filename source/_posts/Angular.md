@@ -242,7 +242,7 @@ export class AppComponent {
 $ cd my-app
 $ ng generate component xxx
 或者
-$ ng g comonent xxx
+$ ng g component xxx
 ```
 
 > 上面代码将生成如下文件：
@@ -710,9 +710,11 @@ export class CountdownLocalVarParentComponent { }
 
 把本地变量(`#timer`)放到(`<countdown-timer>`)标签中，用来代表子组件。这样父组件的模板就得到了子组件的引用，于是可以在父组件的模板中访问子组件的所有属性和方法。
 
-### 父组件调用@ViewChild()
+### @ViewChild
 
 *本地变量*方法是个简单便利的方法，但是它也有局限性。因为父组件-子组件的连接必须全部在父组件的**模板**中进行，而父组件类本身的代码对子组件没有访问权。如果父组件的*类*需要读取子组件的属性值或调用子组件的方法，就不能使用*本地变量*方法，这时需要把子组件作为 *ViewChild*，**注入**到父组件里面。
+
+`@ViewChild`装饰器告诉Angular在模板中查询与参数指定的类型或模板引用变量相匹配的第一个指令或组件对象，并将其指派给被装饰属性。参数可以有多个类或模板引用变量，它们之间使用逗号分隔。
 
 ```typescript
 import { AfterViewInit, ViewChild } from '@angular/core';
@@ -753,7 +755,7 @@ export class CountdownViewChildParentComponent implements AfterViewInit {
 
 把子组件的视图插入到父组件类需要做一点额外的工作。
 
-首先，你必须导入对装饰器 `ViewChild` 以及生命周期钩子 `AfterViewInit` 的引用。
+首先，你必须导入对装饰器 `@ViewChild` 以及生命周期钩子 `AfterViewInit` 的引用。
 
 接着，通过 `@ViewChild` 属性装饰器，将子组件 `CountdownTimerComponent` 注入到私有属性 `timerComponent` 里面。
 
@@ -767,9 +769,99 @@ export class CountdownViewChildParentComponent implements AfterViewInit {
 
 使用 `setTimeout()` 来等下一轮，然后改写 `seconds()` 方法，这样它接下来就会从注入的这个计时器组件里获取秒数的值。
 
-### 内容投影*
+### @ViewChildren
 
-@ContentChild（“生命周期钩子”的“AfterContent 钩子”）
+`@ViewChildren`装饰器告诉Angular在模板中查询与参数指定的类型或模板引用变量相匹配的所有指令或组件对象，并将他们指派给被装饰属性。参数可以有多个类或模板引用变量，它们之间使用逗号分隔。
+
+```typescript
+import { Component, Input, ViewChildren, QueryList } from "@angular/core";
+import { Model } from "./repository.model";
+import { Product } from "./product.model";
+import { PaCellColor } from "./cellColor.directive";
+
+@Component({
+  selector: "paProductTable",
+  templateUrl: "productTable.component.html"
+})
+export class ProductTableComponent {
+  @Input("model")
+  dataModel: Model;
+  getProduct(key: number): Product {
+    return this.dataModel.getProduct(key);
+  }
+  getProducts(): Product[] {
+    return this.dataModel.getProducts();
+  }
+  deleteProduct(key: number) {
+    this.dataModel.deleteProduct(key);
+  }
+  showTable: boolean = true;
+  @ViewChildren(PaCellColor)
+  viewChildren: QueryList<PaCellColor>;
+  ngAfterViewInit() {
+    this.viewChildren.changes.subscribe(() => {
+      this.updateViewChildren();
+    });
+    this.updateViewChildren();
+  }
+  private updateViewChildren() {
+    setTimeout(() => {
+      this.viewChildren.forEach((child, index) => {
+        child.setColor(index % 2 ? true : false);
+      })
+    }, 0);
+  }
+}
+```
+
+
+
+### 内容投影
+
+如果组件的宿主元素包含内容，那么可以使用特殊的`ng-content`元素将其包含在组件模板中，这称为内容投影（content projection）。也就是说，组件模板中的`ng-content`元素引用组件宿主元素的内容。
+
+```typescript
+import { Component } from "@angular/core";
+
+@Component({
+  selector: "paToggleView",
+  templateUrl: "toggleView.component.html"
+})
+export class PaToggleView {
+  showContent: boolean = true;
+}
+```
+
+该组件定义了一个`showContent`属性，用于确定是否在模板中显示宿主元素内容。
+
+toggleView.component.html：
+
+```html
+<div class="checkbox">
+  <label>
+    <input type="checkbox" [(ngModel)]="showContent" />
+    Show Content
+  </label>
+</div>
+<ng-content *ngIf="showContent"></ng-content>
+```
+
+应用这个组件：
+
+```html
+<div class="row m-2">
+  <div class="col-4 p-2">
+    <paProductForm (paNewProduct)="addProduct($event)"></paProductForm>
+  </div>
+  <div class="col-8 p-2">
+    <paToggleView>
+      <paProductTable [model]="model"></paProductTable>
+    </paToggleView>
+  </div>
+</div>
+```
+
+`<paToggleView>`是`PaToggleView`组件的宿主元素，它的内容包含`<paProductTable>`元素。`PaToggleView`组件不知道它的宿主元素的内容，并且只能通过`<ng-content>`元素将其包含在模板中。
 
 ### 父组件和子组件通过服务来通讯
 
@@ -1265,7 +1357,7 @@ Angular 应用使用标准的 CSS 来设置样式。另外，Angular 还能把�
 @import 'variables';
 ```
 
-
+另外，在HTML文档的`<head>`中定义的样式也适用于所有元素。
 
 ### 组件样式
 
@@ -1381,15 +1473,33 @@ export class HeroAppComponent {
 @import './hero-details-box.css';
 ```
 
+#### 视图封装模式
 
+默认情况下，组件的 CSS 样式被封装进了自己的视图中，而不会影响到应用程序的其它部分。这实际上是由*视图封装模式*控制的。
 
-### 特殊的选择器
+通过在组件的元数据上设置视图封装模式，你可以分别控制*每个组件*的封装模式。 可选的封装模式有：
+
+- `ShadowDom` 模式使用浏览器原生的 Shadow DOM 实现（参见 [MDN](https://developer.mozilla.org/) 上的 [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Shadow_DOM)）来为组件的宿主元素附加一个 Shadow DOM。组件的视图被附加到这个 Shadow DOM 中，组件的样式也被包含在这个 Shadow DOM 中。从而使得DOM的各个部分彼此隔离。
+- `Native` 视图包装模式使用浏览器原生 Shadow DOM 的一个废弃实现。
+- `Emulated` 模式（**默认值**）通过预处理（并改名）CSS 代码来模拟 Shadow DOM 的行为，以达到把 CSS 样式局限在组件视图中的目的。
+- `None` 意味着 Angular 不使用视图封装。 Angular 会把 CSS 添加到全局样式中。而不会应用上前面讨论过的那些作用域规则、隔离和保护等。 从本质上来说，这跟把组件的样式直接放进 HTML的`<head>`中是一样的。
+
+通过组件元数据中的 `encapsulation` 属性来设置组件封装模式：
+
+```typescript
+// warning: few browsers support shadow DOM encapsulation at this time
+encapsulation: ViewEncapsulation.Native
+```
+
+> `ShadowDom` 模式只适用于提供了原生 Shadow DOM 支持的浏览器（参见 [Can I use](http://caniuse.com/) 上的 [Shadow DOM v1](https://caniuse.com/#feat=shadowdomv1) 部分）。 它仍然受到很多限制，这就是为什么仿真 (`Emulated`) 模式是默认选项，并建议将其用于大多数情况。
+
+#### 特殊的选择器
 
 组件样式中有一些从影子(Shadow) DOM 样式范围领域（记录在[W3C](https://www.w3.org/)的[CSS Scoping Module Level 1](https://www.w3.org/TR/css-scoping-1)中） 引入的特殊选择器。
 
-#### :host
+##### :host
 
-使用 `:host` 伪类选择器，用来选择组件*宿主*元素中的元素（相对于组件模板*内部*的元素）。
+使用 `:host` 伪类选择器，用来选择组件的*宿主*元素。
 
 ```css
 :host {
@@ -1398,7 +1508,7 @@ export class HeroAppComponent {
 }
 ```
 
-`:host` 选择是是把宿主元素作为目标的*唯一*方式。除此之外，你将没办法指定它， 因为宿主不是组件自身模板的一部分，而是父组件模板的一部分。
+`:host` 选择器是把宿主元素作为目标的*唯一*方式。除此之外，你将没办法指定它， 因为宿主元素不是组件自身模板的一部分，而是父组件模板的一部分。
 
 以函数形式，即在`host`之后的括号内包含另一个选择器，就可以有条件地应用`:host`样式。
 
@@ -1410,9 +1520,9 @@ export class HeroAppComponent {
 }
 ```
 
-#### :host-context
+##### :host-context
 
- `:host-context()` 伪类选择器在当前组件宿主元素的*祖先节点*中查找 CSS 类， 直到文档的根节点为止。
+ `:host-context()` 伪类选择器在当前组件宿主元素的*祖先节点*中查找 **CSS 类**（只支持CSS类选择器）， 直到文档的根节点为止。
 
 在下面的例子中，只有当某个祖先元素有 CSS 类 `theme-light` 时，才会把 `background-color` 样式应用到组件*内部*的所有 `<h2>` 元素中：
 
@@ -1422,7 +1532,7 @@ export class HeroAppComponent {
 }
 ```
 
-### 非CSS新式文件
+### 非CSS样式文件
 
 如果使用 CLI 进行构建，那么你可以用 [sass](http://sass-lang.com/)、[less](http://lesscss.org/) 或 [stylus](http://stylus-lang.com/) 来编写样式，并使用相应的扩展名（`.scss`、`.less`、`.styl`）把它们指定到 `@Component.styleUrls` 元数据中。例子如下：
 
@@ -1438,26 +1548,6 @@ export class HeroAppComponent {
 CLI 的构建过程会运行相关的预处理器。
 
 > 添加到 `@Component.styles` 数组中的样式字符串*必须写成 CSS语法*，因为 CLI 没法对这些内联的样式使用任何 CSS 预处理器。
-
-### 视图封装模式
-
-默认情况下，组件的 CSS 样式被封装进了自己的视图中，而不会影响到应用程序的其它部分。这实际上是由*视图封装模式*控制的。
-
-通过在组件的元数据上设置视图封装模式，你可以分别控制*每个组件*的封装模式。 可选的封装模式有：
-
-- `ShadowDom` 模式使用浏览器原生的 Shadow DOM 实现（参见 [MDN](https://developer.mozilla.org/) 上的 [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Shadow_DOM)）来为组件的宿主元素附加一个 Shadow DOM。组件的视图被附加到这个 Shadow DOM 中，组件的样式也被包含在这个 Shadow DOM 中。
-- `Native` 视图包装模式使用浏览器原生 Shadow DOM 的一个废弃实现。
-- `Emulated` 模式（**默认值**）通过预处理（并改名）CSS 代码来模拟 Shadow DOM 的行为，以达到把 CSS 样式局限在组件视图中的目的。
-- `None` 意味着 Angular 不使用视图封装。 Angular 会把 CSS 添加到全局样式中。而不会应用上前面讨论过的那些作用域规则、隔离和保护等。 从本质上来说，这跟把组件的样式直接放进 HTML 是一样的。
-
-通过组件元数据中的 `encapsulation` 属性来设置组件封装模式：
-
-```typescript
-// warning: few browsers support shadow DOM encapsulation at this time
-encapsulation: ViewEncapsulation.Native
-```
-
-> `ShadowDom` 模式只适用于提供了原生 Shadow DOM 支持的浏览器（参见 [Can I use](http://caniuse.com/) 上的 [Shadow DOM v1](https://caniuse.com/#feat=shadowdomv1) 部分）。 它仍然受到很多限制，这就是为什么仿真 (`Emulated`) 模式是默认选项，并建议将其用于大多数情况。
 
 ## 动态组件
 
@@ -1499,7 +1589,7 @@ Angular支持三种类型的指令：
 - 结构型指令
 - 属性型指令
 
-> 组件是一个带模板的指令。`@Component`装饰器实际上就是一个`@Directive`装饰器，只是扩展了一些面向模板的特性。详见“组件”。
+> 组件是一个带模板的指令，它们不依赖其他地方提供的内容。`@Component`装饰器实际上就是一个`@Directive`装饰器，只是扩展了一些面向模板的特性。详见“组件”。
 
 ## 结构型指令
 
@@ -1903,9 +1993,567 @@ constructor(
 
 没有人会读取 `appUnless` 属性，因此它不需要定义 getter。
 
+### 创建迭代结构型指令
+
+Angular为需要遍历数据源的指令提供特殊的支持。
+
+示例：创建一个类似`ngFor`指令的`paFor`指令。
+
+`paFor`指令的应用：
+
+```html
+<div class="m-2">
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" [(ngModel)]="showTable" />
+      Show Table
+    </label>
+  </div>
+  <table *paIf="showTable"
+         class="table table-sm table-bordered table-striped">
+    <tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
+    <ng-template [paForOf]="getProducts()" let-item>
+      <tr><td colspan="4">{{item.name}}</td></tr>
+    </ng-template>
+  </table>
+</div>
+```
+
+`paFor`指令类：
+
+```typescript
+import { Directive, ViewContainerRef, TemplateRef,
+         Input, SimpleChange } from "@angular/core";
+@Directive({
+  selector: "[paForOf]"
+})
+export class PaIteratorDirective {
+  constructor(private container: ViewContainerRef,
+              private template: TemplateRef<Object>) {}
+  @Input("paForOf")
+  dataSource: any;
+  ngOnInit() {
+    this.container.clear(); //清空视图容器
+    for (let i = 0; i < this.dataSource.length; i++) {
+      this.container.createEmbeddedView(this.template,
+                                        new PaIteratorContext(this.dataSource[i]));
+    }
+  }
+}
+
+class PaIteratorContext {
+  constructor(public $implicit: any) {}
+}
+```
+
+`@Directive`装饰器中的`selector`属性匹配那些具有`paForOf`属性的元素，`paForOf`属性也是`dataSource`输入属性的数据来源，并提供待迭代的对象源，它的名称必须以`Of`结尾，以便支持简洁语法。
+
+`let-item`属性，它没有赋值，用于告诉Angular，想要把隐式值（implicit value，即`$implicit`）赋给一个名为`item`的模板引用变量。在本例中，`$implicit`被赋予了数据源中当前处理的对象。
+
+`createEmbeddedView`方法为数据源中每次迭代的对象添加一个新的视图到视图容器中。该方法提供了两个参数：
+
+- `TemplateRef`对象：提供了要插入视图容器中的内容；
+- 上下文对象：为`$implicit`提供数据。本示例中，就是通过`PaIteratorContext`的构造器给`$implicit`设置值。另外，在下面例子可以看到，这个对象的属性可以在模板中被赋给模板引用变量。
+
+#### 提供额外的上下文数据
+
+除了隐式值外，结构型指令还可以为模板提供任意的额外值，以赋给模板引用变量并用于绑定。例如，我们这里为`paFor`指令提供`odd`、`even`、`first`和`last`值：
+
+```typescript
+import { Directive, ViewContainerRef, TemplateRef,
+         Input, SimpleChange } from "@angular/core";
+@Directive({
+  selector: "[paForOf]"
+})
+export class PaIteratorDirective {
+  constructor(private container: ViewContainerRef,
+              private template: TemplateRef<Object>) {}
+  @Input("paForOf")
+  dataSource: any;
+  ngOnInit() {
+    this.container.clear();
+    for (let i = 0; i < this.dataSource.length; i++) {
+      this.container.createEmbeddedView(this.template,
+                                        new PaIteratorContext(this.dataSource[i],
+                                                              i, this.dataSource.length));
+    }
+  }
+}
+class PaIteratorContext {
+  odd: boolean; even: boolean;
+  first: boolean; last: boolean;
+  constructor(public $implicit: any,
+              public index: number, total: number ) {
+    this.odd = index % 2 == 1;
+    this.even = !this.odd;
+    this.first = index == 0;
+    this.last = index == total - 1;
+  }
+}
+```
+
+这样，在模板上就可以创建模板引用变量来接收这些上下文属性。
+
+```html
+<div class="m-2">
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" [(ngModel)]="showTable" />
+      Show Table
+    </label>
+  </div>
+  <table *paIf="showTable"
+         class="table table-sm table-bordered table-striped">
+    <tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
+    <ng-template [paForOf]="getProducts()" let-item let-i="index"
+                 let-odd="odd" let-even="even">
+      <tr [class.bg-info]="odd" [class.bg-warning]="even">
+        <td>{{i + 1}}</td>
+        <td>{{item.name}}</td>
+        <td>{{item.category}}</td>
+        <td>{{item.price}}</td>
+      </tr>
+    </ng-template>
+  </table>
+</div>
+```
+
+迭代结构指令支持简洁语法，并且省略了`ng-template`元素。当使用简洁语法时，属性的`Of`后缀将被省略，在名称前加上一个星号，并且省略括号。
+
+另一处变化是将所有上下文值并入指令的表达式中，将所有的“let-”属性替换掉。主数据值成为初始表达式的一部分，而其他上下文值以分号进行分隔。
+
+```html
+<div class="m-2">
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" [(ngModel)]="showTable" />
+      Show Table
+    </label>
+  </div>
+  <table *paI
+         <td>{{item.category}}</td>
+<td>{{item.price}}</td>
+</tr>
+</table>
+</div>f="showTable"
+class="table table-sm table-bordered table-striped">
+<tr><th></th><th>Name</th><th>Category</th><th>Price</th></tr>
+<tr *paFor="let item of getProducts(); let i = index; let odd = odd;
+            let even = even" [class.bg-info]="odd" [class.bg-warning]="even">
+  <td>{{i + 1}}</td>
+  <td>{{item.name}}</td>
+  <td>{{item.category}}</td>
+  <td>{{item.price}}</td>
+</tr>
+</table>
+</div>
+```
+
+#### 处理数据源变量
+
+迭代结构型指令使用的数据源可能发生两种变更：属性级数据变更和集合级数据变更。
+
+属性级数据变更是指数据源中的单个对象的属性发生改变。Angular会自动处理这种变更，在那些依赖上下文数据的绑定中反映上下文数据出现的任何变化。
+
+集合级数据变更是指，向数据源集合中添加、删除或替换对象。Angular不会自动检测到这种变更，因此迭代指令的`ngOnChanges`方法将没机会得到调用。要接收关于集合级数据变更的通知，必须实现`ngDoCheck`方法：无论哪里发生变更或发生什么样的变更，在应用程序中检测到数据变更时都会调用这个方法。`ngDoCheck`方法可以让指令响应变更，即使Angular没有自动检测到这些变更。然而，实现`ngDoCheck`方法需要谨慎，这是因为它可能会破坏Web应用程序的性能。这是因为，每当Angular在应用程序中的任何地方检测到变更时，都会调用`ngDoCheck`方法，并且这些变更发生的频率要比预期的更快。鉴于此，Angular提供了一些能更加有效管理更新的工具，使得只有在需要时才更新内容。
+
+##### 差异器
+
+```typescript
+import { Directive, ViewContainerRef, TemplateRef,
+         Input, SimpleChange, IterableDiffer, IterableDiffers,
+         ChangeDetectorRef, CollectionChangeRecord, DefaultIterableDiffer
+       } from "@angular/core";
+@Directive({
+  selector: "[paForOf]"
+})
+export class PaIteratorDirective {
+  private differ: DefaultIterableDiffer<any>;
+  constructor(private container: ViewContainerRef,
+              private template: TemplateRef<Object>,
+              private differs: IterableDiffers,
+              private changeDetector: ChangeDetectorRef) {
+  }
+  @Input("paForOf")
+  dataSource: any;
+  ngOnInit() {
+    this.differ =
+      <DefaultIterableDiffer<any>> this.differs.find(this.dataSource).create();
+  }
+  ngDoCheck() {
+    let changes = this.differ.diff(this.dataSource);
+    if (changes != null) {
+      console.log("ngDoCheck called, changes detected");
+      changes.forEachAddedItem(addition => {
+        this.container.createEmbeddedView(this.template,
+                                          new PaIteratorContext(addition.item,
+                                                                addition.currentIndex, changes.length));
+      });
+    }
+  }
+}
+class PaIteratorContext {
+  odd: boolean; even: boolean;
+  first: boolean; last: boolean;
+  constructor(public $implicit: any,
+              public index: number, total: number ) {
+    this.odd = index % 2 == 1;
+    this.even = !this.odd;
+    this.first = index == 0;
+    this.last = index == total - 1;
+  }
+}
+```
+
+Angular内置了一些叫做差异器（differ）的类，可以检测不同类型对象中发生的变更。`IterableDiffers.find`方法接受一个对象并返回一个能够为该对象创建差异器的`IterableDifferFactory`对象。`IterableDifferFactory`类定义了一个`create`方法，该方法返回一个`IterableDiffer`对象，该对象将执行实际的变更检测。
+
+`IterableDifferFactory.create`方法接受一个可选参数，该参数指定变更跟踪函数，这正是`ngFor`指令实现其`trackBy`功能的方式。
+
+`IterableDiffer.diff`方法接受一个对象进行比较，并返回变更列表（`IterableChanges`）。如果没有变更，则返回`null`。当应用程序的其他地方发生变更而调用`ngDoCheck`方法时，检查变更列表是否为`null`可以让该指令避免不必要的工作。
+
+变更列表（默认实现：`DefaultIterableDiffer`）的方法和属性：
+
+| 名称                        | 描述                                               |
+| --------------------------- | -------------------------------------------------- |
+| collection                  | 返回发生过变更的对象集合。                         |
+| length                      | 返回发生过变更的对象个数。                         |
+| forEachItem(func)           | 对变更集合中的每个对象调用`func`函数。             |
+| forEachPreviousItem(func)   | 对先前版本的集合中的每个对象调用`func`函数。       |
+| forEachAddedItem(func)      | 对变更集合中的每个**新**对象调用`func`函数。       |
+| forEachMovedItem(func)      | 对变更集合中位置发生变更的每个对象调用`func`函数。 |
+| forEachRemovedItem(func)    | 对变更集合中删除的每个对象调用`func`函数。         |
+| forEachIdentityChange(func) | 对变更集合中标识发生变更的每个对象调用`func`函数。 |
+
+上表中的函数参数都接收一个`IterableChangeRecord`对象，该对象使用下表中的属性来描述数据项以及数据如何变更：
+
+| 名称          | 描述                                          |
+| ------------- | --------------------------------------------- |
+| item          | 返回数据项。                                  |
+| trackById     | 如果使用`trackBy`函数，则这个属性返回标识值。 |
+| currentIndex  | 返回集合中数据项的当前索引。                  |
+| previousIndex | 返回集合中数据项的之前索引。                  |
+
+使用差异器检查变更后，虽然减少了许多不必要的更新，但`ngDoCheck`方法仍然会被调用，并且该指令每次都必须检查数据变更，因此仍然有不必要的工作要做。
+
+> Angular还提供了键/值对的变更跟踪，这样就可以监测`Map`对象以及使用属性作为映射键的对象。
+
+##### 跟踪视图
+
+上一节在处理新增数据项的创建时，数据变更检测的处理非常简单。这一节介绍的删除或修改的处理则更复杂，这要求指令跟踪哪个视图与哪个数据对象相关联。
+
+示例：
+
+首先，在component.ts中添加一个从数据模型中删除Product对象的方法：
+
+```typescript
+import { ApplicationRef, Component } from "@angular/core";
+import { NgForm } from "@angular/forms";
+import { Model } from "./repository.model";
+import { Product } from "./product.model";
+import { ProductFormGroup } from "./form.model";
+@Component({
+  selector: "app",
+  templateUrl: "template.html"
+})
+export class ProductComponent {
+  model: Model = new Model();
+  form: ProductFormGroup = new ProductFormGroup();
+  getProduct(key: number): Product {
+    return this.model.getProduct(key);
+  }
+  getProducts(): Product[] {
+    return this.model.getProducts();
+  }
+  newProduct: Product = new Product();
+  addProduct(p: Product) {
+    this.model.saveProduct(p);
+  }
+  deleteProduct(key: number) { //根据产品键值，从数据模型中删除产品
+    this.model.deleteProduct(key);
+  }
+  formSubmitted: boolean = false;
+  submitForm(form: NgForm) {
+    this.formSubmitted = true;
+    if (form.valid) {
+      this.addProduct(this.newProduct);
+      this.newProduct = new Product();
+      form.reset();
+      this.formSubmitted = false;
+    }
+  }
+  showTable: boolean = true;
+}
+```
+
+template.html：
+
+```html
+...
+<table *paIf="showTable"
+       class="table table-sm table-bordered table-striped">
+  <tr><th></th><th>Name</th><th>Category</th><th>Price</th><th></th></tr>
+  <tr *paFor="let item of getProducts(); let i = index; let odd = odd;
+              let even = even" [class.bg-info]="odd" [class.bg-warning]="even">
+    <td style="vertical-align:middle">{{i + 1}}</td>
+    <td style="vertical-align:middle">{{item.name}}</td>
+    <td style="vertical-align:middle">{{item.category}}</td>
+    <td style="vertical-align:middle">{{item.price}}</td>
+    <td class="text-center">
+      <button class="btn btn-danger btn-sm" (click)="deleteProduct(item.id)">
+        Delete
+      </button>
+    </td>
+  </tr>
+</table>
+...
+```
+
+然后，要在结构型指令`paFor`中处理数据变更，即当从数据源删除对象时进行响应：
+
+```typescript
+import {
+  Directive, ViewContainerRef, TemplateRef,
+  Input, SimpleChange, IterableDiffer, IterableDiffers,
+  ChangeDetectorRef, CollectionChangeRecord, DefaultIterableDiffer, ViewRef
+} from "@angular/core";
+
+@Directive({
+  selector: "[paForOf]"
+})
+export class PaIteratorDirective {
+  private differ: DefaultIterableDiffer<any>;
+  //使用一个Map对象来收集数据对象与其视图之间的映射
+  private views: Map<any, PaIteratorContext> = new Map<any, PaIteratorContext>();
+  constructor(private container: ViewContainerRef,
+               private template: TemplateRef<Object>,
+               private differs: IterableDiffers,
+               private changeDetector: ChangeDetectorRef) {
+  }
+  @Input("paForOf")
+  dataSource: any;
+  ngOnInit() {
+    this.differ =
+      <DefaultIterableDiffer<any>>this.differs.find(this.dataSource).create();
+  }
+  ngDoCheck() {
+    let changes = this.differ.diff(this.dataSource);
+    if (changes != null) {
+      changes.forEachAddedItem(addition => {
+        let context = new PaIteratorContext(addition.item,
+                                            addition.currentIndex, changes.length);
+        context.view = this.container.createEmbeddedView(this.template,
+                                                         context);
+        this.views.set(addition.trackById, context);
+      });
+      let removals = false;
+      changes.forEachRemovedItem(removal => {
+        removals = true;
+        let context = this.views.get(removal.trackById);
+        if (context != null) {
+          this.container.remove(this.container.indexOf(context.view));
+          this.views.delete(removal.trackById);
+        }
+      });
+      if (removals) {
+        let index = 0;
+        //更新后续的索引和数据总数
+        this.views.forEach(context =>
+                           context.setData(index++, this.views.size));
+      }
+    }
+  }
+}
+
+class PaIteratorContext {
+  index: number;
+  odd: boolean; even: boolean;
+  first: boolean; last: boolean;
+  view: ViewRef;
+  constructor(public $implicit: any,
+               public position: number, total: number ) {
+    this.setData(position, total);
+  }
+  setData(index: number, total: number) {
+    this.index = index;
+    this.odd = index % 2 == 1;
+    this.even = !this.odd;
+    this.first = index == 0;
+    this.last = index == total - 1;
+  }
+}
+```
+
+
+
 ### 启用结构型指令
 
 即将指令类添加到所属模块的`declarations`属性中。
+
+### `@ContentChild`
+
+`@ContentChild`装饰器的参数是一个或多个指令类，也可以是一个或多个模板引用变量的名称（例如：`@ContentChild("myVariable")`），它们之间使用逗号分隔。它指示Angular在宿主元素的内容中查找与参数匹配的指令，并将其赋给被装饰的属性。
+
+父指令：
+
+```typescript
+import { Directive, Input, Output, EventEmitter,
+        SimpleChange, ContentChild } from "@angular/core";
+import { PaCellColor } from "./cellColor.directive";
+
+@Directive({
+  selector: "table"
+})
+export class PaCellColorSwitcher {
+  @Input("paCellDarkColor")
+  modelProperty: Boolean;
+  @ContentChild(PaCellColor)
+  contentChild: PaCellColor;
+  ngOnChanges(changes: { [property: string]: SimpleChange }) {
+    if (this.contentChild != null) {
+      //调用子指令的方法
+      this.contentChild.setColor(changes["modelProperty"].currentValue);
+    }
+  }
+}
+```
+
+子指令：
+
+```typescript
+import { Directive, HostBinding } from "@angular/core";
+@Directive({
+  selector: "td"
+})
+export class PaCellColor {
+  @HostBinding("class")
+  bgClass: string = "";
+  setColor(dark: Boolean) {
+    this.bgClass = dark ? "bg-dark" : "";
+  }
+}
+```
+
+模板：
+
+```html
+...
+<div class="col-8">
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" [(ngModel)]="showTable" />
+      Show Table
+    </label>
+  </div>
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" [(ngModel)]="darkColor" />
+      Dark Cell Color
+    </label>
+  </div>
+  <table *paIf="showTable" [paCellDarkColor]="darkColor"
+         class="table table-sm table-bordered table-striped">
+    <tr><th></th><th>Name</th><th>Category</th><th>Price</th><th></th></tr>
+    <tr *paFor="let item of getProducts(); let i = index; let odd = odd;
+                let even = even" [class.bg-info]="odd" [class.bg-warning]="even">
+      <td style="vertical-align:middle">{{i + 1}}</td>
+      <td style="vertical-align:middle">{{item.name}}</td>
+      <td style="vertical-align:middle">{{item.category}}</td>
+      <td style="vertical-align:middle">{{item.price}}</td>
+      <td class="text-xs-center">
+        <button class="btn btn-danger btn-sm" (click)="deleteProduct(i)">
+          Delete
+        </button>
+      </td>
+    </tr>
+  </table>
+</div>
+...
+```
+
+如果要在结果中包含子内容的后代，则使用`@ContentChild(PaCellColor, {descendants: true})`。
+
+### `@ContentChildren`
+
+`@ContentChild`装饰器只接收第一个与参数匹配的指令对象，而`@ContentChildren`接收所有与参数匹配的指令对象。
+
+```typescript
+import { Directive, Input, Output, EventEmitter,
+        SimpleChange, ContentChildren, QueryList } from "@angular/core";
+import { PaCellColor } from "./cellColor.directive";
+
+@Directive({
+  selector: "table"
+})
+export class PaCellColorSwitcher {
+  @Input("paCellDarkColor")
+  modelProperty: Boolean;
+  @ContentChildren(PaCellColor)
+  contentChildren: QueryList<PaCellColor>;
+  ngOnChanges(changes: { [property: string]: SimpleChange }) {
+    this.updateContentChildren(changes["modelProperty"].currentValue);
+  }
+  private updateContentChildren(dark: Boolean) {
+    if (this.contentChildren != null && dark != undefined) {
+      this.contentChildren.forEach((child, index) => {
+        child.setColor(index % 2 ? dark : !dark);
+      });
+    }
+  }
+}
+```
+
+`QueryList的成员：`
+
+| 成员          | 描述                                                         |
+| ------------- | ------------------------------------------------------------ |
+| length        | 匹配的指令对象个数。                                         |
+| first         | 第一个匹配的指令对象。                                       |
+| last          | 最后一个匹配的指令对象。                                     |
+| map(func)     | 对每个匹配的指令对象调用`func`函数，以创建一个与`Array.map`方法相同的新数组。 |
+| filter(func)  | 对每个匹配的指令对象调用`func`函数，以创建一个数组，该数组包含`func`函数返回`true`的对象。等同于`Array.filter`方法。 |
+| reduce(func)  | 对每个匹配的指令对象调用`func`函数，以创建等价于`Array.reduce`方法的单个值。 |
+| forEach(func) | 对每个匹配的指令对象调用`func`函数，相当于`Array.forEach`方法。 |
+| some(func)    | 对每个匹配的指令对象调用`func`函数，如果`func`函数至少返回`true`一次，则返回`true`。相当于`Array.some`方法。 |
+| changes       | 用于监视子内容集合（即`QueryList`）变更的结果。              |
+
+### 接收子内容查询变更通知
+
+`@ContentChild`和`@ContentChildren`对内容查询的结果是实时的，这意味着它们会自动更新，以反映宿主元素内容中的添加、更改或删除变化。要想在查询结果发生变更时接收通知，就需要使用`Observable`接口，该接口是Reactive Extensions程序包提供的。
+
+```typescript
+import { Directive, Input, Output, EventEmitter,
+        SimpleChange, ContentChildren, QueryList } from "@angular/core";
+import { PaCellColor } from "./cellColor.directive";
+
+@Directive({
+  selector: "table"
+})
+export class PaCellColorSwitcher {
+  @Input("paCellDarkColor")
+  modelProperty: Boolean;
+  @ContentChildren(PaCellColor)
+  contentChildren: QueryList<PaCellColor>;
+  ngOnChanges(changes: { [property: string]: SimpleChange }) {
+    this.updateContentChildren(changes["modelProperty"].currentValue);
+  }
+  ngAfterContentInit() {
+    this.contentChildren.changes.subscribe(() => {
+      setTimeout(() => this.updateContentChildren(this.modelProperty), 0);
+    });
+  }
+  private updateContentChildren(dark: Boolean) {
+    if (this.contentChildren != null && dark != undefined) {
+      this.contentChildren.forEach((child, index) => {
+        child.setColor(index % 2 ? dark : !dark);
+      });
+    }
+  }
+}
+```
+
+`QueryList`类定义了一个`changes`方法，该方法返回一个Reactive Extensions Observable对象，该对象定义了一个`subscribe`方法，该方法接受一个函数参数，当`QueryList`的内容改变（这意味着`@ContentChildren`的实参所匹配的指令集合发生了一些变化）时调用该函数。
+
+这里使用`setTimeout`函数来延迟`updateContentChildren`方法调用，直到`subscribe`回调函数完成。如果没有调用`setTimeout`，那么Angular将报告一个错误，这是因为该指令尝试在当前更新尚未完成的情况下开始新的内容更新。
 
 ## 属性型指令
 
@@ -3115,11 +3763,213 @@ export class SizerComponent {
 
 # 管道
 
+管道把数据作为输入，然后转换它，给出期望的输出。
+
+![管道](Angular/pipe.png)
+
+管道的参数以`:`开头。
+
+## 使用内置管道
+
+参见[pipe API 参考手册](https://angular.cn/api?type=pipe)。
+
+## 组合管道
+
+通过使用竖线字符，可以将多个管道串联起来，数据从左到右依次流动到各管道，每个管道处理完后再将结果交给下一个管道继续处理。
+
+```html
+...
+<td style="vertical-align:middle">
+  {{item.price | addTax:(taxRate || 0) | currency:"USD":"symbol" }}
+</td>
+..
+```
+
+## 自定义管道
+
+### 创建管道类
+
+```typescript
+import { Pipe } from "@angular/core";
+@Pipe({
+  name: "addTax"
+})
+export class PaAddTaxPipe {
+  defaultRate: number = 10;
+  transform(value: any, rate?: any): number {
+    let valueNumber = Number.parseFloat(value);
+    let rateNumber = rate == undefined ?
+        this.defaultRate : Number.parseInt(rate);
+    return valueNumber + (valueNumber * (rateNumber / 100));
+  }
+}
+```
+
+管道类是一个应用了`@Pipe`装饰器的类，这个类实现了一个名为`transform`的方法。当然，管道类也可以显式实现`PipeTransform`接口。
+
+`transform`方法必须至少传入一个参数，该参数就是管道要处理的数据值。除了这个必须参数（方法的第一个参数）外，`transform`方法还可定义任意多个额外参数，它们就是那些以“:”开头的管道参数。
+
+`@Pipe`装饰器的属性：
+
+| 属性 | 描述                                                         |
+| ---- | ------------------------------------------------------------ |
+| name | 管道在模板上使用时的名称。                                   |
+| pure | 值为`true`（默认值）时表示：仅当这个管道的输入值（即模板中竖线前面的数据值）或参数发生变化时，管道才会重新使用`transform`方法产生一个新值。这种管道称为纯管道。 |
+
+### 注册管道
+
+管道使用Angular模块的`declarations`属性注册：
+
+```typescript
+…
+import { PaAddTaxPipe } from "./addTax.pipe";
+
+@NgModule({
+  imports: [BrowserModule, FormsModule, ReactiveFormsModule],
+  declarations: [ProductComponent, PaAttrDirective, PaModel,
+                 PaStructureDirective, PaIteratorDirective,
+                 PaCellColor, PaCellColorSwitcher, ProductTableComponent,
+                 ProductFormComponent, PaToggleView, PaAddTaxPipe],
+  bootstrap: [ProductComponent]
+})
+export class AppModule { }
+```
+
+### 应用自定义管道
+
+一旦成功注册了自定义管道，就可以在数据绑定表达式中使用这个管道了。
+
+```html
+<div>
+  <label>Tax Rate:</label>
+  <select [value]="taxRate || 0" (change)="taxRate=$event.target.value">
+    <option value="0">None</option>
+    <option value="10">10%</option>
+    <option value="20">20%</option>
+    <option value="50">50%</option>
+  </select>
+</div>
+<table class="table table-sm table-bordered table-striped">
+  <tr><th></th><th>Name</th><th>Category</th><th>Price</th><th></th></tr>
+  <tr *paFor="let item of getProducts(); let i = index; let odd = odd;
+              let even = even" [class.bg-info]="odd" [class.bg-warning]="even">
+    <td style="vertical-align:middle">{{i + 1}}</td>
+    <td style="vertical-align:middle">{{item.name}}</td>
+    <td style="vertical-align:middle">{{item.category}}</td>
+    <td style="vertical-align:middle">
+      {{item.price | addTax:(taxRate || 0) }}
+    </td>
+    <td class="text-center">
+      <button class="btn btn-danger btn-sm" (click)="deleteProduct(item.id)">
+        Delete
+      </button>
+    </td>
+  </tr>
+</table>
+```
+
+管道的参数值可以是任何有效的模板表达式。
+
+## 非纯管道
+
+有两类管道：**纯**的与**非纯**的。
+
+Angular 只有在它检测到输入值发生了*纯变更*时才会执行*纯管道*。 **纯变更**是指对原始类型值(`String`、`Number`、`Boolean`、`Symbol`)的更改， 或者对对象引用(`Date`、`Array`、`Function`、`Object`)的更改。
+
+Angular 会忽略(复合)对象*内部*的更改。 如果你更改了输入日期(`Date`)中的月份、往一个输入数组(`Array`)中添加新值或者更新了一个输入对象(`Object`)的属性，它都不会调用纯管道。
+
+将`pure`装饰器属性设置为`false`会产生一种非纯（impure）管道，此时Angular会让管道拥有自己的状态数据，或者让Angular知道管道依赖这样的数据（当这些数据产生新值时，Angular变更检测过程无法检出这些变更）。
+
+Angular 会在每个组件的变更检测周期中执行*非纯管道*（即调用它的`transform`方法），即使数据值或参数没有发生变更。
+
+非纯管道最常见的用法是处理元素发生变更的数组内容。
+
+应节制使用非纯管道，即使使用非纯管道，也应尽可能地简化这个管道，否则会严重影响Angular应用程序的性能。
+
+categoryFilter.pipe.ts：
+
+```typescript
+import { Pipe } from "@angular/core";
+import { Product } from "./product.model";
+@Pipe({
+  name: "filter",
+  pure: false
+})
+export class PaCategoryFilterPipe {
+  transform(products: Product[], category: string): Product[] {
+    return category == undefined ?
+      products : products.filter(p => p.category == category);
+  }
+}
+```
+
+productTable.component.html：
+
+```html
+<div>
+  <label>Tax Rate:</label>
+  <select [value]="taxRate || 0" (change)="taxRate=$event.target.value">
+    <option value="0">None</option>
+    <option value="10">10%</option>
+    <option value="20">20%</option>
+    <option value="50">50%</option>
+  </select>
+</div>
+<div>
+  <label>Category Filter:</label>
+  <select [(ngModel)]="categoryFilter">
+    <option>Watersports</option>
+    <option>Soccer</option>
+    <option>Chess</option>
+  </select>
+</div>
+<table class="table table-sm table-bordered table-striped">
+  <tr><th></th><th>Name</th><th>Category</th><th>Price</th><th></th></tr>
+  <tr *paFor="let item of getProducts() | filter:categoryFilter;
+              let i = index; let odd = odd; let even = even"
+      [class.bg-info]="odd" [class.bg-warning]="even">
+    <td style="vertical-align:middle">{{i + 1}}</td>
+    <td style="vertical-align:middle">{{item.name}}</td>
+    <td style="vertical-align:middle">{{item.category}}</td>
+    <td style="vertical-align:middle">
+      {{item.price | addTax:(taxRate || 0) | currency:"USD":"symbol" }}
+    </td>
+    <td class="text-center">
+      <button class="btn btn-danger btn-sm" (click)="deleteProduct(item.id)">
+        Delete
+      </button>
+    </td>
+  </tr>
+</table>
+```
+
+
+
 # 表单
+
+Angular 提供了两种不同的方法来通过表单处理用户输入：响应式表单（模型驱动）和模板驱动表单。 两者都从视图中捕获用户输入事件、验证用户输入、创建表单模型、修改数据模型，并提供跟踪这些更改的途径。
 
 ## 导入表单模块
 
-Angular的表单模块位于`@angular/forms`包中，要使用表单功能，需要将表单模块导入自己的Angular模块中：
+### 导入响应式表单模块
+
+要使用响应式表单，就要从 `@angular/forms` 包中导入 `ReactiveFormsModule` ，并把它添加到你的 NgModule 的 `imports` 数组中。
+
+```typescript
+import { ReactiveFormsModule } from '@angular/forms';
+
+@NgModule({
+  imports: [
+    // other imports ...
+    ReactiveFormsModule
+  ],
+})
+export class AppModule { }
+```
+
+### 导入模板驱动表单模块
+
+要使用模板驱动表单，就要从`@angular/forms`包中导入`FormsModule`，并把它添加到你的 NgModule 的 `imports` 数组中。
 
 ```typescript
 import { FormsModule } from "@angular/forms";
@@ -3136,6 +3986,222 @@ export class AppModule { }
 > 如果你没有导入过 `FormsModule`，Angular 就不会控制`<form>`元素，那么对`<form>`元素的模板引用变量就是一个[HTMLFormElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement)实例。如果有导入`FormsModule`，则<form>`元素的模板引用变量就是一个对 Angular NgForm 指令的引用。
 >
 > 注意：原生的 `<form>` 元素没有 `form` 属性，但 `NgForm` 指令有。
+
+## 建立表单模型
+
+响应式表单和模板驱动表单都是用表单模型来跟踪 Angular 表单和表单输入元素之间值的变化。
+
+### 在响应式表单中建立
+
+在响应式表单中，表单模式充当事实上的数据源，并且表单模型是显式定义在组件类中的，即 FormControl 的实例。接着，响应式表单指令（这里是 FormControlDirective）会把这个现有的表单控件实例通过数据访问器（ControlValueAccessor 的实例）来指派给视图中的表单元素。
+
+```typescript
+import { Component } from '@angular/core';
+import { FormControl } from '@angular/forms';
+
+@Component({
+  selector: 'app-reactive-favorite-color',
+  template: `
+    Favorite Color: <input type="text" [formControl]="favoriteColorControl">
+  `
+})
+export class FavoriteColorComponent {
+  favoriteColorControl = new FormControl('');
+}
+```
+
+1. 在组件中导入 `FormControl`类，并创建一个 `FormControl` 的新实例，把它保存在类的某个属性中。
+2. 使用模板绑定语法，把该表单控件注册给了模板中名为 `favoriteColorControl` 的输入元素。这样，表单控件和 DOM 元素就可以互相通讯了：视图会反映模型的变化，模型也会反映视图中的变化。
+
+![Reactive forms](Angular/reactive-forms.png)
+
+### 在模板驱动表单中建立
+
+在模板驱动表单中，事实上的数据源是模板。模板驱动表单的 NgModel 指令负责创建和管理指定表单元素上的表单控件实例，你不必再直接操纵表单模型了。
+
+```typescript
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-template-favorite-color',
+  template: `
+    Favorite Color: <input type="text" [(ngModel)]="favoriteColor">
+  `
+})
+export class FavoriteColorComponent {
+  favoriteColor = '';
+}
+```
+
+![Template-driven forms](Angular/td-forms.png)
+
+## 表单中的数据流
+
+### 响应式表单中的数据流
+
+在响应式表单中，视图中的每个表单元素都直接链接到一个表单模型（`FormControl` 实例）。 从视图到模型的修改以及从模型到视图的修改都是同步的，不依赖于所呈现的 UI。
+
+####  从视图到模型数据流
+
+![Reactive forms data flow - view to model](Angular/dataflow-reactive-forms-vtm.png)
+
+1. 最终用户在输入框元素中键入了一个值，这里是 "Blue"。
+2. 这个输入框元素会发出一个带有最新值的 "input" 事件。
+3. 这个控件值访问器 `ControlValueAccessor` 会监听表单输入框元素上的事件，并立即把新值传给 `FormControl`实例。
+4. `FormControl` 实例会通过 `valueChanges` 这个可观察对象发出这个新值。
+5. `valueChanges` 的任何一个订阅者都会收到这个新值。
+
+#### 从模型到视图的数据流
+
+![Reactive forms data flow - model to view](Angular/dataflow-reactive-forms-mtv.png)
+
+1. `favoriteColorControl.setValue()` 方法被调用，它会更新这个 `FormControl` 的值。
+2. `FormControl` 实例会通过 `valueChanges` 这个可观察对象发出新值。
+3. `valueChanges` 的任何订阅者都会收到这个新值。
+4. 该表单输入框元素上的控件值访问器会把控件更新为这个新值。
+
+### 模板驱动表单中的数据流
+
+在模板驱动表单中，每个表单元素都链接到一个指令上，该指令负责管理其内部表单模型。
+
+#### 从视图到模型的数据流
+
+![Template-driven forms data flow - view to model](Angular/dataflow-td-forms-vtm.png)
+
+1. 最终用户在输入框元素中敲 "Blue"。
+2. 该输入框元素会发出一个 "input" 事件，带着值 "Blue"。
+3. 附着在该输入框上的控件值访问器会触发 `FormControl` 实例上的 `setValue()` 方法。
+4. `FormControl` 实例通过 `valueChanges` 这个可观察对象发出新值。
+5. `valueChanges` 的任何订阅者都会收到新值。
+6. 控件值访问器 `ControlValueAccessory` 还会调用 `NgModel.viewToModelUpdate()` 方法，它会发出一个 `ngModelChange` 事件。
+7. 由于该组件模板双向数据绑定到了 `favoriteColor`，组件中的 `favoriteColor` 属性就会修改为 `ngModelChange` 事件所发出的值（"Blue"）。
+
+#### 从模型到视图的数据流
+
+![Template-driven forms data flow - model to view](Angular/dataflow-td-forms-mtv.png)
+
+1. 组件中修改了 `favoriteColor` 的值。
+2. 变更检测开始。
+3. 在变更检测期间，由于这些输入框之一的值发生了变化，Angular 就会调用 `NgModel` 指令上的 `ngOnChanges` 生命周期钩子。
+4. `ngOnChanges()` 方法会把一个异步任务排入队列，以设置内部 `FormControl` 实例的值。
+5. 变更检测完成。
+6. 在下一个检测周期，用来为 `FormControl` 实例赋值的任务就会执行。
+7. `FormControl` 实例通过可观察对象 `valueChanges` 发出最新值。
+8. `valueChanges` 的任何订阅者都会收到这个新值。
+9. 控件值访问器 `ControlValueAccessor` 会使用 `favoriteColor` 的最新值来修改表单的输入框元素。
+
+## 使用表单
+
+### 使用响应式表单
+
+### 使用模板驱动表单
+
+## 表单验证
+
+响应式表单把自定义验证器定义成函数，它以要验证的控件作为参数。
+
+模板驱动表单和模板指令紧密相关，并且必须提供包装了验证函数的自定义验证器指令。
+
+## 测试表单
+
+测试响应式表单和模板驱动表单的差别之一在于它们是否需要渲染 UI 才能基于表单控件和表单字段变化来执行断言。
+
+### 测试响应式表单
+
+响应式表单提供了相对简单的测试策略，因为它们能提供对表单和数据模型的同步访问，而且不必渲染 UI 就能测试它们。在这些测试中，控件和数据是通过控件进行查询和操纵的，不需要和变更检测周期打交道。
+
+#### 测试从视图到模型的数据流
+
+```typescript
+it('should update the value of the input field', () => {
+  const input = fixture.nativeElement.querySelector('input');
+  const event = createNewEvent('input');
+
+  input.value = 'Red';
+  input.dispatchEvent(event);
+
+  expect(fixture.componentInstance.favoriteColorControl.value).toEqual('Red');
+});
+```
+
+1. 查询表单输入框元素的视图，并为测试创建自定义的 "input" 事件
+2. 把输入的新值设置为 *Red*，并在表单输入元素上调度 "input" 事件。
+3. 断言该组件的 `favoriteColorControl` 的值与来自输入框的值是匹配的。
+
+#### 测试从模型到视图的数据流
+
+```typescript
+it('should update the value in the control', () => {
+  component.favoriteColorControl.setValue('Blue');
+
+  const input = fixture.nativeElement.querySelector('input');
+
+  expect(input.value).toBe('Blue');
+});
+```
+
+1. 使用 `favoriteColorControl` 这个 `FormControl` 实例来设置新值。
+2. 查询表单中输入框的视图。
+3. 断言控件上设置的新值与输入中的值是匹配的。
+
+### 测试模板驱动表单
+
+使用模板驱动表单编写测试就需要详细了解变更检测过程，以及指令在每个变更检测周期中如何运行，以确保在正确的时间查询、测试或更改元素。
+
+#### 测试从视图到模型的数据流
+
+```typescript
+it('should update the favorite color in the component', fakeAsync(() => {
+  const input = fixture.nativeElement.querySelector('input');
+  const event = createNewEvent('input');
+
+  input.value = 'Red';
+  input.dispatchEvent(event);
+
+  fixture.detectChanges();
+
+  expect(component.favoriteColor).toEqual('Red');
+}));
+```
+
+1. 查询表单输入元素中的视图，并为测试创建自定义 "input" 事件。
+2. 把输入框的新值设置为 *Red*，并在表单输入框元素上派发 "input" 事件。
+3. 通过测试夹具（Fixture）来运行变更检测。
+4. 断言该组件 `favoriteColor` 属性的值与来自输入框的值是匹配的。
+
+#### 测试从模型到视图的数据流
+
+```typescript
+it('should update the favorite color on the input field', fakeAsync(() => {
+  component.favoriteColor = 'Blue';
+
+  fixture.detectChanges();
+
+  tick();
+
+  const input = fixture.nativeElement.querySelector('input');
+
+  expect(input.value).toBe('Blue');
+}));
+```
+
+1. 使用组件实例来设置 `favoriteColor` 的值。
+2. 通过测试夹具（Fixture）来运行变更检测。
+3. 在 `fakeAsync()` 任务中使用 `tick()` 方法来模拟时间的流逝。
+4. 查询表单输入框元素的视图。
+5. 断言输入框的值与该组件实例的 `favoriteColor` 属性值是匹配的。
+
+## 可变性
+
+追踪变更的方法对于应用的运行效率有着重要作用。
+
+- **响应式表单**通过将数据模型提供为不可变数据结构来保持数据模型的纯粹性。每当在数据模型上触发更改时，`FormControl` 实例都会返回一个新的数据模型，而不是直接修改原来的。这样能让你通过该控件的可观察对象来跟踪那些具有唯一性的变更。这种方式可以让变更检测更高效，因为它只需要在发生了唯一性变更的时候进行更新。它还遵循与操作符相结合使用的 "响应式" 模式来转换数据。
+- **模板驱动表单**依赖于可变性，它使用双向数据绑定，以便在模板中发生变更时修改数据模型。因为在使用双向数据绑定时无法在数据模型中跟踪具有唯一性的变更，因此变更检测机制在要确定何时需要更新时效率较低。
+
+## 可伸缩性
+
+- **响应式表单**通过提供对底层 API 的访问和对表单模型的同步访问，让创建大型表单更轻松。
+- **模板驱动表单**专注于简单的场景，它不可重用、对底层 API 进行抽象，而且对表单模型的访问是异步的。 在测试过程中，模板驱动表单的抽象也会参与测试。而测试响应式表单需要更少的准备代码，并且当测试期间修改和验证表单模型与数据模型时，不依赖变更检测周期。
 
 # 路由
 
@@ -3251,7 +4317,7 @@ export class PizzaPartyAppModule { }
 $ npm install --save @angular/animations
 ```
 
->  `@angular/animations` 使用了仍未被所有浏览器支持的 WebAnimation API，如果想在这些浏览器上支持Material组件的动画，需要包含一个[ployfill](https://github.com/web-animations/web-animations-js)：
+>  `@angular/animations` 使用了仍未被所有浏览器支持的 WebAnimation API，如果想在这些浏览器上支持Material组件的动画，需要包含一个[ployfill](https://github.com/web-animations/web-animations-js)：（新版本好像不需要了）
 >
 >  ```html
 >  <script src="web-animations.min.js"></script>

@@ -120,6 +120,232 @@ Spring Cloud Commons是一组用于不同Spring Cloud实现（如Spring Cloud Ne
 
 # 分布式配置中心：Spring Cloud Config
 
+Spring Cloud Config允许将Spring Boot项目的配置保存到远程服务器上。Spring Boot微服务实例启动后，向Spring Cloud Config服务器请求配置。Spring Cloud Config服务器根据Spring Boot微服务实例发送过来的spring profile来向配置服务存储库请求相应的配置，并返回给Spring Boot微服务实例。
+
+配置服务存储库可以是文件系统、Git存储库（本地或远程）、Etcd、Eureka、Consul、Zookeeper等。
+
+## 创建Spring Cloud Config服务器
+
+首先，创建一个普通的Spring Boot项目。在项目的pom.xml中加入如下依赖：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.example</groupId>
+	<artifactId>configuration-service</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.1.4.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.8</java.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-config-server</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>Finchley.SR2</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+```
+
+然后，需要在引导类上加上`@EnableConfigServer`标注。
+
+```java
+@EnableConfigServer
+@SpringBootApplication
+public class ConfigServiceApplication {
+  public static void main(String[] args) {
+    SpringApplication.run(ConfigServiceApplication.class, args);
+  }
+}
+```
+
+## 创建配置服务存储库
+
+### 基于文件系统的配置服务存储库
+
+假设我们有一个微服务叫foo，文件系统任意位置创建`config/foo`目录，并在`foo`目录下创建微服务foo需要的配置文件，配置文件名称格式：应用程序名-profile名.yml（扩展名也可以是.property）。例如：
+
+```
+foo.yml   (可以通过“Spring Cloud Config配置服务URL/foo/default”来访问)
+foo-dev.yml  (可以通过“Spring Cloud Config配置服务URL/foo/dev”来访问)
+```
+
+然后，在Spring Cloud Config项目的application.property中配置如下：
+
+```properties
+server.port: 8888     #Spring Cloud配置服务器要监听的端口
+spring.profiles.active: native   #表示使用文件系统来作为配置服务的存储库
+spring.cloud.server.native.searchLocations: file:///…/config/foo,…,file:///…/config/bar    #指定配置文件的存储位置，每个应用程序的配置存储位置用逗号分隔
+```
+
+### 基于Git的配置服务存储库
+
+首先，可以在本地或远程创建一个Git存储库，并按照基于文件系统的配置服务存储库中例子一样的结构创建应用程序的配置文件。
+
+然后，在Spring Cloud Config项目的application.property中配置如下：
+
+```properties
+server.port: 8888
+spring.cloud.config.server.git.uri=Git存储库的URL
+spring.cloud.config.server.git.searchPaths=foo, bar
+spring.cloud.config.server.git.username=...   #可选
+spring.cloud.config.server.git.password=...   #可选
+```
+
+
+
+## 配置Spring Boot项目连接Spring Cloud Config服务器
+
+在Spring Boot项目的pom.xml添加如下依赖：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.example</groupId>
+	<artifactId>configuration-client</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.1.4.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.8</java.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-config</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>Finchley.SR2</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+```
+
+在Spring Boot项目的bootstrap.property（推荐）或application.property中配置如下：
+
+```properties
+spring.application.name: foo   #指定应用名称，将用于向Spring Cloud配置服务器请求配置
+spring.profiles.active: default  #指定缺省情况下，向Spring Cloud配置服务器发送的profile
+spring.cloud.uri: Spring Cloud配置服务器的地址
+```
+
+当没有显式指定profile时，应用程序将向Spring Cloud配置服务器请求默认配置，即：`http://Spring Cloud配置服务器的地址/foo/default`。
+
+如果需要显式指定profile，则需要将项目构建成JAR，然后用`-Dspring.profiles.active`系统属性来指定profile：
+
+```bash
+$ java -Dspring.profiles.active=dev -jar target/foo-0.0.1-SNAPSHOT.jar
+```
+
+则应用程序foo将请求`http://Spring Cloud配置服务器的地址/foo/dev`来获取配置。
+
+从远程服务器上获取的配置将覆盖本地相同的配置，而本地独有的配置仍然可用。
+
+这些配置信息，可以通过`@Value`等标注，在代码中读取到。
+
+## 刷新配置
+
+当配置服务存储库发生变更时，Spring Cloud 配置服务器总是读取最新配置。但是，Spring Boot应用，则只会在启动时向Spring Cloud 配置服务器请求一次配置。为了使Spring Boot应用能够在启动后刷新最新配置，需要在Spring Boot项目的引导类上加上`@RefreshScope`标注：
+
+```java
+@RefreshScope
+@SpringBootApplication
+public class FooApplication {
+  public static void main(String[] args) {
+    SpringApplication.run(FooApplication.class, args);
+  }
+}
+```
+
+然后，在需要刷新配置时，通过访问：`http://Spring Boot应用地址/refresh`来执行刷新。或者，通过重启Spring Boot项目也可以刷新配置。
+
+## 保护敏感的配置信息
+
 # 服务治理：Spring Cloud Eureka
 
 Spring Cloud Eureka是基于Netflix Eureka做了二次封装，主要负责完成微服务架构中的服务治理功能（即微服务实例的自动化注册和发现）。
