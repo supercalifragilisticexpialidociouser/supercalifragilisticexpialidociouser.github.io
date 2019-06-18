@@ -61,6 +61,74 @@ Spring Cloud是建立在Spring Boot基础之上，并添加了一些系统中所
 
 如果你想要使用客户端库，一定要保证其中只包含处理底层传输协议的代码，千万不要把与目标服务相关的逻辑放到客户端库中。最后，确保由客户端来负责何时进行客户端库的升级。
 
+## 微服务模式
+
+### 核心微服务开发模式：Spring Boot
+
+![核心微服务开发模式](SpringCloud/核心微服务开发模式.png)
+
+服务粒度
+
+通信协议
+
+接口设计：
+
+配置管理：Spring Cloud Config
+
+事件处理：Spring Cloud Stream
+
+### 微服务路由模式
+
+![微服务路由模式](SpringCloud/微服务路由模式.png)
+
+服务发现：Spring Cloud Netflix Eureka
+
+服务路由：Spring Cloud Netflix Zuul
+
+### 微服务客户端弹性模式
+
+![客户端弹性模式](SpringCloud/客户端弹性模式.png)
+
+客户端负载均衡：Spring Cloud Netflix Ribbon。Ribbon会将从注册中心发现的服务位置缓存起来，这样调用服务时就不需要每次从注册中心查找服务。Ribbon还会将表现不佳或有问题的服务实例从缓存中移除，从而防止继续调用该服务实例。
+
+断路器模式：Spring Cloud Netflix Hystrix。
+
+后备模式：Spring Cloud Netflix Hystrix。当远程服务调用失败后的替代方案。
+
+舱壁模式：Spring Cloud Netflix Hystrix。每个远程资源的调用都是隔离的，并分配到不同的线程池中。从而降低一个缓慢的远程资源调用拖垮整个应用程序的风险。
+
+### 微服务安全模式
+
+![微服务安全模式](SpringCloud/微服务安全模式.png)
+
+验证：Spring Cloud Security/OAuth2
+
+授权：Spring Cloud Security/OAuth2
+
+凭据管理和传播：Spring Cloud Security/OAuth2/JWT
+
+### 微服务日志记录和跟踪模式
+
+![日志记录和跟踪模式](SpringCloud/日志记录和跟踪模式.png)
+
+日志关联：Spring Cloud Sleuth
+
+日志聚合：Spring Cloud Sleuth（与Papertrail）
+
+微服务跟踪：Spring Cloud Sleuth/Zipkin
+
+### 微服务构建和部署模式
+
+![微服务构建和部署模式](SpringCloud/微服务构建和部署模式.png)
+
+构建和部署管道：如何创建一个可重复的构建和部署过程，只需要一键即可构建和部署到组织中的任何环境。Travis CI
+
+基础设施即代码：如何将服务的基础设施作为可在源代码管理下执行和管理的代码去对待。Docker
+
+不可变服务器：一旦创建了微服务镜像，如何确保它在部署之后永远不会更改。Docker
+
+凤凰服务器（Phoenix Server）：服务器运行的时间越长，就越容易发生配置漂移。如何确保运行微服务的服务器定期被拆卸，并重新创建一个不可变的镜像。Travis CI/Docker
+
 # 应用上下文服务：Spring Cloud Context
 
 Spring Cloud Context为Spring云应用程序的`ApplicationContext`提供实用程序和特殊服务（bootstrap上下文、加密、刷新范围和环境端点）。 
@@ -122,73 +190,13 @@ Spring Cloud Commons是一组用于不同Spring Cloud实现（如Spring Cloud Ne
 
 Spring Cloud Config允许将Spring Boot项目的配置保存到远程服务器上。Spring Boot微服务实例启动后，向Spring Cloud Config服务器请求配置。Spring Cloud Config服务器根据Spring Boot微服务实例发送过来的spring profile来向配置服务存储库请求相应的配置，并返回给Spring Boot微服务实例。
 
-配置服务存储库可以是文件系统、Git存储库（本地或远程）、Etcd、Eureka、Consul、Zookeeper等。
-
 ## 创建Spring Cloud Config服务器
 
-首先，创建一个普通的Spring Boot项目。在项目的pom.xml中加入如下依赖：
+1. 创建一个普通的Spring Boot项目作为Spring Cloud Config服务器。
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+2. 在项目的pom.xml中添加相应依赖（参见官方文档）。
 
-	<groupId>com.example</groupId>
-	<artifactId>configuration-service</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
-
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.1.4.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.version>1.8</java.version>
-	</properties>
-
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-config-server</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>Finchley.SR2</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
-
-</project>
-```
-
-然后，需要在引导类上加上`@EnableConfigServer`标注。
+3. 在引导类上加上`@EnableConfigServer`标注，以指示将Spring Cloud Config服务器嵌入到该项目。
 
 ```java
 @EnableConfigServer
@@ -201,6 +209,8 @@ public class ConfigServiceApplication {
 ```
 
 ## 创建配置服务存储库
+
+配置服务存储库可以是文件系统、Git存储库（本地或远程）、Etcd、Eureka、Consul、Zookeeper等。
 
 ### 基于文件系统的配置服务存储库
 
@@ -216,8 +226,10 @@ foo-dev.yml  (可以通过“Spring Cloud Config配置服务URL/foo/dev”来访
 ```properties
 server.port: 8888     #Spring Cloud配置服务器要监听的端口
 spring.profiles.active: native   #表示使用文件系统来作为配置服务的存储库
-spring.cloud.server.native.searchLocations: file:///…/config/foo,…,file:///…/config/bar    #指定配置文件的存储位置，每个应用程序的配置存储位置用逗号分隔
+spring.cloud.config.server.native.searchLocations: file:///…/config/foo,…,file:///…/config/bar    #指定配置文件的存储位置，每个应用程序的配置存储位置用逗号分隔
 ```
+
+在上面的配置中，没有位于`config`目录下名为`application.yml`或`application-PROFILE.yml`的配置是全局的，这一点与基于Git配置服务存储库不同。而在`config`下的子目录中的配置则只适用于对应的微服务。
 
 ### 基于Git的配置服务存储库
 
@@ -227,91 +239,26 @@ spring.cloud.server.native.searchLocations: file:///…/config/foo,…,file:///�
 
 ```properties
 server.port: 8888
-spring.cloud.config.server.git.uri=Git存储库的URL
-spring.cloud.config.server.git.searchPaths=foo, bar
+spring.cloud.config.server.git.uri=Git存储库的URL #如果是本地的Git存储库，则以“file://”或“file:///”（Windows）开头。
+spring.cloud.config.server.git.searchPaths=foo, bar  #可选
 spring.cloud.config.server.git.username=...   #可选
 spring.cloud.config.server.git.password=...   #可选
 ```
 
+在上面的配置中，位于`config`目录下名为`application.yml`或`application-PROFILE.yml`的配置是全局的，适用于所有微服务。而在`config`下的子目录中的配置则只适用于对应的微服务。
 
+> 其他更复杂的配置参见官方文档，例如配置多个存储库。
 
 ## 配置Spring Boot项目连接Spring Cloud Config服务器
 
-在Spring Boot项目的pom.xml添加如下依赖：
+1. 在Spring Boot项目的pom.xml添加相应依赖。
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-
-	<groupId>com.example</groupId>
-	<artifactId>configuration-client</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
-
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.1.4.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.version>1.8</java.version>
-	</properties>
-
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-config</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>Finchley.SR2</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
-
-</project>
-```
-
-在Spring Boot项目的bootstrap.property（推荐）或application.property中配置如下：
+2. 在Spring Boot项目的bootstrap.property（推荐）或application.property中配置如下：
 
 ```properties
 spring.application.name: foo   #指定应用名称，将用于向Spring Cloud配置服务器请求配置
 spring.profiles.active: default  #指定缺省情况下，向Spring Cloud配置服务器发送的profile
-spring.cloud.uri: Spring Cloud配置服务器的地址
+spring.cloud.config.uri: Spring Cloud配置服务器的地址
 ```
 
 当没有显式指定profile时，应用程序将向Spring Cloud配置服务器请求默认配置，即：`http://Spring Cloud配置服务器的地址/foo/default`。
@@ -365,6 +312,12 @@ Eureka服务器没有后端存储，但注册表中的服务实例必须发送�
 
 服务发现：服务间的调用不再通过指定具体的实例地址来实现，而是通过服务名向注册中心查询服务的信息（并把它们缓存到本地并周期性地刷新服务状态），据此向服务的某个实例发起请求。
 
+> 在非云的世界中，服务位置解析通常由DNS和网络负载均衡器的组合来解决。这种模型对基于云的微服务不适用的原因是：
+>
+> - 单点故障：虽然负载均衡器可以实现高可用，但它往往是应用程序基础设施中的集中式阻塞点，是整个基础设施的单点故障。
+> - 有限的水平可伸缩性：大多数负载均衡器是通过使用热插拔实现冗余，但只能使用单个服务器来处理负载，辅助负载均衡器仅在主负载均衡器中断的情况下才能进行故障切换。此外，商业负载均衡器还受到有限数量的许可证限制。
+> - 静态管理：大多数负载均衡器使用集中式的数据库来存储路由规则，添加新路由的唯一方法通常是通过供应商的专有API。开发人员通常要手动定义和部署服务的映射规则。
+
 ## 搭建服务注册中心（Eureka服务端）
 
 ### 引入依赖
@@ -395,9 +348,7 @@ pom.xml：
 
 #### 独立模式
 
-默认情况下，每个Eureka服务器也是Eureka客户端，并且需要（至少一个）服务URL来定位对等端。如果您没有提供该服务，该服务将运行并工作，但它会填满您的日志，并带来很多关于无法向对等端注册的噪音。 
-
-因此，在独立模式下要禁止它将自己作为客户端注册，只需要配置如下应用属性：
+独立模式是指只有一个Eureka注册中心提供服务发现和注册。默认情况下，Eureka是采用对等模式，因此要通过配置禁止注册中心注册自己。
 
 ```properties
 server:
@@ -417,7 +368,7 @@ eureka:
 
 #### 对等模式
 
-通过运行多个Eureka注册中心实例并要求它们相互注册，Eureka可以变得更加灵活和可用。实际上，这是默认行为，所以您只需将一个有效的`serviceUrl`添加到对等体即可，如下例所示：
+对等模式是指通过运行多个Eureka注册中心实例并要求它们相互注册，从而实现高可用。一个Eureka实例，既提供服务注册和发现服务，同时，它也是一个客户端，并将它注册到其他Eureka实例中。您可以将多个对等端添加到系统，并且只要它们两两至少通过一个边相互连接，就可以在它们之间同步注册。如下例所示：
 
 application.yml：
 
@@ -448,8 +399,6 @@ eureka:
 ```
 
 如果您在知道自己的主机名的机器上运行（默认情况下，它使用`java.net.InetAddress`查找），则不需要`eureka.instance.hostname`。 
-
-您可以将多个对等端添加到系统，并且只要它们两两至少通过一个边相互连接，就可以在它们之间同步注册。
 
 ### 启用服务注册中心
 
@@ -522,7 +471,7 @@ eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
 eureka.client.serviceUrl.defaultZone=http://peer1/eureka/,http://peer2/eureka/
 ```
 
-实际上，Eureka客户端只需要注册到一个注册中心，注册信息会被自动同步到相连的其他注册中心。这样，Eureka客户端的注册信息就可以通过这些注册中心中的任一台获得。
+实际上，Eureka客户端只需要注册到一个注册中心，注册信息会被自动同步到相连的其他注册中心。这样，Eureka客户端的注册信息就可以通过这些注册中心中的任一台获得。但设置多个注册中心的好处是不会出现单点故障。
 
 如果注册中心需要安全认证，则可以写成：
 
@@ -530,9 +479,9 @@ eureka.client.serviceUrl.defaultZone=http://peer1/eureka/,http://peer2/eureka/
 eureka.client.serviceUrl.defaultZone=http://用户名:密码@localhost:8761/eureka/
 ```
 
-默认情况下，使用主机名来向注册中心注册。如果Java无法确定主机名，则使用IP地址来注册。也可以显式设置使用IP地址来注册，只要设置`eureka.instance.preferIpAddress=true`（默认是`false`）。
+默认情况下，使用主机名来向注册中心注册。如果Java无法确定主机名，则使用IP地址来注册。也可以显式设置使用IP地址来注册，只要设置`eureka.instance.preferIpAddress=true`（默认是`false`）。在采用Docker的情况下，建议使用IP地址来注册，因为容器的主机名通常是随机生成的，并且容器没有DNS记录。
 
-### 启用Eureka客户端（可选）
+### 发现服务
 
 Application.java：
 
@@ -548,25 +497,30 @@ public class Application {
 
 > `@EnableDiscoveryClient`不是必需的。只要在类路径上存在`DiscoveryClient`实现，Spring Boot应用程序就会向注册中心注册实例、服务续约、取消租约和查询服务功能。
 
-### 启动应用
+然后，就可以用下列代码来查找服务实例：
 
-按正常方式启动这个Spring Boot应用。
+```java
+@Autowired
+private DiscoveryClient discoveryClient;  //注入服务发现客户端
+…
+List<ServiceInstance> instances = discoveryClient.getInstances("服务名");  //从注册中心中获取指定服务实例
+```
 
-在浏览器中访问：http://localhost:8080/hello （假设该服务提供者提供了一个`/hello`服务）
-
-### 服务下线
-
-当服务实例进行正常的关闭操作时，它会触发一个服务下线的REST请求给Eureka服务注册中心，告诉服务注册中心：”我要下线了“。服务注册中心在接收到下线请求后，将该服务的状态置为”下线“（DOWN），并把该下线事件传播出去。
+> 注意，当使用带有Ribbon功能的Spring RestTemplate或Netflix Feign客户端来调用服务时，已经自动使用DiscoveryClient来查找服务了，不需要自已手动写这些代码。
 
 ### 服务消费
 
-服务消费者主要完成两个目标：发现服务和消费服务。其中发现服务由Eureka客户端完成，而服务消费则由Ribbon完成。
+服务消费者主要完成两个目标：发现服务和消费服务（即调用服务）。其中发现服务由Eureka客户端完成，而服务消费则由下列三种方式完成。
 
-Spring cloud有两种服务调用方式，一种是ribbon+restTemplate，另一种是feign（默认集成了Ribbon）。两者都集成了Ribbon，都具有客户端负载均衡能力。
+- 标准的Spring RestTemplate类来调用服务，需要开发人员自己负责负载均衡；
+- 使用带有Ribbon功能的Spring RestTemplate来调用服务；
+- 使用Netflix Feign客户端来调用服务。
 
-#### ribbon+restTemplate
+后两者都集成了Ribbon，都具有客户端负载均衡能力。
 
-接下来在应用主类中注册一个`RestTemplate` Bean，并通过`@LoadBalanced` 标注开启客户端负载均衡。
+#### Ribbon+RestTemplate
+
+在应用主类中注册一个`RestTemplate` Bean，并通过`@LoadBalanced` 标注开启客户端负载均衡。
 
 Application.java：
 
@@ -575,8 +529,8 @@ Application.java：
 @EnableDiscoveryClient
 public class Application {
   @Bean
-  @LoadBalanced
-  RestTemplate restTemplate() {
+  @LoadBalanced //这个Bean将带有客户端负载均衡功能
+  RestTemplate restTemplate() { 
     return new RestTemplate();
   }
   
@@ -596,7 +550,7 @@ public class ConsumerController {
   
   @RequestMapping(value="/ribbon-consumer", method=RequestMethod.GET)
   public String helloConsumer() {
-    // 这里访问的是一个服务名，而不是具体的地址。
+    // 这里URL中是一个服务名，而不是具体的地址。它自动从注册中心发现服务，不需要显式手动使用DiscoveryClient来查找服务。
     return restTemplate.getForEntity("http://hello-app/hello", String.class).getBody();
   }
 }
@@ -604,9 +558,9 @@ public class ConsumerController {
 
 > 服务名不区分大小写，因此`hello-app`和`HELLO-APP`都是可以的。
 
-#### feign
+#### Feign
 
-引入feign依赖：
+1. 引入feign依赖：
 
 ```xml
 <dependency>
@@ -615,7 +569,7 @@ public class ConsumerController {
 </dependency>
 ```
 
-启用Feign：
+2. 启用Feign：
 
 Application.java：
 
@@ -630,13 +584,13 @@ public class Application {
 }
 ```
 
-定义一个feign接口，通过@ FeignClient（“服务名”），来绑定某个服务提供者。 然后，再使用Spring MVC的标注（例如`@GetMappint`）来将该服务提供者提供的REST接口绑定到指定方法上。这样，后续只要调用该方法，就相当向该服务提供者提供的REST接口发起了请求。
+3. 定义一个feign接口，通过`@FeignClient（"服务名"）`，来绑定某个服务提供者。 然后，再使用Spring MVC的标注（例如`@GetMappint`）来将该服务提供者提供的REST接口绑定到指定方法上。这样，后续只要调用该方法，就相当向该服务提供者提供的REST接口发起了请求。
 
-HelloService.java：
+HelloFeignClient.java：
 
 ```java
 @FeignClient("hello-app")
-public interface HelloService {
+public interface HelloFeignClient {
     @GetMapping("/hello")
     String sayHello();
 }
@@ -650,16 +604,24 @@ HiController.java：
 @RestController
 public class HiController {
   @Autowired
-  HelloService helloService;
+  HelloFeignClient helloFeignClient;
   
   @GetMapping("/hi")
   public String sayHi(){
-    return helloService.sayHello();
+    return helloFeignClient.sayHello();
   }
 }
 ```
 
+### 启动应用
 
+按正常方式启动这个Spring Boot应用。
+
+在浏览器中访问：http://localhost:8080/hi （假设该服务提供者提供了一个`/hi`服务）
+
+### 服务下线
+
+当服务实例进行正常的关闭操作时，它会触发一个服务下线的REST请求给Eureka服务注册中心，告诉服务注册中心：”我要下线了“。服务注册中心在接收到下线请求后，将该服务的状态置为”下线“（DOWN），并把该下线事件传播出去。
 
 ## 配置详解
 
@@ -717,11 +679,62 @@ public class HiController {
 
 # 客户端负载均衡：Spring Cloud Ribbon
 
+![客户端负载均衡](SpringCloud/客户端负载均衡.png)
+
 # 断路器：Spring Cloud Hystrix
+
+![断路器](SpringCloud/断路器.png)
+
+![跳闸决策](SpringCloud/跳闸决策.png)
+
+## 引入依赖
+
+## 启用断路器
+
+```java
+@SpringBootApplication
+@EnableCircuitBreaker
+public class Application {
+  public static void main(String[] args) {
+    new SpringApplicationBuilder(Application.class).web(true).run(args);
+  }
+}
+```
+
+## 用断路器包装远程资源调用
+
+通过在Java方法上标记`@HystrixCommand`标注来将该方法交由断路器进行管理。
+
+```java
+@HystrixCommand
+public List<License> getLicensesByOrg(String orgId) {
+  return licenseRepository.findByOrgId(orgId);
+}
+```
+
+## 配置断路器
+
+### 配置的级别
+
+- 应用程序级
+- 类级别：通过`@DefaultProperties`标注。
+- 在类中定义的线程池级别。
+
+### 配置调用超时
+
+### 后备处理
+
+### 实现舱壁模式
+
+
 
 # 声明式服务调用：Spring Cloud Feign
 
 # API网关：Spring Cloud Zuul
+
+## 路由
+
+## 过滤器
 
 # 消息总线：Spring Cloud Bus
 
