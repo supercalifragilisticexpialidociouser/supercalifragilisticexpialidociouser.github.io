@@ -596,7 +596,7 @@ public interface HelloFeignClient {
 }
 ```
 
-在Web层的控制器，对外暴露一个”/hi”的API接口，通过上面定义的Feign客户端HelloService来消费服务。 
+在Web层的控制器，对外暴露一个”/hi”的API接口，通过上面定义的Feign客户端HelloFeignClient来消费服务。 
 
 HiController.java：
 
@@ -732,9 +732,65 @@ public List<License> getLicensesByOrg(String orgId) {
 
 # API网关：Spring Cloud Zuul
 
+## 建立Zuul网关服务器
+
+### 创建Spring Boot项目并添加相关依赖
+
+### 启用Zuul服务
+
+```java
+@SpringBootApplication
+@EnableZuulProxy
+public class Application {
+  public static void main(String[] args) {
+    new SpringApplicationBuilder(Application.class).web(true).run(args);
+  }
+}
+```
+
+> 另外，还有一个`@EnableZuulServer`标注，它也启用Zuul服务，但不会加载任何Zuul反向代理过滤器，也不会使用Eureka进行服务发现。也就是说，当开发人员不想使用Zuul默认预置的功能时 ，例如需要使用Eureka之外的其他服务发现引擎时，才会使用该标注。
+
+### 配置Zuul
+
+Zuul默认自动使用Eureka来通过服务ID查找服务，然后使用Ribbon对来自Zuul的请求进行客户端负载均衡。
+
 ## 路由
 
+### 通过服务发现自动映射路由
+
+### 使用服务发现手动映射路由
+
+### 使用静态URL手动映射路由
+
+将路由配置放到Spring Cloud配置服务器以实现动态加载路由配置。
+
 ## 过滤器
+
+# 保护微服务：Spring Cloud Security
+
+## 创建授权服务器
+
+### 添加相应依赖
+
+### 启用授权服务器
+
+```java
+@SpringBootApplication
+@EnableAuthorizationServer
+public class Application {
+  public static void main(String[] args) {
+    new SpringApplicationBuilder(Application.class).web(true).run(args);
+  }
+}
+```
+
+### 配置授权服务器
+
+#### 注册客户端应用程序
+
+#### 配置授权服务器的端点
+
+## 用户认证
 
 # 消息总线：Spring Cloud Bus
 
