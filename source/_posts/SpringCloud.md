@@ -770,6 +770,8 @@ Zuul默认自动使用Eureka来通过服务ID查找服务，然后使用Ribbon�
 
 ## 创建授权服务器
 
+### 创建一个Spring Boot项目
+
 ### 添加相应依赖
 
 ### 启用授权服务器
@@ -786,11 +788,39 @@ public class Application {
 
 ### 配置授权服务器
 
-#### 注册客户端应用程序
+### 注册客户端应用程序
 
-#### 配置授权服务器的端点
+### 配置授权服务器的端点
 
 ## 用户认证
+
+## 创建受保护资源
+
+### 创建一个Spring Boot项目
+
+### 添加相应依赖
+
+### 启用资源服务器
+
+```java
+@SpringBootApplication
+@EnableResourceServer
+public class Application {
+  public static void main(String[] args) {
+    new SpringApplicationBuilder(Application.class).web(true).run(args);
+  }
+}
+```
+
+### 配置资源服务器
+
+### 定义访问控制规则
+
+## 访问受保护的资源
+
+### 通过Feign访问受保护资源
+
+## 在OAuth2中使用JWT
 
 # 消息总线：Spring Cloud Bus
 
