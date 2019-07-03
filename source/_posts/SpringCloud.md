@@ -826,4 +826,10 @@ public class Application {
 
 # 消息驱动：Spring Cloud Stream
 
+![消息的发布和消费](SpringCloud/消息的发布和消费.png)
+
+## 消息生产者
+
+## 消息消费者
+
 # 分布式服务跟踪：Spring Cloud Sleuth
