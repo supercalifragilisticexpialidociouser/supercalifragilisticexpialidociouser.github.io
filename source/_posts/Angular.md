@@ -1,7 +1,7 @@
 ---
 title: Angular
 date: 2018-04-26 10:34:40
-tags: [7.2.0]
+tags: [8.1.1]
 ---
 
 Angular 是一个开发平台。它能帮你更轻松的构建 Web 应用。Angular 集声明式模板、依赖注入、端到端工具和一些最佳实践于一身，为你解决开发方面的各种挑战。Angular 为开发者提升构建 Web、手机或桌面应用的能力。
@@ -10,7 +10,7 @@ Angular 是一个开发平台。它能帮你更轻松的构建 Web 应用。Angu
 
 ## 安装Node.js
 
-下载安装Node.js v10.15.0 LTS
+下载安装Node.js
 
 ## 安装angular-cli
 
@@ -43,8 +43,7 @@ $ npm install -g @angular/cli@latest
 
 ```bash
 $ rm -rf node_modules dist # use rmdir /S/Q node_modules dist in Windows Command Prompt; use rm -r -fo node_modules,dist in Windows PowerShell
-$ npm install --save-dev @angular/cli@latest
-$ npm install
+$ ng update --all --force
 ```
 
 ## 安装Git
@@ -310,10 +309,6 @@ $ ng g component xxx
 > - src/app/home/home.component.ts
 > - src/app/home/home.component.scss
 
-### 应用样式
-
-Angular应用的全局样式放在`src/styles.scss`中。另外，每个组件可以有自己的私有样式，它们放在由`styleUrls`指定的样式文件中。
-
 ### 将应用程序组合起来
 
 Angular模块将相关功能封装起来，每个应用都至少有一个根模块。
@@ -394,11 +389,15 @@ $ ng generate module foo --flat --module=app
 
 组件负责控制屏幕上的一小块区域，我们称之为视图。
 
-组件由 HTML 模板和组件类组成，组件类控制视图。
+组件包含三部分：
 
-当用户在这个应用中漫游时， Angular 会创建、更新和销毁组件。 
+- **一个组件类**，它用来处理数据和功能。
+- **一个 HTML 模板**，它决定了呈现给用户的界面。
+- **组件专属的样式**定义了外观和感觉。
 
-## 创建组件类
+Angular 应用程序由一棵组件树组成，当用户在这个应用中漫游时， Angular 会创建、更新和销毁组件。 
+
+## 组件类
 
 每个组件都以`@Component`装饰器标注：
 
@@ -1360,6 +1359,8 @@ Angular 应用使用标准的 CSS 来设置样式。另外，Angular 还能把�
 另外，在HTML文档的`<head>`中定义的样式也适用于所有元素。
 
 ### 组件样式
+
+另外，每个组件可以有自己的私有样式。
 
 有几种方式把样式加入组件：
 
@@ -4243,7 +4244,7 @@ export class AppModule { }
 
 URL路由功能依赖浏览器提供的JavaScript API，因此用户无法简单地将目标URL输入到浏览器地址栏中进行导航。相反，导航必须由应用程序执行，具体的实现方法是在组件或其他构造块中编写JavaScript代码，或者向模板中的HTML元素添加属性。
 
-> 实际上，直接将目标URL输入浏览器地址栏中，是能跳转到目标页面，但无法保持目标页面的原有状态。特别是，如果目标页面是一个表单，则原先输入内容将丢失。但是，如果应用程序希望能从不同的URL开始导航，则这种直接通过浏览器地址栏导航是有意义的。
+> 实际上，直接将目标URL输入浏览器地址栏中，是能跳转到目标页面，但**无法保持目标页面的原有状态**。特别是，如果目标页面是一个表单，则原先输入内容将丢失。但是，如果应用程序希望能从不同的URL开始导航，则这种直接通过浏览器地址栏导航是有意义的。
 
 在代码中导航，可以使用`Router`的`navigateByUrl()`方法：
 
