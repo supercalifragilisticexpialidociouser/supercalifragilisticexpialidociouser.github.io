@@ -65,6 +65,8 @@ $ ng update --all --force
 
 # 入门
 
+> 如果只是想学习，则推荐以 [StackBlitz](https://stackblitz.com/) 为开发环境，在线创建一个Angular项目，比如通过浏览器打开<https://stackblitz.com/edit/angular-jo> ，将看到我在StackBlitz上的Angular项目代码。并且可通过 <https://angular-jo.stackblitz.io> 来浏览该应用。
+
 ## 创建工作空间和应用
 
 Angular 工作空间就是你开发应用的上下文环境。 每个工作空间包含一些供一个或多个项目使用的文件。 每个项目都是一组由应用、库或端到端（e2e）测试构成的文件。
@@ -392,8 +394,8 @@ $ ng generate module foo --flat --module=app
 组件包含三部分：
 
 - **一个组件类**，它用来处理数据和功能。
-- **一个 HTML 模板**，它决定了呈现给用户的界面。
-- **组件专属的样式**定义了外观和感觉。
+- **一个 HTML 的组件模板**，它决定了呈现给用户的界面。
+- **组件的私有样式**定义了外观和感觉。
 
 Angular 应用程序由一棵组件树组成，当用户在这个应用中漫游时， Angular 会创建、更新和销毁组件。 
 
@@ -4701,3 +4703,17 @@ $ ng lint
 Angular有一种生产模式，可以禁用在开发过程中执行的一些有用的检查。启用生产模式意味着提高性能，通过调用`enableProdMode`函数启用生产模式。
 
 # 部署
+
+通过构建产生的部署文件位于项目根目录下的`dist`目录中，该文件夹中的文件都是静态的，可以托管在任何能够提供文件服务的 Web 服务器上（Node，Java，.NET），也可以是任何后端（Firebase，Google Cloud，App Engine 等）。
+
+## 在 Firebase 上托管一个 Angular 应用
+
+要想让你的网站上线，最简单的办法之一就是使用 Firebase 托管它。
+
+1. 在 [Firebase](https://firebase.google.com/) 上注册一个 firebase 账号。
+2. 创建一个新项目，给它任意名字。
+3. 使用 `npm install -g firebase-tools` 安装 `firebase-tools` CLI 来处理你的部署。
+4. 把你的 CLI 和 Firebase 帐户联系起来，使用 `firebase login` 和 `firebase init` 来初始化这个联系。
+5. 按照提示选择你为托管它而创建的 `Firebase` 项目。
+6. 用 `firebase deploy` 命令部署你的应用，这是因为 StackBlitz 已经创建好了一个 firebase.json，它会告诉 Firebase 如何用你的应用提供服务。
+7. 部署之后，访问 [https://your-firebase-project-name.firebaseapp.com](https://your-firebase-project-name.firebaseapp.com/) 进行实时查看！
