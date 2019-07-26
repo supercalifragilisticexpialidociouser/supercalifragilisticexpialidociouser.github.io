@@ -4238,6 +4238,43 @@ Angular路由功能要求HTML文档（`index.html`）中有一个`<base>`元素�
 export class AppModule { }
 ```
 
+### 路由模块
+
+也可以将路由定义在自己的模块中。如果在创建项目中没有使用`--routing`参数创建路由，则可以在项目创建好后使用下列命令创建路由模块：
+
+```bash
+$ ng generate module app-routing --flat --module=app
+```
+
+> `--flat` 把这个文件放进了 `src/app` 中，而不是单独的目录中。
+> `--module=app` 告诉 CLI 把它注册到 `AppModule` 的 `imports` 数组中。
+
+下面的路由模块的一个例子：app-routing.module.ts
+
+```typescript
+import { NgModule }             from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+ 
+import { DashboardComponent }   from './dashboard/dashboard.component';
+import { HeroesComponent }      from './heroes/heroes.component';
+import { HeroDetailComponent }  from './hero-detail/hero-detail.component';
+ 
+const routes: Routes = [
+  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+  { path: 'dashboard', component: DashboardComponent },
+  { path: 'detail/:id', component: HeroDetailComponent },
+  { path: 'heroes', component: HeroesComponent }
+];
+ 
+@NgModule({
+  imports: [ RouterModule.forRoot(routes) ],
+  exports: [ RouterModule ]
+})
+export class AppRoutingModule {}
+```
+
+
+
 ## `<router-outlet>`元素
 
 当使用路由功能时，Angular会查找`<router-outlet>`元素，它相当于一个占位符，它指定了应该在什么位置显示当前URL对应的组件。
