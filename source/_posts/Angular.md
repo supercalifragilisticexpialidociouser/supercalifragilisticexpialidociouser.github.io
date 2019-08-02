@@ -310,6 +310,18 @@ $ ng g component xxx
 > - src/app/home/home.component.spec.ts
 > - src/app/home/home.component.ts
 > - src/app/home/home.component.scss
+>
+> ```bash
+> $ cd my-app
+> $ ng generate component foo/bar
+> ```
+>
+> 生成如下文件：
+>
+> - src/app/foo/bar/bar.component.html
+> - src/app/foo/bar/bar.component.spec.ts
+> - src/app/foo/bar/bar.component.ts
+> - src/app/foo/bar/bar.component.scss
 
 ### 将应用程序组合起来
 
@@ -371,6 +383,8 @@ Angular模块有两种类型：
 - 根模块（root module）：用于向Angular描述应用程序，主要包括：运行应用程序所需的功能模块、应该加载哪些自定义功能以及根组件的名称。根模块在引导文件中加载。
 - 功能模块（feature module）：用于把相关的应用程序功能归集起来，使应用程序更易于管理。
 
+> Angular功能模块很适合于共享指令、管道和组件，把它们放在一个模块中，然后在应用中其它需要这些的地方导入该模块。但是，Angular功能模块不适合用于共享服务，因为导入带有服务的模块意味着你会拥有那个服务的一个**新实例**，这通常不会是你想要的结果（你通常会想取到现存的服务）。获取共享服务的最常见方式是通过 Angular 的依赖注入系统，而不是模块系统。
+
 ## 创建Angular模块
 
 ```bash
@@ -381,11 +395,98 @@ $ ng generate module foo --flat --module=app
 >
 > `--module=app` 告诉 CLI 把它注册到 `AppModule` 的 `imports` 数组中。
 
+## 导入模块
+
+多次导入同一个模块，Angular 只会在首次遇到时加载一次该模块，之后再遇到就不会再加载了。
+
+Angular 不允许模块之间出现循环依赖，所以不要让模块'A'导入模块'B'，而模块'B'又导入模块'A'。
+
 ## 根模块
 
 每个应用都至少有一个 Angular 模块，也就是根模块，用来引导并启动应用。
 
-## 惰性加载模块
+> 对于运行在浏览器中的应用来说，都必须在根模块中导入 `BrowserModule` ，因为它提供了启动和运行浏览器应用时某些必须的服务。
+>
+> `BrowserModule` 的服务是面向整个应用的，所以它只能在根模块中使用，而不是功能模块。 
+
+## 功能模块
+
+功能模块通常可以分为以下几类：
+
+- 领域功能模块。
+- 带路由的功能模块（包含惰性加载模块）。
+- 路由模块。
+- 服务功能模块
+- 可视部件功能模块。
+
+### 惰性加载模块
+
+默认情况下，NgModule 都是立即加载的。
+
+要想建立一个惰性加载的功能模块，有三个主要步骤：
+
+1. 创建该功能模块。
+2. 创建该功能模块的路由模块。
+3. 配置相关路由。
+
+#### 创建一个带路由的功能模块
+
+```bash
+$ ng generate module customers --routing
+```
+
+这会创建一个 `customers` 目录，其中有两个文件：`customers.module.ts` 和 `customers-routing.module.ts`。
+
+注意：`CustomersModule`导入了`CustomersRoutingModule`：
+
+```typescript
+@NgModule({
+  imports: [
+    CustomersRoutingModule
+  ],
+  …
+})
+export class CustomersModule { }
+```
+
+#### 配置功能模块的路由
+
+```typescript
+const routes: Routes = [
+  { path: '', component: CustomerListComponent }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class CustomersRoutingModule { }
+```
+
+注意：这里使用了`forChild`方法。
+
+#### 配置根路由
+
+```typescript
+const routes: Routes = [
+  { path: 'customers', loadChildren: () => import('./customers/customers.module').then(mod => mod.CustomersModule) },
+  { path: 'orders', loadChildren: () => import('./orders/orders.module').then(mod => mod.OrdersModule) },
+  { path: '', redirectTo: '', pathMatch: 'full' }
+];
+
+@NgModule({
+  imports: [
+    RouterModule.forRoot(routes)
+  ],
+  exports: [RouterModule],
+  providers: []
+})
+export class AppRoutingModule { }
+```
+
+根路由使用`forRoot`方法，并且使用了惰性加载的语法：`loadChildren` 后面紧跟着一个函数，它使用浏览器内置的 `import('...')` 语法来实现动态导入。这里的导入路径是到那个模块的相对路径。
+
+> `forRoot()` 包含的注入器配置是全局性的，比如对路由器的配置。`forChild()` 中没有注入器配置，只有像 `RouterOutlet` 和 `RouterLink` 这样的指令。
 
 # 组件
 
@@ -420,9 +521,613 @@ export class HerosComponent implements OnInit {
 
 `ngOnInit` 是一个生命周期钩子，Angular 在创建完组件后很快就会调用 `ngOnInit`。这里是放置初始化逻辑的好地方。
 
+## 模板
+
+组件类和模板共同定义了 Angular 的视图。
+
+### 定义模板
+
+HTML 是 Angular 模板的语言，几乎所有的 HTML 语法都是有效的模板语法。但值得注意的例外是`<script>`元素，它被禁用了，以阻止脚本注入攻击的风险。
+
+另外，`<html>`、`<body>`和`<base>`这些元素用在模板中是没有意义的。
+
+模板除了可以使用像`<h2>`和`<p>`这样的典型的 HTML 元素，还可以通过组件、指令和插值表达式来扩展模板中的 HTML 词汇。它们看上去就是新元素和属性。 例如，`*ngFor`、`{{hero.name}}`、`(click)`、`[hero]`和`<hero-detail>`。
+
+#### 模板引用变量
+
+模板引用变量是模板中对 DOM 元素的引用，另外，它还可以引用 Angular 组件或指令或[Web Component](https://developer.mozilla.org/en-US/docs/Web/Web_Components)。当Angular在模板中遇到引用变量时，它将引用变量的值设置为引用变量所在的那个元素。
+
+##### 定义模板引用变量
+
+语法一：
+
+`#模板引用变量`
+
+例如：
+
+```html
+<input #phone placeholder="phone number">
+<button (click)="callPhone(phone.value)">Call</button>
+```
+
+语法二：
+
+`ref-模板引用变量`
+
+例如：
+
+```html
+<input ref-fax placeholder="fax number">
+<button (click)="callFax(fax.value)">Fax</button> 
+```
+
+##### 显式设置模板引用变量的值
+
+模板引用变量的值默认是声明它的那个元素（即宿主元素），但也可以显式地给它设置其他值。例如，下面的示例将模板引用变量显式地设置为Angular的`ngForm`指令：
+
+```html
+<form (ngSubmit)="onSubmit(heroForm)" #heroForm="ngForm">
+  <div class="form-group">
+    <label for="name">Name
+      <input class="form-control" name="name" required [(ngModel)]="hero.name">
+    </label>
+  </div>
+  <button type="submit" [disabled]="!heroForm.form.valid">Submit</button>
+</form>
+<div [hidden]="!heroForm.form.valid">
+  {{submitMessage}}
+</div>
+```
+
+原生的 `<form>` 元素没有 `form` 属性，但 `NgForm` 指令有。这就解释了为何当 `heroForm.form.valid` 是无效时你可以禁用提交按钮， 并能把整个表单控件树传给父组件的 `onSubmit` 方法。
+
+##### 导出指令用于模板引用变量
+
+`@Directive`装饰器的`exportAs`属性指定了一个名称，在模板引用变量中将使用该名称来引用指令。上面的示例中，使用的`ngForm`就是在`NgForm`指令类中通过`exportsAs`属性指定的：
+
+```typescript
+@Directive({
+  selector: 'form:not([ngNoForm]):not([formGroup]),ngForm,ng-form,[ngForm]',
+  providers: [formDirectiveProvider],
+  host: {'(submit)': 'onSubmit($event)', '(reset)': 'onReset()'},
+  outputs: ['ngSubmit'],
+  exportAs: 'ngForm'
+})
+export class NgForm extends ControlContainer implements Form, AfterViewInit {
+  …
+}
+```
+
+当使用`exportAs`装饰器属性时，在模板表达式和数据绑定中可以使用指定定义的所有方法和属性，包括那些名称以下划线为前缀或应用`private`关键字的方法和属性。
+
+##### 引用模板引用变量
+
+模板引用变量的作用范围是*整个模板*。
+
+#### 模板表达式
+
+大部分JavaScript表达式也是合法的模板表达式，但你不能使用那些具有或可能引发副作用的 JavaScript 表达式，包括：
+
+1. 赋值 (`=`、`+=`、`-=`、 ...)
+2. `new`、`typeof`、`instanceof` 等运算符
+3. 使用`;`或`,`串联起来的表达式
+4. 自增或自减运算符 `++`和`--`
+5. 某些 ES2015+ 的操作符
+6. 位运算`|`和`&`
+
+模板表达式中支持但JavaScript中没有的*模板表达式运算符*：
+
+1. 管道运算符`|`
+2. 安全导航运算符`?.`
+3. 非空断言运算符`!`
+
+模板表达式不能引用全局命名空间中的任何东西， 不能引用`window`或`document`，不能调用`console.log`或`Math.max`。 它们被局限于只能访问来自表达式上下文中的成员。典型的表达式上下文就是这个组件实例，另外还有模板引用变量。
+
+Angular 执行模板表达式，产生一个值，并把它赋值给绑定目标的属性。这个绑定目标可能是 HTML 元素、组件或指令。
+
+> 由于模板表达式不会接受TypeScript编译器的检查，而且也不易于进行单元测试。因此，模板表达式应该尽可能保持简单，在理想情况下，仅用于从组件检索数据并进行格式化，然后用于显示。所有复杂的检索和处理逻辑都应该放在组件或模型中进行定义。
+
+##### 管道运算符
+
+管道是一个简单的函数，它接受一个输入值，并返回转换结果。
+
+```html
+<div>Title through uppercase pipe: {{title | uppercase}}</div>
+```
+
+管道操作符会把它左侧的表达式结果传给它右侧的管道函数。
+
+还可以通过多个管道串联表达式：
+
+```html
+<!-- Pipe chaining: convert title to uppercase, then to lowercase -->
+<div>
+  Title through a pipe chain:
+  {{title | uppercase | lowercase}}
+</div>
+```
+
+还能对它们使用参数：
+```html
+<!-- pipe with configuration argument => "February 25, 1970" -->
+<div>Birthdate: {{currentHero?.birthdate | date:'longDate'}}</div>
+```
+
+`json` 管道对调试绑定特别有用：
+
+```html
+<div>{{currentHero | json}}</div>
+```
+
+它生成的输出是这样的：
+
+```json
+{ "id": 0, "name": "Hercules", "emotion": "happy",
+  "birthdate": "1970-02-25T08:00:00.000Z",
+  "url": "http://www.imdb.com/title/tt0065832/",
+  "rate": 325 }
+```
+
+##### 安全导航运算符
+
+`?.` 与 `.` 一样用于属性的限定名中。
+
+`?.` 会在它遇到第一个空值（ `null` 和 `undefined` ）的时候跳出，并显示是空的，而不会抛出异常。
+
+```html
+The null hero's name is {{nullHero?.firstName}}
+```
+
+等价于：
+
+```html
+The null hero's name is {{nullHero && nullHero.firstName}}
+```
+
+或
+
+```html
+The null hero's name is <span *ngIf="nullHero">{{nullHero.firstName}}</span>
+```
+
+Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路径中，它工作得很完美。
+
+##### 非空断言运算符
+
+在 TypeScript 2.0 中，你可以使用 `--strictNullChecks` 标志强制开启[严格空值检查](http://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html)。TypeScript 就会确保不存在意料之外的 null 或 undefined。
+
+在这种模式下，有类型的变量默认是不允许 null 或 undefined 值的，如果有未赋值的变量，或者试图把 null 或 undefined 赋值给不允许为空的变量，类型检查器就会抛出一个错误。
+
+如果类型检查器在运行期间无法确定一个变量是 null 或 undefined，那么它也会抛出一个错误。 你自己可能知道它不会为空，但类型检查器不知道。 所以你要告诉类型检查器，它不会为空，这时就要用到[*非空断言操作符*](http://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html#non-null-assertion-operator)。
+
+*Angular* 模板中的非空断言操作符（`!`）也是同样的用途。
+
+例如，在用`*ngIf`来检查过 `hero` 是已定义的之后，就可以断言 `hero` 属性一定是已定义的：
+
+```html
+<!--No hero, no text -->
+<div *ngIf="hero">
+  The hero's name is {{hero!.name}}
+</div>
+```
+
+在 Angular 编译器把你的模板转换成 TypeScript 代码时，这个操作符会防止 TypeScript 报告 "`hero.name` 可能为 null 或 undefined"的错误。
+
+与[*安全导航操作符*](https://angular.cn/guide/template-syntax#safe-navigation-operator)不同的是，**非空断言操作符**不会防止出现 `null` 或 `undefined`。 它只是告诉 TypeScript 的类型检查器对特定的属性表达式，不做“严格空值检测”。
+
+如果你打开了严格控制检测，那就要用到这个模板操作符，而其它情况下则是可选的。
+
+##### 字符串字面量
+
+在模板表达式中，字符串字面量要记得加上引号，特别是出现在属性绑定中时。
+
+```html
+<td [ngSwitch]="'Apples'">…</td>
+
+<div [ngClass]="'p-a-1 ' + getClass()">
+  …
+</div> 
+```
+
+##### 类型转换函数`$any`
+
+有时候，绑定表达式可能会报类型错误，并且它不能或很难指定类型。要消除这种报错，你可以使用 `$any` 转换函数来把表达式转换成 [`any` 类型](http://www.typescriptlang.org/docs/handbook/basic-types.html#any)。
+
+```html
+<!-- Accessing an undeclared member -->
+<div>
+  The hero's marker is {{$any(hero).marker}}
+</div>
+```
+
+在这个例子中，当 Angular 编译器把模板转换成 TypeScript 代码时，`$any` 表达式可以防止 TypeScript 编译器报错说 `marker` 不是 `Hero` 接口的成员。
+
+`$any` 转换函数可以和 `this` 联合使用，以便访问组件中未声明过的成员：
+
+```html
+<!-- Accessing an undeclared member -->
+<div>
+  Undeclared members is {{$any(this).member}}
+</div>
+```
+
+`$any` 转换函数可以在绑定表达式中任何可以进行方法调用的地方使用。
+
+##### 表达式上下文
+
+当Angular对一个表达式进行求值时，它会在表达式的上下文中进行求值。
+
+典型的表达式上下文就是这个组件实例。因此，模板能够访问组件的公共（public）方法和公共属性，而不需要带任何类型的前缀。
+
+除了组件外，表达式上下文还可以包括组件之外的对象。 比如模板输入变量 (`let customer`)和模板引用变量(`#customerInput`)：
+
+```html
+<ul>
+  <li *ngFor="let customer of customers">{{customer.name}}</li>
+</ul>
+
+<input #customerInput>{{customerInput.value}}</label>
+```
+
+表达式中的上下文变量是由*模板变量*、指令的*上下文对象*（如果有）和组件的*成员*叠加而成的。 如果你要引用的名字存在于以上多个命名空间中，那么，模板变量优先级最高，其次是指令的上下文对象，最后是组件的成员。
+
+模板表达式不能引用全局命名空间中的任何东西，比如 `window` 或 `document`。它们也不能调用 `console.log` 或 `Math.max`。 它们只能引用表达式上下文中的成员。如果要访问全局命名空间中的功能，那么可以由组件提供，由它来代表模板进行访问。
+
+组件：
+
+```typescript
+@Component({
+  selector: "app",
+  templateUrl: "template.html"
+})
+export class ProductComponent {
+  model: Model = new Model();
+  // ...constructor and methods omitted for brevity...
+  counter: number = 1;
+  get nextProduct(): Product {
+    return this.model.getProducts().shift();
+  }
+  getProductPrice(index: number): number {
+    return Math.floor(this.getProduct(index).price);
+  }
+}
+```
+
+模板：
+
+```html
+<div class="bg-info p-2 text-white">
+  The rounded price is {{getProductPrice(1)}}
+</div>
+```
+
+#### 模板语句
+
+模板语句用来响应由绑定目标（如 HTML 元素、组件或指令）触发的事件。就像这样：`(event)="statement"`。
+
+虽然模板表达式不应该有副作用，但是模板语句通常会有副作用。
+
+和模板表达式一样，模板语句使用的语言也像 JavaScript。 模板语句解析器和模板表达式解析器有所不同，特别之处在于它支持基本赋值 (`=`) 和表达式链 (`;`和`,`)。
+
+但下列 JavaScript 语法仍然是不允许的，包括：
+
+1）`new`运算符
+
+2）自增和自减运算符：`++`和`--`
+
+3）操作并赋值，例如`+=`和`-=`
+
+4）位运算符`|`和`&`
+
+5）模板表达式运算符（即管道运算符、安全导航运算符、非空断言运算符）
+
+##### 语句上下文
+
+和模板表达式中一样，模板语句无法引用全局命名空间的任何东西。它们不能引用`window`或者`document`， 不能调用`console.log`或者`Math.max`。语句只能引用语句上下文中 —— 通常是正在绑定事件的那个组件实例或者是模板引用变量。
+
+典型的*语句上下文*就是当前组件的实例。 `(click)="deleteHero()"` 中的 *deleteHero* 就是这个数据绑定组件上的一个方法。
+
+```html
+<button (click)="deleteHero()">Delete hero</button>
+```
+
+语句上下文可以引用模板自身上下文中的属性。 在下面的例子中，就把模板的 `$event` 对象、模板输入变量 (`let hero`)和模板引用变量 (`#heroForm`)传给了组件中的一个事件处理器方法。
+
+```html
+<button (click)="onSave($event)">Save</button>
+<button *ngFor="let hero of heroes" (click)="deleteHero(hero)">{{hero.name}}</button>
+<form #heroForm (ngSubmit)="onSubmit(heroForm)"> ... </form>
+```
+
+模板上下文中的变量名的优先级高于组件上下文中的变量名。在上面的 `deleteHero(hero)` 中，`hero` 是一个模板输入变量，而不是组件中的 `hero` 属性。
+
+### 模板的应用方式
+
+> 在浏览器（Chrome）上，点击查看网页源代码时，只会看到模板的静态内容。如果要查看最终生成的网页内容，可以通过右键单击浏览器窗口并从弹出菜单中选择Inspect，或者打开开发者工具查看。
+
+#### 内联模板
+
+在创建组件时，可以通过`template`属性直接指定内联模板。
+
+内联模板是由一个字符串或模板字符串（使用 “`” 包围）表示的模板。
+
+#### 模板文件
+
+在创建组件时，也可以通过`templateUrl`属性来指定一个外部模板文件。
+
+## 样式
+
+Angular 应用使用标准的 CSS 来设置样式。另外，Angular 还能把组件样式捆绑在组件上，以实现比标准样式表更加模块化的设计。
+
+### 全局样式
+
+当使用 CLI 进行构建时，Angular应用的全局样式默认放在`src/styles.scss`中。也可以通过配置 `angular.json` 文件，自定义要包含的全局样式：
+
+```json
+"architect": {
+  "build": {
+    "builder": "@angular-devkit/build-angular:browser",
+    "options": {
+      "styles": [
+        "src/styles.css",
+        "src/more-styles.css",
+        { "input": "src/lazy-style.scss", "lazy": true },  //懒加载
+        { "input": "src/pre-rename-style.scss", "bundleName": "renamed-style" } //重命名
+      ],
+      ...
+```
+
+另外，在HTML文档的`<head>`中定义的样式也适用于所有元素。
+
+### 组件样式
+
+另外，每个组件可以有自己的私有样式。
+
+有几种方式把样式加入组件：
+
+- 设置`@Component`的 `styles` 或 `styleUrls` 元数据
+- 内联在模板的 HTML 中
+- 通过 CSS 文件导入
+
+这些组件样式只会对该组件的模板生效。它们既不会被模板中嵌入的组件继承，也不会被通过内容投影（如 ng-content）嵌进来的组件继承。
+
+这种范围限制就是所谓的**样式模块化**特性
+
+- 可以使用对每个组件最有意义的 CSS 类名和选择器。
+- 类名和选择器是局限于该组件的，它不会和应用中其它地方的类名和选择器冲突。
+- 组件的样式*不会*因为别的地方修改了样式而被意外改变。
+- 你可以让每个组件的 CSS 代码和它的 TypeScript、HTML 代码放在一起，这将促成清爽整洁的项目结构。
+- 将来你可以修改或移除组件的 CSS 代码，而不用遍历整个应用来看它有没有在别处用到。
+
+#### 元数据中的样式
+
+你可以给 `@Component` 装饰器添加一个 `styles` 数组型属性，这个数组中的每一个字符串（通常也只有一个）定义一份 CSS。
+
+```typescript
+@Component({
+  selector: 'app-root',
+  template: `
+    <h1>Tour of Heroes</h1>
+    <app-hero-main [hero]="hero"></app-hero-main>
+  `,
+  styles: ['h1 { font-weight: normal; }']
+})
+export class HeroAppComponent {
+/* . . . */
+}
+```
+
+当使用 `--inline-styles` 标识创建组件时，Angular CLI 的 `ng generate component` 命令就会定义一个空的 `styles`数组：
+
+```bash
+$ ng generate component hero-app --inline-style
+```
+
+#### 元数据中的样式文件
+
+你可以通过把外部 CSS 文件添加到 `@Component` 的 `styleUrls` 属性中来加载外部样式。
+
+```typescript
+@Component({
+  selector: 'app-root',
+  template: `
+    <h1>Tour of Heroes</h1>
+    <app-hero-main [hero]="hero"></app-hero-main>
+  `,
+  styleUrls: ['./hero-app.component.css']
+})
+export class HeroAppComponent {
+/* . . . */
+}
+```
+
+> 你可以指定多个样式文件，甚至可以组合使用 `style` 和 `styleUrls` 方式。
+
+当你使用 Angular CLI 的 `ng generate component` 命令但不带 `--inline-style` 标志时，CLI 会为你创建一个空白的样式表文件，并且在所生成组件的 `styleUrls` 中引用该文件。
+
+#### 模板内联样式
+
+你也可以直接在组件的 HTML 模板中写 `<style>` 标签来内嵌 CSS 样式。
+
+```typescript
+@Component({
+  selector: 'app-hero-controls',
+  template: `
+    <style>
+      button {
+        background-color: white;
+        border: 1px solid #777;
+      }
+    </style>
+    <h3>Controls</h3>
+    <button (click)="activate()">Activate</button>
+  `
+})
+```
+
+#### 模板中的 `<link>` 标签
+
+你也可以在组件的 HTML 模板中写 `<link>` 标签。
+
+```typescript
+@Component({
+  selector: 'app-hero-team',
+  template: `
+    <!-- We must use a relative URL so that the AOT compiler can find the stylesheet -->
+    <link rel="stylesheet" href="../assets/hero-team.component.css">
+    <h3>Team</h3>
+    <ul>
+      <li *ngFor="let member of hero.team">
+        {{member}}
+      </li>
+    </ul>`
+})
+```
+
+#### CSS `@imports` 语法
+
+你还可以利用标准的 CSS [`@import` 规则](https://developer.mozilla.org/en/docs/Web/CSS/@import)来把其它 CSS 文件导入到 CSS 文件中。
+
+在这种情况下，URL 是相对于你正在导入的 CSS 文件的。
+
+```typescript
+/* The AOT compiler needs the `./` to show that this is local */
+@import './hero-details-box.css';
+```
+
+#### 视图封装模式
+
+默认情况下，组件的 CSS 样式被封装进了自己的视图中，而不会影响到应用程序的其它部分。这实际上是由*视图封装模式*控制的。
+
+通过在组件的元数据上设置视图封装模式，你可以分别控制*每个组件*的封装模式。 可选的封装模式有：
+
+- `ShadowDom` 模式使用浏览器原生的 Shadow DOM 实现（参见 [MDN](https://developer.mozilla.org/) 上的 [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Shadow_DOM)）来为组件的宿主元素附加一个 Shadow DOM。组件的视图被附加到这个 Shadow DOM 中，组件的样式也被包含在这个 Shadow DOM 中。从而使得DOM的各个部分彼此隔离。
+- `Native` 视图包装模式使用浏览器原生 Shadow DOM 的一个废弃实现。
+- `Emulated` 模式（**默认值**）通过预处理（并改名）CSS 代码来模拟 Shadow DOM 的行为，以达到把 CSS 样式局限在组件视图中的目的。
+- `None` 意味着 Angular 不使用视图封装。 Angular 会把 CSS 添加到全局样式中。而不会应用上前面讨论过的那些作用域规则、隔离和保护等。 从本质上来说，这跟把组件的样式直接放进 HTML的`<head>`中是一样的。
+
+通过组件元数据中的 `encapsulation` 属性来设置组件封装模式：
+
+```typescript
+// warning: few browsers support shadow DOM encapsulation at this time
+encapsulation: ViewEncapsulation.Native
+```
+
+> `ShadowDom` 模式只适用于提供了原生 Shadow DOM 支持的浏览器（参见 [Can I use](http://caniuse.com/) 上的 [Shadow DOM v1](https://caniuse.com/#feat=shadowdomv1) 部分）。 它仍然受到很多限制，这就是为什么仿真 (`Emulated`) 模式是默认选项，并建议将其用于大多数情况。
+
+#### 特殊的选择器
+
+组件样式中有一些从影子(Shadow) DOM 样式范围领域（记录在[W3C](https://www.w3.org/)的[CSS Scoping Module Level 1](https://www.w3.org/TR/css-scoping-1)中） 引入的特殊选择器。
+
+##### :host
+
+使用 `:host` 伪类选择器，用来选择组件的*宿主*元素。
+
+```css
+:host {
+  display: block;
+  border: 1px solid black;
+}
+```
+
+`:host` 选择器是把宿主元素作为目标的*唯一*方式。除此之外，你将没办法指定它， 因为宿主元素不是组件自身模板的一部分，而是父组件模板的一部分。
+
+以函数形式，即在`host`之后的括号内包含另一个选择器，就可以有条件地应用`:host`样式。
+
+下面例子再次把宿主元素作为目标，但是只有当它同时带有 `active` CSS 类的时候才会生效。
+
+```css
+:host(.active) {
+  border-width: 3px;
+}
+```
+
+##### :host-context
+
+ `:host-context()` 伪类选择器在当前组件宿主元素的*祖先节点*中查找 **CSS 类**（只支持CSS类选择器）， 直到文档的根节点为止。
+
+在下面的例子中，只有当某个祖先元素有 CSS 类 `theme-light` 时，才会把 `background-color` 样式应用到组件*内部*的所有 `<h2>` 元素中：
+
+```css
+:host-context(.theme-light) h2 {
+  background-color: #eef;
+}
+```
+
+### 非CSS样式文件
+
+如果使用 CLI 进行构建，那么你可以用 [sass](http://sass-lang.com/)、[less](http://lesscss.org/) 或 [stylus](http://stylus-lang.com/) 来编写样式，并使用相应的扩展名（`.scss`、`.less`、`.styl`）把它们指定到 `@Component.styleUrls` 元数据中。例子如下：
+
+```scss
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
+})
+...
+```
+
+CLI 的构建过程会运行相关的预处理器。
+
+> 添加到 `@Component.styles` 数组中的样式字符串*必须写成 CSS语法*，因为 CLI 没法对这些内联的样式使用任何 CSS 预处理器。
+
+#### 设置导入的基准路径
+
+如果使用Sass或Stylus，你可以设置`includePaths`（在`angular.json`中）来为组件或全局样式指定一组基准路径。例如：
+
+```json
+"stylePreprocessorOptions": {
+  "includePaths": [
+    "src/style-paths"
+  ]
+},
+```
+
+这样，当使用`@import`导入这些基准路径中的样式文件时，可以从项目的任何位置导入，并且无需使用相对路径。例如：
+
+```scss
+// src/app/app.component.scss
+// A relative path works
+@import '../style-paths/variables';
+// But now this works as well
+@import 'variables';
+```
+
 ## 根组件
 
-根组件由根模块的`@Component`装饰器的`bootstrap`属性指定。每个Angular应用必须至少有一个根组件，它会把组件树和页面中的 DOM 连接起来。。
+根组件由根模块的`@NgModule`装饰器的`bootstrap`属性指定。每个Angular应用必须至少有一个根组件，它会把组件树和页面中的 DOM 连接起来。
+
+## 入口组件
+
+入口组件有两种主要的类型：
+
+- 引导组件（即由`@NgModule`装饰器的`bootstrap`属性指定）。
+- 在路由定义中指定的组件。
+
+### 引导组件
+
+引导组件是一个入口组件，Angular 会在引导过程中把它加载到 DOM 中。 
+
+引导组件配置在`@NgModule`的`bootstrap`属性指定。
+
+### 可路由组件
+
+```typescript
+const routes: Routes = [
+  {
+    path: '',
+    component: CustomerListComponent
+  }
+];
+```
+
+所有可路由组件都必须是入口组件。这需要你把同一个组件添加到两个地方（路由定义中和 `entryComponents` 中），但编译器足够聪明，可以识别出这里是一个路由定义，因此它会自动把这些路由组件添加到 `entryComponents` 中。
+
+### `entryComponents`
+
+虽然 `@NgModule` 装饰器具有一个 `entryComponents` 数组，但大多数情况下你不用显式设置它。因为 Angular 会自动把 `@NgModule.bootstrap` 中的组件以及路由定义中的组件添加到入口组件中。 虽然这两种机制足够自动添加大多数入口组件，但如果你要用其它方式根据类型来命令式的引导或动态加载某个组件，你就必须把它们显式添加到 `entryComponents` 中了。
+
+另外，为了加载尽可能小的代码，Angular 编译器只会为那些可以从 `entryComponents` 中直接或间接访问到的组件生成代码。如果一个组件既不是*入口组件*也不没有在模板中使用过，优化工具就会把这些组件从最终的代码包中剔除出去（而不管 `@NgModule.declarations` 是否引用了这些组件）。 所以，最好只添加那些真正的入口组件，以便让应用尽可能保持精简。
 
 ## 主从组件及其交互
 
@@ -713,7 +1418,7 @@ export class CountdownLocalVarParentComponent { }
 
 ### @ViewChild
 
-*本地变量*方法是个简单便利的方法，但是它也有局限性。因为父组件-子组件的连接必须全部在父组件的**模板**中进行，而父组件类本身的代码对子组件没有访问权。如果父组件的*类*需要读取子组件的属性值或调用子组件的方法，就不能使用*本地变量*方法，这时需要把子组件作为 *ViewChild*，**注入**到父组件里面。
+*本地变量*方法是个简单便利的方法，但是它也有局限性。因为父组件-子组件的连接必须全部在父组件的**模板**中进行，而父组件类本身的代码对子组件没有访问权。如果父组件的*类*需要读取子组件的属性值或调用子组件的方法，就不能使用*本地变量*方法，这时需要把子组件作为 *ViewChild*，**注入**到父组件类里面。
 
 `@ViewChild`装饰器告诉Angular在模板中查询与参数指定的类型或模板引用变量相匹配的第一个指令或组件对象，并将其指派给被装饰属性。参数可以有多个类或模板引用变量，它们之间使用逗号分隔。
 
@@ -760,7 +1465,7 @@ export class CountdownViewChildParentComponent implements AfterViewInit {
 
 接着，通过 `@ViewChild` 属性装饰器，将子组件 `CountdownTimerComponent` 注入到私有属性 `timerComponent` 里面。
 
-组件元数据里就不再需要 `#timer` 本地变量了。而是把按钮绑定到父组件自己的 `start` 和 `stop` 方法，使用父组件的 `seconds` 方法的插值表达式来展示秒数变化。
+模板里就不再需要 `#timer` 本地变量了。而是把按钮绑定到父组件自己的 `start` 和 `stop` 方法，使用父组件的 `seconds` 方法的插值表达式来展示秒数变化。
 
 这些方法可以直接访问被注入的计时器组件。
 
@@ -817,7 +1522,7 @@ export class ProductTableComponent {
 
 
 
-### 内容投影
+### 内容投影：ng-content
 
 如果组件的宿主元素包含内容，那么可以使用特殊的`ng-content`元素将其包含在组件模板中，这称为内容投影（content projection）。也就是说，组件模板中的`ng-content`元素引用组件宿主元素的内容。
 
@@ -992,569 +1697,11 @@ export class AstronautComponent implements OnDestroy {
 
 不需要在 `MissionControlComponent` 中添加这个保护措施，因为它作为父组件，控制着 `MissionService` 的生命期。
 
-## 模板
-
-组件类和模板共同定义了 Angular 的视图。
-
-### 定义模板
-
-HTML 是 Angular 模板的语言，几乎所有的 HTML 语法都是有效的模板语法。但值得注意的例外是`<script>`元素，它被禁用了，以阻止脚本注入攻击的风险。
-
-另外，`<html>`、`<body>`和`<base>`这些元素用在模板中是没有意义的。
-
-模板除了可以使用像`<h2>`和`<p>`这样的典型的 HTML 元素，还可以通过组件、指令和插值表达式来扩展模板中的 HTML 词汇。它们看上去就是新元素和属性。 例如，`*ngFor`、`{{hero.name}}`、`(click)`、`[hero]`和`<hero-detail>`。
-
-#### 模板引用变量
-
-模板引用变量是模板中对 DOM 元素的引用，另外，它还可以引用 Angular 组件或指令或[Web Component](https://developer.mozilla.org/en-US/docs/Web/Web_Components)。当Angular在模板中遇到引用变量时，它将引用变量的值设置为引用变量所在的那个元素。
-
-##### 定义模板引用变量
-
-语法一：
-
-`#模板引用变量`
-
-例如：
-
-```html
-<input #phone placeholder="phone number">
-<button (click)="callPhone(phone.value)">Call</button>
-```
-
-语法二：
-
-`ref-模板引用变量`
-
-例如：
-
-```html
-<input ref-fax placeholder="fax number">
-<button (click)="callFax(fax.value)">Fax</button> 
-```
-
-##### 显式设置模板引用变量的值
-
-模板引用变量的值默认是声明它的那个元素（即宿主元素），但也可以显式地给它设置其他值。例如，下面的示例将模板引用变量显式地设置为Angular的`ngForm`指令：
-
-```html
-<form (ngSubmit)="onSubmit(heroForm)" #heroForm="ngForm">
-  <div class="form-group">
-    <label for="name">Name
-      <input class="form-control" name="name" required [(ngModel)]="hero.name">
-    </label>
-  </div>
-  <button type="submit" [disabled]="!heroForm.form.valid">Submit</button>
-</form>
-<div [hidden]="!heroForm.form.valid">
-  {{submitMessage}}
-</div>
-```
-
-原生的 `<form>` 元素没有 `form` 属性，但 `NgForm` 指令有。这就解释了为何当 `heroForm.form.valid` 是无效时你可以禁用提交按钮， 并能把整个表单控件树传给父组件的 `onSubmit` 方法。
-
-##### 导出指令用于模板引用变量
-
-`@Directive`装饰器的`exportAs`属性指定了一个名称，在模板引用变量中将使用该名称来引用指令。上面的示例中，使用的`ngForm`就是在`NgForm`指令类中通过`exportsAs`属性指定的：
-
-```typescript
-@Directive({
-  selector: 'form:not([ngNoForm]):not([formGroup]),ngForm,ng-form,[ngForm]',
-  providers: [formDirectiveProvider],
-  host: {'(submit)': 'onSubmit($event)', '(reset)': 'onReset()'},
-  outputs: ['ngSubmit'],
-  exportAs: 'ngForm'
-})
-export class NgForm extends ControlContainer implements Form, AfterViewInit {
-  …
-}
-```
-
-当使用`exportAs`装饰器属性时，在模板表达式和数据绑定中可以使用指定定义的所有方法和属性，包括那些名称以下划线为前缀或应用`private`关键字的方法和属性。
-
-##### 引用模板引用变量
-
-模板引用变量的作用范围是*整个模板*。
-
-#### 模板表达式
-
-大部分JavaScript表达式也是合法的模板表达式，但你不能使用那些具有或可能引发副作用的 JavaScript 表达式，包括：
-
-1. 赋值 (`=`、`+=`、`-=`、 ...)
-2. `new`、`typeof`、`instanceof` 等运算符
-3. 使用`;`或`,`串联起来的表达式
-4. 自增或自减运算符 `++`和`--`
-5. 一些 ES2015+ 版本的操作符
-6. 不支持位运算`|`和`&`
-
-模板表达式中支持JavaScript中没有的*模板表达式运算符*：
-
-1. 管道运算符`|`
-2. 安全导航运算符`?.`
-3. 非空断言运算符`!`
-
-模板表达式不能引用全局命名空间中的任何东西， 不能引用`window`或`document`，不能调用`console.log`或`Math.max`。 它们被局限于只能访问来自表达式上下文中的成员。典型的表达式上下文就是这个组件实例，另外还有模板引用变量。
-
-Angular 执行模板表达式，产生一个值，并把它赋值给绑定目标的属性。这个绑定目标可能是 HTML 元素、组件或指令。
-
-> 由于模板表达式不会接受TypeScript编译器的检查，而且也不易于进行单元测试。因此，模板表达式应该尽可能保持简单，在理想情况下，仅用于从组件检索数据并进行格式化，然后用于显示。所有复杂的检索和处理逻辑都应该放在组件或模型中进行定义。
-
-##### 管道运算符
-
-管道是一个简单的函数，它接受一个输入值，并返回转换结果。
-
-```html
-<div>Title through uppercase pipe: {{title | uppercase}}</div>
-```
-
-管道操作符会把它左侧的表达式结果传给它右侧的管道函数。
-
-还可以通过多个管道串联表达式：
-
-```html
-<!-- Pipe chaining: convert title to uppercase, then to lowercase -->
-<div>
-  Title through a pipe chain:
-  {{title | uppercase | lowercase}}
-</div>
-```
-
-还能对它们使用参数：
-```html
-<!-- pipe with configuration argument => "February 25, 1970" -->
-<div>Birthdate: {{currentHero?.birthdate | date:'longDate'}}</div>
-```
-
-`json` 管道对调试绑定特别有用：
-
-```html
-<div>{{currentHero | json}}</div>
-```
-
-它生成的输出是这样的：
-
-```json
-{ "id": 0, "name": "Hercules", "emotion": "happy",
-  "birthdate": "1970-02-25T08:00:00.000Z",
-  "url": "http://www.imdb.com/title/tt0065832/",
-  "rate": 325 }
-```
-
-##### 安全导航运算符
-
-`?.` 与 `.` 一样用于属性的限定名中。
-
-`?.` 会在它遇到第一个空值（ `null` 和 `undefined` ）的时候跳出，并显示是空的，而不会抛出异常。
-
-```html
-The null hero's name is {{nullHero?.firstName}}
-```
-
-等价于：
-
-```html
-The null hero's name is {{nullHero && nullHero.firstName}}
-```
-
-或
-
-```html
-The null hero's name is <span *ngIf="nullHero">{{nullHero.firstName}}</span>
-```
-
-Angular 安全导航操作符 (`?.`)，在像`a?.b?.c?.d`这样的长属性路径中，它工作得很完美。
-
-##### 非空断言运算符
-
-在 TypeScript 2.0 中，你可以使用 `--strictNullChecks` 标志强制开启[严格空值检查](http://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html)。TypeScript 就会确保不存在意料之外的 null 或 undefined。
-
-在这种模式下，有类型的变量默认是不允许 null 或 undefined 值的，如果有未赋值的变量，或者试图把 null 或 undefined 赋值给不允许为空的变量，类型检查器就会抛出一个错误。
-
-如果类型检查器在运行期间无法确定一个变量是 null 或 undefined，那么它也会抛出一个错误。 你自己可能知道它不会为空，但类型检查器不知道。 所以你要告诉类型检查器，它不会为空，这时就要用到[*非空断言操作符*](http://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html#non-null-assertion-operator)。
-
-*Angular* 模板中的非空断言操作符（`!`）也是同样的用途。
-
-例如，在用`*ngIf`来检查过 `hero` 是已定义的之后，就可以断言 `hero` 属性一定是已定义的：
-
-```html
-<!--No hero, no text -->
-<div *ngIf="hero">
-  The hero's name is {{hero!.name}}
-</div>
-```
-
-在 Angular 编译器把你的模板转换成 TypeScript 代码时，这个操作符会防止 TypeScript 报告 "`hero.name` 可能为 null 或 undefined"的错误。
-
-与[*安全导航操作符*](https://angular.cn/guide/template-syntax#safe-navigation-operator)不同的是，**非空断言操作符**不会防止出现 `null` 或 `undefined`。 它只是告诉 TypeScript 的类型检查器对特定的属性表达式，不做“严格空值检测”。
-
-如果你打开了严格控制检测，那就要用到这个模板操作符，而其它情况下则是可选的。
-
-##### 字符串字面量
-
-在模板表达式中，字符串字面量要记得加上引号，特别是出现在属性绑定中时。
-
-```html
-<td [ngSwitch]="'Apples'">…</td>
-
-<div [ngClass]="'p-a-1 ' + getClass()">
-  …
-</div> 
-```
-
-##### 类型转换函数`$any`
-
-有时候，绑定表达式可能会报类型错误，并且它不能或很难指定类型。要消除这种报错，你可以使用 `$any` 转换函数来把表达式转换成 [`any` 类型](http://www.typescriptlang.org/docs/handbook/basic-types.html#any)。
-
-```html
-<!-- Accessing an undeclared member -->
-<div>
-  The hero's marker is {{$any(hero).marker}}
-</div>
-```
-
-在这个例子中，当 Angular 编译器把模板转换成 TypeScript 代码时，`$any` 表达式可以防止 TypeScript 编译器报错说 `marker` 不是 `Hero` 接口的成员。
-
-`$any` 转换函数可以和 `this` 联合使用，以便访问组件中未声明过的成员：
-
-```html
-<!-- Accessing an undeclared member -->
-<div>
-  Undeclared members is {{$any(this).member}}
-</div>
-```
-
-`$any` 转换函数可以在绑定表达式中任何可以进行方法调用的地方使用。
-
-##### 表达式上下文
-
-当Angular对一个表达式进行求值时，它会在表达式的上下文中进行求值。
-
-典型的表达式上下文就是这个组件实例。因此，模板能够访问组件的公共（public）方法和公共属性，而不需要带任何类型的前缀。
-
-除了组件外，表达式上下文还可以包括组件之外的对象。 比如模板输入变量 (`let customer`)和模板引用变量(`#customerInput`)：
-
-```html
-<ul>
-  <li *ngFor="let customer of customers">{{customer.name}}</li>
-</ul>
-
-<input #customerInput>{{customerInput.value}}</label>
-```
-
-表达式中的上下文变量是由*模板变量*、指令的*上下文对象*（如果有）和组件的*成员*叠加而成的。 如果你要引用的名字存在于以上多个命名空间中，那么，模板变量优先级最高，其次是指令的上下文对象，最后是组件的成员。
-
-模板表达式不能引用全局命名空间中的任何东西，比如 `window` 或 `document`。它们也不能调用 `console.log` 或 `Math.max`。 它们只能引用表达式上下文中的成员。如果要访问全局命名空间中的功能，那么可以由组件提供，由它来代表模板进行访问。
-
-组件：
-
-```typescript
-@Component({
-  selector: "app",
-  templateUrl: "template.html"
-})
-export class ProductComponent {
-  model: Model = new Model();
-  // ...constructor and methods omitted for brevity...
-  counter: number = 1;
-  get nextProduct(): Product {
-    return this.model.getProducts().shift();
-  }
-  getProductPrice(index: number): number {
-    return Math.floor(this.getProduct(index).price);
-  }
-}
-```
-
-模板：
-
-```html
-<div class="bg-info p-2 text-white">
-  The rounded price is {{getProductPrice(1)}}
-</div>
-```
-
-#### 模板语句
-
-模板语句用来响应由绑定目标（如 HTML 元素、组件或指令）触发的事件。就像这样：`(event)="statement"`。
-
-虽然模板表达式不应该有副作用，但是模板语句通常会有副作用。
-
-和模板表达式一样，模板语句使用的语言也像 JavaScript。 模板语句解析器和模板表达式解析器有所不同，特别之处在于它支持基本赋值 (`=`) 和表达式链 (`;`和`,`)。
-
-但下列 JavaScript 语法仍然是不允许的，包括：
-
-1）`new`运算符
-
-2）自增和自减运算符：`++`和`--`
-
-3）操作并赋值，例如`+=`和`-=`
-
-4）位运算符`|`和`&`
-
-5）模板表达式运算符（即管道运算符、安全导航运算符、非空断言运算符）
-
-##### 语句上下文
-
-和模板表达式中一样，模板语句无法引用全局命名空间的任何东西。它们不能引用`window`或者`document`， 不能调用`console.log`或者`Math.max`。语句只能引用语句上下文中 —— 通常是正在绑定事件的那个组件实例或者是模板引用变量。
-
-典型的*语句上下文*就是当前组件的实例。 `(click)="deleteHero()"` 中的 *deleteHero* 就是这个数据绑定组件上的一个方法。
-
-```html
-<button (click)="deleteHero()">Delete hero</button>
-```
-
-语句上下文可以引用模板自身上下文中的属性。 在下面的例子中，就把模板的 `$event` 对象、模板输入变量 (`let hero`)和模板引用变量 (`#heroForm`)传给了组件中的一个事件处理器方法。
-
-```html
-<button (click)="onSave($event)">Save</button>
-<button *ngFor="let hero of heroes" (click)="deleteHero(hero)">{{hero.name}}</button>
-<form #heroForm (ngSubmit)="onSubmit(heroForm)"> ... </form>
-```
-
-模板上下文中的变量名的优先级高于组件上下文中的变量名。在上面的 `deleteHero(hero)` 中，`hero` 是一个模板输入变量，而不是组件中的 `hero` 属性。
-
-### 模板的应用方式
-
-> 在浏览器（Chrome）上，点击查看网页源代码时，只会看到模板的静态内容。如果要查看最终生成的网页内容，可以通过右键单击浏览器窗口并从弹出菜单中选择Inspect，或者打开开发者工具查看。
-
-#### 内联模板
-
-在创建组件时，可以通过`template`属性直接指定内联模板。
-
-内联模板是由一个字符串或模板字符串（使用 “`” 包围）表示的模板。
-
-#### 模板文件
-
-在创建组件时，也可以通过`templateUrl`属性来指定一个外部模板文件。
-
-## 样式
-
-Angular 应用使用标准的 CSS 来设置样式。另外，Angular 还能把组件样式捆绑在组件上，以实现比标准样式表更加模块化的设计。
-
-### 全局样式
-
-当使用 CLI 进行构建时，Angular应用的全局样式默认放在`src/styles.scss`中。也可以通过配置 `angular.json` 文件，自定义要包含的全局样式：
-
-```json
-"architect": {
-  "build": {
-    "builder": "@angular-devkit/build-angular:browser",
-    "options": {
-      "styles": [
-        "src/styles.css",
-        "src/more-styles.css",
-        { "input": "src/lazy-style.scss", "lazy": true },  //懒加载
-        { "input": "src/pre-rename-style.scss", "bundleName": "renamed-style" } //重命名
-      ],
-      ...
-```
-
-当使用`@import`导入样式时，可以从项目的任何位置导入，而无需相对路径：
-
-```scss
-// src/app/app.component.scss
-// A relative path works, "src/style-paths/_variables.scss"
-@import '../style-paths/variables';
-// But now this works as well
-@import 'variables';
-```
-
-另外，在HTML文档的`<head>`中定义的样式也适用于所有元素。
-
-### 组件样式
-
-另外，每个组件可以有自己的私有样式。
-
-有几种方式把样式加入组件：
-
-- 设置`@Component`的 `styles` 或 `styleUrls` 元数据
-- 内联在模板的 HTML 中
-- 通过 CSS 文件导入
-
-这些组件样式只会对该组件的模板生效。它们既不会被模板中嵌入的组件继承，也不会被通过内容投影（如 ng-content）嵌进来的组件继承。
-
-这种范围限制就是所谓的**样式模块化**特性
-
-- 可以使用对每个组件最有意义的 CSS 类名和选择器。
-- 类名和选择器是局限于该组件的，它不会和应用中其它地方的类名和选择器冲突。
-- 组件的样式*不会*因为别的地方修改了样式而被意外改变。
-- 你可以让每个组件的 CSS 代码和它的 TypeScript、HTML 代码放在一起，这将促成清爽整洁的项目结构。
-- 将来你可以修改或移除组件的 CSS 代码，而不用遍历整个应用来看它有没有在别处用到。
-
-#### 元数据中的样式
-
-你可以给 `@Component` 装饰器添加一个 `styles` 数组型属性，这个数组中的每一个字符串（通常也只有一个）定义一份 CSS。
-
-```typescript
-@Component({
-  selector: 'app-root',
-  template: `
-    <h1>Tour of Heroes</h1>
-    <app-hero-main [hero]="hero"></app-hero-main>
-  `,
-  styles: ['h1 { font-weight: normal; }']
-})
-export class HeroAppComponent {
-/* . . . */
-}
-```
-
-当使用 `--inline-styles` 标识创建组件时，Angular CLI 的 `ng generate component` 命令就会定义一个空的 `styles`数组：
-
-```bash
-$ ng generate component hero-app --inline-style
-```
-
-#### 元数据中的样式文件
-
-你可以通过把外部 CSS 文件添加到 `@Component` 的 `styleUrls` 属性中来加载外部样式。
-
-```typescript
-@Component({
-  selector: 'app-root',
-  template: `
-    <h1>Tour of Heroes</h1>
-    <app-hero-main [hero]="hero"></app-hero-main>
-  `,
-  styleUrls: ['./hero-app.component.css']
-})
-export class HeroAppComponent {
-/* . . . */
-}
-```
-
-> 你可以指定多个样式文件，甚至可以组合使用 `style` 和 `styleUrls` 方式。
-
-当你使用 Angular CLI 的 `ng generate component` 命令但不带 `--inline-style` 标志时，CLI 会为你创建一个空白的样式表文件，并且在所生成组件的 `styleUrls` 中引用该文件。
-
-#### 模板内联样式
-
-你也可以直接在组件的 HTML 模板中写 `<style>` 标签来内嵌 CSS 样式。
-
-```typescript
-@Component({
-  selector: 'app-hero-controls',
-  template: `
-    <style>
-      button {
-        background-color: white;
-        border: 1px solid #777;
-      }
-    </style>
-    <h3>Controls</h3>
-    <button (click)="activate()">Activate</button>
-  `
-})
-```
-
-#### 模板中的 `<link>` 标签
-
-你也可以在组件的 HTML 模板中写 `<link>` 标签。
-
-```typescript
-@Component({
-  selector: 'app-hero-team',
-  template: `
-    <!-- We must use a relative URL so that the AOT compiler can find the stylesheet -->
-    <link rel="stylesheet" href="../assets/hero-team.component.css">
-    <h3>Team</h3>
-    <ul>
-      <li *ngFor="let member of hero.team">
-        {{member}}
-      </li>
-    </ul>`
-})
-```
-
-#### CSS `@imports` 语法
-
-你还可以利用标准的 CSS [`@import` 规则](https://developer.mozilla.org/en/docs/Web/CSS/@import)来把其它 CSS 文件导入到 CSS 文件中。
-
-在这种情况下，URL 是相对于你正在导入的 CSS 文件的。
-
-```typescript
-/* The AOT compiler needs the `./` to show that this is local */
-@import './hero-details-box.css';
-```
-
-#### 视图封装模式
-
-默认情况下，组件的 CSS 样式被封装进了自己的视图中，而不会影响到应用程序的其它部分。这实际上是由*视图封装模式*控制的。
-
-通过在组件的元数据上设置视图封装模式，你可以分别控制*每个组件*的封装模式。 可选的封装模式有：
-
-- `ShadowDom` 模式使用浏览器原生的 Shadow DOM 实现（参见 [MDN](https://developer.mozilla.org/) 上的 [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Shadow_DOM)）来为组件的宿主元素附加一个 Shadow DOM。组件的视图被附加到这个 Shadow DOM 中，组件的样式也被包含在这个 Shadow DOM 中。从而使得DOM的各个部分彼此隔离。
-- `Native` 视图包装模式使用浏览器原生 Shadow DOM 的一个废弃实现。
-- `Emulated` 模式（**默认值**）通过预处理（并改名）CSS 代码来模拟 Shadow DOM 的行为，以达到把 CSS 样式局限在组件视图中的目的。
-- `None` 意味着 Angular 不使用视图封装。 Angular 会把 CSS 添加到全局样式中。而不会应用上前面讨论过的那些作用域规则、隔离和保护等。 从本质上来说，这跟把组件的样式直接放进 HTML的`<head>`中是一样的。
-
-通过组件元数据中的 `encapsulation` 属性来设置组件封装模式：
-
-```typescript
-// warning: few browsers support shadow DOM encapsulation at this time
-encapsulation: ViewEncapsulation.Native
-```
-
-> `ShadowDom` 模式只适用于提供了原生 Shadow DOM 支持的浏览器（参见 [Can I use](http://caniuse.com/) 上的 [Shadow DOM v1](https://caniuse.com/#feat=shadowdomv1) 部分）。 它仍然受到很多限制，这就是为什么仿真 (`Emulated`) 模式是默认选项，并建议将其用于大多数情况。
-
-#### 特殊的选择器
-
-组件样式中有一些从影子(Shadow) DOM 样式范围领域（记录在[W3C](https://www.w3.org/)的[CSS Scoping Module Level 1](https://www.w3.org/TR/css-scoping-1)中） 引入的特殊选择器。
-
-##### :host
-
-使用 `:host` 伪类选择器，用来选择组件的*宿主*元素。
-
-```css
-:host {
-  display: block;
-  border: 1px solid black;
-}
-```
-
-`:host` 选择器是把宿主元素作为目标的*唯一*方式。除此之外，你将没办法指定它， 因为宿主元素不是组件自身模板的一部分，而是父组件模板的一部分。
-
-以函数形式，即在`host`之后的括号内包含另一个选择器，就可以有条件地应用`:host`样式。
-
-下面例子再次把宿主元素作为目标，但是只有当它同时带有 `active` CSS 类的时候才会生效。
-
-```css
-:host(.active) {
-  border-width: 3px;
-}
-```
-
-##### :host-context
-
- `:host-context()` 伪类选择器在当前组件宿主元素的*祖先节点*中查找 **CSS 类**（只支持CSS类选择器）， 直到文档的根节点为止。
-
-在下面的例子中，只有当某个祖先元素有 CSS 类 `theme-light` 时，才会把 `background-color` 样式应用到组件*内部*的所有 `<h2>` 元素中：
-
-```css
-:host-context(.theme-light) h2 {
-  background-color: #eef;
-}
-```
-
-### 非CSS样式文件
-
-如果使用 CLI 进行构建，那么你可以用 [sass](http://sass-lang.com/)、[less](http://lesscss.org/) 或 [stylus](http://stylus-lang.com/) 来编写样式，并使用相应的扩展名（`.scss`、`.less`、`.styl`）把它们指定到 `@Component.styleUrls` 元数据中。例子如下：
-
-```scss
-@Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
-})
-...
-```
-
-CLI 的构建过程会运行相关的预处理器。
-
-> 添加到 `@Component.styles` 数组中的样式字符串*必须写成 CSS语法*，因为 CLI 没法对这些内联的样式使用任何 CSS 预处理器。
-
 ## 动态组件
 
 （核心知识.组件与模板.动态组件）
+
+如果组件的模板不是固定的（例如动态广告条），它可能需要在运行期间加载一些新的组件，则可以使用动态组件。
 
 ## Angular自定义元素*
 
@@ -1593,6 +1740,14 @@ Angular支持三种类型的指令：
 - 属性型指令
 
 > 组件是一个带模板的指令，它们不依赖其他地方提供的内容。`@Component`装饰器实际上就是一个`@Directive`装饰器，只是扩展了一些面向模板的特性。详见“组件”。
+
+Angular的内置指令包含在 `CommonModule` 模块中，如果在模板中需要使用这些内置指令，则应该导入它：
+
+```typescript
+import {CommonModule} from '@angular/common';
+```
+
+另外，如果你的组件有 `[(ngModel)]` 双向绑定表达式，则还要从 `@angular/forms` 中导入 `FormsModule`。
 
 ## 结构型指令
 
@@ -1814,8 +1969,8 @@ trackByHeroes(index: number, hero: Hero) { return hero.id; }
 Angular 微语法能让你通过简短的、友好的字符串来配置一个指令。 微语法解析器把这个字符串翻译成 `<ng-template>` 上的属性：
 
 - `let` 关键字声明一个[模板输入变量](https://angular.cn/guide/structural-directives#template-input-variable)，你会在模板中引用它。上面例子中，这个输入变量就是 `hero`和`i` 。 解析器会把 `let hero`和`let i`  翻译成命名变量 `let-hero`和`let-i` 。
-- 微语法解析器接收 `of` 和 `trackby`，把它们首字母大写（`of` -> `Of`, `trackBy` -> `TrackBy`）， 并且给它们加上指令的属性名（`ngFor`）前缀，最终生成的名字是 `ngForOf` 和 `ngForTrackBy`。 还有两个 `NgFor` 的*输入属性*，指令据此了解到列表是 `heroes`，而 track-by 函数是 `trackByHeroes`。
-- `NgFor` 指令在列表上循环，每个循环中都会设置和重置它自己的*上下文*对象上的属性。 这些属性包括 `index` 和 `odd` 以及一个特殊的属性名 `$implicit`（隐式变量）。
+- 微语法解析器接收 `of` 和 `trackby`，把它们首字母大写（`of` -> `Of`, `trackBy` -> `TrackBy`）， 并且给它们加上指令的属性名（`ngFor`）前缀，最终生成的名字是 `ngForOf` 和 `ngForTrackBy`。 它们是两个 `NgFor` 的*输入属性*，指令据此了解到列表是 `heroes`，而 track-by 函数是 `trackByHeroes`。
+- `NgFor` 指令在列表上循环，每个循环中都会设置和重置它自己的*上下文*对象上的属性。 这些属性包括 `index` 等内置模块变量以及一个特殊的属性名 `$implicit`（隐式变量）。
 - `let-i` 变量是通过 `let i=index` 来定义的。 Angular 把它们设置为*上下文*对象中的 `index` 属性的当前值。
 - 这里并没有指定 `let-hero` 的上下文属性。它的来源是隐式的。 Angular 将 `let-hero` 设置为此上下文中 `$implicit` 属性的值， 它是由 `NgFor` 用当前迭代中的英雄初始化的。
 - [API 参考手册](https://angular.cn/api/common/NgForOf)中描述了 `NgFor` 指令的其它属性和上下文属性。
@@ -1825,7 +1980,7 @@ Angular 微语法能让你通过简短的、友好的字符串来配置一个指
 
 #### `<ng-template>`指令
 
-`<ng-template>`是一个 Angular 元素，用来渲染 HTML。 它永远不会直接显示出来。 事实上，在渲染视图之前，Angular 会把 `<ng-template>` 及其内容*替换为*一个注释。
+`<ng-template>`是一个 *Angular 元素*，用来渲染 HTML。 它永远不会直接显示出来。 事实上，在渲染视图之前，Angular 会把 `<ng-template>` 及其内容*替换为*一个注释。
 
 如果没有使用结构型指令，而仅仅把一些别的元素包装进 `<ng-template>` 中，那些元素就是不可见的。 在下面的这个短语"Hip! Hip! Hooray!"中，中间的这个 "Hip!"（欢呼声） 就是如此。
 
@@ -4581,7 +4736,7 @@ export class HeroService {
 }
 ```
 
-这时，注册提供商要通过`@NgModule`或`@Component`的`providers`属性来设置（在`@Component`中注册的提供者，只在当前组件及它的子组件中可见。）：
+这时，注册提供商要通过`@NgModule`或`@Component`的`providers`属性来设置：
 
 ```typescript
 @NgModule({
@@ -4600,6 +4755,65 @@ export class AppModule { }
 ```
 
 当你在顶层提供该服务时，Angular 就会为 `HeroService` 创建一个单一的、共享的实例，并把它注入到任何想要它的类上。 另外，在 `@Injectable` 元数据中注册该提供商，还能允许 Angular 通过移除那些完全没有用过的服务来进行优化。
+
+### 提供者的作用域
+
+当你把服务提供者添加到应用的根注入器中时，它就在整个应用程序中可用了。 另外，这些服务提供者也同样对整个应用中的类是可用的 —— 只要它们有供查找用的服务令牌。
+
+在功能模块的`@NgModule`中注册的服务提供者，只有在消费方中导入该模块后才可用。这种方式注入的服务**不是单例的**，不同消费方使用不同的实例。例如：
+
+```typescript
+import { Injectable } from '@angular/core';
+import { UserModule } from './user.module';
+
+@Injectable({
+  providedIn: UserModule,
+})
+export class UserService {
+}
+```
+
+或者：
+
+```typescript
+import { NgModule } from '@angular/core';
+
+import { UserService } from './user.service';
+
+@NgModule({
+  providers: [UserService],
+})
+export class UserModule {
+}
+```
+
+> 推荐使用第一种方式，因为当没有人注入该服务时，该服务就可以被优化掉。
+
+当使用惰性加载时，当 Angular 的路由器惰性加载一个模块时，它会创建一个新的注入器。这个注入器是应用的根注入器的一个子注入器。该子路由器会把根注入器中的所有提供者添加到子注入器中。任何在惰性加载模块的上下文中创建的组件（比如路由导航），都会获取该子注入器中服务的局部实例，而不是应用的根注入器中的实例。而外部模块中的组件，仍然会收到来自于应用的根注入器创建的实例。
+
+不是所有的服务都能惰性加载。比如，像路由之类的模块只能在根模块中使用。`Router`需要使用浏览器中的全局对象 `location` 进行工作。
+
+在`@Component`中注册的提供者，只在当前组件及它的子组件中可见，而同一模块中的其它兄弟组件不能访问它。
+
+```typescript
+@Component({
+/* . . . */
+  providers: [UserService]
+})
+```
+
+通常，要在根模块中提供整个应用都需要的服务，在惰性加载模块中提供限定范围的服务。
+
+## 单例服务
+
+在 Angular 中有两种方式来生成单例服务：
+
+- 把 `@Injectable()` 的 `providedIn` 属性声明为 `root`。
+- 把该服务包含在 `AppModule` （通过`@NgModule.providers`声明）或某个只会被 `AppModule` 导入的模块中。
+
+### forRoot() 和 forChild()
+
+
 
 ## 使用json-server+faker+jsonwebtoken模拟后端服务
 
