@@ -1755,7 +1755,7 @@ import {CommonModule} from '@angular/common';
 
 结构型指令都以“\*”为前缀。赋值给结构型指令的字符串不是模板表达式，而是一个**微语法** —— 由 Angular 自己解释的小型语言。
 
-只能往一个宿主元素上应用一个结构型指令。
+每个宿主元素上只能应用一个结构型指令。
 
 ### 内置结构型指令
 
@@ -1969,12 +1969,12 @@ trackByHeroes(index: number, hero: Hero) { return hero.id; }
 Angular 微语法能让你通过简短的、友好的字符串来配置一个指令。 微语法解析器把这个字符串翻译成 `<ng-template>` 上的属性：
 
 - `let` 关键字声明一个[模板输入变量](https://angular.cn/guide/structural-directives#template-input-variable)，你会在模板中引用它。上面例子中，这个输入变量就是 `hero`和`i` 。 解析器会把 `let hero`和`let i`  翻译成命名变量 `let-hero`和`let-i` 。
-- 微语法解析器接收 `of` 和 `trackby`，把它们首字母大写（`of` -> `Of`, `trackBy` -> `TrackBy`）， 并且给它们加上指令的属性名（`ngFor`）前缀，最终生成的名字是 `ngForOf` 和 `ngForTrackBy`。 它们是两个 `NgFor` 的*输入属性*，指令据此了解到列表是 `heroes`，而 track-by 函数是 `trackByHeroes`。
-- `NgFor` 指令在列表上循环，每个循环中都会设置和重置它自己的*上下文*对象上的属性。 这些属性包括 `index` 等内置模块变量以及一个特殊的属性名 `$implicit`（隐式变量）。
+- 微语法解析器接收 `of` 和 `trackby`，把它们首字母大写（`of` -> `Of`, `trackBy` -> `TrackBy`）， 并且给它们加上指令的属性名（`ngFor`）前缀，最终生成的名字是 `ngForOf` 和 `ngForTrackBy`。 它们是两个 `ngFor` 的*输入属性*，指令据此了解到列表是 `heroes`，而 track-by 函数是 `trackByHeroes`。
+- `ngFor` 指令在列表上循环，每个循环中都会设置和重置它自己的*上下文*对象上的属性。 这些属性包括 `index` 等内置模块变量以及一个特殊的属性名 `$implicit`（隐式变量）。
 - `let-i` 变量是通过 `let i=index` 来定义的。 Angular 把它们设置为*上下文*对象中的 `index` 属性的当前值。
-- 这里并没有指定 `let-hero` 的上下文属性。它的来源是隐式的。 Angular 将 `let-hero` 设置为此上下文中 `$implicit` 属性的值， 它是由 `NgFor` 用当前迭代中的英雄初始化的。
-- [API 参考手册](https://angular.cn/api/common/NgForOf)中描述了 `NgFor` 指令的其它属性和上下文属性。
-- `NgFor` 是由 `NgForOf` 指令来实现的。请参阅 [NgForOf API 参考手册](https://angular.cn/api/common/NgForOf)来了解 `NgForOf` 指令的更多属性及其上下文属性。
+- 这里并没有指定 `let-hero` 的上下文属性。它的来源是隐式的。 Angular 将 `let-hero` 设置为此上下文中 `$implicit` 属性的值， 它是由 `ngFor` 用当前迭代中的英雄初始化的。
+- [API 参考手册](https://angular.cn/api/common/NgForOf)中描述了 `ngFor` 指令的其它属性和上下文属性。
+- `ngFor` 是由 `NgForOf` 指令（它的选择器是`[ngFor][ngForOf]`）来实现的。请参阅 [NgForOf API 参考手册](https://angular.cn/api/common/NgForOf)来了解 `NgForOf` 指令的更多属性及其上下文属性。
 
 这些微语法机制在你写自己的结构型指令时也同样有效。
 
