@@ -2549,7 +2549,7 @@ class PaIteratorContext {
 
 ### `@ContentChild`
 
-`@ContentChild`装饰器的参数是一个或多个指令类，也可以是一个或多个模板引用变量的名称（例如：`@ContentChild("myVariable")`），它们之间使用逗号分隔。它指示Angular在宿主元素的内容中查找与参数匹配的指令，并将其赋给被装饰的属性。
+`@ContentChild`装饰器的参数是一个或多个指令类，也可以是一个或多个模板引用变量的名称（例如：`@ContentChild("myVariable")`），它们之间使用逗号分隔。它指示Angular在**宿主元素**的内容中查找与参数匹配的指令，并将其赋给被装饰的属性。
 
 父指令：
 
@@ -3657,7 +3657,7 @@ export class LoopbackComponent { }
 
 代码使用`box`获得输入元素的`value`值，并通过插值表达式把它显示在`<p>`元素中。
 
-这个模板完全是完全自包含的。它没有绑定到组件，组件也没做任何事情。
+这个模板是完全自包含的。它没有绑定到组件，组件也没做任何事情。
 
 > 注意：只有在应用做了些异步事件（如击键），Angular 才更新绑定（并最终影响到屏幕）。因此，必须绑定一个事件，否则将完全无法工作。本例代码将`keyup`事件绑定到了数字0，这是可能是最短的模板语句。 虽然这个语句不做什么，但它满足 Angular 的要求，所以 Angular 将更新屏幕。
 
@@ -3876,22 +3876,22 @@ export class SizerComponent {
 
 除非写一个合适的值访问器，否则不能把`[(ngModel)]`用在非表单类的原生元素或自定义组件上。（通常自定义组件的双向绑定也不需要通过NgModel指令，因为你可以让值和事件的属性名符合 Angular 的双向绑定语法（例如：x和xChange），而不使用 NgModel。）
 
-注：在使用NgModel做双向数据绑定之前，得先导入`FormsModule`，即把它加入 Angular 模块的`imports`列表。
+> 注：在使用NgModel做双向数据绑定之前，得先导入`FormsModule`，即把它加入 Angular 模块的`imports`列表。
 
 ## 绑定目标
 
 目标指定数据绑定将执行的操作，它是 DOM 中的某些东西。
 
-这个目标可能是（元素、组件、指令的）property、（元素、组件、指令的）事件，或(极少数情况下) attribute 名。
+这个目标可能是（DOM元素、组件、指令的）property、（DOM元素、组件、指令的）事件，或(极少数情况下) attribute 名。
 
-| 绑定类型  | 目标                           |
-| --------- | ------------------------------ |
-| 属性      | （元素、组件、指令的）property |
-| 事件      | （元素、组件、指令的）事件     |
-| 双向      | 事件或property                 |
-| attribute | attribute                      |
-| CSS类     | class property                 |
-| 样式      | style property                 |
+| 绑定类型  | 目标                              |
+| --------- | --------------------------------- |
+| 属性      | （DOM元素、组件、指令的）property |
+| 事件      | （DOM元素、组件、指令的）事件     |
+| 双向      | 事件或property                    |
+| attribute | HTML attribute                    |
+| CSS类     | class property                    |
+| 样式      | style property                    |
 
 
 
