@@ -485,7 +485,7 @@ C程序的顶层结构包含：
 - 注释
 - 预处理指令
 - 全局声明
-- 函数定义
+- 函数原型和定义
 
 ## 第一个程序
 
@@ -937,6 +937,10 @@ void *realloc(void *ptr, size_t size);
 
 ## 常量声明
 
+### `#define`
+
+### `const`
+
 ## 命名规范
 
 # 数组
@@ -1267,6 +1271,8 @@ _Alignas(double) float x;  //定义float类型变量x，其拥有double类型的
 `_Alignas(type)`等效于`_Alignas(_Alignof(type))`。
 
 头文件stdalign.h中定义了`alignof`和`alignas`作为`_Alignof`和`_Alignas`的同义词。
+
+## typedef
 
 # 别名
 
