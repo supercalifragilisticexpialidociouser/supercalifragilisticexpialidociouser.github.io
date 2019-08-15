@@ -3917,8 +3917,6 @@ export class SizerComponent {
 </div>
 ```
 
-## 脏值检测
-
 # 管道
 
 管道把数据作为输入，然后转换它，给出期望的输出。
@@ -4121,6 +4119,7 @@ import { ReactiveFormsModule } from '@angular/forms';
     // other imports ...
     ReactiveFormsModule
   ],
+  …
 })
 export class AppModule { }
 ```
@@ -4133,17 +4132,15 @@ export class AppModule { }
 import { FormsModule } from "@angular/forms";
 
 @NgModule({
-declarations: [ProductComponent],
-imports: [BrowserModule, FormsModule],
-providers: [],
-bootstrap: [ProductComponent]
+  imports: […, FormsModule],
+  …
 })
 export class AppModule { }
 ```
 
-> 如果你没有导入过 `FormsModule`，Angular 就不会控制`<form>`元素，那么对`<form>`元素的模板引用变量就是一个[HTMLFormElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement)实例。如果有导入`FormsModule`，则<form>`元素的模板引用变量就是一个对 Angular NgForm 指令的引用。
+> 如果你没有导入过 `FormsModule`，Angular 就不会控制`<form>`元素，那么对`<form>`元素的模板引用变量就是一个[HTMLFormElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement)实例。如果有导入`FormsModule`，则`<form>`元素的模板引用变量就是一个对 Angular `ngForm` 指令的引用。
 >
-> 注意：原生的 `<form>` 元素没有 `form` 属性，但 `NgForm` 指令有。
+> 注意：原生的 `<form>` 元素没有 `form` 属性，但 `ngForm` 指令有。
 
 ## 建立表单模型
 
@@ -4164,18 +4161,17 @@ import { FormControl } from '@angular/forms';
   `
 })
 export class FavoriteColorComponent {
-  favoriteColorControl = new FormControl('');
+  favoriteColorControl = new FormControl(''); //表单控件
 }
 ```
 
-1. 在组件中导入 `FormControl`类，并创建一个 `FormControl` 的新实例，把它保存在类的某个属性中。
-2. 使用模板绑定语法，把该表单控件注册给了模板中名为 `favoriteColorControl` 的输入元素。这样，表单控件和 DOM 元素就可以互相通讯了：视图会反映模型的变化，模型也会反映视图中的变化。
+首先，为每个表单元素创建一个 `FormControl` 的新实例，把它保存在组件类的属性中。然后，在模板中通过`formControl`绑定把模板中的表单元素与组件类中的表单控件的关联起来。这样，表单控件和 DOM 元素就可以互相通讯了：视图会反映模型的变化，模型也会反映视图中的变化。
 
 ![Reactive forms](Angular/reactive-forms.png)
 
 ### 在模板驱动表单中建立
 
-在模板驱动表单中，事实上的数据源是模板。模板驱动表单的 NgModel 指令负责创建和管理指定表单元素上的表单控件实例，你不必再直接操纵表单模型了。
+在模板驱动表单中，事实上的数据源是模板。模板驱动表单的 `ngModel` 指令负责创建和管理指定表单元素上的表单控件实例，你不必再直接操纵表单模型了。
 
 ```typescript
 import { Component } from '@angular/core';
@@ -4240,7 +4236,7 @@ export class FavoriteColorComponent {
 
 1. 组件中修改了 `favoriteColor` 的值。
 2. 变更检测开始。
-3. 在变更检测期间，由于这些输入框之一的值发生了变化，Angular 就会调用 `NgModel` 指令上的 `ngOnChanges` 生命周期钩子。
+3. 在变更检测期间，由于这些输入框之一的值发生了变化，Angular 就会调用 `ngModel` 指令上的 `ngOnChanges` 生命周期钩子。
 4. `ngOnChanges()` 方法会把一个异步任务排入队列，以设置内部 `FormControl` 实例的值。
 5. 变更检测完成。
 6. 在下一个检测周期，用来为 `FormControl` 实例赋值的任务就会执行。
@@ -4252,13 +4248,570 @@ export class FavoriteColorComponent {
 
 ### 使用响应式表单
 
+#### 显示表单控件的值
+
+有两种方式显示表单控件的值：
+
+- 通过可观察对象 `valueChanges`。可以在模板中使用 `AsyncPipe` 或在组件类中使用 `subscribe()` 方法来监听表单值的变化。
+- 使用 `value` 属性。它能让你获得当前值的一份快照。
+
+#### 替换表单控件的值
+
+响应式表单还有一些方法可以用编程的方式修改控件的值，它让你可以灵活的修改控件的值而不需要借助用户交互：`FormControl` 提供了一个 `setValue()` 方法，它会修改这个表单控件的值，并且验证与控件结构相对应的值的结构。
+
+NameEditorComponent：
+
+```typescript
+import { Component } from '@angular/core';
+import { FormControl } from '@angular/forms';
+
+@Component({
+  selector: 'app-name-editor',
+  templateUrl: './name-editor.component.html',
+  styleUrls: ['./name-editor.component.css']
+})
+export class NameEditorComponent {
+  name = new FormControl('');
+
+  updateName() {
+    this.name.setValue('Nancy');
+  }
+}
+```
+
+name-editor.component.html：
+
+```html
+<label>
+  Name:
+  <input type="text" [formControl]="name">
+</label>
+
+<p>
+  Value: {{ name.value }}
+</p>
+
+<p>
+  <button (click)="updateName()">Update Name</button>
+</p>
+```
+
+
+
+#### 表单控件分组
+
+`FormControl`只能用于控制单个表单元素，而如果要同时管理多个表单控件，则可以使用 `FormGroup` 或 `FormArray`。前者通过键值对的方式来管理多个表单控件，后者通过数组。
+
+##### FormGroup
+
+`FormGroup`例子：
+
+```typescript
+import { Component } from '@angular/core';
+import { FormGroup, FormControl } from '@angular/forms';
+
+@Component({
+  selector: 'app-profile-editor',
+  templateUrl: './profile-editor.component.html',
+  styleUrls: ['./profile-editor.component.css']
+})
+export class ProfileEditorComponent {
+  profileForm = new FormGroup({
+    firstName: new FormControl(''),
+    lastName: new FormControl(''),
+  });
+  
+  onSubmit() {
+    // TODO: Use EventEmitter with form value
+    console.warn(this.profileForm.value); //显示表单控件组的值
+  }
+}
+```
+
+profile-editor.component.html：
+
+```html
+<form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+  
+  <label>
+    First Name:
+    <input type="text" formControlName="firstName">
+  </label>
+
+  <label>
+    Last Name:
+    <input type="text" formControlName="lastName">
+  </label>
+
+</form>
+```
+
+在模板中，通过`formGroup`指令将表单与表单控件组关联，通过`formControlName`指令将表单输入元素与 `FormGroup` 中定义的表单控件关联。这个 `FormGroup` 是模型值的事实数据源。
+
+另外， `FormGroup` 指令会监听 `form` 元素发出的 `submit` 事件（原生DOM事件），并发出一个 `ngSubmit` 事件，让你可以绑定一个回调函数。
+
+##### FormArray
+
+`FormArray`例子：
+
+```typescript
+profileForm = this.fb.group({
+  firstName: ['', Validators.required],
+  lastName: [''],
+  address: this.fb.group({
+    street: [''],
+    city: [''],
+    state: [''],
+    zip: ['']
+  }),
+  aliases: this.fb.array([
+    this.fb.control('')
+  ])
+});
+```
+
+模板：
+
+```html
+<div formArrayName="aliases">
+  <h3>Aliases</h3> <button (click)="addAlias()">Add Alias</button>
+
+  <div *ngFor="let address of aliases.controls; let i=index">
+    <!-- The repeated alias template -->
+    <label>
+      Alias:
+      <input type="text" [formControlName]="i">
+    </label>
+  </div>
+</div>
+```
+
+将索引作为`formControlName`的值。
+
+##### 嵌套的表单组
+
+```typescript
+export class ProfileEditorComponent {
+  profileForm = this.fb.group({
+    firstName: ['', Validators.required],
+    lastName: [''],
+    address: this.fb.group({
+      street: [''],
+      city: [''],
+      state: [''],
+      zip: ['']
+    }),
+    aliases: this.fb.array([
+      this.fb.control('')
+    ])
+  });
+  
+  …
+}
+```
+
+模板：
+
+```html
+<form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+  <label>
+    First Name:
+    <input type="text" formControlName="firstName" required>
+  </label>
+
+  <label>
+    Last Name:
+    <input type="text" formControlName="lastName">
+  </label>
+
+  <div formGroupName="address">
+    <h3>Address</h3>
+
+    <label>
+      Street:
+      <input type="text" formControlName="street">
+    </label>
+
+    <label>
+      City:
+      <input type="text" formControlName="city">
+    </label>
+    
+    <label>
+      State:
+      <input type="text" formControlName="state">
+    </label>
+
+    <label>
+      Zip Code:
+      <input type="text" formControlName="zip">
+    </label>
+  </div>
+
+  <div formArrayName="aliases">
+    <h3>Aliases</h3> <button (click)="addAlias()">Add Alias</button>
+
+    <div *ngFor="let address of aliases.controls; let i=index">
+      <!-- The repeated alias template -->
+      <label>
+        Alias:
+        <input type="text" [formControlName]="i">
+      </label>
+    </div>
+  </div>
+
+  <button type="submit" [disabled]="!profileForm.valid">Submit</button>
+</form>
+```
+
+##### 获取嵌套表单组的值
+
+```typescript
+get aliases() {
+  return this.profileForm.get('aliases') as FormArray;
+}
+```
+
+##### 更新嵌套表单组的值
+
+有两种更新模型值的方式：
+
+- 使用 `setValue()` 方法来为单个控件设置新值。 `setValue()` 方法会严格遵循表单组的结构，并整体性替换控件的值。
+- 使用 `patchValue()` 方法可以用对象中所定义的任何属性为表单模型进行替换。
+
+`setValue()` 方法的严格检查可以帮助你捕获复杂表单嵌套中的错误，而 `patchValue()` 在遇到那些错误时可能会默默的失败。
+
+```typescript
+
+  updateProfile() {
+    this.profileForm.patchValue({
+      firstName: 'Nancy',
+      address: {
+        street: '123 Drew Street'
+      }
+    });
+  }
+```
+
+##### 为表单组动态添加新控件
+
+```typescript
+addAlias() {
+  this.aliases.push(this.fb.control(''));
+}
+```
+
+
+
+#### 使用`FormBuilder`来生成表单控件
+
+`FormBuilder` 服务提供了一些便捷方法来生成表单控件。
+
+```typescript
+import { Component } from '@angular/core';
+import { FormBuilder } from '@angular/forms';
+import { FormArray } from '@angular/forms';
+
+@Component({
+  selector: 'app-profile-editor',
+  templateUrl: './profile-editor.component.html',
+  styleUrls: ['./profile-editor.component.css']
+})
+export class ProfileEditorComponent {
+  profileForm = this.fb.group({
+    firstName: ['', Validators.required],
+    lastName: [''],
+    address: this.fb.group({
+      street: [''],
+      city: [''],
+      state: [''],
+      zip: ['']
+    }),
+    aliases: this.fb.array([
+      this.fb.control('')
+    ])
+  });
+
+  constructor(private fb: FormBuilder) { }
+  
+  …
+}
+```
+
+
+
 ### 使用模板驱动表单
+
+#### 创建模型类
+
+```typescript
+export class Hero {
+
+  constructor(
+    public id: number,
+    public name: string,
+    public power: string,
+    public alterEgo?: string
+  ) {  }
+
+}
+```
+
+#### 创建表单组件
+
+组件类：
+
+```typescript
+import { Component } from '@angular/core';
+
+import { Hero }    from '../hero';
+
+@Component({
+  selector: 'app-hero-form',
+  templateUrl: './hero-form.component.html',
+  styleUrls: ['./hero-form.component.css']
+})
+export class HeroFormComponent {
+
+  powers = ['Really Smart', 'Super Flexible',
+            'Super Hot', 'Weather Changer'];
+
+  model = new Hero(18, 'Dr IQ', this.powers[0], 'Chuck Overstreet');
+
+  submitted = false;
+
+  onSubmit() { this.submitted = true; }
+
+  // TODO: Remove this when we're done
+  get diagnostic() { return JSON.stringify(this.model); }
+}
+```
+
+模板：
+
+```html
+<div class="container">
+  <div [hidden]="submitted">
+    <h1>Hero Form</h1>
+    <form (ngSubmit)="onSubmit()" #heroForm="ngForm">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" class="form-control" id="name"
+               required
+               [(ngModel)]="model.name" name="name"
+               #name="ngModel">
+        <div [hidden]="name.valid || name.pristine"
+             class="alert alert-danger">
+          Name is required
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="alterEgo">Alter Ego</label>
+        <input type="text" class="form-control" id="alterEgo"
+               [(ngModel)]="model.alterEgo" name="alterEgo">
+      </div>
+
+      <div class="form-group">
+        <label for="power">Hero Power</label>
+        <select class="form-control" id="power"
+                required
+                [(ngModel)]="model.power" name="power"
+                #power="ngModel">
+          <option *ngFor="let pow of powers" [value]="pow">{{pow}}</option>
+        </select>
+        <div [hidden]="power.valid || power.pristine" class="alert alert-danger">
+          Power is required
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-success" [disabled]="!heroForm.form.valid">Submit</button>
+      <button type="button" class="btn btn-default" (click)="newHero(); heroForm.reset()">New Hero</button>
+      <i>with</i> reset
+
+      &nbsp;&nbsp;
+      <button type="button" class="btn btn-default" (click)="newHero()">New Hero</button>
+      <i>without</i> reset
+
+     <!-- NOT SHOWN IN DOCS -->
+      <div>
+        <hr>
+        Name via form.controls = {{showFormControls(heroForm)}}
+      </div>
+     <!-- - -->
+    </form>
+  </div>
+
+  <div [hidden]="!submitted">
+    <h2>You submitted the following:</h2>
+    <div class="row">
+      <div class="col-xs-3">Name</div>
+      <div class="col-xs-9">{{ model.name }}</div>
+    </div>
+    <div class="row">
+      <div class="col-xs-3">Alter Ego</div>
+      <div class="col-xs-9">{{ model.alterEgo }}</div>
+    </div>
+    <div class="row">
+      <div class="col-xs-3">Power</div>
+      <div class="col-xs-9">{{ model.power }}</div>
+    </div>
+    <br>
+    <button class="btn btn-primary" (click)="submitted=false">Edit</button>
+  </div>
+</div>
+
+<!-- ====================================================  -->
+  <div>
+    <form>
+
+       <!-- ... all of the form ... -->
+
+    </form>
+  </div>
+
+<!-- ====================================================  -->
+<hr>
+<style>
+  .no-style .ng-valid {
+  border-left: 1px  solid #CCC
+}
+
+  .no-style .ng-invalid {
+  border-left: 1px  solid #CCC
+}
+</style>
+<div class="no-style" style="margin-left: 4px">
+  <div class="container">
+      <h1>Hero Form</h1>
+      <form>
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" class="form-control" id="name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="alterEgo">Alter Ego</label>
+          <input type="text" class="form-control" id="alterEgo">
+        </div>
+
+        <div class="form-group">
+          <label for="power">Hero Power</label>
+          <select class="form-control" id="power" required>
+            <option *ngFor="let pow of powers" [value]="pow">{{pow}}</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-success">Submit</button>
+
+      </form>
+  </div>
+
+  <!-- ====================================================  -->
+  <hr>
+  <div class="container">
+      <h1>Hero Form</h1>
+      <form #heroForm="ngForm">
+        {{diagnostic}}
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" class="form-control" id="name"
+                 required
+                 [(ngModel)]="model.name" name="name">
+        </div>
+
+        <div class="form-group">
+          <label for="alterEgo">Alter Ego</label>
+          <input type="text"  class="form-control" id="alterEgo"
+                 [(ngModel)]="model.alterEgo" name="alterEgo">
+        </div>
+
+        <div class="form-group">
+          <label for="power">Hero Power</label>
+          <select class="form-control"  id="power"
+                  required
+                  [(ngModel)]="model.power" name="power">
+            <option *ngFor="let pow of powers" [value]="pow">{{pow}}</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-success">Submit</button>
+
+      </form>
+  </div>
+
+  <!-- EXTRA MATERIAL FOR DOCUMENTATION -->
+  <hr>
+    <input type="text" class="form-control" id="name"
+           required
+           [(ngModel)]="model.name" name="name">
+    TODO: remove this: {{model.name}}
+  <hr>
+    <input type="text" class="form-control" id="name"
+           required
+           [ngModel]="model.name" name="name"
+           (ngModelChange)="model.name = $event">
+    TODO: remove this: {{model.name}}
+  <hr>
+       <input type="text" class="form-control" id="name"
+         required
+         [(ngModel)]="model.name" name="name"
+         #spy>
+       <br>TODO: remove this: {{spy.className}}
+
+</div>
+```
+
+在模板驱动表单中，你只要导入了 `FormsModule` 而不用对 `<form>` 做任何改动来使用 `FormsModule`。Angular 会在 `<form>` 标签上自动创建并附加一个 `NgForm` 指令。`NgForm` 指令为 `form` 增补了一些额外特性。 它会控制那些带有 `ngModel` 指令和 `name` 属性的元素，监听他们的属性（包括其有效性）。 它还有自己的 `valid` 属性，这个属性只有在*它包含的每个控件*都有效时才是真。
+
+另外， 当在表单中使用 `[(ngModel)]` 时，必须要定义 `name` 属性。在内部，Angular 创建了一些 `FormControl`，并把它们注册到 Angular 附加到 `<form>` 标签上的 `NgForm` 指令。 注册每个 `FormControl` 时，使用 `name` 属性值作为键值。
+
+#### 提交表单
+
+```html
+<form (ngSubmit)="onSubmit()" #heroForm="ngForm">
+  …
+  <button type="submit" class="btn btn-success" [disabled]="!heroForm.form.valid">
+    Submit
+  </button>
+</form>
+```
+
+#### 重置表单
+
+表单提交后，并不会*重置控件到“全新”状态*。因此，最好在下一次新建表单时，重置一下表单：
+
+```html
+<button type="button" class="btn btn-default" (click)="newHero(); heroForm.reset()">
+  New Hero
+</button>
+```
+
+
 
 ## 表单验证
 
 响应式表单把自定义验证器定义成函数，它以要验证的控件作为参数。
 
 模板驱动表单和模板指令紧密相关，并且必须提供包装了验证函数的自定义验证器指令。
+
+### 表示控件状态的 CSS 类
+
+*NgModel* 指令不仅仅跟踪状态。它还使用特定的 Angular CSS 类来更新控件，以反映当前状态。 可以利用这些 CSS 类来修改控件的外观，显示或隐藏消息。
+
+| 状态             | 为真时的 CSS 类 | 为假时的 CSS 类 |
+| :--------------- | :-------------- | :-------------- |
+| 控件被访问过。   | `ng-touched`    | `ng-untouched`  |
+| 控件的值变化了。 | `ng-dirty`      | `ng-pristine`   |
+| 控件的值有效。   | `ng-valid`      | `ng-invalid`    |
+
+另外，还有一个 `ng-pending` CSS类。
+
+```html
+<input type="text" class="form-control" id="name" required
+       [(ngModel)]="model.name" name="name" #spy>
+<br>TODO: remove this: {{spy.className}}
+```
 
 ## 测试表单
 
