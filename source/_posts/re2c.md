@@ -151,7 +151,7 @@ re2c指令通常形如：`/*!指令名 … */`。它们通常用于标注出不�
 
 ## 用户接口
 
-用户接口实际上是一些可被词法分析器用于与外界交互的符号。它们应由用户定义（哪些是必要的取决于具体场景），可以通过配置来定义，也可以是C/C++的变量、函数、宏和其他语言结构。
+用户接口实际上是一些可被词法分析器用于与外界交互的符号，称为基本原语（Basic Primitives）。它们应由用户定义（哪些是必要的取决于具体场景），可以通过配置来定义，也可以是C/C++的变量、函数、宏和其他语言结构。（详见官方文档：<http://re2c.org/manual/manual.html#user-interface>）
 
 # 构建
 
@@ -242,7 +242,7 @@ int main()
 
 检查的形式为`(YYLIMIT - YYCURSOR) < n`，其中`n`是相应SCC中简单路径的最大长度。如果这个条件为真，则词法分析器调用`YYFILL(n)`，它必须提供至少n个输入字符，否则不返回。在检查后词法分析器继续运行时，可以确定无需检查即可安全读取下n个字符。
 
-这种方法显着减少了检查次数（并且因此使词法分析器更快），但它有一个缺点。由于词法分析器一次检查多个字符，它可能会在SCC中存在少量与短路径相对应的剩余输入字符（小于n）的情况下结束，但是由于边界检查，词法分析器无法继续处理，并且`YYFILL`无法提供更多字符，因为它是输入的结束。为了解决这个问题，re2c要求在输入结尾附加由伪字符组成的额外填充（Padding）。填充长度应为`YYMAXFILL`，它等于`YYFILL`的最大`n`参数，并且必须由re2c使用`/*!max:re2c*/` 指令生成。伪字符不应该构成有效的词素（lexeme）后缀，否则词法分析器可能被欺骗以匹配伪词素。通常，使用`NULL`字符进行填充是个好主意。
+这种方法显着减少了检查次数（并且因此使词法分析器更快），但它有一个缺点。由于词法分析器一次检查多个字符，它可能会在SCC中存在少量与短路径相对应的剩余输入字符（小于n）的情况下结束，但是由于边界检查，词法分析器无法继续处理，并且`YYFILL`无法提供更多字符，因为它是输入的结束。为了解决这个问题，re2c要求在输入结尾附加由伪字符组成的额外填充（Padding）。填充长度应为`YYMAXFILL`，它等于`YYFILL`的最大`n`参数，并且必须由re2c使用`/*!max:re2c*/` 指令生成。伪字符不应该构成有效的词素（Lexeme）后缀，否则词法分析器可能被欺骗以匹配伪词素。通常，使用`NULL`字符进行填充是个好主意。
 
 ```re2c
 #include <assert.h>
@@ -305,4 +305,205 @@ EOF规则`$`在版本1.2中引入。
 
 - 首先，它可能已经匹配了较短的词素。在这种情况下，它只是回滚到最后一个接受状态。
 - 其次，它可能已经消耗了一些字符，但未能匹配。在这种情况下，它会回退到默认规则`*`。
-- 最后，它必定处于初始状态。在这情况下，它匹配EOF规则`$`。
+- 最后，它必定处于初始状态（应该是指刚刚完成上一个词法单元的识别，准备进入下一个词法单元识别的时点）。在这情况下，它匹配EOF规则`$`。
+
+```re2c
+#include <assert.h>
+#include <string.h>
+
+static int lex(const char *str)
+{
+    const char *YYCURSOR = str;
+    const char *YYLIMIT = str + strlen(str);
+    int count = 0;
+
+loop:
+    /*!re2c
+    re2c:define:YYCTYPE = char;
+    re2c:yyfill:enable = 0;
+    re2c:eof = 0;
+
+    *                         { return -1; }
+    $                         { return count; }
+    [a-z]+                    { ++count; goto loop; }
+    ['] ([^'] | [\\]['])* ['] { ++count; goto loop; }
+    [ ]+                      { goto loop; }
+
+    */
+}
+
+int main()
+{
+    assert(lex("") == 0);
+    assert(lex("one two three") == 3);
+    assert(lex("one two 123?") == -1);
+    assert(lex("one 'two' 'th\\'ree' '123?' ''") == 5);
+    assert(lex("one 'two' 'three") == -1);
+    return 0;
+}
+```
+
+## 使用通用API
+
+通用API可以与任何上述方法一起使用。 它还允许通过在基本原语中放置EOF检查来使用用户定义的方法。 通常这是`YYSKIP`（在前进到下一个输入字符时执行检查）或`YYPEEK`（在读取下一个输入字符时执行检查）。 由此产生的方法效率很低，因为它们检查每个输入字符。 但是，在输入无法缓冲或填充且末尾不包含标记字符的情况下，它们非常有用。 在使用这种特殊方法时应该谨慎，因为很容易忽略一些极端情况并得到一种只能部分工作的方法。 此外，应该注意的是，并非所有内容都可以通过通用API表达：例如，不可能重新实现EOF规则的工作方式（特别是，不可能在成功`YYFILL`之后重新匹配字符）。
+
+```re2c
+#include <assert.h>
+#include <string.h>
+
+#define YYPEEK() *cur
+#define YYSKIP() if (++cur > lim) return -1
+static int lex(const char *str)
+{
+    const char *cur = str;
+    const char *lim = str + strlen(str) + 1;
+    int count = 0;
+
+loop:
+    /*!re2c
+    re2c:define:YYCTYPE = char;
+    re2c:yyfill:enable = 0;
+    re2c:flags:input = custom;
+
+    *                         { return -1; }
+    [\x00]                    { return cur == lim ? count : -1; }
+    [a-z]+                    { ++count; goto loop; }
+    ['] ([^'] | [\\]['])* ['] { ++count; goto loop; }
+    [ ]+                      { goto loop; }
+
+    */
+}
+
+int main()
+{
+    assert(lex("") == 0);
+    assert(lex("one two three") == 3);
+    assert(lex("one two 123?") == -1);
+    assert(lex("one 'two' 'th\\'ree' '123?' ''") == 5);
+    assert(lex("one 'two' 'three") == -1);
+    return 0;
+}
+```
+
+注意，如果语法更复杂，当两个规则重叠并且EOF检查在更短的词素已经匹配后失败时（例如，在我们的示例中没有重叠规则），此方法可能不起作用。
+
+# 缓冲区回填
+
+当输入无法一次性映射到内存中时，就会出现缓冲需求：要么是太大，要么是以流式方式（如从套接字读取）。 在这种情况下，通常的技术是分配一个固定大小的内存缓冲区，并以适合缓冲区的块（Chunks）来处理输入。 当当前块被处理时，它被移出并移入新数据。实际上它稍微复杂一些，因为词法分析器状态不是由单个输入位置组成，而是由一组相互关联的位置组成：
+
+- 游标（Cursor）：要读取的下一个输入字符（即默认API中的`YYCURSOR`或通用API中的`YYSKIP` 或 `YYPEEK`）
+- 界限（Limit）：最后一个可用的输入字符之后的位置（即默认API中的`YYLIMIT`，由通用API中的`YYLESSTHAN`隐式处理）
+- 标记器（Marker）：最近匹配的位置（如果有）（即默认API中的`YYMARKER`或通用API中的`YYBACKUP` 或`YYRESTORE`）
+- token：当前词素的开头（隐含在re2c API中，因为它不是正常词法分析器操作所必需的，可以由用户定义和更新）
+- 上下文标记器：尾随（trrailing）上下文的位置（即默认API中的`YYCTXMARKER`或通用API中的`YYBACKUPCTX` 或`YYRESTORECTX`）
+- 标签变量（Tag Variables）：子匹配位置（用`/*!stags:re2c*/` 和 `/*!mtags:re2c*/` 指令，以及通用API中的`YYSTAGP`、 `YYSTAGN`、`YYMTAGP`和`YYMTAGN`定义）
+
+并非所有这些位置都在每种情况下使用，但如果使用，它们必须由`YYFILL`更新。
+
+所有活动位置都包含在token和游标之间的段中，因此缓冲区起始处至token之间的所有内容都可以被丢弃。从token到界限（limit）的段应该移动到缓冲区的开头，缓冲区结尾处的空闲空间应填入新数据。 为了避免频繁的`YYFILL`调用，最好填入尽可能多的输入字符（即使较少的字符可能足以恢复词法分析器）。 根据使用的EOF处理方法，`YYFILL`实现的细节略有不同：EOF规则的情况比带填充的边界检查的情况稍微简单一些。 另请注意，如果使用`-f`或`--storable-state`选项，则`YYFILL`的语义略有不同（在关于可存储状态的部分中有所描述）。
+
+## 带EOF规则的YYFILL
+
+YYFILL调用由默认API中的条件`YYLIMIT <= YYCURSOR`和通用API中的`YYLESSTHAN()`触发。
+
+如果使用EOF规则，则`YYFILL`是一个类似函数的原语，它不接受任何参数并返回一个整数值（ 非零返回值表示`YYFILL`失败）。
+
+成功的`YYFILL`调用必须提供至少一个字符并相应地调整输入位置。 界限必须总是被设置为缓冲区中的最后一个输入之后的位置，并且界限位置处的字符必须是`re2c:eof`配置指定的哨兵符号。 下图显示了`YYFILL`调用之前和之后缓冲区中输入位置的相对位置（哨兵符号标记为`＃`，第二张图显示了没有足够的输入填充整个缓冲区的情况）。
+
+```
+               <-- shift -->
+             >-A------------B---------C-------------D#-----------E->
+             buffer       token    marker         limit,
+                                                  cursor
+>-A------------B---------C-------------D------------E#->
+             buffer,  marker        cursor        limit
+             token
+
+               <-- shift -->
+             >-A------------B---------C-------------D#--E (EOF)
+             buffer       token    marker         limit,
+                                                  cursor
+>-A------------B---------C-------------D---E#........
+             buffer,  marker       cursor limit
+             token
+```
+
+例子：
+
+```re2c
+#include <stdio.h>
+#include <string.h>
+
+#define SIZE 4096
+
+typedef struct {
+    FILE *file;
+    char buf[SIZE + 1], *lim, *cur, *tok;
+    int eof;
+} Input;
+
+static int fill(Input *in)
+{
+    if (in->eof) {
+        return 1;
+    }
+    const size_t free = in->tok - in->buf;
+    if (free < 1) {
+        return 2;
+    }
+    memmove(in->buf, in->tok, in->lim - in->tok);
+    in->lim -= free;
+    in->cur -= free;
+    in->tok -= free;
+    in->lim += fread(in->lim, 1, free, in->file);
+    in->lim[0] = 0;
+    in->eof |= in->lim < in->buf + SIZE;
+    return 0;
+}
+
+static void init(Input *in, FILE *file)
+{
+    in->file = file;
+    in->cur = in->tok = in->lim = in->buf + SIZE;
+    in->eof = 0;
+    fill(in);
+}
+
+#define YYFILL() fill(in)
+static int lex(Input *in)
+{
+    int count = 0;
+loop:
+    in->tok = in->cur;
+    /*!re2c
+    re2c:define:YYCTYPE = char;
+    re2c:define:YYCURSOR = in->cur;
+    re2c:define:YYLIMIT = in->lim;
+    re2c:eof = 0;
+
+    *                         { return -1; }
+    $                         { return count; }
+    [a-z]+                    { ++count; goto loop; }
+    ['] ([^'] | [\\]['])* ['] { ++count; goto loop; }
+    [ ]+                      { goto loop; }
+
+    */
+}
+
+int main()
+{
+    FILE *f = fopen("input.txt", "rb");
+    if (!f) return 1;
+
+    Input in;
+    init(&in, f);
+    printf("count: %d\n", lex(&in));
+
+    fclose(f);
+    return 0;
+}
+```
+
+
+
+## 带填充的YYFILL
