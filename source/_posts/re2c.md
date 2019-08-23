@@ -395,7 +395,7 @@ int main()
 - 界限（Limit）：最后一个可用的输入字符之后的位置（即默认API中的`YYLIMIT`，由通用API中的`YYLESSTHAN`隐式处理）
 - 标记器（Marker）：最近匹配的位置（如果有）（即默认API中的`YYMARKER`或通用API中的`YYBACKUP` 或`YYRESTORE`）
 - token：当前词素的开头（隐含在re2c API中，因为它不是正常词法分析器操作所必需的，可以由用户定义和更新）
-- 上下文标记器：尾随（trrailing）上下文的位置（即默认API中的`YYCTXMARKER`或通用API中的`YYBACKUPCTX` 或`YYRESTORECTX`）
+- 上下文标记器：尾随（trailing）上下文的位置（即默认API中的`YYCTXMARKER`或通用API中的`YYBACKUPCTX` 或`YYRESTORECTX`）
 - 标签变量（Tag Variables）：子匹配位置（用`/*!stags:re2c*/` 和 `/*!mtags:re2c*/` 指令，以及通用API中的`YYSTAGP`、 `YYSTAGN`、`YYMTAGP`和`YYMTAGN`定义）
 
 并非所有这些位置都在每种情况下使用，但如果使用，它们必须由`YYFILL`更新。
@@ -507,3 +507,107 @@ int main()
 
 
 ## 带填充的YYFILL
+
+在默认情况下（即当不使用EOF规则时），`YYFILL`是一个类似函数的原语，它接受单个参数并且不返回任何值。 `YYFILL`调用由默认API中的条件`(YYLIMIT - YYCURSOR) < n`和通用API中的`YYLESSTHAN(n)`触发。传递给`YYFILL`的参数是必须提供的最小字符数。如果没有这样做，`YYFILL`不能返回词法分析器（因此最好将其作为一个宏，在失败时从调用函数返回）。如果成功调用`YYFILL`，则必须将界限位置设置为缓冲区中最后一个输入位置之后的一个位置，或者设置为`YYMAXFILL`个填充（Padding）的结尾处（如果`YYFILL`已成功读取至少`n`个字符，但不足以填充整个缓冲）。下图显示了`YYFILL`调用之前和之后缓冲区中输入位置的相对位置（第二张图片上的`YYMAXFILL`个填充用`#`符号标记）。
+
+```
+               <-- shift -->                 <-- need -->
+             >-A------------B---------C-----D-------E---F--------G->
+             buffer       token    marker cursor  limit
+
+>-A------------B---------C-----D-------E---F--------G->
+             buffer,  marker cursor               limit
+             token
+
+               <-- shift -->                 <-- need -->
+             >-A------------B---------C-----D-------E-F        (EOF)
+             buffer       token    marker cursor  limit
+
+>-A------------B---------C-----D-------E-F###############
+             buffer,  marker cursor                   limit
+             token                        <- YYMAXFILL ->
+```
+
+例子：
+
+```re2c
+#include <stdio.h>
+#include <string.h>
+
+/*!max:re2c*/
+#define SIZE 4096
+
+typedef struct {
+    FILE *file;
+    char buf[SIZE + YYMAXFILL], *lim, *cur, *tok;
+    int eof;
+} Input;
+
+static int fill(Input *in, size_t need)
+{
+    if (in->eof) {
+        return 1;
+    }
+    const size_t free = in->tok - in->buf;
+    if (free < need) {
+        return 2;
+    }
+    memmove(in->buf, in->tok, in->lim - in->tok);
+    in->lim -= free;
+    in->cur -= free;
+    in->tok -= free;
+    in->lim += fread(in->lim, 1, free, in->file);
+    if (in->lim < in->buf + SIZE) {
+        in->eof = 1;
+        memset(in->lim, 0, YYMAXFILL);
+        in->lim += YYMAXFILL;
+    }
+    return 0;
+}
+
+static void init(Input *in, FILE *file)
+{
+    in->file = file;
+    in->cur = in->tok = in->lim = in->buf + SIZE;
+    in->eof = 0;
+    fill(in, 1);
+}
+
+#define YYFILL(n) if (fill(in, n) != 0) return -1
+static int lex(Input *in)
+{
+    int count = 0;
+loop:
+    in->tok = in->cur;
+    /*!re2c
+    re2c:define:YYCTYPE = char;
+    re2c:define:YYCURSOR = in->cur;
+    re2c:define:YYLIMIT = in->lim;
+
+    *                         { return -1; }
+    [\x00]                    { return (YYMAXFILL == in->lim - in->tok) ? count : -1; }
+    [a-z]+                    { ++count; goto loop; }
+    ['] ([^'] | [\\]['])* ['] { ++count; goto loop; }
+    [ ]+                      { goto loop; }
+
+    */
+}
+
+int main()
+{
+    FILE *f = fopen("input.txt", "rb");
+    if (!f) return 1;
+
+    Input in;
+    init(&in, f);
+    printf("count: %d\n", lex(&in));
+
+    fclose(f);
+    return 0;
+}
+```
+
+# 可存储状态
+
+使用`-f`或 `--storable-state`选项re2c将生成一个词法分析器，可以存储其当前状态，返回到调用者，然后在其停止的位置恢复操作。
+
