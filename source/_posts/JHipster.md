@@ -137,7 +137,7 @@ $ ./gradlew
 
 注意：在执行上述命令之前，应该先启动应用依赖的第三方服务，例如数据库等。
 
-## 使用Docker Compose部署单个应用
+## 使用Docker Compose部署单个应用（本地部署）
 
 JHipster生成项目时，也同时生成如下文件（位于文件夹`src/main/docker/`中）：
 
@@ -183,3 +183,4 @@ $ jhipster docker-compose
 $ docker-compose down
 ```
 
+# 升级应用
