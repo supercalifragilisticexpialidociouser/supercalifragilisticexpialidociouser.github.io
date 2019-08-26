@@ -12,12 +12,14 @@ tags: [5.1.2]
 
 # IoC
 
-IoC（Inversion of Control，控制反转）也称为DI（依赖注入）。DI能够让相互协作的软件组件保持**松耦合**。
+IoC（Inversion of Control，控制反转），IoC能够让相互协作的软件组件保持**松耦合**。
+
+IoC可分解为两种子类型：依赖查找和依赖注入（DI）。依赖查找有两种类型：依赖拉取（DL）和上下文依赖查找（CDL）。依赖注入则有构造器注入、setter注入等。
 
 IoC容器是Spring框架的核心，它使用DI管理构成应用的组件。Spring IoC容器可分成两种不同类型：
 
 - `org.springframework.beans.factory.BeanFactory`：最简单的IoC容器。
-- `org.springframework.context.ApplicationContext`：应用上下文，基于`BeanFactory`构建，并提供应用框架级别的服务。
+- `org.springframework.context.ApplicationContext`：应用上下文，基于`BeanFactory`构建，并提供应用框架级别的服务（例如：事务、AOP、国际化等支持）。
 
 在Spring中，构成应用程序主干并由Spring IoC容器管理的对象称为bean。 bean是一个由Spring IoC容器实例化，装配（Wiring）和管理的对象。除此之外，bean只是应用程序中众多对象之一。 Bean及其之间的依赖关系反映在容器使用的配置元数据中。
 
