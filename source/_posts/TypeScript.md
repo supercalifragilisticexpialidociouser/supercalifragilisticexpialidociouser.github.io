@@ -1209,7 +1209,7 @@ let myAdd = function(x: number, y: number): number { return x+y; };
 let myAdd = function(x, y) { return x + y; };
 ```
 
-函数表达式在定义之前不能调用。
+与函数声明不同，函数表达式在定义之前不能调用。
 
 ### 箭头函数（Lambda）
 
