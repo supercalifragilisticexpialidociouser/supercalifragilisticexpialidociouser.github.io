@@ -93,9 +93,7 @@ $ cd myapplication/
 $ jhipster
 ```
 
-1. 选择应用类型。
-2. 应用名
-3. 基包名
+然后，按照提示一步步操作。
 
 # 开发应用
 
@@ -184,3 +182,30 @@ $ docker-compose down
 ```
 
 # 升级应用
+
+# JDL
+
+前面都是通过命令行来管理应用，JHipster还提供了一个JDL领域特定语言来简化应用管理。
+
+JDL文件是一个文本文件，它的扩展名可以是`.jdl`或`.jh`。
+
+可以使用在线的[JDL-Studio](https://start.jhipster.tech/jdl-studio/) 工具或使用VSCode的JHipster JDL插件来编写JDL文件。JDL文件名可随意取。
+
+## 创建应用
+
+```bash
+$ jhipster import-jdl my_file.jdl
+```
+
+这会根据JDL文件中的`baseName`值，在当前目录下创建一个同名目录作为项目根目录，在它面生成项目。
+
+## 更新实体
+
+如果只是想更新发生改变的实体，则需要在项目根目录（假设为`foo`）下执行下面命令：
+
+```bash
+$ cd foo
+$ jhipster import-jdl my_file.jdl
+```
+
+完成导入后，会自动提交代码。
