@@ -97,6 +97,26 @@ $ jhipster
 
 # 开发应用
 
+## CORS跨域
+
+在JHipster中要启用跨域支持，需要：
+
+1. 在`application-*.yml`或`application.yml`中添加如下配置：
+
+   ```yaml
+   jhipster:
+     …
+     cors:
+       allowed-origins: "*"
+       allowed-methods: '*'
+       allowed-headers: "*"
+       exposed-headers: 'Authorization,Link,X-Total-Count'
+       allow-credentials: true
+       max-age: 1800
+   ```
+
+2. 在`WebConfigurer.java`的`corsFilter()`方法中注册需要跨域的路径，默认已经注册了`/api/**`、`/management/**`和`/v2/api-docs`路径。
+
 # 构建应用
 
 可通过如下命令打包应用，并使用[Jib](https://github.com/GoogleContainerTools/jib)生成一个Docker镜像：

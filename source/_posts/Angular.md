@@ -67,6 +67,20 @@ $ ng update --all --force
 
 > 如果只是想学习，则推荐以 [StackBlitz](https://stackblitz.com/) 为开发环境，在线创建一个Angular项目，比如通过浏览器打开<https://stackblitz.com/edit/angular-jo> ，将看到我在StackBlitz上的Angular项目代码。并且可通过 <https://angular-jo.stackblitz.io> 来浏览该应用。
 
+## 理解MVC模式
+
+服务器端的MVC模式：
+
+![服务端的MVC模式](Angular/server-mvc.png)
+
+客户端的MVC模式：
+
+![客户端MVC模式](Angular/client-mvc.png)
+
+Angular的MVC模式：
+
+![Angular的MVC模式](Angular/angular-mvc.png)
+
 ## 创建工作空间和应用
 
 Angular 工作空间就是你开发应用的上下文环境。 每个工作空间包含一些供一个或多个项目使用的文件。 每个项目都是一组由应用、库或端到端（e2e）测试构成的文件。
