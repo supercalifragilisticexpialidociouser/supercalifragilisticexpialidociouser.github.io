@@ -58,6 +58,8 @@ $     "$后跟一个空格表示空格字符"
 ```smalltalk
 '这是字符串'
 'I''m here'
+
+x := 'String', 'Concatenation'.                    "string concatenation"
 ```
 
 字符串中的单引号，使用两个单引号（`''`）表示。
@@ -263,29 +265,6 @@ myDept manager name last  "相当于Java：myDept.manager().name().last()"
 
 Smalltalk没有内在的控制结构，其他语言中的条件语句、循环语句，在Smalltalk中就是一个关键字消息。
 
-Smalltalk的“条件语句”：
-
-```smalltalk
-tries > 5
-ifTrue: [^ 'Too many tries']
-ifFalse: [^ 'Trying again']
-```
-
-Smalltalk的“循环语句”：
-
-```smalltalk
-| tries |
-tries := 0.
-[tries <= 5] whileTrue: [
-  self tryAgain.
-  tries := tries + 1
-]
-"或者"
-5 timesRepeat: [selt tryAgain]
-```
-
-
-
 ### 消息优先级
 
 一元消息优先级最高，二元消息其次，关键字消息最低。
@@ -324,10 +303,323 @@ Smalltalk中，集合的索引都是从1开始。
 
 ## 数组
 
-### 数组字面量
+```smalltalk
+| b x y sum max |
+x := #(4 3 2 1).                                 "constant array"
+x := Array with: 5 with: 4 with: 3 with: 2.      "create array with up to 4 elements"
+x := Array new: 4.                               "allocate an array with specified size"
+x                                                "set array elements"
+   at: 1 put: 5;
+   at: 2 put: 4;
+   at: 3 put: 3;
+   at: 4 put: 2.
+b := x isEmpty.                                  "test if array is empty"
+y := x size.                                     "array size"
+y := x at: 4.                                    "get array element at index"
+b := x includes: 3.                              "test if element is in array"
+y := x copyFrom: 2 to: 4.                        "subarray"
+y := x indexOf: 3 ifAbsent: [0].                 "first position of element within array"
+y := x occurrencesOf: 3.                         "number of times object in collection"
+x do: [:a | Transcript show: a printString; cr]. "iterate over the array"
+b := x conform: [:a | (a >= 1) & (a <= 4)].      "test if all elements meet condition"
+y := x select: [:a | a > 2].                     "return collection of elements that pass test"
+y := x reject: [:a | a < 2].                     "return collection of elements that fail test"
+y := x collect: [:a | a + a].                    "transform each element for new collection"
+y := x detect: [:a | a > 3] ifNone: [].          "find position of first element that passes test"
+sum := 0. x do: [:a | sum := sum + a]. sum.      "sum array elements"
+sum := 0. 1 to: (x size) 
+            do: [:a | sum := sum + (x at: a)].   "sum array elements"
+sum := x inject: 0 into: [:a :c | a + c].        "sum array elements"
+max := x inject: 0 into: [:a :c | (a > c)        "find max element in array"
+   ifTrue: [a]
+   ifFalse: [c]].
+y := x shuffled.                                 "randomly shuffle collection"
+y := x asArray.                                  "convert to array"
+"y := x asByteArray."                            "note: this instruction not available on Squeak"
+y := x asWordArray.                              "convert to word array"
+y := x asOrderedCollection.                      "convert to ordered collection"
+y := x asSortedCollection.                       "convert to sorted collection"
+y := x asBag.                                    "convert to bag collection"
+y := x asSet.                                    "convert to set collection"
+```
+
+数组元素的类型可以不相同。
+
+## 有序集合
+
+类似一个可扩展的数组 。
 
 ```smalltalk
-#('abc' 2 $a)  "数组字面量"
+| b x y sum max |
+x := OrderedCollection 
+     with: 4 with: 3 with: 2 with: 1.            "create collection with up to 4 elements"
+x := OrderedCollection new.                      "allocate collection"
+x add: 3; add: 2; add: 1; add: 4; yourself.      "add element to collection"
+y := x addFirst: 5.                              "add element at beginning of collection"
+y := x removeFirst.                              "remove first element in collection"
+y := x addLast: 6.                               "add element at end of collection"
+y := x removeLast.                               "remove last element in collection"
+y := x addAll: #(7 8 9).                         "add multiple elements to collection"
+y := x removeAll: #(7 8 9).                      "remove multiple elements from collection"
+x at: 2 put: 3.                                  "set element at index"
+y := x remove: 5 ifAbsent: [].                   "remove element from collection"
+b := x isEmpty.                                  "test if empty"
+y := x size.                                     "number of elements"
+y := x at: 2.                                    "retrieve element at index"
+y := x first.                                    "retrieve first element in collection"
+y := x last.                                     "retrieve last element in collection"
+b := x includes: 5.                              "test if element is in collection"
+y := x copyFrom: 2 to: 3.                        "subcollection"
+y := x indexOf: 3 ifAbsent: [0].                 "first position of element within collection"
+y := x occurrencesOf: 3.                         "number of times object in collection"
+x do: [:a | Transcript show: a printString; cr]. "iterate over the collection"
+b := x conform: [:a | (a >= 1) & (a <= 4)].      "test if all elements meet condition"
+y := x select: [:a | a > 2].                     "return collection of elements that pass test"
+y := x reject: [:a | a < 2].                     "return collection of elements that fail test"
+y := x collect: [:a | a + a].                    "transform each element for new collection"
+y := x detect: [:a | a > 3] ifNone: [].          "find position of first element that passes test"
+sum := 0. x do: [:a | sum := sum + a]. sum.      "sum elements"
+sum := 0. 1 to: (x size) 
+            do: [:a | sum := sum + (x at: a)].   "sum elements"
+sum := x inject: 0 into: [:a :c | a + c].        "sum elements"
+max := x inject: 0 into: [:a :c | (a > c)        "find max element in collection"
+   ifTrue: [a]
+   ifFalse: [c]].
+y := x shuffled.                                 "randomly shuffle collection"
+y := x asArray.                                  "convert to array"
+y := x asOrderedCollection.                      "convert to ordered collection"
+y := x asSortedCollection.                       "convert to sorted collection"
+y := x asBag.                                    "convert to bag collection"
+y := x asSet.                                    "convert to set collection"
+```
+
+## 排序集合
+
+ 类似于OrderedCollection，但可指定排序标准。
+
+```smalltalk
+x := SortedCollection 
+     with: 4 with: 3 with: 2 with: 1.              "create collection with up to 4 elements"
+x := SortedCollection new.                         "allocate collection"
+x := SortedCollection sortBlock: [:a :c | a > c].  "set sort criteria"
+x add: 3; add: 2; add: 1; add: 4; yourself.        "add element to collection"
+y := x addFirst: 5.                                "add element at beginning of collection"
+y := x removeFirst.                                "remove first element in collection"
+y := x addLast: 6.                                 "add element at end of collection"
+y := x removeLast.                                 "remove last element in collection"
+y := x addAll: #(7 8 9).                           "add multiple elements to collection"
+y := x removeAll: #(7 8 9).                        "remove multiple elements from collection"
+y := x remove: 5 ifAbsent: [].                     "remove element from collection"
+b := x isEmpty.                                    "test if empty"
+y := x size.                                       "number of elements"
+y := x at: 2.                                      "retrieve element at index"
+y := x first.                                      "retrieve first element in collection"
+y := x last.                                       "retrieve last element in collection"
+b := x includes: 4.                                "test if element is in collection"
+y := x copyFrom: 2 to: 3.                          "subcollection"
+y := x indexOf: 3 ifAbsent: [0].                   "first position of element within collection"
+y := x occurrencesOf: 3.                           "number of times object in collection"
+x do: [:a | Transcript show: a printString; cr].   "iterate over the collection"
+b := x conform: [:a | (a >= 1) & (a <= 4)].        "test if all elements meet condition"
+y := x select: [:a | a > 2].                       "return collection of elements that pass test"
+y := x reject: [:a | a < 2].                       "return collection of elements that fail test"
+y := x collect: [:a | a + a].                      "transform each element for new collection"
+y := x detect: [:a | a > 3] ifNone: [].            "find position of first element that passes test"
+sum := 0. x do: [:a | sum := sum + a]. sum.        "sum elements"
+sum := 0. 1 to: (x size) 
+            do: [:a | sum := sum + (x at: a)].     "sum elements"
+sum := x inject: 0 into: [:a :c | a + c].          "sum elements"
+max := x inject: 0 into: [:a :c | (a > c)          "find max element in collection"
+   ifTrue: [a]
+   ifFalse: [c]].
+y := x asArray.                                     "convert to array"
+y := x asOrderedCollection.                         "convert to ordered collection"
+y := x asSortedCollection.                          "convert to sorted collection"
+y := x asBag.                                       "convert to bag collection"
+y := x asSet.                                       "convert to set collection"
+```
+
+## 包
+
+ 类似于OrderedCollection，但元素没有特定的顺序。 
+
+ ```smalltalk
+x := Bag with: 4 with: 3 with: 2 with: 1.        "create collection with up to 4 elements"
+x := Bag new.                                    "allocate collection"
+x add: 4; add: 3; add: 1; add: 2; yourself.      "add element to collection"
+x add: 3 withOccurrences: 2.                     "add multiple copies to collection"
+y := x addAll: #(7 8 9).                         "add multiple elements to collection"
+y := x removeAll: #(7 8 9).                      "remove multiple elements from collection"
+y := x remove: 4 ifAbsent: [].                   "remove element from collection"
+b := x isEmpty.                                  "test if empty"
+y := x size.                                     "number of elements"
+b := x includes: 3.                              "test if element is in collection"
+y := x occurrencesOf: 3.                         "number of times object in collection"
+x do: [:a | Transcript show: a printString; cr]. "iterate over the collection"
+b := x conform: [:a | (a >= 1) & (a <= 4)].      "test if all elements meet condition"
+y := x select: [:a | a > 2].                     "return collection of elements that pass test"
+y := x reject: [:a | a < 2].                     "return collection of elements that fail test"
+y := x collect: [:a | a + a].                    "transform each element for new collection"
+y := x detect: [:a | a > 3] ifNone: [].          "find position of first element that passes test"
+sum := 0. x do: [:a | sum := sum + a]. sum.      "sum elements"
+sum := x inject: 0 into: [:a :c | a + c].        "sum elements"
+max := x inject: 0 into: [:a :c | (a > c)        "find max element in collection"
+   ifTrue: [a]
+   ifFalse: [c]].
+y := x asOrderedCollection.                       "convert to ordered collection"
+y := x asSortedCollection.                        "convert to sorted collection"
+y := x asBag.                                     "convert to bag collection"
+y := x asSet.                                     "convert to set collection"
+ ```
+
+## 集
+
+ 像Bag一样，但不允许重复元素。
+
+### IdentitySet
+
+ 使用同一测试（即`==`而非`=`） 
+
+ ```smalltalk
+x := Set with: 4 with: 3 with: 2 with: 1.        "create collection with up to 4 elements"
+x := Set new.                                    "allocate collection"
+x add: 4; add: 3; add: 1; add: 2; yourself.      "add element to collection"
+y := x addAll: #(7 8 9).                         "add multiple elements to collection"
+y := x removeAll: #(7 8 9).                      "remove multiple elements from collection"
+y := x remove: 4 ifAbsent: [].                   "remove element from collection"
+b := x isEmpty.                                  "test if empty"
+y := x size.                                     "number of elements"
+x includes: 4.                                   "test if element is in collection"
+x do: [:a | Transcript show: a printString; cr]. "iterate over the collection"
+b := x conform: [:a | (a >= 1) & (a <= 4)].      "test if all elements meet condition"
+y := x select: [:a | a > 2].                     "return collection of elements that pass test"
+y := x reject: [:a | a < 2].                     "return collection of elements that fail test"
+y := x collect: [:a | a + a].                    "transform each element for new collection"
+y := x detect: [:a | a > 3] ifNone: [].          "find position of first element that passes test"
+sum := 0. x do: [:a | sum := sum + a]. sum.      "sum elements"
+sum := x inject: 0 into: [:a :c | a + c].        "sum elements"
+max := x inject: 0 into: [:a :c | (a > c)        "find max element in collection"
+   ifTrue: [a]
+   ifFalse: [c]].
+y := x asArray.                                  "convert to array"
+y := x asOrderedCollection.                      "convert to ordered collection"
+y := x asSortedCollection.                       "convert to sorted collection"
+y := x asBag.                                    "convert to bag collection"
+y := x asSet.                                    "convert to set collection"
+ ```
+
+### Interval
+
+```smalltalk
+| b x y sum max |
+x := Interval from: 5 to: 10.                     "create interval object"
+x := 5 to: 10.
+x := Interval from: 5 to: 10 by: 2.               "create interval object with specified increment"
+x := 5 to: 10 by: 2.
+b := x isEmpty.                                   "test if empty"
+y := x size.                                      "number of elements"
+x includes: 9.                                    "test if element is in collection"
+x do: [:k | Transcript show: k printString; cr].  "iterate over interval"
+b := x conform: [:a | (a >= 1) & (a <= 4)].       "test if all elements meet condition"
+y := x select: [:a | a > 7].                      "return collection of elements that pass test"
+y := x reject: [:a | a < 2].                      "return collection of elements that fail test"
+y := x collect: [:a | a + a].                     "transform each element for new collection"
+y := x detect: [:a | a > 3] ifNone: [].           "find position of first element that passes test"
+sum := 0. x do: [:a | sum := sum + a]. sum.       "sum elements"
+sum := 0. 1 to: (x size) 
+            do: [:a | sum := sum + (x at: a)].    "sum elements"
+sum := x inject: 0 into: [:a :c | a + c].         "sum elements"
+max := x inject: 0 into: [:a :c | (a > c)         "find max element in collection"
+   ifTrue: [a]
+   ifFalse: [c]].
+y := x asArray.                                   "convert to array"
+y := x asOrderedCollection.                       "convert to ordered collection"
+y := x asSortedCollection.                        "convert to sorted collection"
+y := x asBag.                                     "convert to bag collection"
+y := x asSet.                                     "convert to set collection"
+```
+
+### 关联表
+
+```smalltalk
+| x y |
+x := #myVar->'hello'.
+y := x key.
+y := x value.
+```
+
+### 字典和同一字典
+
+```smalltalk
+| b x y |
+x := Dictionary new.                   "allocate collection"
+x add: #a->4; 
+  add: #b->3; 
+  add: #c->1; 
+  add: #d->2; yourself.                "add element to collection"
+x at: #e put: 3.                       "set element at index"
+b := x isEmpty.                        "test if empty"
+y := x size.                           "number of elements"
+y := x at: #a ifAbsent: [].            "retrieve element at index"
+y := x keyAtValue: 3 ifAbsent: [].     "retrieve key for given value with error block"
+y := x removeKey: #e ifAbsent: [].     "remove element from collection"
+b := x includes: 3.                    "test if element is in values collection"
+b := x includesKey: #a.                "test if element is in keys collection"
+y := x occurrencesOf: 3.               "number of times object in collection"
+y := x keys.                           "set of keys"
+y := x values.                         "bag of values"
+x do: [:a | Transcript show: a printString; cr].            "iterate over the values collection"
+x keysDo: [:a | Transcript show: a printString; cr].        "iterate over the keys collection"
+x associationsDo: [:a | Transcript show: a printString; cr]."iterate over the associations"
+x keysAndValuesDo: [:aKey :aValue | Transcript              "iterate over keys and values"
+   show: aKey printString; space;
+   show: aValue printString; cr].
+b := x conform: [:a | (a >= 1) & (a <= 4)].      "test if all elements meet condition"
+y := x select: [:a | a > 2].                     "return collection of elements that pass test"
+y := x reject: [:a | a < 2].                     "return collection of elements that fail test"
+y := x collect: [:a | a + a].                    "transform each element for new collection"
+y := x detect: [:a | a > 3] ifNone: [].          "find position of first element that passes test"
+sum := 0. x do: [:a | sum := sum + a]. sum.      "sum elements"
+sum := x inject: 0 into: [:a :c | a + c].        "sum elements"
+max := x inject: 0 into: [:a :c | (a > c)        "find max element in collection"
+   ifTrue: [a]
+   ifFalse: [c]].
+y := x asArray.                                   "convert to array"
+y := x asOrderedCollection.                       "convert to ordered collection"
+y := x asSortedCollection.                        "convert to sorted collection"
+y := x asBag.                                     "convert to bag collection"
+y := x asSet.                                     "convert to set collection"
+
+Smalltalk at: #CMRGlobal put: 'CMR entry'.        "put global in Smalltalk Dictionary"
+x := Smalltalk at: #CMRGlobal.                    "read global from Smalltalk Dictionary"
+Transcript show: (CMRGlobal printString).         "entries are directly accessible by name"
+Smalltalk keys do: [ :k |                         "print out all classes"
+   ((Smalltalk at: k) isKindOf: Class)
+      ifFalse: [Transcript show: k printString; cr]].
+Smalltalk at: #CMRDictionary put: (Dictionary new). "set up user defined dictionary"
+CMRDictionary at: #MyVar1 put: 'hello1'.            "put entry in dictionary"
+CMRDictionary add: #MyVar2->'hello2'.               "add entry to dictionary use key->value combo"
+CMRDictionary size.                                 "dictionary size"
+CMRDictionary keys do: [ :k |                       "print out keys in dictionary"
+   Transcript show: k printString; cr].
+CMRDictionary values do: [ :k |                     "print out values in dictionary"
+   Transcript show: k printString; cr].
+CMRDictionary keysAndValuesDo: [:aKey :aValue |     "print out keys and values"
+   Transcript
+      show: aKey printString;
+      space;
+      show: aValue printString;
+      cr].
+CMRDictionary associationsDo: [:aKeyValue |           "another iterator for printing key values"
+   Transcript show: aKeyValue printString; cr].
+Smalltalk removeKey: #CMRGlobal ifAbsent: [].         "remove entry from Smalltalk dictionary"
+Smalltalk removeKey: #CMRDictionary ifAbsent: [].     "remove user dictionary from Smalltalk dictionary"
+```
+
+### 内部流
+
+```smalltalk
+
 ```
 
 
@@ -347,6 +639,35 @@ Smalltalk中，集合的索引都是从1开始。
 ```smalltalk
 x := 5.
 ```
+
+### 条件语句
+
+```smalltalk
+tries > 5
+  ifTrue: [^ 'Too many tries']
+  ifFalse: [^ 'Trying again'].
+  
+x > 10
+  ifTrue: [x > 5
+    ifTrue: ['A']
+  	ifFalse: ['B']]
+  ifFalse: ['C'].
+```
+
+### 循环语句
+
+```smalltalk
+| x y |
+x := 4. y := 1.
+[x > 0] whileTrue: [x := x - 1. y := y * 2].     "while true loop"
+[x >= 4] whileFalse: [x := x + 1. y := y * 2].   "while false loop"
+x timesRepeat: [y := y * 2].                     "times repeat loop (i := 1 to x)"
+1 to: x do: [:a | y := y * 2].                   "for loop"
+1 to: x by: 2 do: [:a | y := y / 2].             "for loop with specified increment"
+#(5 4 3) do: [:a | x := x + a].                  "iterate over array elements"
+```
+
+
 
 # 类
 
