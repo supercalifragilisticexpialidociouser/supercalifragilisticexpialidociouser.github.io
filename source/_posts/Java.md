@@ -727,7 +727,7 @@ if (str != null && str.length() != 0)  //首先要检查str不为null。
 
 ### 字符串的长度
 
-字符串的长度是指字符串所包含字符的数量。在Java中，可以通过调用`length()`方法来获得字符串中代码单元的数量，而调用`codePointCount()`则获得码点的数量：
+字符串的长度是指字符串所包含字符的数量。在Java中，可以通过调用`length()`方法来获得字符串中编码单元的数量，而调用`codePointCount()`则获得码点的数量：
 
 ```java
 String greeting = "Hello";
@@ -749,7 +749,7 @@ String s = "He is " + age + " years old.";
 如果需要使用一个分隔符将多个字符串拼接在一起，可以使用静态的`join`方法：
 
 ```java
-String all = String.join(" / ", "S", "M", "L", "XL");  //"S / M / L / XL
+String all = String.join(" / ", "S", "M", "L", "XL");  //all = "S / M / L / XL"
 ```
 
 另外，`concat`方法与`+`执行相同的功能。
@@ -793,6 +793,8 @@ int cp = sentence.codePointAt(i);
  "Hello" == "hello"  //比较两个字符串是否放置在相同位置上
 ```
 
+在Java虚拟机中，每个字符串字面量只有一个实例，因此`"World" == "World"`为真。
+
 > C++的`==`与Java的`equals`方法类似。C使用`strcmp`函数比较字符串，它与Java的`compareTo`方法类似。
 
 `regionMatches`方法可以比较字符串中的某个特定部分与另一个字符串中的某个特定部分。
@@ -805,9 +807,11 @@ int cp = sentence.codePointAt(i);
 "Foobar".endsWith("bar")      //true
 ```
 
-`compareTo`方法会根据字典顺序比较两个字符串的排序。例如：`str1.compareTo(str2)`。如果`str1`按字典顺序位于`str2`之前，则结果小于0；如果`str1`位于`str2`之后，则结果大于0；如果两个字符串相等，则结果等于0。
+`compareTo`方法会根据字典顺序（依赖于Unicode值）比较两个字符串的排序。例如：`str1.compareTo(str2)`。如果`str1`按字典顺序位于`str2`之前，则结果小于0；如果`str1`位于`str2`之后，则结果大于0；如果两个字符串相等，则结果等于0。
 
 `compareTo`是考虑大小写的，如果希望忽略大小写区别，可以使用`compareToIgnoreCase`方法。
+
+如果要基于特定语言的排序规则，则可以使用`Collator`对象。
 
 ### 查找字符串
 
@@ -853,6 +857,8 @@ String s = "   Hello world    ".trim();   //s="Hello world"
 
 `valueOf`方法是静态方法，实际上调用`valueOf`方法，最终都是调用`toString`方法。
 
+要将包含整数的字符串转换为数值，则使用`Integer.parseInt()`、`Double.parseDouble()`等方法。
+
 #### 字符串与数组
 
 下面的代码将字符串转换为一个码点数组（每个`int`值对应一个码点）：
@@ -885,7 +891,13 @@ s.getChars(start, end, buf, 0);
 
 还可以将字符串转换为一个字节数组，使用`getBytes`方法。当将`String`值导出到不支持16位Unicode字符的环境中时，最常用`getBytes`方法。
 
-## StringBuffer
+### 格式化字符串
+
+`String.format()`
+
+## 其他字符串类型
+
+### StringBuffer
 
 `StringBuffer`支持可变的字符串，并且，它可以应用在多线程环境中。
 
@@ -925,7 +937,7 @@ StringBuffer sb = new StringBuffer("This is a test.");
 sb.replace(5, 7, "was");  //"This was a test."
 ```
 
-## StringBuilder
+### StringBuilder
 
 `StringBuilder`是由JDK 5引入的，它也支持可变的字符串，但是，它不是同步的，适合在单线程环境中。它的效率比`StringBuffer`高一些。
 
@@ -1039,11 +1051,29 @@ Size s = Size.MEDIUM;  //不需要带参数
 
 整数除以0将会产生一个异常， 而浮点数除以0将会得到无穷大或NaN（0 / 0） 结果。
 
+#### 取整
+
 除法的取整分为三类：向上取整、向下取整、向零取整。
 
 1. 向上取整：向+∞方向取最接近精确值的整数。在这种取整方式下，5 / 3 = 2， -5 / -3 = 2， -5 / 3 = -1， 5 / -3 = -1 。
-2. 向下取整：向-∞方向取最接近精确值的整数。在这种取整方式下，5 / 3 = 1， -5 / -3 = 1， -5 / 3 = -2， 5 / -3 = -2 。（Python）
+2. 向下取整：向-∞方向取最接近精确值的整数。在这种取整方式下，5 / 3 = 1， -5 / -3 = 1， -5 / 3 = -2， 5 / -3 = -2 。（Python、Java的Math.floorDiv()）
 3. 向零取整：向0方向取最接近精确值的整数，换言之就是舍去小数部分，因此又称截断取整。在这种取整方式下，5 / 3 = 1， -5 / -3 = 1， -5 / 3 = -1， 5 / -3 = -1。（Java、C、C++）
+
+另外，`Math.floor()`直接对浮点数向下取整，`Math.ceil()`向上取整，`Math.round()`四舍五入取整。
+
+#### 舍入
+
+而`BigDecimal`实现了七种舍入方式（定义在枚举类型`RoundingMode`中）：
+
+| 方式                    | 1.40 | 1.60 | 1.50 | 2.50 | -1.50 |
+| ----------------------- | ---- | ---- | ---- | ---- | ----- |
+| 向偶数舍入（HALF_EVEN） | 1    | 2    | 2    | 2    | -2    |
+| 向零舍入（DOWN）        | 1    | 1    | 1    | 2    | -1    |
+| 向下舍入（FLOOR）       | 1    | 1    | 1    | 2    | -2    |
+| 向上舍入（CEILING）     | 2    | 2    | 2    | 3    | -1    |
+| 四舍五入（HALF_UP）     | 1    | 2    | 2    | 3    | -1    |
+| 远离零舍入（UP）        | 2    | 2    | 2    | 3    | -2    |
+| 五舍六入（HALF-DOWN）   | 1    | 2    | 1    | 2    | -1    |
 
 ### 求模
 
@@ -1083,7 +1113,16 @@ public static strictfp void main(String[] args)
 
 ```java
 BigInteger a = BigInteger.valueOf(100);
+BigInteger b = BigInteger.valueOf(15, 6);  //b = 15*(10^6)
 ```
+
+也可以用数字字符串构造大数值：
+
+```java
+BigInteger k = new BigInteger("34893439020483900224776611");
+```
+
+Java不允许对象使用运算符，因此操作大数时，必须使用方法调用。
 
 ## 关系表达式
 
@@ -3739,6 +3778,8 @@ i = (int) d;  //截尾，i：323
 b = (byte) d; //截尾并取模，b：67
 ```
 
+`Math.toIntExact()`可以将`long`值转换为`int`值，并且当发生溢出时抛出异常。
+
 ####向下转型
 
 必须是有继承关系的类之间才能进行向下转型。
@@ -3771,6 +3812,61 @@ if (p2 instanceof Student) {
 ## 类型别名
 
 # 输入和输出
+
+## 标准输入和输出
+
+### 标准输出
+
+`System.out.println()`：输出发送到“标准输出流”，并且结尾自动带上换行符。
+
+`System.out.print()`：输出发送到“标准输出流”。
+
+### 读取输入
+
+`System.in`对象只有从输入中读取单个字节的方法，要读取字符串和数值，需要使用`Scanner`。
+
+```java
+Scanner in = new Scanner(System.in);
+System.out.println("What is your name?");
+String name = in.nextLine();  //从输入中读取一行
+```
+
+要读取单个单词（以空格分隔），调用
+
+```java
+String firstName = in.next();
+```
+
+要读取数值，使用`nextInt()`、`nextDouble()`等方法。
+
+可以使用`hasNextLine()`、`hasNext()`、`hasNextInt()`、`hasNextDouble()`方法检查是否还有一行、一个单词、一个整数或一个浮点数可以读取。
+
+```java
+if (in.hasNextInt()) {
+  int age = in.nextInt();
+  …
+}
+```
+
+要读取密码时，可以使用`Console`，因为`Scanner`的终端输入是可见的。
+
+```java
+Console terminal = System.console();
+String username = terminal.readLine("User name: ");
+char[] passwd = terminal.readPassword("Password: ");
+```
+
+在命令行中，可以使用系统中Shell的重定向语法，将文件中的数据输入到我们的程序，或者将我们程序的输出写入到文件中：
+
+```bash
+$ java mypackage.MainClass < input.txt > output.txt
+```
+
+这样，在`mypackage.MainClass`中就可以使用标准输入和输出方法处理这些数据了。
+
+### 格式化输出
+
+
 
 # 异常处理
 
