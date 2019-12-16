@@ -159,6 +159,18 @@ $ java -cp . Hello
 >
 > 如果该类属于某个包时，类名要用完整限定名，且该包也要在类路径中。
 
+在指定类路径时，Windows平台使用分号分隔路径，而Linux/Unix中使用冒号分隔路径：
+
+```bash
+Windows平台：
+$ java -cp .;..\libs\lib1.jar;..\libs\lib2.jar com.mycompany.MainClass
+
+Linux/Unix平台：
+$ java -cp .:..\libs\lib1.jar:..\libs\lib2.jar com.mycompany.MainClass
+```
+
+
+
 ### 命令行参数
 
 在运行程序时，可以将命令行参数直接跟在程序后面（注意是在运行的类名之后，而不是直接跟在`java`之后，否则会被当作`java`命令的参数）就可以了，如果有多个命令行参数，则使用空格分隔。如：
@@ -170,6 +182,34 @@ $ java com.ghoolooloo.java.CommandLineParameters -h these are parameters
 应用程序的命令行参数会传递到`main`方法的字符串数组`args`中。`arg[0]`存放第一个参数（即`"these"`），以此类推。如果没有命令行参数，则`args`的长度为`0`，而不是`null`。
 
 ## 调试
+
+## 打包
+
+将多个class文件打包到一个JAR归档文件中：
+
+```bash
+$ jar --create --verbose --file foo.jar com/abc/*.class
+或者
+$ jar -c -v -f foo.jar com/abc/*.class
+或者
+$ jar cvf foo.jar com/abc/*.class
+```
+
+> 注意：在UNIX中，禁止使用`*`以防止shell命令进一步扩展。因此，要对上面的`*`进行转义：
+>
+> ```bash
+> $ $ jar cvf foo.jar com/abc/\*.class
+> ```
+
+如果程序是可执行的，即包含主类，则使用下列命令打包成一个可执行JAR：
+
+```bash
+$ jar -c -f foo.jar -e com.abc.MainClass com/abc/*.class
+运行可执行JAR：
+$ java -jar foo.jar
+```
+
+
 
 # 程序结构
 
@@ -185,7 +225,19 @@ Java程序是由类组成的。
 
 ### 文档注释
 
+在源代码中添加形如`/** … */`的注释，则很容易通过javadoc工具来生成专业的文档。
 
+javadoc通常提取下列文档注释来生成文档：
+
+- 公有类和接口；
+- 公有和保护的构造器、方法和字段；
+- 包和模块。
+
+在文档注释中，可以包含受限制的HTML。
+
+如果在文档注释中需要包含对其他文件（例如图片）的链接，则将这些文件放在包含源文件的目录下的`doc-files`子目录中。这样，就可以在路径中使用这些图片了，例如：`<img src="doc-files/uml.png" alt="UML diagram">`。javadoc会将`doc-files`目录和它们的内容从源代码目录复制到文档目录。
+
+可以使用`@see`和`@link`给Javadoc文档添加超链接
 
 ## 程序入口
 
@@ -283,7 +335,7 @@ Java使用Unicode表示字符。码点（ code point ) 是指与一个编码表�
 
 UTF-16 编码采用不同长度的编码表示所有Unicode 码点。在基本的多语言级别中， 每个字符用16 位表示，通常被称为编码单元（ code unit ) ; 而辅助字符采用一对连续的编码单元进行编码。这样构成的编码值落入基本的多语言级别中空闲的2048 字节内， 通常被称为替代区域（surrogate area) [ `U+D800` ~ `U+DBFF` 用于第一个编码单元，`U+DC00` ~ `U+DFFF` 用于第二个代码单元]。这样设计十分巧妙， 我们可以从中迅速地知道一个编码单元是一个字符的编码， 还是一个辅助字符的第一或第二部分。例如，`⑪`是八元数集（ http://math.ucr.edu/home/baez/octonions ) 的一个数学符号， 码点为`U+1D546`, 编码为两个代码单元`U+D835` 和`U+DD46`。
 
-在Java 中，`char` 类型描述了UTF-16 编码中的一个编码单元，因此是16位的。强烈建议不要在程序中使用`char` 类型， 除非确实需要处理UTF-16 编码单元，它们太底层了。最好将字符串作为抽象数据类型处理（参见字符串中的“码点和编码单元”）。要将码点转换成字符串，可使用`new`
+在Java 中，`char` 类型描述了UTF-16 编码中的一个编码单元，因此是16位的。强烈建议不要在程序中使用`char` 类型， 除非确实需要处理UTF-16 编码单元，它们太底层了。最好将字符串作为抽象数据类型处理。要将码点转换成字符串，可使用`new`
 `String(Character.toChars(codePoint))`。
 
 `char`类型可以用作整数类型，可以执行算术运算。`char`可以看作是无符号的整数类型。
@@ -405,7 +457,7 @@ int nums4[], nums5[];
 
 一旦实例化了数组，就不能再改变它的大小（即数组元素数量），但可以改变每个数组元素。如果经常需要在运行过程中扩展数组的大小， 就应该使用另一种数据结构——数组列表（`ArrayList` )。
 
-> Java 数组与C++ 数组在堆栈上有很大不同， 但基本上与分配在堆（heap) 上的数组指针一样。也就是说，
+> Java 数组与C++ 数组在栈上有很大不同， 但基本上与分配在堆（heap) 上的数组指针一样。也就是说，
 >
 > ```java
 > int[] a = new int[100]; // Java
@@ -414,7 +466,7 @@ int nums4[], nums5[];
 > 不同于
 >
 > ```c++
-> int a[100]; // C++
+> int a[100]; // C++，在栈上
 > ```
 >
 > 而等同于
@@ -503,13 +555,13 @@ luckyNumbers[5] = 12; // now smallPrimes[5] is also 12
 int[] copiedLuckyNumbers = Arrays.copyOf(luckyNumbers, luckyNumbers.length);
 ```
 
-还可以用这个方法来“改变”数组的大小：
+新增加的元素自动初始化为`0` （数值类型、字符类型）、`false` （布尔类型）或`null` （引用类型）。相反，如果数组长度小于原始数组的长度，则只复制最前面的数组元素。
+
+可以用这个方法来“改变”数组的大小：
 
 ```java
 luckyNumbers = Arrays.copyOf(luckyNumbers, 2 * luckyNumbers.length) ;
 ```
-
-新增加的元素自动初始化为`0` （数值类型、字符类型）、`false` （布尔类型）或`null` （引用类型）。相反，如果数组长度小于原始数组的长度，则只复制最前面的数组元素。
 
 另外，复制数组还可以使用`System.arraycopy()`：
 
@@ -562,16 +614,16 @@ Arrays.sort(a);  // 现在数组a是排好序的了。
 类型 数组变量[]…[] = new 类型[元素数量1]…[元素数量N];
 ```
 
-> 在C++ 中， Java 声明
+>  Java 声明
 >
 > ```java
 > double[][] balances = new double[10][6]; //Java
 > ```
 >
-> 不同于
+> 不同于C++
 >
 > ```c++
-> double balances[10][6] ; // C++
+> double balances[10][6] ; // C++，在栈上
 > ```
 >
 > 也不同于
@@ -679,6 +731,14 @@ System.out.println(Arrays.deepToString(twoD));  //[[0], [1, 2], [3, 4, 5], [6, 7
 
 ## Arrays类
 
+`Arrays.fill()`：填充数组。
+
+`Arrays.sort()`：数组排序。
+
+`Arrays.parallelSort()`：数组较大时，该方法会将排序工作分布到多个处理器上运行。
+
+`Arrays.toString()`：产生一个数组的字符串表示。
+
 # 字符串
 
 在很多语言中，包括C/C++，字符串是作为字符数组实现的。然而，在Java中不是如此。在Java中，字符串实际上是一个对象（`String`类的实例）。
@@ -785,7 +845,7 @@ else i++;
 
 ```java
 i--；
-if (CharacterssSurrogate(sentence.charAt(i))) i--;
+if (Character.isSurrogate(sentence.charAt(i))) i--;
 int cp = sentence.codePointAt(i);
 ```
 
@@ -859,7 +919,7 @@ String s = "   Hello world    ".trim();   //s="Hello world"
 
 `print()`和`println()`在打印对象时，实际上是打印它们调用`toString()`后的结果。
 
-`valueOf`方法是静态方法，实际上调用`valueOf`方法，最终都是调用`toString`方法。
+`valueOf`方法是静态方法，实际上调用`toString`方法。
 
 要将包含整数的字符串转换为数值，则使用`Integer.parseInt()`、`Double.parseDouble()`等方法。
 
@@ -1036,6 +1096,7 @@ Size s = Size.MEDIUM;  //不需要带参数
 | `&&`                                                         | 左     |
 | `||`                                                         | 左     |
 | `? :`（条件表达式）                                          | 左     |
+| `->`                                                         |        |
 | `=`  `+=`  `-=`  `*=`  `/=`  `%=`  `<<=`  `>>=`  `>>>=`  `&=`  `^=`  `|=` | 右     |
 
 ## 算术表达式
@@ -1780,6 +1841,18 @@ return 返回表达式;
 
 Java中没有全局的函数，只有定义在类中的方法。
 
+### 变长参数
+
+变长参数是指可接收任意个参数（包括0个参数）：
+
+```java
+public static double max(double first, double... rest) {…}
+```
+
+变长参数必须是方法的最后一个参数。
+
+变长参数也可以直接接受一个数组。
+
 ## 运算符
 
 Java的运算符都是内置的，不能自定义新的运算符，也不能重载已有的运算符。
@@ -1982,7 +2055,7 @@ new 构造器名();  //使用默认构造器构造实例
 
 构造器与类同名，每个类可以有一个以上的构造器。
 
-构造器与方法有一个重要的不同：构造器没有返回值，连`void`返回类型都不能有，因此不能使用`return`语句。
+构造器与方法有一个重要的不同：构造器没有返回值，连`void`返回类型都不能有，因此不能使用`return`语句。否则，如果意外地指定了一个返回类型（例如`void`），则它只是一个普通方法，而不是构造器。
 
 ##### 调用构造器
 
@@ -2199,6 +2272,8 @@ public final int ID = 1;  //公有常量实例字段。参见“final字段”�
 
 实例常量字段要么在声明时初始化，要么在构造器或实例初始化块中初始化。
 
+字段在声明时初始化时，它是在对象分配内存之后，构造器运行之前初始化的。因此，初始值在所有构造器中都是可见的。
+
 初始化表达式的结果类型必须与实例字段的类型相同或兼容，且可以是任意表达式。
 
 > 在C++ 中， 不能直接初始化类的实例字段，所有的字段必须在构造器中设置。但是， 有一个特殊的初始化器列表语法， 如下所示：
@@ -2351,6 +2426,16 @@ public static final double PI = 3.14159265358979323846;  //参见“final字段�
 类.静态方法(可选的实参列表);
 对象.静态方法(可选的实参列表);
 ```
+
+##### 工厂方法
+
+静态方法常见的使用就是工厂方法，也就是返回一个类的新实例的静态方法。
+
+之所以使用工厂方法而不是使用构造器的原因有：
+
+1. 区分两个构造器的唯一方法是它们的参数类型。因此，没办法有两个无参构造器；
+2. 工厂方法能返回一个子类的对象；
+3. 工厂方法能返回共享对象，而无须每次构建一个新对象。
 
 #### 方法参数
 
@@ -2582,7 +2667,7 @@ this(可选的实参列表);
 
 - 命名控制：嵌套类会引入新的类作用域（与包类似）。
 - 访问控制：嵌套类可以访问外围类中的任何成员，包括私有成员。
-- 当相要定义一个回调函数且不想编写大量代码时，使用匿名类比较便捷。
+- 当想要定义一个回调函数且不想编写大量代码时，使用匿名类比较便捷。
 
 嵌套是一种类之间的关系，而不是对象之间的关系。外围类的对象并不包含嵌套类的对象。
 
@@ -2644,16 +2729,16 @@ Inner inner = this.new Inner();
 
 ```java
 Outer outer = new Outer();
-Outer.Inner = outer.new Inner();
+Outer.Inner inner = outer.new Inner();
 ```
 
 内部类中声明的所有静态字段都必须是`final`。因为，我们希望一个静态字段只有一个实例， 不过对于每个外围类对象，会分别有一个单独的内部类实例。如果这个字段不是`final` , 它可能就不是唯一的。
 
-内部类不能有静态方法。
+同样道理，内部类不能有静态方法。
 
 #### 静态嵌套类
 
-只有嵌套类才能使用`static`修饰符。
+只有嵌套类才能使用`static`修饰符，普通类不可以。
 
 静态嵌套类没有引用外围类对象的指针。
 
@@ -2664,7 +2749,7 @@ Outer.Inner = outer.new Inner();
 如果静态嵌套类对外围类的外部可见，则在外围类的外部，就必须使用`new 外围类.静态嵌套类(可选的实参列表)`来创建静态嵌套类的实例。并且，在外围类外部，必须使用`外围类.静态嵌套类`形式来引用静态嵌套类：
 
 ```java
-Outer.Inner = new Outer.Inner();
+Outer.Inner inner = new Outer.Inner();
 ```
 
 声明在接口中的嵌套类自动成为`static` 和`public` 。
@@ -3464,6 +3549,16 @@ Class proxyClass = Proxy.getProxyClass(null, interfaces);
 ## 集
 
 ## Collections类
+
+`Collections.fill()`：填充列表。
+
+`Collections.sort()`：列表排序。
+
+`列表对象.toString()`：产生一个列表的字符串表示。
+
+`Collections.reverse()`：反转列表元素。
+
+`Collections.shuffle()`：随机打乱列表元素。
 
 # 命名空间——包
 
