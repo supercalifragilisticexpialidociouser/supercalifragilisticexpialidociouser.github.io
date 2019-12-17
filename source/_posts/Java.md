@@ -1445,6 +1445,60 @@ Java中没有逗号表达式，for循环的`初始化`和`迭代`中出现的逗
 
 ## Lambda表达式
 
+示例：
+
+```java
+(String first, String second)
+	-> Integer.compare(first.length(), second.length())
+```
+
+lambda表达式不允许声明返回类型，它会自动通过上下文推导出。
+
+箭头右边也可以是一个语句块：
+
+```java
+(String first, String second) -> {
+  if (first.length() < second.length()) return -1;
+  else if (first.length() > second.length()) return 1;
+  else return 0;
+}
+```
+
+如果lambda表达式没有参数，则仍需要提供一个空括号：
+
+```java
+() -> {for (int i=0; i<1000; i++) dowork();}
+```
+
+如果lambda表达式的参数类型可以通过上下文推导出，则可以省略参数类型：
+
+```java
+Comparator comp
+  = (first, second) -> Integer.compare(first.length(), second.length());
+```
+
+对于只包含一个抽象方法的接口（在java8中，接口可以声明非抽象方法），你可以通过lambda表达式来创建该接口的对象，这种接口也称为函数式接口。
+
+```java
+Arrays.sort( words,
+            (first, second) -> Integer.compare(first.length(), second.length()));
+```
+
+函数式编程语言中有函数类型，但在Java中仍然不能使用函数类型，只能使用函数式接口。
+
+不能将lambda表达式赋给一个Object类型的变量，因为Object不是函数式接口。
+
+在函数式接口上可以标注@FunctionalInterface注解，虽然不是强制的（所有只包含一个抽象方法的接口都是函数式接口），但标注这样的注解编译器会提供一些函数式接口的合法性检查，并且javadoc上也会说明这个接口是函数式接口。
+
+如果lambda表达式只有一个参数，且参数类型可以通过上下文推导出，则可以省略包围参数的括号：
+
+```java
+EventHandler listener = event ->
+  System.out.println("Thanks for clicking!");
+```
+
+另外，可以像对待方法参数一样，可以向lambda表达式参数添加注解或final修饰符。
+
 # 语句
 
 ## 语句结束符
@@ -2121,7 +2175,9 @@ janes.Employee("James Bond", 250000, 1950, 1, 1) // ERROR
 
 ##### 构造器的访问控制
 
+##### 构造器引用
 
+`int[]::new` 等同于 `x -> new int[x]`。
 
 #### 初始化块
 
@@ -2674,6 +2730,14 @@ class Employee {
   …
 }
 ```
+
+#### 方法引用
+
+`类::静态方法`：例如`Math::pow`等同于`(x,y) -> Math.pow(x,y)`。
+
+`类::实例方法`：例如`String::compareToIgnoreCase` 等同于 `(x, y) -> x.compareToIgnoreCase(y)`。
+
+`对象::实例方法`：例如`this::equals` 等同于 `x -> this.equals(x)`，`super::toString` 等同于 `() -> super.toString()`。
 
 ### 重载
 
@@ -3272,6 +3336,40 @@ Integer i5 =new Integer(1);
 Integer i6 =new Integer(1);
 System.out.println(i5== i6); //输出“false”
 ```
+
+## 闭包
+
+lambda表达式与内部类类似，可以访问外围变量。这些变量在lambda表达式中实际上是自由变量。含有自由变量的代码块称为闭包（closure）。因此，Java中的闭包有lambda表达式和内部类。
+
+在lambda表达式中不允许更改自由变量的值。下面代码是不合法的：
+
+```java
+int matches =0;
+for (Path p : files)
+  new Thread(() -> {if (…) matches++;}).start();
+```
+
+但下列代码是合法的：
+
+```java
+int[] counter = new int[1];
+button.setOnAction(event -> counter[0]++);
+```
+
+在Java 8之前，内部类只允许访问final的局部变量。为了适应lambda表达式，现在内部类可以访问任何被初始化后，就不会再被重新赋予新值的变量。
+
+在lambda表达式中使用this时，this将引用创建该lambda表达式的方法的this参数。
+
+```java
+public class Application {
+  public void doWork() {
+    Runnable runner = () -> {…; System.out.println(this.toString()); …};
+    …
+  }
+}
+```
+
+这里this引用Application对象。
 
 # 接口
 
