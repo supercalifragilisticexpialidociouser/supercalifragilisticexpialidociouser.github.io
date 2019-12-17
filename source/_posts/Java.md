@@ -233,11 +233,53 @@ javadoc通常提取下列文档注释来生成文档：
 - 公有和保护的构造器、方法和字段；
 - 包和模块。
 
+#### 编写文档注释
+
 在文档注释中，可以包含受限制的HTML。
 
 如果在文档注释中需要包含对其他文件（例如图片）的链接，则将这些文件放在包含源文件的目录下的`doc-files`子目录中。这样，就可以在路径中使用这些图片了，例如：`<img src="doc-files/uml.png" alt="UML diagram">`。javadoc会将`doc-files`目录和它们的内容从源代码目录复制到文档目录。
 
-可以使用`@see`和`@link`给Javadoc文档添加超链接
+可以使用`@see`和`@link`给Javadoc文档添加超链接。`@see`必须顶头写且单独一行，而`@link`可以放在任意方。
+
+如果一个功能有多个`@see`，则要放在一起，不能分散开。
+
+`@see`语法：`@see 引用`。
+
+`@link`语法：`{@link 引用}`。
+
+“引用”部分可以是下列三种形式之一：
+
+- `包.类名#成员 标签`：“#成员”和“标签”都是可以省略的。
+- `<a href ="…">标签</a>`
+- `"文本"`
+
+如果要为包产生注释，则需要在该包中提供一个`package-info.java`的文件。该文件中包含包的文档注释，其后紧跟包声明，除此之外不应该包含更多的代码或注释。
+
+模块的文档注释放在`module-info.java`文件中。你可以通过`@moduleGraph`指令来包含模块依赖图。
+
+最后，还可以为所有源文件提供一个概述注释，它放在`overview.html`文件中。该文件位于包含所有源文件的父目录中。所有在标签`<body>…</body>`之间的文本都会被提取来生成文档。当用户从导航栏选择“Overview”时，就会显示这些注释。
+
+#### 生成文档
+
+要生成文档注释，首先，切换到包含所有源文件的目录（即包含`overview.html`文件的目录）；然后，运行命令：
+
+```bash
+$ javadoc -d 文档的生成目录 包1 包2 …
+```
+
+如果省略`-d`选项，则生成的文档会被提取到当前目录下。
+
+可以使用`-author`和`-version`选项在文档中包含`@author`和`@version`标记（默认情况下，这些标记会被省略）。
+
+`-link`选项可以将文档中引用的标准库中的类添加超链接，例如：
+
+```bash
+$ javadoc -link http://docs.oracle.com/javase/9/docs/api *.java
+```
+
+为所有的标准类库自动地链接到Oracle公司网站上的文档。
+
+如果使用`-linksource`选项，则每个源文件被转换为HTML，并且每个类名和方法名将链接到相应源代码转换的HTML。
 
 ## 程序入口
 
@@ -1201,6 +1243,8 @@ Java不允许对象使用运算符，因此操作大数时，必须使用方法�
 
 #### Comparator接口
 
+`Comparable`接口只能为对象提供一个比较方式，当需要为对象提供多种比较方式，就必须使用`Comparator`接口：
+
 ```java
 class LengthComparator implements Comparator<String> {
   public int compare(String first, String second) {
@@ -1212,9 +1256,19 @@ String[] friends = { "Peter", "Paul", "Mary" };
 Arrays.sort(friends, new LengthComparator());
 ```
 
-
-
 #### 包装器类的`compare`静态方法
+
+包装器类都有实现`Comparable`接口，比较两个包装器对象可以直接使用`compareTo`方法。另外，如果是比较两个原语类型，还可以使用静态的`compare`方法。例如下列两个表达式是等价的：
+
+```java
+int a = 1, b = 2;
+
+Integer.compare(a, b)
+等价于：
+Integer.valueOf(a).compareTo(Integer.valueOf(b))
+```
+
+
 
 ## 逻辑表达式
 
@@ -1388,6 +1442,8 @@ b = (byte) (a << 2);  //b=0
 ## 逗号表达式
 
 Java中没有逗号表达式，for循环的`初始化`和`迭代`中出现的逗号只是一个分隔符，而不是运算符。
+
+## Lambda表达式
 
 # 语句
 
@@ -1839,19 +1895,7 @@ return 返回表达式;
 
 ## 函数
 
-Java中没有全局的函数，只有定义在类中的方法。
-
-### 变长参数
-
-变长参数是指可接收任意个参数（包括0个参数）：
-
-```java
-public static double max(double first, double... rest) {…}
-```
-
-变长参数必须是方法的最后一个参数。
-
-变长参数也可以直接接受一个数组。
+Java中没有全局的函数，只有定义在类中的方法。（参见“方法”）
 
 ## 运算符
 
@@ -2510,11 +2554,11 @@ vaTest();
 int doIt(int a, int b, double c, int... vals) {}
 ```
 
-可将最后一个参数是数组的方法重新定义为可变参数方法，而不会破坏任何已经存在的代码。
+可将最后一个参数是数组的方法重新定义为可变长度参数方法，而不会破坏任何已经存在的代码。因为，可变长度参数也可以直接接受一个数组。
 
 此外，一个方法最多只能有一个可变长度参数。
 
-可变参数方法也可以重载：
+可变长度参数方法也可以重载：
 
 ```java
 void vaTest(int... v) {}
@@ -3242,6 +3286,7 @@ System.out.println(i5== i6); //输出“false”
   抽象实例方法声明
   默认方法定义
   静态方法定义
+  私有方法定义
   接口字段声明
 }
 ```
@@ -3283,11 +3328,11 @@ public interface Powered extends Moveable {
 }
 ```
 
-
-
 ## 接口方法
 
-接口中的所有方法自动地属于`public`。因此，在接口中声明方法时，不必提供关键字`public`。不过，在实现接口时，必须把方法显式声明为`public`; 否则，编译器将认为这个方法的访问属性是包可见性。
+接口中的所有方法自动地属于`public`。因此，在接口中声明方法时，不必提供关键字`public`。不过，在实现接口的类中，必须把重写的方法显式声明为`public`; 否则，编译器将认为这个方法的访问属性是包可见性。
+
+早期版本的Java中，接口方法必须是抽象的。但是现在，你可以添加3种有具体实现的方法：静态方法、默认方法和私有方法。
 
 ### 静态方法
 
@@ -3298,7 +3343,7 @@ public interface Powered extends Moveable {
 - Collection（接口）和Collections（实用工具类）
 - Path（接口）和Paths（实用工具类）
 
-在JDK8中，伴随类将不再需要。
+在JDK8中，伴随类将不再需要。特别是，工厂方法现在通常放在接口中定义。
 
 ### 默认方法
 
@@ -3332,30 +3377,36 @@ public class Bag implements Collection {…}
 
 #### 解决默认方法冲突
 
-如果先在一个接口中将一个方法定义为默认方法，然后又在超类或另一个接口中定义了同样的方法，则：
+如果一个类实现了两个接口，其中一个接口有个默认方法，并且另一个接口也有名称和参数类型均相同的方法（默认方法或非默认方法），则实现类就**必须显式重写**这个方法来解决二义性。例如：
 
-1. 超类优先。如果超类提供了一个具体方法，则同名而且有相同参数类型的默认方法会被忽略。
+```java
+interface Named {
+	default String getName() { return getClass().getName() + "_" + hashCode(); }
+}
 
-2. 接口冲突。如果一个超接口提供了一个默认方法，另一个接口提供了一个同名而且参数类型（不论是否是默认参数）相同的方法，则在实现类中必须显式重写这个方法来解决冲突（即由程序员来解决这个二义性）。
+interface Person {
+  String getName();
+  …
+}
 
-   ```java
-   interface Named {
-   	default String getName() { return getClass().getName() + "_" + hashCode(); }
-   }
+class Student implements Person, Named {
+	public String getName() { 
+    return Person.super.getName();  //使用Person的默认实现
+  }
+}
+```
 
-   interface Person {
-     String getName();
-     …
-   }
+但是，如果两个父接口都没有为名称和参数类型均相同的方法提供默认实现，则不存在冲突。这时，实现类要么实现方法，要么不实现方法并将该类声明为抽象类。
 
-   class Student implements Person, Named {
-   	public String getName() { 
-       return Person.super.getName();  //使用Person的默认实现
-     }
-   }
-   ```
+如果一个类继承了一个父类且实现了一个接口，而且父类和接口存在同名且参数类型相同的方法，则实现类自动选择父类的方法继承，而忽略来自接口的默认方法。
 
-   也就是说，当多个超接口提供了签名相同的方法时，只要至少有一个超接口提供了默认实现，则实现类就必须显式重写这个方法来解决二义性。否则，所有超接口都没有提供默认实现，则不存在冲突，不需要显式重写。
+### 私有方法
+
+从Java 9开始，接口中的方法可以是私有的。
+
+私有方法可以是`static`方法或者实例方法，但不能是默认方法。
+
+私有方法只能用于接口自身的方法中，它主要用于为接口的其他方法提供辅助。
 
 ## 接口字段
 
@@ -3365,7 +3416,7 @@ public class Bag implements Collection {…}
 
 标记接口（tagging interface）是不包含任何方法的接口，它唯一的作用就是允许在类型检查中使用`instanceof`。
 
-## 应用接口
+## 接口的向上转型
 
 接口不是类，尤其不能使用`new` 运算符实例化一个接口。
 
@@ -3375,7 +3426,7 @@ public class Bag implements Collection {…}
 Comparable x;
 ```
 
-接口变量必须引用实现了接口的类对象：
+接口变量必须引用实现了该接口的类对象：
 
 ```java
 x = new Employee(…); // OK provided Employee implements Comparable
@@ -3387,7 +3438,7 @@ x = new Employee(…); // OK provided Employee implements Comparable
 if (anObject instanceof Comparable) { … }
 ```
 
-### 接口与回调
+## 接口与回调
 
 ```java
 class TinePrinter implements ActionListener {
@@ -3402,7 +3453,7 @@ Timer t = new Timer(10000, listener);
 t.start();
 ```
 
-### 对象克隆
+## 对象克隆
 
 `Object`中的`clone`方法默认是浅克隆且是`protected`，要实现深克隆，需要实现`Cloneable`接口，并将`clone`重写为`public`。
 
@@ -3460,11 +3511,11 @@ class NestedIFDemo {
 
 
 
-## 接口与抽象类
+## 接口与多重继承
 
 一个类至多只能继承一个抽象类，但可以实现多个接口。
 
-Java不支持多继承，而接口可以提供多继承的大多数好处，同时还能避免多继承的复杂性和低效性。
+Java不支持多重继承，而接口可以提供多重继承的大多数好处，同时还能避免多重继承的复杂性和低效性。
 
 ## 代理
 
@@ -3772,7 +3823,7 @@ public Employee (String name, double salary, int year, int month, int day) {
 
 ## 类型检测
 
-`instanceof`运算符可以检测一个对象是否是某个类型的实例。例如：`x instanceof C`。这里`x`可以为`null`，不会产生异常，只是返回`false`。
+`instanceof`运算符可以检测一个对象是否是某个类型的实例。例如：`x instanceof T`，如果`T`是`x`对象所属类或父类时则返回`true`。这里`x`可以为`null`，不会产生异常，只是返回`false`。
 
 ## 类型兼容
 
