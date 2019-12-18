@@ -1445,7 +1445,7 @@ Java中没有逗号表达式，for循环的`初始化`和`迭代`中出现的逗
 
 ## Lambda表达式
 
-示例：
+Lambda表达式是一块代码，可以把它理解为一个匿名的函数。
 
 ```java
 (String first, String second)
@@ -1473,31 +1473,168 @@ lambda表达式不允许声明返回类型，它会自动通过上下文推导�
 如果lambda表达式的参数类型可以通过上下文推导出，则可以省略参数类型：
 
 ```java
-Comparator comp
-  = (first, second) -> Integer.compare(first.length(), second.length());
+(first, second) -> Integer.compare(first.length(), second.length())
 ```
 
-对于只包含一个抽象方法的接口（在java8中，接口可以声明非抽象方法），你可以通过lambda表达式来创建该接口的对象，这种接口也称为函数式接口。
+如果lambda表达式只有一个参数，且参数类型可以通过上下文推导出，则可以省略包围参数的括号：
+
+```java
+EventHandler<ActionEvent> listener = event ->
+  System.out.println("Thanks for clicking!");
+```
+
+另外，可以像对待方法参数一样，可以向lambda表达式参数添加注解或final修饰符。
+
+### 函数式接口
+
+对于只包含一个*抽象方法*的接口（在java8中，接口可以声明非抽象方法），你可以通过lambda表达式来创建该接口的对象，这种接口也称为**函数式接口**。例如：`Arrays.sort`方法的第二个参数要求是一个`Comparator`接口（该接口只有一个方法）的实例，可以直接给它提供一个lambda表达式：
 
 ```java
 Arrays.sort( words,
             (first, second) -> Integer.compare(first.length(), second.length()));
 ```
 
-函数式编程语言中有函数类型，但在Java中仍然不能使用函数类型，只能使用函数式接口。
+函数式编程语言中有函数类型，但在Java中仍然不能使用函数类型，只能使用函数式接口。因此，在Java中，你只能将lambda表达式赋值给（或传递给）类型为函数式接口的变量（或参数）。
 
-不能将lambda表达式赋给一个Object类型的变量，因为Object不是函数式接口。
+注意：不能将lambda表达式赋给一个Object类型的变量，因为Object是类，不是函数式接口。
 
-在函数式接口上可以标注@FunctionalInterface注解，虽然不是强制的（所有只包含一个抽象方法的接口都是函数式接口），但标注这样的注解编译器会提供一些函数式接口的合法性检查，并且javadoc上也会说明这个接口是函数式接口。
+#### 标准函数式接口
 
-如果lambda表达式只有一个参数，且参数类型可以通过上下文推导出，则可以省略包围参数的括号：
+JDK中提供了许多通用的函数式接口，应该尽量重用这些标准函数式接口。（详见：`java.util.function`包）
+
+例如：
 
 ```java
-EventHandler listener = event ->
-  System.out.println("Thanks for clicking!");
+Predicate.isEqual(a).or(Predicate.isEqual(b))
+等价于：
+x -> a.equals(x) || b.equals(x)
 ```
 
-另外，可以像对待方法参数一样，可以向lambda表达式参数添加注解或final修饰符。
+注：`Predicate.isEqual(a)`与`a::equals`相同，但是前者在`a`为`null`时仍能工作。
+
+#### 创建自己的函数式接口
+
+当标准函数式接口不能满足自己的需求时，就需要创建自己的函数式接口。
+
+```java
+@FunctionalInterface
+public interface PixelFunction {
+  Color apply(int x, int y);
+}
+```
+
+在函数式接口上可以标注`@FunctionalInterface`注解，虽然不是强制的（所有只包含一个抽象方法的接口都是函数式接口），但标注这样的注解编译器会提供一些函数式接口的合法性检查，并且javadoc上也会说明这个接口是函数式接口。
+
+### 实现延迟执行
+
+使用lambda表达式就在于延迟执行。毕竟，如果你想立即执行一段代码，则无须将代码封装进lambda，你可以直接调用。
+
+```java
+public interface IntConsumer {
+  void accept(int value);
+}
+
+public static void repeat(int n, IntConsumer action) {
+  for (int i = 0; i<n; i++) action.accept(i); //当action.accept(i)被调用时，lambda表达式体才会被执行
+}
+
+…
+
+repeat(10, i -> System.out.println("Countdown: " + (9 - i)));
+```
+
+### Lambda表达式与作用域
+
+Lambda表达式与嵌套代码块有着相同的作用域规则。
+
+在lambda表达式中不允许声明一个与局部变量同名的参数或局部变量：
+
+```java
+int first = 0;
+Comparator<String> comp = (first, second) -> first.length() - second.length(); //错误：参数first与局部变量first同名
+```
+
+lambda表达式中出现的`this`关键字总是代表创建该lambda表达式的方法的`this`参数：
+
+```java
+public class Application {
+  public void doWork() {
+    Runnable runner = () -> {…; System.out.println(this.toString());}
+    …
+  }
+  …
+}
+```
+
+这里，表达式`this.toString()`调用的是`Application`对象的`toString`方法，而不是`Runnable`实例的`toString`方法。
+
+### Lambda表达式与闭包
+
+Lambda表达式可以访问包含它的方法或类的变量：
+
+```java
+public static void repeatMessage(String text, int count) {
+  Runnable r = () -> {
+    for (int i=0; i<count; i++) {
+      System.out.println(text);
+    }
+  };
+  new Thread(r).start();
+}
+```
+
+注意：lambda表达式的代码可能会在`repeatMessage`方法返回之后很久才会运行，因此，代表lambda表达式的数据结构必须存储（有时也叫捕获）它访问的两个自由变量——`text`和`count`。
+
+lambda表达式实际上是一个闭包（closure），即带有自由变量值的代码块。
+
+lambda表达式只能捕获那些值不会改变的变量。
+
+```java
+for (int i=0; i<n; i++) {
+  new Thread(() -> System.out.println(i)).start(); //错误：不能捕获i。因为变量i作用域是整个循环，且在循环中变量i的值是不断变化的。
+}
+
+for (String arg : args) {
+  new Thread(() -> System.out.println(arg)).start();  //可以捕获arg。因为每次迭代会创建新的arg变量，并且arg变量始终没有被修改。
+}
+```
+
+在lambda表达式中不能改变任何捕获的变量：
+
+```java
+public static void repeatMessage(String text, int count, int threads) {
+  Runnable r = () -> {
+    while (count>0) {
+      count--; //错误：不能改变捕获的变量
+      System.out.println(text);
+    }
+  };
+  for (int i=0; i<threads; i++) new Thread(r).start();
+}
+```
+
+注意：禁止修改变量只是针对局部变量。如果`count`是实例变量或外部类的静态变量，那么即使结果是不确定的，也不会报错。
+
+有时需要绕过禁止修改自由变量的限制，这可以通过使用长度为1的数组绕过限制：
+
+```java
+int[] counter = new int[1];
+button.setOnAction(event -> counter[0]++); //被改变的是数组counter的元素，而counter一直引用同一个数组。
+```
+
+### 高阶函数
+
+Java虽然不是一个完全的函数式编程语言，但它可以通过函数式接口来实现高阶函数功能。
+
+```java
+public static Comparator<String> reverse(Comparator<String> comp) {
+  return (x, y) -> comp.compare(y, x); //返回函数
+}
+…
+reverse(String::compareToIgnoreCase); //传递函数
+```
+
+
 
 # 语句
 
@@ -2177,7 +2314,23 @@ janes.Employee("James Bond", 250000, 1950, 1, 1) // ERROR
 
 ##### 构造器引用
 
+构造器引用与方法引用类似，不同的是构造器引用中的方法名都是`new`。如果一个类有多个构造器，则选择哪个构造器取决于上下文。（其他规则参见“方法引用”）
+
+```java
+List<String> names = …;
+Stream<Employee> stream = names.stream().map(Employee::new);
+```
+
+你可以使用数组类型来编写构造器引用：
+
 `int[]::new` 等同于 `x -> new int[x]`。
+
+数组构造器引用可以用来绕过Java中的一个限制：在Java中，无法构造一个泛型数组。因此，诸如`Stream.toArray`方法返回一个`Object`数组，而不是一组元素类型的数组。而通过数组构造器引用，则可以解决这个问题：
+
+```java
+// Object[] employees = stream.toArray();
+Employee[] employees = stream.toArray(Employee[]::new);
+```
 
 #### 初始化块
 
@@ -2733,11 +2886,40 @@ class Employee {
 
 #### 方法引用
 
-`类::静态方法`：例如`Math::pow`等同于`(x,y) -> Math.pow(x,y)`。
+有时，你想要传递给函数式接口的代码已经有实现的方法了。这时，使用一种特殊的语法：方法引用，它甚至比lambda表达式更简短。
 
-`类::实例方法`：例如`String::compareToIgnoreCase` 等同于 `(x, y) -> x.compareToIgnoreCase(y)`。
+方法引用主要有下列三种形式：
 
-`对象::实例方法`：例如`this::equals` 等同于 `x -> this.equals(x)`，`super::toString` 等同于 `() -> super.toString()`。
+- `类::静态方法`：
+
+  ```java
+  list.removeIf(x -> x == null);
+  等价于：
+  list.removeIf(Objects::isNull);
+  ```
+
+- `类::实例方法`：
+
+  ```java
+  Arrays.sort(strings, (x, y) -> x.compareToIgnoreCase(y));
+  等价于：
+  Arrays.sort(strings, String::compareToIgnoreCase);
+  ```
+
+- `对象::实例方法`：
+
+  ```java
+  list.forEach(x -> System.out.println(x));
+  等价于：
+  list.forEach(System.out::println);
+  ```
+  
+  可以在方法引用中捕获`this`和`super`。例如：`this::equals`等同于`x -> this.equals(x)`。
+  在内部类中，可以通过`外部类.this::方法名`来捕获外部类的`this`方法引用。
+
+当有多个同名的重载方法时，编译器会试图从上下文中找到匹配的那个方法。例如，有多个版本的`println`方法。当传递给`ArrayList<String>`的`forEach`方法时，编译器会选择`println(String)`方法。
+
+  
 
 ### 重载
 
@@ -2886,7 +3068,7 @@ class Outer {
 }
 ```
 
-与其他内部类相比较，局部类还有一个优点。它们不仅能够访问包含它们的外围类， 还可以访问局部变量。在Java 8之前，局部类只允许访问`final`的局部变量。为了适应lambda表达式，现在局部内部类可以访问任何被初始化后，就不会再被重新赋予新值的局部变量（effectively final）。
+与其他内部类相比较，局部类还有一个优点。它们不仅能够访问包含它们的外围类， 还可以访问局部变量。在Java 8之前，局部类只允许访问`final`的局部变量。为了与lambda表达式保持一致，现在局部内部类可以访问任何被初始化后，就不会再被重新赋予新值的局部变量（effectively final）。
 
 ```java
 public void start(int interval, boolean beep) {
