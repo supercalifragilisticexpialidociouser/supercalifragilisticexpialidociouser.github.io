@@ -1256,6 +1256,26 @@ String[] friends = { "Peter", "Paul", "Mary" };
 Arrays.sort(friends, new LengthComparator());
 ```
 
+`Comparator`接口还提供了许多有用的产生比较器的高阶函数：
+
+- `comparing`方法：接受一个函数，该函数从类型`T`中提取一个`Comparable`排序键，并返回一个`Comparator<T>`。
+
+  ```java
+  Arrays.sort(people, Comparator.comparing(Person::getLastName)); //按lastName排序
+  Arrays.sort(people, Comparator.comparing(Person::getLastName,
+    (s, t) -> s.length() - t.length())); //按lastName的长度排序
+  Arrays.sort(people, Comparator.comparing(Person::getMiddleName,
+    nullsFirst(naturalOrder()))); //当middleName出现null时，不会抛出异常，而是将null当作最小值处理
+  ```
+
+- `thenComparing`方法：将比较器链接起来。
+
+  ```java
+  Arrays.sort(people, Comparator
+  	.comparing(Person::getLastName)
+    .thenComparing(Person::getFirstName)); //先按lastName排序，再按firstName排序
+  ```
+
 #### 包装器类的`compare`静态方法
 
 包装器类都有实现`Comparable`接口，比较两个包装器对象可以直接使用`compareTo`方法。另外，如果是比较两个原语类型，还可以使用静态的`compare`方法。例如下列两个表达式是等价的：
@@ -3048,7 +3068,7 @@ Outer.Inner inner = new Outer.Inner();
 
 前面的内部类和静态嵌套类都是定义在类作用域中的。其实，嵌套类还可以定义在块作用域中，例如方法体或块语句中，这称为局部类。
 
-局部类只在所在的块作用域中可见。
+局部类只在所在的块作用域中可见，因此不能加访问控制修饰符。
 
 ```java
 class Outer {
@@ -3098,6 +3118,8 @@ for (int i=0; i<dates.length; i++) {
 }
 ```
 
+> 局部类既可以用于函数式接口，也可用于非函数式接口。但自从引用lambda表达式后，函数式接口更推荐使用lambda表达式。
+
 #### 匿名类
 
 匿名类实际上也是局部类，而且只能创建匿名类的一个实例。
@@ -3105,7 +3127,7 @@ for (int i=0; i<dates.length; i++) {
 匿名类的一般形式：
 
 ```java
-new 超类(可选的构造器实参列表) {
+new 超类(可选的超类构造器实参列表) {
   …
 }
 //或者
@@ -3114,7 +3136,7 @@ new 接口() {
 }
 ```
 
-匿名类不能有构造器。取而代之的是，将构造器参数传递给超类（superclass) 构造器。尤其是在局部类实现接口的时候， 不能有任何构造参数。
+匿名类不能有构造器。取而代之的是，将构造器参数传递给超类（superclass) 构造器。特别地，在局部类实现接口的时候， 不能有任何构造参数。
 
 示例：
 
@@ -3134,12 +3156,12 @@ public void start(int interval, boolean beep) {
 > 之前，匿名类常用来实现事件监听器和其他回调，但如今最好使用lambda表达式，会简洁得多：
 >
 > ```java
-> public void sta「t (int interval , boolean beep) {
->   Timer t = new Timer(interval , event -> {
->     System.out.println("At the tone, the time is " + new Date());
->     if (beep) Toolkit.getDefaultToolkit().beep();
->   })；
->   t.start();
+> public void start (int interval , boolean beep) {
+>     Timer t = new Timer(interval , event -> {
+>        System.out.println("At the tone, the time is " + new Date());
+>        if (beep) Toolkit.getDefaultToolkit().beep();
+>     })；
+>       t.start();
 > }
 > ```
 
@@ -3149,7 +3171,20 @@ public void start(int interval, boolean beep) {
 if (getClass() != other.getClass()) return false;
 ```
 
+匿名类没有名称，只能创建单个实例。
 
+可以使用内部类语法来实现所谓的“双花括号初始化”（double brace initialization）的鬼把戏：
+
+```java
+invite(new ArrayList<String>() {
+  { //利用初始化块来给创建的列表添加元素
+    add("Harry");
+    add("Sally");
+  }
+});
+```
+
+不推荐使用这种小技巧。因为它除了语法令人疑惑外，还比较低效。并且被构造的对象在相等测试中会出现奇怪的行为（这取决于`equals`方法是如何实现的）。
 
 #### 嵌套类的访问控制
 
@@ -3223,6 +3258,8 @@ class B extends A {
 
 #### 调用超类构造器
 
+由于子类无法访问父类的私有成员，因此，在构造子类对象时，必须在子类构造器中调用父类构造器来完成对父类私有变量的初始化。
+
 可以通过下面语句调用**直接**超类中定义的构造器：
 
 ```java
@@ -3251,9 +3288,9 @@ super(可选的实参列表);
 - 重写的两个方法的方法签名要完全相，而重载除了方法名要相同外，参数的个数、类型、顺序不能完全相同；
 - 在发生重写时，子类的方法会屏蔽超类中被重写的方法。而重载方法之间不会互相屏蔽。
 
-在Java语言中，对象变量是多态的（polymorphism）。一个超类变量既可以引用一个超类对象， 也可以引用一个它的任何一个子孙类的对象，这也称为“向上转型”。然而，不能将一个超类对象赋给子类变量。
+在Java语言中，对象变量是多态的（polymorphism）。一个超类变量既可以引用一个超类对象， 也可以引用一个它的任何一个子孙类的对象，这也称为“向上转型”（这个子孙类对象只能调用属于父类的方法。如果要调用子孙类的方法，则需要强制类型转换为子孙类）。然而，不能将一个超类对象赋给子类变量。
 
-> 在Java 中， 子类数组的引用可以转换成超类数组的引用， 而不需要采用强制类型转换：
+> 在Java 中， 子类数组的引用可以转换成超类数组的引用， 而不需要采用强制类型转换：（说明在技术上，Java数组是协变的）
 >
 > ```java
 > Manager[] managers = new Manager[10];
@@ -3299,7 +3336,7 @@ class Dispatch {
 
 > Java中的重写方法类似于C++的虚函数。
 
-在重写方法时，子类重写方法的返回类型既可以与超类方法返回类型相同，也可以是超类方法返回类型的子类型。
+在重写方法时，子类重写方法的返回类型既可以与超类方法返回类型相同，也可以是超类方法返回类型的子类型（从技术上来讲，协变返回类型是允许的）。
 
 在重写方法，子类方法的可见性不能低于超类方法。特别是，如果超类方法是`public`, 子类方法一定要声明为`public`。
 
@@ -3329,7 +3366,7 @@ public void giveGoldStar() {
 }
 ```
 
-`final`方法的形参由实参初始化，`final`局部常量只能在声明时初始化。
+`final`方法的形参由实参初始化，`final`局部常量可以在声明时初始化，还可以在延迟初始化，即在首次访问之前恰好初始化一次。
 
 #### `final`方法
 
@@ -3360,13 +3397,13 @@ public final class Executive extends Manager {
 
 ### 继承与组合
 
-## 抽象类
+## 抽象类和抽象方法
 
-使用`abstract`声明的类称为抽象类，它不能被实例化，只能被其他类继承。
+使用`abstract`声明的类称为抽象类，它不能被实例化（即使抽象类有构造器），只能被其他类继承。
 
-在抽象类的定义中可以包含使用`abstract`声明的抽象方法和具体方法。
+在抽象类的定义中可以包含抽象方法和具体方法，还可以包含实例变量和构造器。
 
-抽象方法没有方法体，只能由子类来实现。
+抽象方法通过修饰符`abstract`声明，它没有方法体，只能由子类来实现。
 
 构造器、静态方法、`final`方法不能声明为`abstract`。
 
@@ -3420,15 +3457,17 @@ Person p = new Student("Vinee Vu", "Economics");
 
 `Object`类是Java中所有类的超类。一个类定义，如果没有显式指出超类，则超类默认是`Object`。
 
-在Java中，只有基本类型（primitive types）不是对象。数组也是对象，包括基本类型的数组。
+在Java中，只有基本类型（primitive types）不是对象。数组也是类，包括基本类型的数组，可以将它赋值给`Object`变量。
 
 可以使用`Object`类的变量引用任何类的对象。
 
 > 在C++ 中没有所有类的根类，不过，每个指针都可以转换成`void*` 指针。
 
+警告：在一个接口中，你绝不能将从`Object`继承下来的方法重写为默认方法。特别是，接口绝不能为`toString`、`hasCode`和`equals`方法定义默认方法。由于“类比接口优先”原则，这些重写的默认方法永远不会被使用。
+
 ### `equals`方法
 
-在`Object`类中，`equals`方法与`==`是一样的，都是比较两个对象是否具有相同的引用。大多数情况，我们要重写这个方法，让它比较两个对象的状态是否相同：
+在`Object`类中，`equals`方法与`==`是一样的，都是比较两个对象是否具有相同的引用。对于很多类来说，默认的`equals`方法已经够了。只有在基于状态的相等性测试中，才有必要重写这个方法，让它比较两个对象的状态是否相同：
 
 ```java
 public class Employee {
@@ -3444,20 +3483,22 @@ public class Employee {
     // now we know that is a non-null Employee
     Employee other = (Employee) that;
     // test whether the fields have identical values
-    return Objects.equals(name, other.name)  //Objects.equals()允许它的参数为null
-      && salary == other.salary
+    return Objects.equals(name, other.name)  //对于对象字段使用Objects.equals()比较，它允许它的参数为null
+      && salary == other.salary //对于原语类型字段使用“==”比较。但对于double类型值，如果担心正负无穷大或NaN，则使用Double.equals()方法
       && Objects.equals(hireDay, other.hireDay);
   }
 }
 ```
 
-> 如果`equals`的语义在每个子类中有所改变，则像上面一样使用`getClass`来检测它们是否属于同一个类；如果所有的子类都拥有统一的语义，就使用`instanceof`来检测，这时比较的两个对象可以一个是父类，另一个是子类，类型不需要完全相同：
->
-> ```java
-> if (!(that instanceof ClassName)) return false;
-> ```
-> 
->对于数组类型的字段，可以使用静态的`Arrays.equals`方法检测相应的数组元素是否相等。
+> 无论何时重写`equals`方法，均须同时提供一个兼容的`hashCode`方法。如果不那样做，则当你的类插入hash set或者hash map时，它们可能会丢失。
+
+如果`equals`的语义在每个子类中有所改变，则像上面一样使用`getClass`来检测它们是否属于同一个类；如果所有的子类都拥有统一的语义，就使用`instanceof`来检测，这时比较的两个对象可以一个是父类，另一个是子类，类型不需要完全相同（在这种情况下，通常可将`equals`方法声明为`final`）：
+
+```java
+if (!(that instanceof ClassName)) return false;
+```
+
+对于数组类型的字段，可以使用静态的`Arrays.equals`方法检测相应的数组元素是否相等。
 
 在子类中定义`equals` 方法时，首先调用超类的`equals`。如果检测失败，对象就不可能相等。如果超类中的字段都相等，就需要比较子类中的实例字段：
 
@@ -3472,26 +3513,52 @@ public class Manager extends Employee {
 }
 ```
 
-> Apache Common Lang的`EqualsBuilder`类提供了方便的方法来实现`equals`方法：
->
-> ```java
-> public boolean equals(Object that) {
->   return EqualsBuilder.reflectionEquals(this, that, "name", "salary", "hireDay");
-> }
-> ```
->
+另外，Apache Common Lang的`EqualsBuilder`类提供了方便的方法来实现`equals`方法：
+
+```java
+public boolean equals(Object that) {
+  return EqualsBuilder.reflectionEquals(this, that, "name", "salary", "hireDay");
+}
+```
 
 ### `hashCode`方法
 
-> Apache Common Lang的`HashCodeBuilder`类提供了方便的方法来实现`hashCOde`方法：
->
-> ```java
-> public int hashCode() {
->   return HashCodeBuilder.reflectionHashCode(this, "name", "salary", "hireDay");
-> }
-> ```
+`hashCode`方法和`equals`方法必须是兼容的：如果`x.equals(y)`为真，则`x.hashCode() == y.hashCode()`也应该为真。
+
+`Objects.hash`方法可以用来方便我们生成自己类的哈希码，它的参数是一个可变参数，该方法会计算每个参数的哈希码，并将它们组合起来，这个方法是空指针安全的。
+
+```java
+class Item {
+  …
+  public int hashCode() {
+    return Objects.hash(desc, price);
+  }
+}
+```
+
+如果你的类有数组类型的实例变量，那么比较它们的哈希码时，首先使用静态方法`Arrays.hashCode`（该方法会计算出一个由数组元素哈希码组成的哈希码）计算它们的哈希码。然后将结果传给`Objects.hash`方法，与其他字段的哈希码组合在一起。
+
+Apache Common Lang的`HashCodeBuilder`类提供了方便的方法来实现`hashCOde`方法：
+
+```java
+public int hashCode() { 
+  return HashCodeBuilder.reflectionHashCode(this, "name", "salary", "hireDay");
+}
+```
 
 ### `toString`方法
+
+无论何时，当一个对象与一个字符串连接时，Java编译器自动调用该对象的`toString`方法。
+
+要将一个对象`x`转换成字符串，除了写成`x.toString()`外，还可以直接写`"" + x`。后者即使`x`为`null`或原语类型，这个表达式照样能工作。
+
+默认的`toString`方法（在`Object`类中定义），只返回类名和哈希码。自己创建的类可以重写这个方法，以实现个性化的结果。
+
+数组没有重写`toString`方法，对于一维数组要产生字符串最好使用`Arrays.toString()`方法，而多维数组则可以使用`Arrays.deepToString()`方法。
+
+### `clone`方法
+
+`clone`方法的目的是要创建一个“克隆”对象——拥有与原对象相同的状态的不同对象。如果你改变了其中一个对象，则另一外对象不会改变。
 
 ## 对象包装器
 
@@ -3678,7 +3745,7 @@ class Student implements Person, Named {
 
 但是，如果两个父接口都没有为名称和参数类型均相同的方法提供默认实现，则不存在冲突。这时，实现类要么实现方法，要么不实现方法并将该类声明为抽象类。
 
-如果一个类继承了一个父类且实现了一个接口，而且父类和接口存在同名且参数类型相同的方法，则实现类自动选择父类的方法继承，而忽略来自接口的默认方法。
+如果一个类继承了一个父类且实现了一个接口，而且父类和接口存在同名且参数类型相同的方法，则实现类自动选择父类的方法继承，而忽略来自接口的默认方法。“类比接口优先”原则是为保证与Java 7的兼容性。
 
 ### 私有方法
 
