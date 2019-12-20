@@ -1051,7 +1051,7 @@ sb.replace(5, 7, "was");  //"This was a test."
 
 # 枚举类型
 
-Java中枚举是一种类类型。所有枚举类型都是`Enum`类的子类。
+Java中枚举是一种类类型。所有枚举类型都是`Enum<E>`类的子类。
 
 ## 定义枚举
 
@@ -1076,7 +1076,17 @@ s = Size.MEDIUM;
 Size s = Size.MEDIUM;
 ```
 
+枚举量也支持静态导入：
+
+```java
+import static com.foo.Size.*;
+
+Size s = MEDIUM;
+```
+
 ## 使用枚举
+
+由于枚举类型`E`继承了`Enum<E>`类，因此可以访问`Enum<E>`的方法。
 
 ### 比较枚举值
 
@@ -1093,7 +1103,7 @@ Size sz = Enum.valueOf(Size.class, "SMALL");
 Size sz2 = Size.valueOf("SMALL"); 
 ```
 
-`values`静态方法返回一个包含全部枚举量的数组：
+`values`静态方法返回一个按照其声明次序排列的包含全部枚举量的数组：
 
 ```java
 Size[] values = Size.values();
@@ -1101,7 +1111,7 @@ Size[] values = Size.values();
 
 `ordinal`方法返回枚举量的序数，位置从0开始计数。例如：`Size.MEDIUM.ordinal()`返回1。
 
-`compareTo`方法比较相同类型的两个枚举量的序数值。
+`compareTo`方法（来自`Comparable<E>`接口）比较相同类型的两个枚举量的序数值。
 
 ## 高级枚举
 
@@ -1119,7 +1129,37 @@ public enum Size {
 Size s = Size.MEDIUM;  //不需要带参数
 ```
 
+枚举类型的构造器总是私有的，你可以省略`private`修饰符。另外，枚举类型的构造器不能声明为`public`或`protected`。
+
+甚至可以为每个枚举量定义各自的方法。从技术上讲，每个枚举量都是属于枚举类型的一个匿名子类。
+
+```java
+public enum Operation {
+  ADD {
+    public int eval(int arg1, int arg2) {return arg1 + arg2;}
+  },
+  SUBTRACT {
+    public int eval(int arg1, int arg2) {return arg1 - arg2;}
+  },
+  MULTIPLY {
+    public int eval(int arg1, int arg2) {return arg1 * arg2;}
+  },
+  DIVIDE {
+    public int eval(int arg1, int arg2) {return arg1 / arg2;}
+  };
+  
+  public abstract int eval(int arg1, int arg2);
+}
+
+…
+
+Operation op = Operation.ADD;
+int result = op.eval(first, second);
+```
+
 枚举不能继承其他类，也不是作为超类。
+
+枚举类型可以嵌套在一个类中，嵌套的枚举类属于隐式的静态嵌套类，它的方法不能引用外部类的实例变量。
 
 # 表达式
 
@@ -3560,6 +3600,8 @@ public int hashCode() {
 
 `clone`方法的目的是要创建一个“克隆”对象——拥有与原对象相同的状态的不同对象。如果你改变了其中一个对象，则另一外对象不会改变。
 
+`Object.clone`方法只是做了一个浅拷贝，而且是`protected`的，要实现深拷贝请参见“对象克隆”。
+
 ## 对象包装器
 
 对象包装器是不可变的，即一旦构造了包装器，就不允许更改包装在其中的值。
@@ -3802,7 +3844,7 @@ t.start();
 
 ## 对象克隆
 
-`Object`中的`clone`方法默认是浅克隆且是`protected`，要实现深克隆，需要实现`Cloneable`接口，并将`clone`重写为`public`。
+`Object`中的`clone`方法默认是浅克隆且是`protected`，要实现深克隆，需要实现`Cloneable`接口（一个没有任何方法的标记接口），并将`clone`重写为`public`。
 
 ```java
 class Employee implements Cloneable {
@@ -3818,7 +3860,7 @@ class Employee implements Cloneable {
 }
 ```
 
-> 所有数组类型都有一个`public` 的`clone` 方法， 而不是`protected`。 可以用这个方法建立一个新数组， 包含原数组所有元素的副本。例如：
+> 所有数组类型都有一个`public` 的`clone` 方法， 而不是`protected`。 可以用这个方法建立一个新数组， 它包含原数组所有元素的副本。例如：
 >
 > ```java
 > int[] luckyNumbers = { 2, 3, 5, 7, 11, 13 };
@@ -4840,6 +4882,48 @@ $ java -ea:... -da:MyClass MyApp
 《核心》P98-103
 
 # 元编程
+
+## Class类
+
+对象的类型信息在运行时使用`Class`对象表示。
+
+虚拟机为每种类型管理唯一的`Class`对象，因此你可以用`==`来比较`Class`对象。
+
+### 获取Class对象
+
+如果你有一个对象的引用，则可以通过`getClass`方法来获取该对象所属类的`Class`对象：（原语类型不能通过这种方式来获取`Class`对象）
+
+```java
+Object obj = …;
+Class<?> cl = obj.getClass();
+```
+
+也可以通过类型加`.class`后缀来获取该类型的`Class`对象：
+
+```java
+Class<?> cl = java.util.Scanner.class;
+Class<?> cl2 = String[].class;
+Class<?> cl3 = Runnable.class; //接口的Class对象
+Class<?> cl4 = int.class; //原语类型也有Class对象
+Class<?> cl5 = void.class;
+```
+
+如果只知道类名，则可以使用`Class.forName`方法来获取该类的`Class`对象：（数组、原语类型不能通过这种方式来获取`Class`对象）
+
+```java
+Class<?> cl = Class.forName("java.util.Scanner");
+```
+
+### 资源加载
+
+`Class`类的一个有用服务就是定位应用程序可能需要的资源，比如配置文件或者图片。如果你将资源与类文件放在同一位置，则可以像这样给文件打开一个输入流：
+
+```java
+InputStream stream = MyClass.class.getResourceAsStream("config.txt"); //相对路径
+InputStream stream2 = MyClass.class.getResourceAsStream("/config/menus.txt"); //绝对路径。这里会到MyClass所在包的根目录下找到config/menus.txt文件
+```
+
+
 
 ## 反射
 

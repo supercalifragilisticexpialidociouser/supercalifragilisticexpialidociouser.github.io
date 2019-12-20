@@ -314,6 +314,8 @@ public void addSpitter(Spitter spitter) {
 
 ## 使用RDBMS 对象
 
+# MyBatis
+
 # ORM
 
 ## Hibernate
