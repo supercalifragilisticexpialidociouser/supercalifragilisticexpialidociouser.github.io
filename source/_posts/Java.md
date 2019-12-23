@@ -1628,61 +1628,7 @@ public class Application {
 
 这里，表达式`this.toString()`调用的是`Application`对象的`toString`方法，而不是`Runnable`实例的`toString`方法。
 
-### Lambda表达式与闭包
-
-Lambda表达式可以访问包含它的方法或类的变量：
-
-```java
-public static void repeatMessage(String text, int count) {
-  Runnable r = () -> {
-    for (int i=0; i<count; i++) {
-      System.out.println(text);
-    }
-  };
-  new Thread(r).start();
-}
-```
-
-注意：lambda表达式的代码可能会在`repeatMessage`方法返回之后很久才会运行，因此，代表lambda表达式的数据结构必须存储（有时也叫捕获）它访问的两个自由变量——`text`和`count`。
-
-lambda表达式实际上是一个闭包（closure），即带有自由变量值的代码块。
-
-lambda表达式只能捕获那些值不会改变的变量。
-
-```java
-for (int i=0; i<n; i++) {
-  new Thread(() -> System.out.println(i)).start(); //错误：不能捕获i。因为变量i作用域是整个循环，且在循环中变量i的值是不断变化的。
-}
-
-for (String arg : args) {
-  new Thread(() -> System.out.println(arg)).start();  //可以捕获arg。因为每次迭代会创建新的arg变量，并且arg变量始终没有被修改。
-}
-```
-
-在lambda表达式中不能改变任何捕获的变量：
-
-```java
-public static void repeatMessage(String text, int count, int threads) {
-  Runnable r = () -> {
-    while (count>0) {
-      count--; //错误：不能改变捕获的变量
-      System.out.println(text);
-    }
-  };
-  for (int i=0; i<threads; i++) new Thread(r).start();
-}
-```
-
-注意：禁止修改变量只是针对局部变量。如果`count`是实例变量或外部类的静态变量，那么即使结果是不确定的，也不会报错。
-
-有时需要绕过禁止修改自由变量的限制，这可以通过使用长度为1的数组绕过限制：
-
-```java
-int[] counter = new int[1];
-button.setOnAction(event -> counter[0]++); //被改变的是数组counter的元素，而counter一直引用同一个数组。
-```
-
-### 高阶函数
+### 函数
 
 Java虽然不是一个完全的函数式编程语言，但它可以通过函数式接口来实现高阶函数功能。
 
@@ -3632,19 +3578,52 @@ System.out.println(i5== i6); //输出“false”
 
 lambda表达式与内部类类似，可以访问外围变量。这些变量在lambda表达式中实际上是自由变量。含有自由变量的代码块称为闭包（closure）。因此，Java中的闭包有lambda表达式和内部类。
 
-在lambda表达式中不允许更改自由变量的值。下面代码是不合法的：
-
 ```java
-int matches =0;
-for (Path p : files)
-  new Thread(() -> {if (…) matches++;}).start();
+public static void repeatMessage(String text, int count) {
+  Runnable r = () -> {
+    for (int i=0; i<count; i++) {
+      System.out.println(text);
+    }
+  };
+  new Thread(r).start();
+}
 ```
 
-但下列代码是合法的：
+注意：lambda表达式的代码可能会在`repeatMessage`方法返回之后很久才会运行，因此，代表lambda表达式的数据结构必须存储（有时也叫捕获）它访问的两个自由变量——`text`和`count`。
+
+lambda表达式只能捕获那些值不会改变的变量。
+
+```java
+for (int i=0; i<n; i++) {
+  new Thread(() -> System.out.println(i)).start(); //错误：不能捕获i。因为变量i作用域是整个循环，且在循环中变量i的值是不断变化的。
+}
+
+for (String arg : args) {
+  new Thread(() -> System.out.println(arg)).start();  //可以捕获arg。因为每次迭代会创建新的arg变量，并且arg变量始终没有被修改。
+}
+```
+
+在lambda表达式中不能改变任何捕获的变量：
+
+```java
+public static void repeatMessage(String text, int count, int threads) {
+  Runnable r = () -> {
+    while (count>0) {
+      count--; //错误：不能改变捕获的变量
+      System.out.println(text);
+    }
+  };
+  for (int i=0; i<threads; i++) new Thread(r).start();
+}
+```
+
+注意：禁止修改变量只是针对局部变量。如果`count`是实例变量或外部类的静态变量，那么即使结果是不确定的，也不会报错。
+
+有时需要绕过禁止修改自由变量的限制，这可以通过使用长度为1的数组绕过限制：
 
 ```java
 int[] counter = new int[1];
-button.setOnAction(event -> counter[0]++);
+button.setOnAction(event -> counter[0]++); //被改变的是数组counter的元素，而counter一直引用同一个数组。
 ```
 
 在Java 8之前，内部类只允许访问final的局部变量。为了适应lambda表达式，现在内部类可以访问任何被初始化后，就不会再被重新赋予新值的变量。
@@ -3906,77 +3885,7 @@ class NestedIFDemo {
 
 Java不支持多重继承，而接口可以提供多重继承的大多数好处，同时还能避免多重继承的复杂性和低效性。
 
-## 代理
 
-利用代理（proxy）可以在运行时创建一个实现了一组给定接口的新类，这种功能只有在编译时无法确定需要实现哪个接口时才有必要使用。
-
-通过反射机制，调用`newInstance`方法也可以构造一个类的实例，但不能实例化一个接口。
-
-所有的代理类都扩展于`Proxy` 类。一个代理类只有一个实例域—调用处理器，它定义在`Proxy` 的超类中。
-
-### 调用处理器
-
-代理类是通过调用处理器（invocation handler）来间接实现给定接口的方法的。无论何时调用代理对象的方法（包括代理类所实现的接口的全部方法，以及Object类中的全部方法），都会转为对调用处理器的invoke 方法的调用。
-
-调用处理器是实现了`InvocationHandler` 接口的类对象。在这个接口中只有一个方法：
-
-```java
-Object invoke(Object proxy, Method method, Object[] args);
-```
-
-proxy：代理对象；
-
-method：被调用的代理对象方法；
-
-args：原始的调用参数。
-
-```java
-class TraceHandler implements InvocationHandler {
-  private Object target ;
-  public TraceHandler (Object t) {
-    target = t;
-  }
-  public Object invoke(Object proxy, Method m, Object[] args)
-    throws Throwable {
-    …
-    // invoke actual method
-    return m.invoke(target, args);
-  }
-}
-```
-
-所有的代理类都重写了`Object` 类中的方法`toString`、`equals` 和`hashCode`。如同所有的代理方法一样， 这些方法仅仅调用了调用处理器的`invoke`。`Object` 类中的其他方法（如`clone`和`getClass` ）没有被重新定义。
-
-### 创建代理对象
-
-要想创建一个代理对象， 需要使用`Proxy` 类的`newProxylnstance` 方法。这个方法有三个参数：
-
-- 一个类加栽器（ class loader)。`null` 表示使用默认的类加载器。
-- 一个Class 对象数组， 每个元素都是代理类要实现的接口。
-- 一个调用处理器。
-
-```java
-Object value = …;
-// construct wrapper
-InvocationHandler handler = new TraceHandler(value);
-// construct proxy for one or more interfaces
-Class[] interfaces = new Class[] {Comparable.class};
-Object proxy = Proxy.newProxylnstance(null, interfaces, handler);
-```
-
-Java虚拟机将为代理类生成一个以`$Proxy`开头的类名。
-
-对于特定的类加载器和给定的一组接口来说，只能有一个代理类。也就是说，如果使用同一个类加载器和接口数组调用两次`newProxylustance` 方法的话，那么只能够得到同一个类的两个对象，也可以利用`getProxyClass` 方法获得这个类：
-
-```java
-Class proxyClass = Proxy.getProxyClass(null, interfaces);
-```
-
-代理类一定是`public` 和`final`。
-
-代理类所要实现的接口如果不是`public`的，则代理类与这些接口要属于同一个包。
-
-可以通过调用`Proxy` 类中的`isProxyClass` 方法检测一个特定的`Class` 对象是否代表一个代理类。
 
 # 泛型
 
@@ -4923,9 +4832,81 @@ InputStream stream = MyClass.class.getResourceAsStream("config.txt"); //相对�
 InputStream stream2 = MyClass.class.getResourceAsStream("/config/menus.txt"); //绝对路径。这里会到MyClass所在包的根目录下找到config/menus.txt文件
 ```
 
-
-
 ## 反射
+
+反射机制允许程序在运行时检查任意对象的内容，并调用它们的任意方法。
+
+### 代理
+
+利用代理（proxy）可以在运行时创建一个实现了一组给定接口的新类，这种功能只有在编译时无法确定需要实现哪个接口时才有必要使用。
+
+通过反射机制，调用`newInstance`方法也可以构造一个类的实例，但不能实例化一个接口。
+
+所有的代理类都扩展于`Proxy` 类。一个代理类只有一个实例域—调用处理器，它定义在`Proxy` 的超类中。
+
+#### 调用处理器
+
+代理类是通过调用处理器（invocation handler）来间接实现给定接口的方法的。无论何时调用代理对象的方法（包括代理类所实现的接口的全部方法，以及Object类中的全部方法），都会转为对调用处理器的invoke 方法的调用。
+
+调用处理器是实现了`InvocationHandler` 接口的类对象。在这个接口中只有一个方法：
+
+```java
+Object invoke(Object proxy, Method method, Object[] args);
+```
+
+proxy：代理对象；
+
+method：被调用的代理对象方法；
+
+args：原始的调用参数。
+
+```java
+class TraceHandler implements InvocationHandler {
+  private Object target ;
+  public TraceHandler (Object t) {
+    target = t;
+  }
+  public Object invoke(Object proxy, Method m, Object[] args)
+    throws Throwable {
+    …
+    // invoke actual method
+    return m.invoke(target, args);
+  }
+}
+```
+
+所有的代理类都重写了`Object` 类中的方法`toString`、`equals` 和`hashCode`。如同所有的代理方法一样， 这些方法仅仅调用了调用处理器的`invoke`。`Object` 类中的其他方法（如`clone`和`getClass` ）没有被重新定义。
+
+#### 创建代理对象
+
+要想创建一个代理对象， 需要使用`Proxy` 类的`newProxylnstance` 方法。这个方法有三个参数：
+
+- 一个类加栽器（ class loader)。`null` 表示使用默认的类加载器。
+- 一个Class 对象数组， 每个元素都是代理类要实现的接口。
+- 一个调用处理器。
+
+```java
+Object value = …;
+// construct wrapper
+InvocationHandler handler = new TraceHandler(value);
+// construct proxy for one or more interfaces
+Class[] interfaces = new Class[] {Comparable.class};
+Object proxy = Proxy.newProxylnstance(null, interfaces, handler);
+```
+
+Java虚拟机将为代理类生成一个以`$Proxy`开头的类名。
+
+对于特定的类加载器和给定的一组接口来说，只能有一个代理类。也就是说，如果使用同一个类加载器和接口数组调用两次`newProxylustance` 方法的话，那么只能够得到同一个类的两个对象，也可以利用`getProxyClass` 方法获得这个类：
+
+```java
+Class proxyClass = Proxy.getProxyClass(null, interfaces);
+```
+
+代理类一定是`public` 和`final`。
+
+代理类所要实现的接口如果不是`public`的，则代理类与这些接口要属于同一个包。
+
+可以通过调用`Proxy` 类中的`isProxyClass` 方法检测一个特定的`Class` 对象是否代表一个代理类。
 
 ## 标注
 
@@ -5209,8 +5190,58 @@ for (Analyzer analyzer : first) {
 }
 ```
 
+# 虚拟机
 
+## 类加载器
 
-# 构建管理
+类加载器负责加载字节流，并且在虚拟机中将它们转化成一个类或接口。
 
+当执行Java程序时，至少会涉及3个类加载器：
+
+- bootstrap类加载器：加载最基本的Java类库，它是虚拟机的一部分。
+- 平台类加载器：加载其他类库。平台类权限可以通过安全策略进行配置。
+- 系统类加载器：加载应用程序类。它会从类路径、模块路径中的目录以及JAR文件中寻找类。
+
+### URLClassLoader
+
+通过`URLClassLoader`实例，你可以从类路径以外的目录或JAR文件中加载类。这常用来加载插件。
+
+```java
+URL[] urls = {
+  new URL("file://path/to/directory/");
+  new URL("file://path/to/jarfile.jar");
+}
+String className = "com.mycompany.plugins.Entry";
+try (URLClassLoader loader = new URLClassLoader(urls)) {
+  Class<?> cl = Class.forName(className, true, loader);
+  …
+}
+```
+
+`Class.forName`的第二个参数确保类的静态初始化块发生在加载之后。不要使用`ClassLoader.loadClass`方法，它不会执行静态初始化块。
+
+### 编写自己的类加载器
+
+`URLClassLoader`从文件系统中加载类。如果想要从其他地方加载类，就需要编写自己的类加载器。你需要实现的唯一方法是`findClass`，例如：
+
+```java
+public class MyClassLoader extends ClassLoader {
+  …
+  @Override public Class<?> findClass(String name)
+    	throws ClassNotFoundException {
+    byte[] bytes = the bytes of the class file
+    return defineClass(name, bytes, 0, bytes.length);
+  }
+}
+```
+
+### 上下文类加载器
+
+### 服务加载器
+
+# 测试
+
+# 构建
+
+# 部署
 
