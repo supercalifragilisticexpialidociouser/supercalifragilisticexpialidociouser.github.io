@@ -3889,6 +3889,12 @@ Java不支持多重继承，而接口可以提供多重继承的大多数好处�
 
 # 泛型
 
+## 泛型与继承
+
+`Pair<Employee>`与`Pair<Manager>`之间不存在继承关系。另外，同一个泛型类搭配不同的类型参数复合而成的类属于同一个类，但却是不同的类型。
+
+泛型类（或接口）可以扩展或实现其他泛型类（或接口）
+
 # 集合类型
 
 ## 列表
@@ -4433,11 +4439,11 @@ try {
 
 > `try`块的花括号是必须的，即使只包含一条语句。
 >
-> `try`块不能单独使用，总是与`catch`块或`finally`块一起出现。
+> `try`块不能单独使用，总是与`catch`块或`finally`块一起出现。一个`try`语句后可跟零个或多个`catch`块及零个或一个`finally`块，但`catch`块与`finally`块不能同时省略。
 
 ## 捕获异常
 
-当`try`块监视到有异常发生时，将由`catch`块负责捕获异常并处理。
+当`try`块监视到有异常发生时，将由`catch`块负责捕获异常并处理。`catch`块必须紧跟在`try`块后面。
 
 ```java
 public void read(String filename) {
@@ -4575,7 +4581,7 @@ Java 编译器查看`catch` 块中的`throw` 语句，然后查看`e` 的类型�
 
 ## `finally`子句
 
-try-catch可以带一个`finally`子句，组成try-catch-finally语句。
+try-catch可以带一个`finally`子句，组成try-catch-finally语句。`finally`块必须紧跟在最后一个`catch`块（如果有）或`try`块（如果没有`catch`块）之后。
 
 不管`try`块或`catch`块中是否有异常抛出，`finally`子句都会执行。例如：
 
