@@ -4842,13 +4842,101 @@ InputStream stream2 = MyClass.class.getResourceAsStream("/config/menus.txt"); //
 
 反射机制允许程序在运行时检查任意对象的内容，并调用它们的任意方法。
 
+Java的反射机制主要是`java.lang.reflect`包中的三个类：`Field`类、`Method`类和`Constructor`类，分别描述了一个类的字段、方法和构造器。
+
+例如，下面是个如何打印一个类的所有方法的示例：
+
+```java
+Class<?> cl = Class.forName(className);
+while (cl != null) {
+  for (Method m : cl.getDeclaredMethods()) {
+    System.out.println(
+    	Modifier.toString(m.getModifiers()) + " " +
+      m.getReturnType().getCanonicalName() + " " +
+      m.getName() + Arrays.toString(m.getParameters()));
+  }
+  cl = cl.getSuperclass();
+}
+```
+
+Java平台模块系统对反射访问实行严格限制。默认情况下，只有同一个模块的类能通过反射进行分析。如果你没有声明模块，则你的所有类都属于一个单独的模块，并且它们彼此可以通过反射访问。但是，Java类库类属于不同的模块，对这些类的非公有成员的反射访问是被限制的。
+
+### 反射与访问控制
+
+反射可以绕开访问控制的限制，但在使用私有的`Field`和`Method`对象之前，你必须先调用`setAccessible(true)`方法为反射“解锁”字段或方法的访问限制。不过，模块系统或安全管理器仍可以阻止请求，以保护对象不被访问。在这种情况下，`setAccessible`方法抛出`InaccessibleObjectException`或`SecurityException`异常。另外，你可以调用`trySetAccessible`方法，如果字段或方法不可访问，该方法只返回`false`，而不抛出异常。
+
+```java
+Field f = obj.getDeclaredField("salary");
+f.setAccessible(true);
+double value = f.getDouble(obj);
+f.setDouble(obj, value * 1.1);
+```
+
+### 构造对象
+
+可以使用`Constructor`对象的`newInstance`方法来构造对象：
+
+```java
+Constructor constr = cl.getConstructor(int.class);
+Object obj = constr.newInstance(42);
+```
+
+注意：`Class`类也有一个`newInstance`方法，可以构造无参构造器的类对象，但该方法已经被废弃，不应该使用它。
+
+### 调用方法
+
+```java
+Person p = …;
+Method m = p.getClass().getMethod("setName", String.class);
+m.invoke(p, "**********"); //调用p对象的setName方法
+```
+
+如果方法是静态的，则传给`invoke`方法的第一个参数`null`。
+
+### JavaBeans
+
+通过`java.desktop.Introspector`，可以获取JavaBean的属性：
+
+```java
+Class<?> cla = obj.getClass();
+BeanInfo bean = Introspector.getBeanInfo(cla);
+PropertyDescriptor[] props = bean.getPropertyDescriptors();
+for (PropertyDescriptor prop: props) {
+  if (prop.getName().equals(…))
+    Object propertyValue = prop.getReadMethod().invoke(obj); //调用getter方法
+  …
+}
+```
+
+### 使用数组
+
+`Class`对象的`isArray`方法用来检查给定`Class`对象是否是数组。如果是，则通过`getComponentType`方法返回描述数组元素类型的`Class`。为了进一步分析或动态创建数组，可使用`java.lang.reflect.Array`类。
+
+例如，下面实现了一个复制数组的方法：
+
+```java
+public static Object copyOf(Object array, int newLength) {
+  Class<?> cl = array.getClass();
+  if (!cl.isArray()) return null;
+  Class<?> componentType = cl.getComponentType();
+  int length = Array.getLength(array);
+  Object newArray = Array.newInstance(componentType, newLength);
+  for (int i=0; i<Math.min(length, newLength); i++) {
+    Array.set(newArray, i, Array.get(array, i));
+  }
+  return newArray;
+}
+```
+
+
+
 ### 代理
 
 利用代理（proxy）可以在运行时创建一个实现了一组给定接口的新类，这种功能只有在编译时无法确定需要实现哪个接口时才有必要使用。
 
 通过反射机制，调用`newInstance`方法也可以构造一个类的实例，但不能实例化一个接口。
 
-所有的代理类都扩展于`Proxy` 类。一个代理类只有一个实例域—调用处理器，它定义在`Proxy` 的超类中。
+所有的代理类都扩展于`Proxy` 类。一个代理类只有一个实例域——调用处理器（`InvocationHandler`），它定义在`Proxy` 的超类中。
 
 #### 调用处理器
 
@@ -5204,9 +5292,9 @@ for (Analyzer analyzer : first) {
 
 当执行Java程序时，至少会涉及3个类加载器：
 
-- bootstrap类加载器：加载最基本的Java类库，它是虚拟机的一部分。
-- 平台类加载器：加载其他类库。平台类权限可以通过安全策略进行配置。
-- 系统类加载器：加载应用程序类。它会从类路径、模块路径中的目录以及JAR文件中寻找类。
+- 引导（bootstrap）类加载器：负责加载Java核心类库，它是虚拟机的一部分，开发者无法直接获取到引导类加载器。
+- 平台类加载器：负责加载其他类库。平台类权限可以通过安全策略进行配置。
+- 系统类加载器：负责加载应用程序类。它会从类路径、模块路径中的目录以及JAR文件中寻找类。
 
 ### URLClassLoader
 
@@ -5241,9 +5329,129 @@ public class MyClassLoader extends ClassLoader {
 }
 ```
 
-### 上下文类加载器
+### 上下文类加载器*
+
+大部分时候，你不必关心类加载进程。当一个类被其他类需要时，它会被透明地加载。但是，如果某个方法动态地加载类，并且调用该方法的类又是被另一个类加载器加载的，那么就有可能出现问题。
+
+例如，你提供了一个工具类，它由系统类加载器加载：
+
+```java
+public class Util {
+  Object createInstance(String className) {
+    Class<?> cl = Class.forName(className);
+    …
+  }
+}
+```
+
+同时，你用另一个类加载器加载了一个插件，该插件调用`Util.createInstance("com.mycompany.plugins.MyClass")`方法来实例化插件JAR中的一个类。但是，问题是负责加载工具类和插件的不是同一个类加载器。而工具类的`createInstance`方法中的`Class.forName`方法默认使用工具类的类加载器，该类加载器对插件一无所知，因而无法通过`Class.forName`方法来实例化插件的`MyClass`类。
+
+解决方案一是将插件的类加载器传递给`createInstance`方法，然后用这个类加载器来实例化`MyClass`：
+
+```java
+public class Util {
+  Object createInstance(String className, ClassLoader loader) {
+    Class<?> cl = Class.forName(className, true, loader);
+    …
+  }
+}
+```
+
+另一种解决方案是使用当前线程的上下文类加载器。主线程的上下文类加载器是系统类加载器。当一个新线程被创建时，它的上下文类加载器默认与创建它的父线程一样，即默认上下文类加载器设置为系统类加载器。但是，你也可以调用下列方法，显式设置线程的上下文类加载器：
+
+```java
+Thread t = Thread.currentThread();
+t.setContextClassLoader(loader);
+```
+
+将`createInstance`方法改成使用上下文类加载器来实例化类：
+
+```java
+public class Util {
+  Object createInstance(String className) {
+    Thread t = Thread.currentThread();
+    ClassLoader loader = t.getContextClassLoader();
+    Class<?> cl = Class.forName(className, true, loader);
+    …
+  }
+}
+```
+
+这样，当调用插件类的方法时，应用程序应该将上下文类加载器设置为插件的类加载器。在那之后，应该恢复到之前的设置。
 
 ### 服务加载器
+
+当组装或部署程序时，某些服务需要是可配置的。一种方法是提供服务的不同实现，让程序选择其中最恰当的。`ServiceLoader`类使得加载那些遵从共同接口的插件变得更容易。
+
+例如，定义一个接口（或者超类)， 其中包含服务的各个实例应当提供的方法：
+
+```java
+package com.corejava.crypt;
+
+public interface Cipher {
+  byte[] encrypt (byte[] source, byte[] key) ;
+  byte[] decrypt (byte[] source, byte[] key) ;
+  int strength();
+}
+```
+
+服务提供者可以提供一个或多个实现这个服务的类， 例如：
+
+```java
+package com.corejava.crypt.impl;
+
+public class CaesarCipher implements Cipher {
+  public byte[] encrypt (byte[] source, byte[] key) {
+    byte[] result = new byte[source.length];
+    for (int i = 0; i < source.length; i++)
+      result[i] = (byte) (source[i] + key[0]);
+    return result ;
+  }
+  public byte[] decrypt (byte[] source, byte[] key) {
+    return encrypt(source, new byte[] { (byte) -key[0] }) ;
+  }
+  public int strength(){ return 1; }
+}
+```
+
+实现类可以放在任意包中，而不一定是服务接口所在的包。每个实现类必须有一个无参数构造器。
+现在把这些类的类名增加到`META-INF/services` 目录下的一个UTF-8 编码文本文件中，文件名必须与完全限定类名一致。在我们的例子中，文件META-INF/services/com.corejava.crypt.Cipher 必须包含这样一行：
+
+```
+com.corejava.crypt.impl.CaesarCipher
+```
+
+完成这个准备工作之后，程序可以如下初始化一个服务加载器：
+
+```java
+public static ServiceLoader<Cipher> cipherLoader = ServiceLoader.1oad(Cipher.class);
+```
+
+这个初始化工作只在程序中完成一次。
+
+服务加载器的`iterator` 方法会对服务提供的所有实现返冋一个迭代器。在循环中， 选择一个适当的对象来完成服务。
+
+```java
+public static Cipher getCipher(int minStrength) {
+  for (Cipher cipher : cipherLoader) {
+    if (cipher.strength() >= minStrength) return cipher;
+  }
+  return null ;
+}
+```
+
+也可以使用流来选择期望的服务：
+
+```java
+public static Optional<Cipher> getCipher(int minStrength) {
+  return cipherLoader.stream()
+    .map(ServiceLoader.Provider::get)
+    .filter(c -> c.strength() >= minStrength)
+    .findFirst();
+}
+```
+
+这个初始化工作只在程序中完成一次。
 
 # 测试
 
