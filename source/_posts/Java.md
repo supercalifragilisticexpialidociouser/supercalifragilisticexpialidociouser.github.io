@@ -771,6 +771,22 @@ System.out.println(Arrays.deepToString(twoD));  //[[0], [1, 2], [3, 4, 5], [6, 7
 
 ![不规则数组](Java/不规则数组.png)
 
+不规则数组也可以使用数组初始化器：
+
+```java
+int[][] twoD =
+  {
+    {0}，
+    {1, 2},
+    {3, 4, 5},
+    {6, 7, 8, 9}
+  }；
+```
+
+## 数组的协变性
+
+Java的数组具有协变性（covariance）。例如：如果`Manager`类是`Employee`的子类，则`Manager[]`也是`Employee[]`的子类型。
+
 ## Arrays类
 
 `Arrays.fill()`：填充数组。
@@ -2098,7 +2114,7 @@ Java中没有全局的函数，只有定义在类中的方法。（参见“方�
 
 Java的运算符都是内置的，不能自定义新的运算符，也不能重载已有的运算符。
 
-大部分运算符只能操作基本类型，但`=`、`==`和`!=`能操作所有对象。此外，`String`类支持`+`和`+=`。
+大部分运算符只能操作基本类型，但`=`、`==`和`!=`能操作所有对象。此外，`String`类还支持`+`和`+=`。
 
 ### 优先级
 
@@ -3548,6 +3564,10 @@ public int hashCode() {
 
 `Object.clone`方法只是做了一个浅拷贝，而且是`protected`的，要实现深拷贝请参见“对象克隆”。
 
+### `Objects`工具类
+
+`java.util.Objects`类提供了许多静态方法，用来操作对象。
+
 ## 对象包装器
 
 对象包装器是不可变的，即一旦构造了包装器，就不允许更改包装在其中的值。
@@ -3889,11 +3909,92 @@ Java不支持多重继承，而接口可以提供多重继承的大多数好处�
 
 # 泛型
 
-## 泛型与继承
+## 泛型类
 
-`Pair<Employee>`与`Pair<Manager>`之间不存在继承关系。另外，同一个泛型类搭配不同的类型参数复合而成的类属于同一个类，但却是不同的类型。
+泛型类是有一个或多个类型参数的类。
 
-泛型类（或接口）可以扩展或实现其他泛型类（或接口）
+泛型类（或接口）可以扩展或实现其他泛型类（或接口）。
+
+### 实例化
+
+通过将类型参数替换为具体类型，你可以实例化泛型类。
+
+类型参数不能用原语类型实例化。
+
+在构造泛型类对象时，如果构造器的类型参数可以推断出来，则可以省略构造器的类型参数，但一对尖括号不可省略：
+
+```java
+Entry<String, Integer> entry = new Entry<>("Fred", 42);
+```
+
+## 泛型方法
+
+泛型方法是带类型参数的方法，它可以是普通类或泛型类的方法。
+
+```java
+public class Arrays {
+  public static <T> void swap(T[] array, int i, int j) {
+    T temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+  }
+}
+```
+
+当你声明一个泛型方法时，类型参数要放在修饰符之后，返回类型之前。
+
+当你调用泛型方法时，可以不指定类型参数，它可以从方法的实际参数和返回类型中推断出来：
+
+```java
+String[] friends = …;
+Arrays.swap(friends, 0, 1); //等价于：Arrays.<String>swap(friends, 0, 1);
+```
+
+## 类型限定
+
+可以对类型参数做出限定，要求该类型参数继承某些类或实现某些接口。
+
+```java
+public static <T extends AutoCloseable> void closeAll(ArrayList<T> elems)
+  	throws Exception {
+  for (T elem : elems) elem.close();
+}
+```
+
+类型参数可以有多个限定：
+
+```java
+T extends Runnable & AutoCloseable
+```
+
+可以有多个接口限定，但最多只能有一个类限定。如果有一个限定是类，则它必须放在限定列表的第一位。
+
+## 类型变异
+
+与数组的协变性不同，Java的泛型都是不变的，`Pair<Employee>`与`Pair<Manager>`之间不存在继承关系。另外，同一个泛型类搭配不同的类型参数复合而成的类属于同一个类，但却是不同的类型。
+
+但是，Java可以使用通配符来实现使用时变化（use-site variance）的机制。
+
+### 子类型通配符
+
+子类型通配符`? extends T`表示T类以及它的任意某个子类型。
+
+```java
+public static void printNames(ArrayList<? extends Employee> staff) {
+  for (int i=0; i<staff.size(); i++) {
+    Employee e = staff.get(i);
+    System.out.println(e.getName());
+  }
+}
+```
+
+可以将`ArrayList<Employee>`、`ArrayList<Manager>`对象传递给`printNames`方法。因为，它们都是`ArrayList<? extends Employee>`的子类型。
+
+子类型通配符通常只能作函数的返回类型，而不能是函数参数的类型。因此，只能对带子类型通配符的泛型对象做读操作，而不能做写操作。上例中，`staff.get(i)`就是做读操作，这是允许 的。但如果是`staff.add(x)`这样的写操作，则是不允许的。
+
+### 父类型通配符
+
+父类型通配符`? super T`表示`T`类以及它的任意某个父类型。
 
 # 集合类型
 
@@ -4116,12 +4217,6 @@ public Employee (String name, double salary, int year, int month, int day) {
 ```
 
 另外 ，字段之间可以互相屏蔽。例如：子类字段屏蔽从父类继承来的同名字段。这时，要访问这些从父类继承来的同名字段，可在这些字段前加上`super.`前缀。
-
-# 内存管理
-
-## 垃圾回收
-
-在有些语言中，例如C++，动态分配的对象必须通过`delete`运算符手动释放。Java采用一种不同的方法——自动解除分配的内存。完成该工作的技术被称为垃圾回收（garbage collection）。
 
 # 类型系统
 
@@ -4372,6 +4467,8 @@ System.out.printf("%,+.2f", 100000.0 /3.0);  //输出：+33,333.33
 
 异常是**运行时**错误。
 
+异常类似于处理流程中的例外流程。
+
 ## 异常类型
 
 ![1523253170218](Java/Java异常层次结构.png)
@@ -4396,10 +4493,26 @@ public Image loadlmage(String s) throws FileNotFoundException, EOFException {…
 
 而抛出免检异常，不管在当前方法是否捕获，都不需要使用`throws`声明（虽然声明了也不会报错）。
 
-如果在子类中重写了超类的一个方法，子类重写方法中声明的受检异常不能比超类方法中声明的异常更通用（也就是说，子类重写方法中可以抛出更特定的异常，或者根本不抛出任何异常）。特别地，如果超类方法没有抛出任何受检异常，子类重写方法也不能抛出任何受检异常。
+如果在子类中重写了超类的一个方法，子类重写方法中声明的受检异常不能比超类方法中声明的异常更多或更通用（也就是说，子类重写方法中可以抛出更特定的异常，或者根本不抛出任何异常）。特别地，如果超类方法没有`throws`语句，则重写后的方法也不能声明抛出任何受检异常。
 
 > Java 中的`throws` 说明符与C++ 中的`throw` 说明符基本类似，但有一点重要的区别。在C++ 中，`throw` 说明符在运行时执行， 而不是在编译时执行。也就是说， C++编译器将不处理任何异常声明。但是，如果函数抛出的异常没有出现在`throw`列表中，就会调用`unexpected` 函数， 这个函数的默认处理方式是终止程序的执行。
 > 另外，在C++ 中，如果没有给出`throw` 说明， 函数可能会抛出任何异常。而在Java中， 没有`throws` 说明符的方法将不能抛出任何受检异常。
+
+你不能为lambda表达式声明抛出异常。但是，如果lambda表达式会抛出一个受检异常，则你只能将它传给一个其方法声明了该异常的函数式接口。例如，如下调用有错误：
+
+```java
+list.forEach(obj -> write(obj, "output.dat"));
+```
+
+因为`forEach`方法的参数是下面的函数式接口：
+
+```java
+public interface Consumer<T> {
+  void accept(T t);
+}
+```
+
+该函数式接口的`accept`方法没有声明抛出任何受检异常。
 
 ## 抛出异常
 
@@ -4460,9 +4573,7 @@ public void read(String filename) {
 }
 ```
 
-如果某个异常发生的时候没有在任何地方进行捕获，那该异常会由Java运行时系统提供的默认处理程序捕获并处理。默认处理程序会显示一个描述异常的字符中，输出异常发生点的堆栈踪迹并终止程序。
-
-捕获的异常就不会继续往外抛了。因此，已被捕获的受检异常就不能再用`throws`声明了。
+如果受检异常已被捕获并处理掉，就不能再用`throws`声明它了。
 
 > 通常，应该捕获那些知道如何处理的异常，而将那些不知道怎样处理的异常继续进行传递。
 
@@ -4504,9 +4615,29 @@ try {
 }
 ```
 
-只有当捕获的异常类型彼此之间不存在子类关系时才需要这个特性。
+只有当捕获的异常类型彼此之间不存在子类关系时才需要这个特性。并且异常变量`e`只能调用这些异常类的共有方法。
 
 每个多重捕获异常参数都被隐含声明为`final` （如果愿意，也可以显式指定`final`，但这不是必需的）。因此，在`catch`块中不能为它们赋予新值。
+
+### 默认的未捕获异常处理器
+
+如果某个异常发生的时候没有在任何地方进行捕获，那该异常会由Java运行时系统提供的默认处理程序捕获并处理。默认处理程序会显示一个描述异常的字符串，输出异常发生点的堆栈踪迹并终止程序。如果你想在其他地方保存异常，则需要显式设置默认的未捕获异常处理器：
+
+```java
+Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
+  … //记录异常
+});
+```
+
+> 未捕获异常会终止其所在的线程。如果你的应用程序只有一个线程，则在调用未捕获异常处理器之后，程序会退出。
+
+如果想存储异常的堆栈踪迹，你可以像下面这样把它放进一个字符串中：
+
+```java
+ByteArrayOutputStream out = new ByteArrayOutputStream();
+ex.printStackTrace(out);
+String desc = out.toString();
+```
 
 ## 嵌套的try-catch语句
 
@@ -4663,6 +4794,8 @@ try {
 
 幸运的是，JDK 7中提供了带资源的try语句，使得关闭资源的处理容易多了。
 
+> 注意：异常抑制机制（参见“带资源的try语句”）只适用于try-with-resources语句。
+
 ## 带资源的try语句
 
 对于以下代码模式，假设资源实现了`AutoCloseable`接口：
@@ -4684,26 +4817,53 @@ try (/*open a resource*/) {
 }
 ```
 
-在`try` 块退出时，会自动调用资源的`close()`方法释放资源。
+在`try` 块退出时，会自动调用资源的`close()`方法（来自`AutoCloseable`接口）释放资源。
+
+> 因此，没有实现`AutoCloseable`接口的资源是不能使用try-with-resources语句的，只能使用传统的try-finally语句来释放资源。
 
 如果`try` 块抛出异常， 而且`close` 方法也抛出异常，带资源的`try` 语句可以很好地处理这种情况。原来的异常会重新抛出，而`close`方法抛出的异常，会通过`try` 块抛出的异常的`addSuppressed` 方法增加到“被抑制”异常列表中。后续可以通过调用`getSuppressed` 方法，获得从`close` 方法抛出并“被抑制”的异常列表。
 
 例如：
 
 ```java
-try (Scanner in = new Scanner(new FileInputStream("/usr/share/dict/words")), "UTF-8") {
+try (Scanner in = new Scanner(new FileInputStream("/usr/share/dict/words"), "UTF-8")) {
   while (in.hasNext())
   	System.out.println(in.next());
 }
 ```
 
-还可以指定多个资源。例如：
+如果`in`变量是在`try`之前声明的，则它必须是有效的`final`变量，即从声明之后就没被修改过：
+
+```java
+Scanner in = new Scanner(new FileInputStream("/usr/share/dict/words"), "UTF-8");
+try (in) {
+  while (in.hasNext())
+  	System.out.println(in.next());
+}
+```
+
+还可以指定多个资源，用分号隔开。例如：
 
 ```java
 try (Scanner in = new Scanner(new FileInputStream("/usr/share/dict/words"), "UTF-8");
      PrintWriter out = new PrintWriter("out.txt")) {
   while (in.hasNext())
   	out.println(in.next().toUpperCase());
+}
+```
+
+多个资源将按照初始化的相反顺序关闭——即`out`等于`in`关闭。
+
+假设`PrintWriter`的构造函数抛出一个异常。现在`in`已经初始化了，但`out`还没有。则会先调用`in.close()`，然后传播一个异常。
+
+如果`try`块正常执行完成，但某些资源的`close`方法抛出了异常，则这些异常将会运行时捕获并重新抛出给调用者。如果`try`块和`close`方法均抛出了异常，则`try`块的异常将被重新抛出给调用者，而`close`的异常将被作为“被抑制的（suppressed）”异常附加到被重新抛出的`try`块异常上。当调用者捕获`try`块异常时，他可以通过调用`getSuppressed`方法来获得`close`的异常：
+
+```java
+try {
+  …
+} catch (IOException ex) {
+  Throwable[] secondaryExceptions = ex.getSuppressed();
+  …
 }
 ```
 
@@ -4734,6 +4894,8 @@ class FileFormatException extends IOException {
 
 # 断言
 
+断言是防御性编程中一种常见的用法，它主要用于调试目的以验证内部假设，它不是一种强制合约。断言失败是致命的、不可恢复的错误，不能用来代替异常。
+
 断言的一般形式：
 
 ```java
@@ -4746,15 +4908,13 @@ assert 条件 : 表达式;
 
 `表达式`部分被传递给`AssertionError`的构造器，这个值 被转换成相应的字符串格式。并且如果断言失败，将会显示该字符串。`AssertionError` 对象并不存储`表达式`的值。因此，不可能在以后得到它。
 
-断言失败是致命的、不可恢复的错误。断言检查只用于开发和测试阶段。
-
 > C 语言中的`assert` 宏将断言中的条件转换成一个字符串。当断言失败时，这个字符串将会被打印出来。例如，若`assert(x>=0)` 失败，那么将打印出失败条件`x>=0`。在Java 中，条件并不会自动地成为错误报告中的一部分。如果希望看到这个条件，就必须将它以字符串的形式传递给`AssertionError` 对象：`assert x >= 0 :"x >= 0" `。
 
 ## 启用和禁用断言
 
 断言与异常不一样的地方是，断言可以通过运行参数启用和禁用。例如，在测试阶段启用断言，在正式发布时禁用断言，从而不会增加程序的负担。
 
-在默认情况下， 断言被禁用。可以在运行程序时用`-enableassertions` 或`-ea` 选项启用：
+在默认情况下， 断言是被禁用的。可以在运行程序时用`-enableassertions` 或`-ea` 选项启用：
 
 ```bash
 $ java -enableassertions MyApp
@@ -4762,17 +4922,15 @@ $ java -enableassertions MyApp
 
 在启用或禁用断言时不必重新编译程序。启用或禁用断言是类加载器（class loader）的功能。当断言被禁用时，类加载器将跳过断言代码，因此，不会降低程序运行的速度。
 
-也可以在某个类或整个包中使用断言， 例如：
+也可以在某个类或整个包中启用断言， 例如：
 
 ```java
 $ java -ea:MyClass -ea:com.mycompany.mylib... MyApp
 ```
 
-> 注意：三个点是代码的组成部分。表示指定包及其子包。
+> 注意：三个点是代码的组成部分，表示指定包及其子孙包。特别是，`-ea...`会启用默认包中所有类的断言。
 
-这条命令将开启`MyClass` 类以及在`com.mycompany.mylib` 包和它的子包中的所有类的断言。
-
-选项`-ea` 将开启默认包中的所有类的断言。
+这条命令将开启`MyClass` 类以及在`com.mycompany.mylib` 包和它的子孙包中的所有类的断言。
 
 也可以用选项`-disableassertions` 或`-da` 禁用某个特定类和包的断言：
 
@@ -4780,7 +4938,15 @@ $ java -ea:MyClass -ea:com.mycompany.mylib... MyApp
 $ java -ea:... -da:MyClass MyApp
 ```
 
-然而， 启用和禁用所有断言的`-ea` 和`-da` 开关不能应用到那些没有类加载器的“系统类”上。对于这些系统类来说， 需要使用`-enablesystemassertions`或`-esa` 选项启用断言，使用`-disablesystemassertions`或`-dsa`禁用系统类的断言。
+然而， 启用和禁用所有断言的`-ea` 和`-da` 开关不能应用到那些不是通过类加载器加载的“系统类”上。对于这些系统类来说， 需要使用`-enablesystemassertions`或`-esa` 选项启用断言，使用`-disablesystemassertions`或`-dsa`禁用系统类的断言。
+
+通过下面的方法，你也可以用编程的方式控制类加载器的断言状态：
+
+```java
+void ClassLoader.setDefaultAssertionStatus(boolean enabled);
+void ClassLoader.setClassAssertionStatus(String className, boolean enabled);
+void ClassLoader.setPackageAssertionStatus(String className, boolean enabled);
+```
 
 # 日志
 
@@ -4956,13 +5122,13 @@ args：原始的调用参数。
 
 ```java
 class TraceHandler implements InvocationHandler {
-  private Object target ;
+  private Object target ; //被代理的对象
   public TraceHandler (Object t) {
     target = t;
   }
   public Object invoke(Object proxy, Method m, Object[] args)
     throws Throwable {
-    …
+    … //可以做一些额外的处理
     // invoke actual method
     return m.invoke(target, args);
   }
@@ -5452,6 +5618,10 @@ public static Optional<Cipher> getCipher(int minStrength) {
 ```
 
 这个初始化工作只在程序中完成一次。
+
+## 垃圾回收
+
+在有些语言中，例如C++，动态分配的对象必须通过`delete`运算符手动释放。Java采用一种不同的方法——自动解除分配的内存。完成该工作的技术被称为垃圾回收（garbage collection）。
 
 # 测试
 

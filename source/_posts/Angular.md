@@ -55,7 +55,7 @@ $ ng update --all --force
 安装如下VSCode扩展：
 
 - Angular Language Service
-- Angular 7 Snippets - TypeScript, Html, Angular Material, ngRx, RxJS & Flex Layout
+- Angular 8 Snippets - TypeScript, Html, Angular Material, ngRx, RxJS & Flex Layout
 
 ## 选择浏览器
 
