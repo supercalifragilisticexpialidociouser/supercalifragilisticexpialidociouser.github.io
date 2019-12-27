@@ -3973,28 +3973,96 @@ T extends Runnable & AutoCloseable
 
 与数组的协变性不同，Java的泛型都是不变的，`Pair<Employee>`与`Pair<Manager>`之间不存在继承关系。另外，同一个泛型类搭配不同的类型参数复合而成的类属于同一个类，但却是不同的类型。
 
-但是，Java可以使用通配符来实现使用时变化（use-site variance）的机制。
+![泛型与继承](Java/泛型与继承.png)
+
+一个更复杂的例子：
+
+![更复杂的泛型与继承例子](Java/更复杂的泛型与继承例子.png)
+
+但是，Java可以使用通配符来实现使用时协变（use-site variance）的机制。
+
+> 一些编程语言（比如`C#`和`Scala`）使用声明时协变（declaration-site variance），十分方便。但是，它没有Java通配符的使用时协变强大。
 
 ### 子类型通配符
 
 子类型通配符`? extends T`表示T类以及它的任意某个子类型。
 
 ```java
-public static void printNames(ArrayList<? extends Employee> staff) {
-  for (int i=0; i<staff.size(); i++) {
-    Employee e = staff.get(i);
-    System.out.println(e.getName());
-  }
+public static void printBuddies(Pair<? extends Employee> p) {
+  Employee first = p.getFirst();
+  Employee second = p.getSecond();
+  System.out.println(first.getName() + " and " + second.getName() + " are buddies.");
 }
 ```
 
-可以将`ArrayList<Employee>`、`ArrayList<Manager>`对象传递给`printNames`方法。因为，它们都是`ArrayList<? extends Employee>`的子类型。
+可以将`Pair<Employee>`、`Pair<Manager>`对象传递给`printBuddies`方法。因为，它们都是`Pair<? extends Employee>`的子类型。
 
-子类型通配符通常只能作函数的返回类型，而不能是函数参数的类型。因此，只能对带子类型通配符的泛型对象做读操作，而不能做写操作。上例中，`staff.get(i)`就是做读操作，这是允许 的。但如果是`staff.add(x)`这样的写操作，则是不允许的。
+![子类型通配符的继承关系](Java/子类型通配符的继承关系.png)
+
+子类型通配符通常只能作函数的返回类型，而不能是函数参数的类型。因此，只能对带子类型通配符的泛型对象做读操作，而不能做写操作。上例中，`p.getFirst`就是做读操作，这是允许 的。但如果是`p.setFirst`这样的写操作，则是不允许的。因为`setFirst`方法的形参是`? extends Employee`类型，它可能是任一一个`Employee`的子类型，但不知道具体是哪个子类型（例如有可能是`Janitor`），因而不能保证一定能接收随意某个具体的子类型（例如`Manager`）实参。而`getFirst`方法返回`? extends Employee`类型，总能使用`Employee`类型或它的任意父类型的变量来接收。换句话说，你总能将`? extends Employee`类型对象隐式转换成`Employee`或它的任意父类型，但不能将**任何对象**（`null`可以，但那不是一个对象）隐式转换成`? extends Employee`类型。
 
 ### 父类型通配符
 
 父类型通配符`? super T`表示`T`类以及它的任意某个父类型。
+
+父类型通配符用于读操作时，只能赋值给`Object`变量：
+
+```java
+? super Manager getFirst()
+```
+
+只有`Object`才能接收`Manager`及其任意父类型。
+
+父类型通配符用于写操作时，例如：
+
+```java
+void setFirst(? super Manager)
+```
+
+只能传递给`setFirst`方法`Manager`以及它的任意子类型对象，而不能传递`Employee` 或`Object` 的参数。（类似于逆变）
+
+![父类型通配符的继承关系](Java/父类型通配符的继承关系.png)
+
+### 带类型变量的通配符
+
+例如：
+
+```java
+public static <T> void printAll(T[] elements, Predicate<? super T> filter);
+public static <T extends Comparable<? super T>> void sort(List<T> list);
+```
+
+### 无限定的通配符
+
+无限定的通符只能用于读操作，不能用于写操作（除了写入`null`外），且只能赋给一个`Object`变量。
+
+```java
+public static boolean hasNulls(Pair<?> p) {
+	return p.getFirst() = null || p.getSecond() =null;
+}
+```
+
+上面这个方法将用来测试一个`Pair` 是否包含一个`null` 引用，它不需要实际的类型。
+
+通过将`hasNulls` 转换成泛型方法，可以避免使用通配符类型：
+
+```java
+public static <T> boolean hasNulls(Pair<T> p)
+```
+
+但是，带有通配符的版本可读性更强。
+
+### 通配符捕获
+
+让我们试着用通配符定义一个交换元素方法：
+
+```java
+
+```
+
+
+
+但是，带有通配符的版本可读性更强。
 
 # 集合类型
 

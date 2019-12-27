@@ -510,7 +510,7 @@ List<ServiceInstance> instances = discoveryClient.getInstances("服务名");  //
 
 ### 服务消费
 
-服务消费者主要完成两个目标：发现服务和消费服务（即调用服务）。其中发现服务由Eureka客户端完成，而服务消费则由下列三种方式完成。
+服务消费者主要完成两个目标：发现服务和消费服务（即调用服务）。其中发现服务由Eureka客户端（即`DiscoveryClient`）完成，而服务消费则由下列三种方式完成。
 
 - 标准的Spring RestTemplate类来调用服务，需要开发人员自己负责负载均衡；
 - 使用带有Ribbon功能的Spring RestTemplate来调用服务；
