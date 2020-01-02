@@ -4057,22 +4057,238 @@ public static <T> boolean hasNulls(Pair<T> p)
 让我们试着用通配符定义一个交换元素方法：
 
 ```java
+public static void swap(ArrayList<?> elements, int i, int j) {
+  ? temp = elements.get(i);  //行不通。“?”可以用作类型参数，但不能用作一个类型
+  elements.set(i, elements.get(i));
+  elements.set(j, temp);
+}
+```
 
+通过添加一个帮助方法可以绕开这个限制：
+
+```java
+public static void swap(ArrayList<?> elements, int i, int j) {
+  swapHelper(elements, i, j);
+}
+
+private static <T> void swapHelper(ArrayList<T> elements, int i, int j) {
+  T temp = elements.get(i);
+  elements.set(i, elements.get(i));
+  elements.set(j, temp);
+}
+```
+
+这里方法`swapHelper`的类型参数`T`“捕获了”通配符类型。
+
+## Java泛型的局限
+
+Java为了保持兼容性，泛型在虚拟机中是不存在的，类型参数将被擦除。像下面这样的语句在编译时会报错：
+
+```java
+a instanceof ArrayList<String>
+T.class
+T[].class
+ArrayList<String>.class
+new T(…)
+new T[…]
+new Entry<String, Integer>(…) //合法的
+new Entry<String, Integer>[…] //非法的。不能构造参数化类型的数组
+```
+
+如果真的需要构造泛型数组，可以使用下面代码：
+
+```java
+@SuppressWarnings("unchecked")
+Entry<String, Integer>[] entries = (Entry<String, Integer>[]) new Entry<?, ?>[100];
+//或者，直接使用一个数组列表替代：
+ArrayList<Entry<String, Integer>> entries = new ArrayList<>(100);
+```
+
+类型参数不能是原语类型。
+
+不能在静态变量或者静态方法中使用类型变量。
+
+你不能抛出或捕获一个泛型类对象：
+
+```java
+try {
+  …
+} catch (T ex) { //错误——不能捕获类型变量
+  …
+}
+```
+
+但是在`throws`声明中，可以使用类型变量：
+
+```java
+public static <V, T extends Throwable> V doWork(Callable<V> c, T ex)
+  	throws T {
+  
+}
+```
+
+不能定义一个`Throwable`的泛型子类：
+
+```java
+public class Problem<T> extends Exception
 ```
 
 
 
-但是，带有通配符的版本可读性更强。
-
 # 集合类型
+
+![Java集合框架](Java/Java集合框架.png)
+
+`List`接口提供了访问列表中第n个元素的方法（即`get`方法），但是并非所有`List`的实现都能支持快速随机访问。如果一个`List`实现支持快速随机访问，则它应该实现`RandomAccess`这个标志接口。例如，`ArrayList`实现了`RandomAccess`接口，表明它支持快速随机访问。而`LinkedList`没有实现这个接口，因此，使用`get`方法进行随机访问将是低效的。另外，实现了`RandomAccess`接口的`List`，使用for循环的方式获取数据会优于用迭代器获取数据。
 
 ## 列表
 
 ## 映射/字典
 
+`HashMap`
+
+`TreeMap`
+
+要迭代映射可以使用`forEach`方法：
+
+```java
+Map<String, Integer> counts = new HashMap<>();
+…
+counts.forEach((k, v) -> {
+  …
+});
+```
+
+### Properties
+
+`Properties`很容易保存和加载属性文件：
+
+```java
+Properties settings = new Properties();
+settings.put("width", "200");
+settings.put("title", "Hello, World!");
+try (OutputStream out = Files.newOutputStream(path)) {
+  settings.store(out, "Program Properties");
+}
+…
+try (InputStream in = Files.newInputStream(path)) {
+  settings.load(in);
+}
+String title = settings.getProperty("title", "New Document");
+```
+
+从Java 9开始，属性文件的编码格式更改为UTF-8（原来为ASCII）。
+
+`System.getProperties`方法将返回含有系统属性的`Properties`对象。
+
+常用的系统属性：
+
+| 属性的键        | 描述                                            |
+| --------------- | ----------------------------------------------- |
+| user.dir        | 虚拟机的“当前工作目录”                          |
+| user.home       | 用户的主目录                                    |
+| user.name       | 用户的帐户名                                    |
+| java.version    | 该虚拟机上的Java运行版本                        |
+| java.home       | Java安装目录                                    |
+| java.class.path | 虚拟机启动的类路径                              |
+| java.io.tmpdir  | 临时文件的存放目录（例如`/tmp`）                |
+| os.name         | 操作系统的名称（例如`Linux`）                   |
+| os.arch         | 操作系统的体系结构（例如`amd64`）               |
+| os.version      | 操作系统的版本                                  |
+| file.separator  | 文件分隔符（Unix中使用`/`，Windows中使用`\`）   |
+| path.separator  | 路径分隔符（Unix中使用`:`，Windows中使用`;`）   |
+| line.separator  | 行分隔符（Unix中使用`\n`，Windows中使用`\r\n`） |
+
+### EnumMap
+
+`EnumMap`是枚举值的映射。
+
+```java
+EnumMap<Weekday, String> personInCharge = new EnumMap<>(Weekday.class);
+personInCharge.put(Weekday.MONDAY, "Fred");
+```
+
+### WeakHashMap
+
+当`WeakHashMap`的一个值所对应的键没有被引用时，垃圾回收器将回收该键值对。
+
 ## 集
 
+`HashSet`
+
+`TreeSet`
+
+### EnumSet
+
+`EnumSet`是枚举值的集。
+
+```java
+enum Weekday {MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY};
+Set<Weekday> always = EnumSet.allOf(Weekday.class); //包含所有枚举量的集
+Set<Weekday> never = EnumSet.noneOf(Weekday.class); //空集
+Set<Weekday> workday = EnumSet.range(Weekday.MONDAY, Weekday.FRIDAY); //工作日集
+Set<Weekday> mwf = EnumSet.of(Weekday.MONDAY, Weekday.WEDNESDAY, Weekday.FRIDAY);
+```
+
+## 迭代器
+
+`Iterable<T>`接口定义了一个`iterator`方法，该方法会生成一个迭代器对象（`Iterator<T>`），你可以用它来访问所有元素。
+
+```java
+Collection<String> coll = …;
+Iterator<String> iter = coll.iterator();
+while (iter.hasNext()) {
+  String element = iter.next();
+  if (element满足某个条件)
+    iter.remove();
+}
+```
+
+注意：`remove`方法移除迭代器最近一次返回的元素，并不是迭代器指向的元素。因此，一次调用`next`或`previous`方法之后，不能连续两次调用`remove`方法。
+
+根据指定条件删除集合中元素的更好方法是使用`removeIf`方法：
+
+```java
+coll.removeIf(e -> e满足某个条件);
+```
+
+如果你使用多个迭代器访问一个数据结构，并且其中一个迭代器使数据结构发生改变，那么其他的迭代器可能会失效。如果继续使用其他迭代器的话，无效迭代器就可能抛出`ConcurrentModificationException`异常。
+
+## BitSet
+
+`BitSet`用来存储一系列比特，它将比特塞进一个`long`类型的数组里。
+
+> 注意：`BitSet`不是一个集合类，它没有实现`Collection<Integer>`接口。
+
+## 栈和队列
+
+`ArrayDeque`可用于表示栈、队列、双端队列。
+
+> 应避免使用早期遗留下来的`Stack`类。
+
+`PriorityQueue`表示优先级队列。
+
+```java
+public class Job implements Comparable<Job> {
+  …
+}
+…
+PriorityQueue<Job> jobs = new PriorityQueue<>();
+jobs.add(new Job(4, "Collect garbage"));
+jobs.add(new Job(9, "Match braces"));
+jobs.add(new Job(1, "Fix memory leak"));
+…
+while (jobs.size() > 0) {
+  Job job = jobs.remove(); //首先移除最紧急的作业
+  execute(job);
+}
+```
+
+> 注意：与`TreeSet`不同，优先级队列不一定按照排序顺序迭代元素。优先级队列用来添加和删除元素的算法导致最小值元素总是在根部，而不会浪费时间对所有元素排序。
+
 ## Collections类
+
+`Collections`工具类包含很多额外的可在集合上操作的算法。
 
 `Collections.fill()`：填充列表。
 
@@ -4083,6 +4299,8 @@ public static <T> boolean hasNulls(Pair<T> p)
 `Collections.reverse()`：反转列表元素。
 
 `Collections.shuffle()`：随机打乱列表元素。
+
+## 视图
 
 # 命名空间——包
 
