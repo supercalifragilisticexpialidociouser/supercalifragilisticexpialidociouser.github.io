@@ -4220,7 +4220,7 @@ personInCharge.put(Weekday.MONDAY, "Fred");
 
 ### EnumSet
 
-`EnumSet`是枚举值的集。
+`EnumSet`是枚举值的集。由`iterator`方法返回迭代器以其自然顺序（声明枚举量的顺序）遍历元素。空元素是不允许的。
 
 ```java
 enum Weekday {MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY};
@@ -4301,6 +4301,260 @@ while (jobs.size() > 0) {
 `Collections.shuffle()`：随机打乱列表元素。
 
 ## 视图
+
+集合视图（view）是一个实现了集合接口的轻量级对象，但是它不存储元素。
+
+### 构建不可修改的视图
+
+根据给定元素或键值对产生集、列表以及映射的视图：
+
+```java
+List<String> names = List.of("Peter", "Paul", "Mary");
+Set<Integer> numbers = Set.of(2, 3, 5);
+Map<String, Integer> scores = Map.of("Peter", 2, "Paul", 3, "Mary", 5);
+Map<String, Integer> scores = Map.ofEntries(
+	Map.entry("Peter", 2),
+	Map.entry("Paul", 3),
+	Map.entry("Mary", 5));
+```
+
+上面创建的视图是不可修改的。如果你想要一个可变集合，则可以给集合构造器传递一个视图：
+
+```java
+List<String> names = new ArrayList<>(List.of("Peter", "Paul", "Mary"));
+```
+
+### 子集合视图
+
+对于列表、有序集和映射来说，可以通过下界（包含）和上界（不包含）来构建一个指定范围的子集合视图。
+
+```java
+List<String> sentence = …;
+List<String> nextFive = sentence.subList(5, 10); //如果要省略下界，请用headList方法；要省略上界，则用tailList方法
+
+TreeSet<String> words = …;
+SortedSet<String> asOnly = words.subSet("a", "b");
+```
+
+对于`NavigableSet`和`NavigableMap`还提供了省略下界的`headSet`（）、`headMap`，省略上界的`tailSet`、`tailMap`。
+
+这样创建的子集合视图是可修改的，任何子集合视图的变化（例如设置、添加、删除元素）将会影响原先的集合。
+
+### 转换成不可修改视图
+
+要将一个集合转换成一个不可修改的视图，可以使用`unmodifiableList`方法：
+
+```java
+private ArrayList<Person> friends;
+public List<Person> getFriends() {
+  return Collections.unmodifiableList(friends);
+}
+```
+
+### 检查视图
+
+将错误类型元素偷偷插入泛型集合中是可能的，并且当这个不合适的元素被检索时（不是插入时），会报运行时错误。可以使用检查视图来监视插入集合的所有元素，当添加一个错误类型的对象时会抛出异常。
+
+```java
+List<String> strings = Collections.checkedList(new ArrayList<>(), String.class);
+```
+
+### 同步视图
+
+`Collections`类提供了许多构建同步视图的方法（例如`synchronizedList`方法）。同步视图可以确保安全地并发访问数据结构，但它们不如`java.util.concurrent`包中的数据结构（参见“线程安全的数据结构”）有用。`java.util.concurrent`包中的数据结构是针对并发访问而专门设计的，建议使用这些类，而避免使用同步视图。
+
+# 流式编程
+
+流是Java API的新成员，它允许你以声明性方式处理数据集合。你可以把它们看成遍历数据集的高级迭代器。此外，流还可以透明地并行处理，你无需写任何多线程代码了！
+
+下面两段代码都是用来返回低热量的菜肴名称的，并按照卡路里排序，一个是用迭代方式写的，另一个是用Java 8的流写的。
+
+迭代版：
+
+```java
+//筛选
+List<Dish> lowCaloricDishes = new ArrayList<>();
+for(Dish d: menu){
+  if(d.getCalories() < 400){
+    lowCaloricDishes.add(d);
+ }
+}
+//对菜肴排序
+Collections.sort(lowCaloricDishes, new Comparator<Dish>() {
+  public int compare(Dish d1, Dish d2){
+    return Integer.compare(d1.getCalories(), d2.getCalories());
+  }
+});
+//处理排序后的菜名列表
+List<String> lowCaloricDishesName = new ArrayList<>();
+for(Dish d: lowCaloricDishes){
+  lowCaloricDishesName.add(d.getName());
+}
+```
+
+流版：
+
+```java
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
+
+List<String> lowCaloricDishesName =
+  menu.stream()
+    .filter(d -> d.getCalories() < 400)   //选出400卡路里以下的菜肴
+    .sorted(comparing(Dish::getCalories)) //按照卡路里排序
+    .map(Dish::getName)  //提取菜肴的名称
+    .collect(toList());  //将所有名称保存在List中
+```
+
+为了利用多核架构并行执行这段代码，你只需要把stream()换成parallelStream()：
+
+```java
+List<String> lowCaloricDishesName =
+  menu.parallelStream()  //并行流
+    .filter(d -> d.getCalories() < 400)
+    .sorted(comparing(Dishes::getCalories))
+    .map(Dish::getName)
+    .collect(toList());
+```
+
+因为filter、sorted、map和collect等操作是与具体线程模型无关的高层次构件，所以它们的内部实现可以是单线程的，也可能透明地充分利用你的多核架构！（这些都可由Stream API在背后进行多种优化）在实践中，这意味着你用不着为了让某些数据处理任务并行而去操心线程和锁了，Stream API都替你做好了！而显式使用迭代，则必须由开发人员自己来处理这些优化。
+
+## 流的特点
+
+流不存储元素，元素存储在底层的集合或者按需生成。
+
+流操作不改变它们的源数据。例如，`filter`方法不会从流中删除元素，而是生成一个不包含特定元素的新流。
+
+流操作是延迟执行的，直到需要结果时，方法才会执行。因此，你甚至可以拥有一个无穷流。
+
+和迭代器类似，流只能遍历一次。遍历完之后，我们就说这个流已经被消费掉了。
+
+## 使用流
+
+使用流的典型工作流：
+
+1. 创建一个`Stream`；
+2. 处理流：通过**中间操作**链，形成一条流的流水线；
+3. 应用**终止操作**产生结果，并关闭流。
+
+![流操作](Java/stream-op.png)
+
+### 构建流
+
+#### 由集合构建流
+
+可以使用`Collection`接口的`stream`方法或`parallelStream`方法将任何集合转化成`Stream`。
+
+#### 由值构建流
+
+可以使用静态方法`Stream.of`，通过显式值创建一个流。它可以接受任意数量的参数。
+
+```java
+Stream<String> stream = Stream.of("Java 8 ", "Lambdas ", "In ", "Action");
+stream.map(String::toUpperCase).forEach(System.out::println);
+```
+
+#### 构建空流
+
+```java
+Stream<String> emptyStream = Stream.empty();
+```
+
+#### 由数组构建流
+
+可以使用静态方法`Stream.of`，通过数组来创建一个流。
+
+```java
+Stream<String> stream = Stream.of(contents.split("\\PL+"));
+```
+
+使用`Arrays.stream`方法可以将数组或数组的一部分转换成`Stream`。
+
+```java
+int[] numbers = {2, 3, 5, 7, 11, 13};
+int sum = Arrays.stream(numbers).sum(); //总和是41
+```
+
+#### 由文件构建流
+
+Java中用于处理文件等I/O操作的NIO API（非阻塞 I/O）已更新，以便利用Stream API。
+
+```java
+long uniqueWords = 0;
+try(Stream<String> lines = Files.lines(Paths.get("data.txt"), Charset.defaultCharset())) {
+  uniqueWords = lines.flatMap(line -> Arrays.stream(line.split(" "))) //生成单词流
+                     .distinct()  //删除重复项
+                     .count();  //数一数有多少各不相同的单词
+}
+catch(IOException e) {
+  //如果打开文件时出现异常则加以处理
+}
+```
+
+#### 由函数构建流：构建无限流
+
+Stream API提供了两个静态方法来从函数生成流：`Stream.iterate`和`Stream.generate`。这两个操作可以创建所谓的无限流。
+
+一般来说，在需要依次生成一系列值的时候应该使用`iterate`方法：
+
+```java
+Stream.iterate(0, n -> n + 2)
+      .limit(10) //通常，对于无限流应该使用limit操作来显式限制它的大小
+      .forEach(System.out::println);
+```
+
+`iterate`方法接受一个初始值（在这里是0），还有一个依次应用在每个产生的新值上的Lambda（`UnaryOperator<t>`类型）。
+
+要产生有限流，可以添加一个用来指定什么时候迭代应该完成的谓词参数。一旦谓词拒绝了迭代产生的值，流就结束：
+
+```java
+BigInteger limit = new BigInteger("10000000");
+Stream<BigInteger> integers 
+  = Stream.iterate(BigInteger.ZERO, 
+                  n -> n.compareTo(limit) < 0, //谓词
+                  n -> n.add(BigInteger.ONE));
+```
+
+`generate`方法接受一个无参数的Lambda（`Supplier<T>`类型）。当需要一个流中的值时，会调用该Lambda产生一个值。
+
+```java
+Stream.generate(Math::random)
+      .limit(5)
+      .forEach(System.out::println);
+```
+
+如果希望参数是有状态的，则可以使用匿名类，而不是Lambda：
+
+```java
+IntSupplier fib = new IntSupplier(){
+  private int previous = 0;
+  private int current = 1;
+  public int getAsInt(){
+    int oldPrevious = this.previous;
+    int nextValue = this.previous + this.current;
+    this.previous = this.current;
+    this.current = nextValue;
+    return oldPrevious;
+  }
+};
+IntStream.generate(fib).limit(10).forEach(System.out::println);
+```
+
+#### 其他构建方法
+
+Java API中拥有多个可生成`Stream`的方法。例如，`Pattern`类有一个方法`splitAsStream`，能够按照正则表达式对charSequence进行分隔。
+
+```java
+Stream<String> words = Pattern.compile("\\PL+").splitAsStream(contents);
+```
+
+`Scanner.tokens`方法产生scanner的token流：
+
+```java
+Stream<String> words = new Scanner(contents).tokens();
+```
+
+
 
 # 命名空间——包
 
