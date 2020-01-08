@@ -4435,7 +4435,7 @@ List<String> lowCaloricDishesName =
 
 1. 创建一个`Stream`；
 2. 处理流：通过**中间操作**链，形成一条流的流水线；
-3. 应用**终止操作**产生结果，并关闭流。
+3. 应用**终止操作**产生结果（即归约），并关闭流。
 
 ![流操作](Java/stream-op.png)
 
@@ -4552,6 +4552,100 @@ Stream<String> words = Pattern.compile("\\PL+").splitAsStream(contents);
 
 ```java
 Stream<String> words = new Scanner(contents).tokens();
+```
+
+### 筛选
+
+`Streams`接口提供了`filter`方法，该操作会接受一个谓词（一个返回`boolean`的函数）作为参数，并返回一个包括所有符合谓词的元素的流。
+
+```java
+List<String> words = …;
+Stream<String> longWords = words.stream().filter(w -> w.length() > 12);
+```
+
+`distinct`方法会根据源流中的元素返回一个具有相同顺序、剔除了重复元素的新流。
+
+```java
+Stream<String> uniqueWords = Stream.of("merrily", "merrily", "gently").distinct(); //只获取了一个"merrily"
+```
+
+`limit(n)`方法会返回一个包含n个元素的新流（如果源流的长度小于n，则会返回源流）。
+
+```java
+Stream<Double> randoms = Stream.generate(Math::random).limit(100);
+```
+
+`skip(n)`方法，返回一个扔掉了前n个元素的流。如果流中元素不足n个，则返回一个空流。请注意，`limit(n)`和`skip(n)`是互补的！
+
+```java
+Stream<String> words = Stream.of(contents.split("\\PL+")).skip(1);
+```
+
+`takeWhile`方法接受一个谓词作为参数，它会从源流中接收所有元素，直到当谓词为`true`时，停止接收。
+
+```java
+Stream<String> initialDigits = codePoints(str).takeWhile(
+  s -> "0123456789".contains(s));
+```
+
+`dropWhile`方法接受一个谓词作为参数。当谓词为`true`时丢弃元素。该方法生成一个包含所有谓词为`false`的元素组成的流。
+
+```java
+Stream<String> withoutInitialWhiteSpace = codePoints(str).dropWhile(
+	s -> s.trim().length() == 0);
+```
+
+### 映射
+
+`map`方法接受一个函数作为参数。这个函数会被应用到源流中的每个元素上，并将其映射成一个新的元素。
+
+```java
+Stream<String> lowercaseWords = words.stream().map(String::toLowerCase);
+```
+
+`flatmap`方法把一个流中的每个值都转换成另一个流，然后把所有的流连接起来成为一个流（即扁平化）。
+
+```java
+List<String> uniqueCharacters =
+  words.stream()
+       .map(w -> w.split(""))    //将每个单词转换为由其字母构成的流
+       .flatMap(Arrays::stream)  //将各个生成流扁平化为单个流
+       .distinct()
+       .collect(Collectors.toList());
+```
+
+### 拼接
+
+`concat`方法将两个流连接起来。
+
+```java
+Stream<String> combined = Stream.concat(
+	codePoints("Hello"), codePoints("World"));
+// 生成流["H", "e", "l", "l", "o", "W", "o", "r", "l", "d"]
+```
+
+### 排序
+
+Java提供了多个`sorted`方法来对流进行排序。
+
+```java
+Stream<String> longestFirst 
+  = words.stream().sorted(Comparator.comparing(String::length).reversed());
+```
+
+### 查找
+
+### 归约
+
+### 其他
+
+`peek`方法生成一个与原先流一样有着相同元素的新流，但是每当提取一个元素时，参数指定的函数就会调用一次。这对调试来说非常方便。
+
+```java
+Object[] powers = Stream.iterate(1.0, p -> p * 2)
+  .peek(e -> System.out.println("Fetching " + e))
+  .limit(20)
+  .toArray();
 ```
 
 
