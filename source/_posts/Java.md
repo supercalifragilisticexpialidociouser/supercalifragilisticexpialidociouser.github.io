@@ -4135,7 +4135,7 @@ public class Problem<T> extends Exception
 
 
 
-# 集合类型
+# 容器类型
 
 ![Java集合框架](Java/Java集合框架.png)
 
@@ -4363,6 +4363,10 @@ List<String> strings = Collections.checkedList(new ArrayList<>(), String.class);
 
 `Collections`类提供了许多构建同步视图的方法（例如`synchronizedList`方法）。同步视图可以确保安全地并发访问数据结构，但它们不如`java.util.concurrent`包中的数据结构（参见“线程安全的数据结构”）有用。`java.util.concurrent`包中的数据结构是针对并发访问而专门设计的，建议使用这些类，而避免使用同步视图。
 
+## Optional类型
+
+`Optional<T>`类（`java.util.Optional`）是一个容器类，代表一个值存在或不存在。
+
 # 流式编程
 
 流是Java API的新成员，它允许你以声明性方式处理数据集合。你可以把它们看成遍历数据集的高级迭代器。此外，流还可以透明地并行处理，你无需写任何多线程代码了！
@@ -4419,6 +4423,14 @@ List<String> lowCaloricDishesName =
 
 因为filter、sorted、map和collect等操作是与具体线程模型无关的高层次构件，所以它们的内部实现可以是单线程的，也可能透明地充分利用你的多核架构！（这些都可由Stream API在背后进行多种优化）在实践中，这意味着你用不着为了让某些数据处理任务并行而去操心线程和锁了，Stream API都替你做好了！而显式使用迭代，则必须由开发人员自己来处理这些优化。
 
+使用流的典型工作流：
+
+1. 创建一个`Stream`；
+2. 处理流：通过**中间操作**链，形成一条流的流水线；
+3. 应用**终结操作**产生结果（即归约），并关闭流。
+
+![流操作](Java/stream-op.png)
+
 ## 流的特点
 
 流不存储元素，元素存储在底层的集合或者按需生成。
@@ -4429,23 +4441,13 @@ List<String> lowCaloricDishesName =
 
 和迭代器类似，流只能遍历一次。遍历完之后，我们就说这个流已经被消费掉了。
 
-## 使用流
+## 构建流
 
-使用流的典型工作流：
-
-1. 创建一个`Stream`；
-2. 处理流：通过**中间操作**链，形成一条流的流水线；
-3. 应用**终止操作**产生结果（即归约），并关闭流。
-
-![流操作](Java/stream-op.png)
-
-### 构建流
-
-#### 由集合构建流
+### 由集合构建流
 
 可以使用`Collection`接口的`stream`方法或`parallelStream`方法将任何集合转化成`Stream`。
 
-#### 由值构建流
+### 由值构建流
 
 可以使用静态方法`Stream.of`，通过显式值创建一个流。它可以接受任意数量的参数。
 
@@ -4454,13 +4456,13 @@ Stream<String> stream = Stream.of("Java 8 ", "Lambdas ", "In ", "Action");
 stream.map(String::toUpperCase).forEach(System.out::println);
 ```
 
-#### 构建空流
+### 构建空流
 
 ```java
 Stream<String> emptyStream = Stream.empty();
 ```
 
-#### 由数组构建流
+### 由数组构建流
 
 可以使用静态方法`Stream.of`，通过数组来创建一个流。
 
@@ -4475,7 +4477,7 @@ int[] numbers = {2, 3, 5, 7, 11, 13};
 int sum = Arrays.stream(numbers).sum(); //总和是41
 ```
 
-#### 由文件构建流
+### 由文件构建流
 
 Java中用于处理文件等I/O操作的NIO API（非阻塞 I/O）已更新，以便利用Stream API。
 
@@ -4491,7 +4493,7 @@ catch(IOException e) {
 }
 ```
 
-#### 由函数构建流：构建无限流
+### 由函数构建流：构建无限流
 
 Stream API提供了两个静态方法来从函数生成流：`Stream.iterate`和`Stream.generate`。这两个操作可以创建所谓的无限流。
 
@@ -4540,7 +4542,7 @@ IntSupplier fib = new IntSupplier(){
 IntStream.generate(fib).limit(10).forEach(System.out::println);
 ```
 
-#### 其他构建方法
+### 其他构建方法
 
 Java API中拥有多个可生成`Stream`的方法。例如，`Pattern`类有一个方法`splitAsStream`，能够按照正则表达式对charSequence进行分隔。
 
@@ -4553,6 +4555,8 @@ Stream<String> words = Pattern.compile("\\PL+").splitAsStream(contents);
 ```java
 Stream<String> words = new Scanner(contents).tokens();
 ```
+
+## 处理流
 
 ### 筛选
 
@@ -4633,11 +4637,97 @@ Stream<String> longestFirst
   = words.stream().sorted(Comparator.comparing(String::length).reversed());
 ```
 
+## 终结流
+
+### 匹配
+
+`anyMatch`方法可以回答“流中是否有一个元素能匹配给定的谓词”：
+
+```java
+if(menu.stream().anyMatch(Dish::isVegetarian)){
+  System.out.println("The menu is (somewhat) vegetarian friendly!!");
+}
+```
+
+`anyMatch`方法返回一个`boolean`，因此是一个终结操作。
+
+`allMatch`方法会看看流中的元素是否都能匹配给定的谓词。
+
+```java
+boolean isHealthy = menu.stream()
+  .allMatch(d -> d.getCalories() < 1000);
+```
+
+`noneMatch`方法可以确保流中没有任何元素与给定的谓词匹配（即没有元素匹配时返回`true`）。
+
+```java
+boolean isHealthy = menu.stream()
+  .noneMatch(d -> d.getCalories() >= 1000);
+```
+
 ### 查找
+
+`findFirst`方法返回当前流中的第一个元素，它通常与其他流操作结合使用。
+
+```java
+List<Integer> someNumbers = Arrays.asList(1, 2, 3, 4, 5);
+Optional<Integer> firstSquareDivisibleByThree =
+  someNumbers.stream()
+             .map(x -> x * x)
+             .filter(x -> x % 3 == 0)
+             .findFirst(); // 9
+```
+
+`findAny`方法将返回当前流中的任意一个元素，而不必是第一个。
+
+```java
+Optional<Dish> dish =
+  menu.stream()
+      .filter(Dish::isVegetarian)
+      .findAny();
+```
+
+`findAny`方法在对流进行并行执行时非常有效，但对同一源的多次调用可能会返回不同结果，这是为了在并行操作中获得最佳性能。如果需要稳定的结果，请改用`findFirst`方法。
+
+`max`和`min`方法分别返回流中的最大值和最小值。
+
+```java
+Optional<String> largest = words.max(String::compareToIgnoreCase);
+```
+
+> 这里介绍的查找方法都是终结操作。
 
 ### 归约
 
-### 其他
+`count`方法返回流中元素的数目。也可理解为将流归约为一个`long`。
+
+`reduce`方法是计算流中某个值的一种通用机制。
+
+### 收集
+
+`toArray`方法将流转换为一个数组。
+
+```java
+String[] result = stream.toArray(String[]::new);
+```
+
+> 无参的`toArray`方法将返回`Object[]`。
+
+
+
+### 迭代
+
+`iterate`方法返回一个能够用来访问流中元素的传统迭代器。
+
+`forEach`方法将函数作用于流中的每个元素：
+
+```java
+stream.forEach(System.out::println);
+```
+
+在并行流上，`forEach`方法可以以任意顺序遍历元素。如果你想要按照流的顺序处理元素，可调用`forEachOrdered`方法。当然，这样做，你可能会放弃并行计算所能带来的好处。
+
+`forEach`和`forEachOrdered`方法都返回`void`，也就是说归约为`void`。
 
 `peek`方法生成一个与原先流一样有着相同元素的新流，但是每当提取一个元素时，参数指定的函数就会调用一次。这对调试来说非常方便。
 
