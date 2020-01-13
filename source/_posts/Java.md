@@ -4367,6 +4367,20 @@ List<String> strings = Collections.checkedList(new ArrayList<>(), String.class);
 
 `Optional<T>`类（`java.util.Optional`）是一个容器类，代表一个值存在或不存在。
 
+### 原语类型的Optional类型
+
+对于原语类型，有三个专用的Optional类型：`OptionalInt`、`OptionalDouble`和`OptionalLong`。
+
+```java
+OptionalInt maxCalories = menu.stream()
+  .mapToInt(Dish::getCalories)
+  .max();
+
+int max = maxCalories.orElse(1);
+```
+
+
+
 # 流式编程
 
 流是Java API的新成员，它允许你以声明性方式处理数据集合。你可以把它们看成遍历数据集的高级迭代器。此外，流还可以透明地并行处理，你无需写任何多线程代码了！
@@ -4701,9 +4715,31 @@ Optional<String> largest = words.max(String::compareToIgnoreCase);
 
 `count`方法返回流中元素的数目。也可理解为将流归约为一个`long`。
 
-`reduce`方法是计算流中某个值的一种通用机制。
+`reduce`方法使用一个累加器对此流的元素进行归约，并返回结果。
+
+```java
+List<Integer> values = …;
+Optional<Integer> sum = values.stream().reduce((x, y) -> x + y);
+//x是部分结果，y是流中下一个元素
+```
+
+可以显式给`reduce`方法传递一个初始值（而前一例子中的`reduce`方法的初始值可看作是流中第一个元素），这样就不需要返回`Optional`：
+
+```java
+Integer sum = values.stream().reduce(0, (x, y) -> x + y);
+```
+
+还可以给`reduce`方法传递一个组合器，在并行计算时，它会将多个累加值再累加起来：
+
+```java
+int result = words.reduce(0,
+                          (total, word) -> total + word.length(), //累加器
+                          (total1, total2) -> total1 + total2);   //组合器
+```
 
 ### 收集
+
+#### 收集到另一容器
 
 `toArray`方法将流转换为一个数组。
 
@@ -4713,11 +4749,75 @@ String[] result = stream.toArray(String[]::new);
 
 > 无参的`toArray`方法将返回`Object[]`。
 
+#### 统计数量
+
+`Collectors.counting`工厂方法返回的收集器可以统计流中的元素数量：
+
+```java
+long howManyDishes = menu.stream().collect(Collectors.counting());
+//还可以写得更为直接：long howManyDishes = menu.stream().count();
+```
+
+#### 获取最值
+
+`Collectors.maxBy`和`Collectors.minBy`收集器用来计算流中的最大或最小值。这两个收集器接收一个`Comparator`参数来比较流中的元素。
+
+```java
+Comparator<Dish> dishCaloriesComparator = Comparator.comparingInt(Dish::getCalories);
+Optional<Dish> mostCalorieDish = 
+  menu.stream().collect(Collectors.maxBy(dishCaloriesComparator));
+```
+
+#### 求和
+
+`Collectors.summingInt`、`Collectors.summingLong`和`Collectors.summingDouble`收集器可以计算流中元素的总和。
+
+```java
+int totalCalories = menu.stream()
+  .collect(Collectors.summingInt(Dish::getCalories));
+```
+
+#### 求平均值
+
+`Collectors.averagingInt`、`averagingLong`和`averagingDouble`可以计算流中元素的平均数：
+
+```java
+double avgCalories = 
+  menu.stream().collect(Collectors.averagingInt(Dish::getCalories));
+```
+
+`summarizingInt`、`summarizingLong`和`summarizingDouble`收集器可以一次性得到总和、平均值、最大值和最小值：
+
+```java
+IntSummaryStatistics summary = 
+  stream.collect(Collectors.summarizingInt(String::length));
+double averageWordLength = summary.getAverage();
+double maxWordLength = summary.getMax();
+```
+
+#### 拼接成字符串
+
+`Collectors.joining`收集器会把对流中每一个对象应用`toString`方法得到的所有字符串连接成一个字符串。
+
+```java
+String result = stream.collect(Collectors.joining());
+```
+
+如果流中元素是一个对象，则需要先将它们转换成字符串：
+
+```java
+String shortMenu = menu.stream().map(Dish::getName).collect(joining());
+```
+
+如果你想在拼接字符中时，在元素之间插入分隔符，则可将分隔符传入`joining`方法：
+
+```java
+String result = stream.collect(Collectors.joining(", "));
+```
+
 
 
 ### 迭代
-
-`iterate`方法返回一个能够用来访问流中元素的传统迭代器。
 
 `forEach`方法将函数作用于流中的每个元素：
 
@@ -4738,7 +4838,42 @@ Object[] powers = Stream.iterate(1.0, p -> p * 2)
   .toArray();
 ```
 
+## 原语类型流
 
+由于`Stream`是个泛型，原语类型必须先包装成相应的包装对象才能获得流支持。这种方式比较低效，流的类库提供了`IntStream`、`LongStream`和`DoubleStream`类专门用来直接存储原语类型，而不用进行包装。
+
+想要存储`short`、`byte`、`char`、`boolean`使用`IntStream`，对于`float`使用`DoubleStream`。
+
+要创建一个`IntStream`，可以调用`IntStream.of`和`Arrays.stream`方法：
+
+```java
+IntStream stream = IntStream.of(1, 1, 2, 3, 5);
+stream = Arrays.stream(values, from, to); //values是一个int数组
+```
+
+此外，`IntStream`和`LongStream`拥有静态方法`range`和`rangeClosed`，可用来产生步长为1的一个整数范围：
+
+```java
+IntStream zeroToNinetyNine = IntStream.range(0, 100); //不包含上界
+IntStream zeroToHundred = IntStream.rangeClosed(0, 100); //包含上界
+```
+
+`CharSequence`接口有两个方法`codePoints`和`chars`，可以生成包含字符Unicode代码或者UTF-16编码的编码单元的`IntStream`。
+
+当你有一个对象流时，可以使用`mapToInt`、`mapToLong`或`mapToDouble`方法将其他转换成原语类型流。
+
+```java
+Stream<String> words = …;
+IntStream lengths = words.mapToInt(String::length);
+```
+
+要将一个原语类型流转换为一个对象流，可以使用`boxed`方法：
+
+```java
+Stream<Integer> integers = IntStream.range(0, 100).boxed();
+```
+
+> `Random`类提供了`ints`、`longs`、`doubles`方法，用来返回包含随机数的原语类型流。
 
 # 命名空间——包
 
