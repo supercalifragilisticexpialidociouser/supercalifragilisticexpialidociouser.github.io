@@ -4749,6 +4749,63 @@ String[] result = stream.toArray(String[]::new);
 
 > 无参的`toArray`方法将返回`Object[]`。
 
+`toList`方法将流转换为一个列表：
+
+```java
+List<String> result = stream.collect(Collectors.toList());
+```
+
+`toSet`方法将流转换为一个集：
+
+```java
+Set<String> result = stream.collect(Collectors.toSet());
+```
+
+如果想要得到某个具体实现的容器类，则使用以下调用：
+
+```java
+TreeSet<String> result = stream.collect(Collectors.toCollection(TreeSet::new));
+```
+
+`toMap`方法将流转换为一个映射：
+
+```java
+Map<Integer, String> idToName = people.collect(
+	Collectors.toMap(Person::getId, Person::getName)); //ID为键，名称为值
+```
+
+如果希望以流中的元素作为值，则第二个函数参数应使用`Function.identity()`：
+
+```java
+Map<Integer, Person> idToPerson = people.collect(
+	Collectors.toMap(Person::getId, Function.identity()));
+```
+
+如果有多个元素拥有相同的键，则`collect`方法将会抛出`IllegalStateException`异常。这时，你可以将一个合并函数传给`toMap`的第三个参数，来解决冲突：
+
+```java
+Stream<Locale> locales = Stream.of(Locale.getAvailableLocales());
+Map<String, String> languageNames = locales.collect(
+	Collectors.toMap(
+  	Locale::getDisplayLanguage,
+  	loc -> loc.getDisplayLanguage(loc), //将根据loc指定的语言环境本地化后的名字作为值
+  	(existingValue, newValue) -> existingValue)); //当出现键冲突时，选择旧值
+    //(existingValue, newValue) -> existingValue + ", " + newValue)); //将冲突的值拼接成一个字符串 
+```
+
+如果想使用某个具体实现的`Map`，则将其构造器作为`toMap`方法的第四个参数：
+
+```java
+Map<Integer, Person> idToPerson = people.collect(
+	Collectors.toMap(
+  	Person::getId,
+  	Function.identity(),
+  	(existingValue, newValue) -> {throw new IllegalStateException();},
+  	TreeMap::new));
+```
+
+如果需要使用并发的映射收集器，则应使用`toConcurrentMap`方法。
+
 #### 统计数量
 
 `Collectors.counting`工厂方法返回的收集器可以统计流中的元素数量：
@@ -4815,7 +4872,7 @@ String shortMenu = menu.stream().map(Dish::getName).collect(joining());
 String result = stream.collect(Collectors.joining(", "));
 ```
 
-
+#### 归集
 
 ### 迭代
 
