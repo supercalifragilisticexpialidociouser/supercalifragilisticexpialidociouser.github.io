@@ -2187,11 +2187,13 @@ spec:
 
 ##### Capabilities对象
 
-`{{.Capabilities.KubeVersion}}`用于访问Kubernetes版本。
+```
+{{.Capabilities.KubeVersion}}：用于访问Kubernetes版本。
 
-`{{.Capabilities.TillerVersion}}`用于访问Tiller版本。
+{{.Capabilities.TillerVersion}}：用于访问Tiller版本。
 
-`{{Capabilities.APIVersions.Has "batch/v1"}}`用于访问Kubernetes API版本。
+{{Capabilities.APIVersions.Has "batch/v1"}}：用于访问Kubernetes API版本。
+```
 
 #### 子模板
 
