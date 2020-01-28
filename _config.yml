@@ -8,7 +8,7 @@ subtitle: '一个程序猿的笔记'
 description: ''
 keywords: 'note,programming,学习,笔记,编程,开发,IT,技术'
 author: 周千涵
-language: zh-CN
+language: zh-Hans
 timezone: 'Asia/Shanghai'
 
 # URL
@@ -128,3 +128,5 @@ theme_config:
   post_copyright:
     enable: true
     license: <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a>  
+  busuanzi_count:
+    enable: true
