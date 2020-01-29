@@ -1644,7 +1644,7 @@ public class Application {
 
 这里，表达式`this.toString()`调用的是`Application`对象的`toString`方法，而不是`Runnable`实例的`toString`方法。
 
-### 函数
+### 高阶函数
 
 Java虽然不是一个完全的函数式编程语言，但它可以通过函数式接口来实现高阶函数功能。
 
@@ -4383,7 +4383,7 @@ int max = maxCalories.orElse(1);
 
 # 流式编程
 
-流是Java API的新成员，它允许你以声明性方式处理数据集合。你可以把它们看成遍历数据集的高级迭代器。此外，流还可以透明地并行处理，你无需写任何多线程代码了！
+流（Stream）是Java API的新成员，它允许你以声明性方式处理数据集合。你可以把它们看成遍历数据集的高级迭代器。此外，流还可以透明地并行处理，你无需写任何多线程代码了！
 
 下面两段代码都是用来返回低热量的菜肴名称的，并按照卡路里排序，一个是用迭代方式写的，另一个是用Java 8的流写的。
 
@@ -4574,7 +4574,7 @@ Stream<String> words = new Scanner(contents).tokens();
 
 ### 筛选
 
-`Streams`接口提供了`filter`方法，该操作会接受一个谓词（一个返回`boolean`的函数）作为参数，并返回一个包括所有符合谓词的元素的流。
+`Streams`接口提供了`filter`方法，该操作会接受一个谓词（一个返回`boolean`的函数）作为参数，并返回一个包括所有符合谓词的元素的新流。
 
 ```java
 List<String> words = …;
@@ -4615,7 +4615,7 @@ Stream<String> withoutInitialWhiteSpace = codePoints(str).dropWhile(
 
 ### 映射
 
-`map`方法接受一个函数作为参数。这个函数会被应用到源流中的每个元素上，并将其映射成一个新的元素。
+`map`方法接受一个函数作为参数。这个函数会被应用到源流中的每个元素上，并将其映射成一个新的元素。最后返回这些新元素组成的新流。
 
 ```java
 Stream<String> lowercaseWords = words.stream().map(String::toLowerCase);
@@ -4860,7 +4860,7 @@ double maxWordLength = summary.getMax();
 String result = stream.collect(Collectors.joining());
 ```
 
-如果流中元素是一个对象，则需要先将它们转换成字符串：
+如果流中元素是一个对象，且希望按自己的规则转换成字符串，则可以先通过`map`方法映射，再拼接：
 
 ```java
 String shortMenu = menu.stream().map(Dish::getName).collect(joining());
@@ -4873,6 +4873,31 @@ String result = stream.collect(Collectors.joining(", "));
 ```
 
 #### 归集
+
+`Collectors.reducing`是一个通用的收集器。实际上，前面讨论过的所有收集器，都是它的特殊情况。例如，可以用`reducing`方法创建的收集器来计算菜单的总热量：
+
+```java
+int totalCalories = menu.stream().collect(Collectors.reducing(0, Dish::getCalories, (i,j) -> i+j));
+```
+
+它需要三个参数：
+
+- 第一个参数是起始值，也是流中没有元素时的返回值。
+- 第二个参数是一个转换函数，应用于流中的每个元素。
+- 第三个参数是一个`BinaryOperator`流操作，将两个项目累积成一个同类型的值。
+
+`reducing`方法还有一个只接受单个`BinaryOperator`参数的版本。例如：找到热量最高的菜：
+
+```java
+Optional<Dish> mostCalorieDish = menu.stream().collect(Collectors.reducing(
+	(d1, d2) -> d1.getCalories() > d2.getCalories() ? d1 :d2));
+```
+
+它相当于使用第一个元素作为起始值，以恒等函数（即一个函数仅仅是返回其输入参数）作为一个转换函数。
+
+> 收集与归约
+>
+> 两种方法通常可以实现相同的功能。但`collect`方法特别适合表达可变容器上的归约，而`reduce`方法是一个不可变的归约。否则，滥用这两种方法会造成线程不安全。
 
 ### 迭代
 
@@ -5748,7 +5773,7 @@ try (Scanner in = new Scanner(new FileInputStream("/usr/share/dict/words"), "UTF
 }
 ```
 
-如果`in`变量是在`try`之前声明的，则它必须是有效的`final`变量，即从声明之后就没被修改过：
+如果`in`变量是在`try`之前声明的，则它必须是有效的`final`变量（既可以是`final`变量，也可以是从声明之后就没被修改过的非`final`变量。这是Java 9改进的特性）：
 
 ```java
 Scanner in = new Scanner(new FileInputStream("/usr/share/dict/words"), "UTF-8");
