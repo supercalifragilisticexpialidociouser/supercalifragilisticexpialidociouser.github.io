@@ -101,6 +101,8 @@ deploy:
   type: git
   repo: git@github.com:supercalifragilisticexpialidociouser/supercalifragilisticexpialidociouser.github.io.git
   branch: master
+  name: Supercalifragilisticexpialidociouser
+  email: iii.1415926535897932384626433832795@outlook.com
 
 # Next theme
 theme_config:
