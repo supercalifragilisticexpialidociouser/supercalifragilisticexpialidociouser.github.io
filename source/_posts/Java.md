@@ -4877,14 +4877,29 @@ String result = stream.collect(Collectors.joining(", "));
 `Collectors.reducing`是一个通用的收集器。实际上，前面讨论过的所有收集器，都是它的特殊情况。例如，可以用`reducing`方法创建的收集器来计算菜单的总热量：
 
 ```java
-int totalCalories = menu.stream().collect(Collectors.reducing(0, Dish::getCalories, (i,j) -> i+j));
+int totalCalories = menu.stream().collect(Collectors.reducing(
+  0, 
+  Dish::getCalories, 
+  (i,j) -> i+j));
 ```
 
 它需要三个参数：
 
 - 第一个参数是起始值，也是流中没有元素时的返回值。
-- 第二个参数是一个转换函数，应用于流中的每个元素。
-- 第三个参数是一个`BinaryOperator`流操作，将两个项目累积成一个同类型的值。
+- 第二个参数是一个转换函数（累加器），应用于流中的每个元素。
+- 第三个参数是一个`BinaryOperator`流操作（组合器），将两个项目累积成一个同类型的值。
+
+> 上面的例子只是为了说明`collect`的使用，其实要实现相同的功能，有更简洁的方法：
+>
+> ```java
+> int totalCalories = menu.stream().mapToInt(Dish::getCalories).sum();
+> ```
+>
+> 或者：
+>
+> ```java
+> int totalCalories = menu.stream().map(Dish::getCalories).reduce(Integer::sum).get();
+> ```
 
 `reducing`方法还有一个只接受单个`BinaryOperator`参数的版本。例如：找到热量最高的菜：
 
@@ -4897,7 +4912,308 @@ Optional<Dish> mostCalorieDish = menu.stream().collect(Collectors.reducing(
 
 > 收集与归约
 >
-> 两种方法通常可以实现相同的功能。但`collect`方法特别适合表达可变容器上的归约，而`reduce`方法是一个不可变的归约。否则，滥用这两种方法会造成线程不安全。
+> 两种方法通常可以实现相同的功能。但`collect`方法特别适合表达可变容器上的归约，而`reduce`方法是一个不可变的归约。滥用这两种方法会造成线程不安全。例如，下面例子滥用`reduce`方法来实现`toListCollector`所做的工作：
+>
+> ```java
+> Stream<Integer> stream = Arrays.asList(1, 2, 3, 4, 5, 6).stream();
+> List<Integer> numbers = stream.reduce(
+> 	new ArrayList<Integer>(),
+> 	(List<Integer> 1, Integer e) -> {
+>     l.add(e);
+>     return l;
+>   },
+> 	(List<Integer> l1, List<Integer> l2) -> {
+>     l1.addAll(l2);
+>     return l1;
+>   });
+> ```
+>
+> 这里，`reduce`方法在原地改变了作为累加器的`List`，导致这个归约过程不能并行工作，因为由多个线程并发修改同一个数据结构可能会破坏`List`本身。在这种情况下，如果想要线程安全，就需要每次分配一个新的`List`，而对象分配又会影响性能。这就是`collect`方法特别适合表达可变容器上的归约的原因，更关键的是它适合并行操作。
+
+#### 分组
+
+一个常见的数据库操作是根据一个或多个属性对集合中的项目进行分组，用`Collectors.groupingBy`工厂方法返回的收集器就可以轻松地完成这项任务。例如，把菜单中的菜按照类型进行分类：
+
+```java
+Map<Dish.Type, List<Dish>> dishesByType =
+  menu.stream().collect(Collectors.groupingBy(Dish::getType));
+```
+
+![分组](Java/分组.png)
+
+一个更复杂的例子：把热量不到400卡路里的菜划分为“低热量”（diet），热量400到700卡路里的菜划为“普通”（normal），高于700卡路里的划为“高热量”（fat）：
+
+```java
+public enum CaloricLevel {DIET, NORMAL, FAT};
+
+Map<CaloricLevel, List<Dish>> dishesByCaloricLevel = menu.stream().collect(
+	Collectors.groupingBy(dish -> {
+    if (dish.getCalories() <= 400) return CaloricLevel.DIET;
+    else if (dish.getCalories() <= 700) return CaloricLevel.NORMAL;
+    else return CaloricLevel.FAT;
+  }));
+```
+
+##### 多级分组
+
+`Collectors.groupingBy`方法有个双参数版本可以实现多级分组。例如：
+
+```java
+Map<Dish.Type, Map<CaloricLevel, List<Dish>>> dishesByTypeCaloricLevel =
+	menu.stream().collect(
+    groupingBy(Dish::getType,  //一级分类函数
+               groupingBy(dish -> {  //二级分类函数
+                 if (dish.getCalories() <= 400) return CaloricLevel.DIET;
+                 else if (dish.getCalories() <= 700) return CaloricLevel.NORMAL;
+                 else return CaloricLevel.FAT;
+               })
+    )
+	);
+```
+
+结果为：
+
+```
+{
+	MEAT={DIET=[chicken], NORMAL=[beef], FAT=[pork]},
+	FISH={DIET=[prawns], NORMAL=[salmon]},
+	OTHER={DIET=[rice, seasonal fruit], NORMAL=[french fries, pizza]}
+}
+```
+
+##### 按子组收集
+
+上一节中，`groupingBy`的第二个参数是另一个`groupingBy`收集器。其实，传递给`groupingBy`的第二个参数的可以是任何收集器，而不一定是另一个`groupingBy`收集器。例如，要数一数菜单中每类菜有多少个，可以传递`counting`收集器作为`groupingBy`收集器的第二个参数：
+
+```java
+Map<Dish.Type, Long> typesCount = menu.stream().collect(
+  groupingBy(Dish::getType, counting()));
+```
+
+结果为：`{MEAT=3, FISH=2, OTHER=4}`。
+
+一般来说，通过`groupingBy`工厂方法的第二个参数传递的收集器将会对分到同一组中的所有流元素执行进一步归约操作。
+
+还要注意，普通的单参数`groupingBy(f)`（其中`f`是分类函数）实际上是`groupingBy(f,toList())`的简便写法。
+
+##### 并发分组
+
+调用`groupingByConcurrent`方法，将会得到一个并发分组。当与并行流一起使用时，可以并发地插入值。这与`toConcurrentMap`方法完全类似。
+
+#### 分片
+
+分片是分组的特殊情况：由一个谓词（返回一个布尔值的函数）作为分类函数，它称分片函数。分片函数返回一个布尔值，这意味着得到的分组`Map`的键类型是`Boolean`，于是它最多可以分为两组——`true`是一组，`false`是一组。例如，要把菜单按照素食和非素食分开：
+
+```java
+Map<Boolean, List<Dish>> partitionedMenu =
+	menu.stream().collect(partitioningBy(Dish::isVegetarian));
+```
+
+结果为：
+
+```
+{
+	false=[pork, beef, chicken, prawns, salmon],
+	true=[french fries, rice, season fruit, pizza]
+}
+```
+
+那么通过`Map`中键为`true`的值，就可以找出所有的素食菜肴了：
+
+```java
+List<Dish> vegetarianDishes = partitionedMenu.get(true);
+```
+
+请注意，用同样的分片谓词，对菜单`List`创建的流作筛选，然后把结果收集到另外一个`List`中也可以获得相同的素食菜肴结果：
+
+```java
+List<Dish> vegetarianDishes =
+	menu.stream().filter(Dish::isVegetarian).collect(toList());
+```
+
+但是，分片的好处在于保留了分片函数返回`true`或`false`的两套流元素列表。
+
+另外，`partitioningBy`工厂方法有一个重载版本，可以给它传递第二个收集器：
+
+```java
+Map<Boolean, Map<Dish.Type, List<Dish>>> vegetarianDishesByType =
+  menu.stream().collect(
+    partitioningBy(Dish::isVegetarian, //分片函数
+                   groupingBy(Dish::getType)));  //第二个收集器
+```
+
+结果为：
+
+```
+{
+	false={
+		FISH=[prawns, salmon], 
+		MEAT=[pork, beef, chicken]
+	},
+	true={
+		OTHER=[french fries, rice, season fruit, pizza]
+	}
+}
+```
+
+
+
+#### 把收集器的结果转换为另一种类型
+
+下面的例子将菜单中热量最高的菜肴，按照菜的类型分类：
+
+```java
+Map<Dish.Type, Optional<Dish>> mostCaloricByType =
+  menu.stream()
+    .collect(groupingBy(Dish::getType,
+                        maxBy(comparingInt(Dish::getCalories))));
+```
+
+结果为：`{FISH=Optional[salmon], OTHER=Optional[pizza], MEAT=Optional[pork]}`。
+
+这个`Map`中的值是`Optional`，因为这是`maxBy`工厂方法生成的收集器的类型，但实际上，如果菜单中没有某一类型的`Dish`，这个类型就不会对应一个`Optional. empty()`值，而且根本不会出现在`Map`的键中。`groupingBy`收集器只有在应用分组条件后，第一次在流中找到某个键对应的元素时才会把键加入分组`Map`中。这意味着`Optional`包装器在这里不是很有用，因为它不会仅仅因为它是归约收集器的返回类型而表达一个最终可能不存在却意外存在的值。
+
+因为分组操作的`Map`结果中的每个值上包装的`Optional`没什么用，所以你可能想要把它们去掉。要做到这一点，或者更一般地来说，把收集器返回的结果转换为另一种类型，你可以使用`Collectors.collectingAndThen`工厂方法返回的收集器，如下所示。
+
+```java
+Map<Dish.Type, Dish> mostCaloricByType =
+  menu.stream()
+    .collect(groupingBy(Dish::getType,  //分类函数
+                        collectingAndThen(
+                          maxBy(comparingInt(Dish::getCalories)), //要转换的收集器
+                          Optional::get)));  //转换函数
+```
+
+结果：`{FISH=salmon, OTHER=pizza, MEAT=pork}`。
+
+`Collectors.collectingAndThen`工厂方法接受两个参数——要转换的收集器以及转换函数，并返回另一个收集器。这个收集器相当于对要转换的收集器的一个包装，`collect`操作的最后一步就是将返回值用转换函数做一个映射。
+
+#### 映射
+
+常常和`groupingBy`或`partitioningBy`联合使用的收集器是`mapping`方法生成的。这个方法接受两个参数：一个函数对流中的元素做变换，另一个则将变换的结果对象收集起来。其目的是在累加之前对每个输入元素应用一个映射函数，这样就可以让接受特定类型元素的收集器适应不同类型的对象。例如，对于每种类型的`Dish`，找出菜单中都有哪些`CaloricLevel`：
+
+```java
+Map<Dish.Type, Set<CaloricLevel>> caloricLevelsByType =
+  menu.stream().collect(
+    groupingBy(Dish::getType, mapping(
+      dish -> {if (dish.getCalories() <= 400) return CaloricLevel.DIET;
+               else if (dish.getCalories() <= 700) return CaloricLevel.NORMAL;
+               else return CaloricLevel.FAT;},
+      toSet() )));
+```
+
+结果为：`{OTHER=[DIET, NORMAL], MEAT=[DIET, NORMAL, FAT], FISH=[DIET, NORMAL]}`。
+
+再例如，找到素食和非素食中热量最高的菜：
+
+```java
+Map<Boolean, Dish> mostCaloricPartitionedByVegetarian =
+  menu.stream().collect(
+    partitioningBy(Dish::isVegetarian,
+                   collectingAndThen(
+                     maxBy(comparingInt(Dish::getCalories)),
+                     Optional::get)));
+```
+
+结果为：`{false=pork, true=pizza}`。
+
+#### 实现自己的收集器
+
+要实现自己的收集器，只需要实现`Collector`接口。
+
+```java
+public interface Collector<T, A, R> {
+  Supplier<A> supplier();
+  BiConsumer<A, T> accumulator();
+  Function<A, R> finisher();
+  BinaryOperator<A> combiner();
+  Set<Characteristics> characteristics();
+}
+```
+
+该接口中：
+
+- `T`是流中要收集的元素的类型。
+- `A`是累加器类型，累加器是在收集过程中用于累积部分结果的对象。
+- `R`是收集操作得到的对象（通常但并不一定是集合）的类型。
+- `supplier`方法用于建立新的结果容器。
+- `accumulator`方法返回执行归约操作的函数，将元素添加到结果容器。
+- `finisher`方法将结果容器应用最终转换。
+- `combiner`方法用于合并两个结果容器。
+- `characteristics`方法返回一个不可变的Characteristics集合，它定义了收集器的行为——尤其是关于流是否可以并行归约，以及可以使用哪些优化的提示。
+
+例如：将前n个自然数划分为质数和非质数：
+
+```java
+public class PrimeNumbersCollector 
+    implements Collector<Integer,
+               Map<Boolean, List<Integer>>,
+               Map<Boolean, List<Integer>>> {
+  @Override
+  public Supplier<Map<Boolean, List<Integer>>> supplier() {
+    //从一个有两个空List的Map开始收集过程
+    return () -> new HashMap<Boolean, List<Integer>>() {{
+      put(true, new ArrayList<Integer>());
+      put(false, new ArrayList<Integer>());
+    }};
+  }
+                 
+  @Override
+  public BiConsumer<Map<Boolean, List<Integer>>, Integer> accumulator() {
+    //将已经找到的质数列表传递给isPrime方法
+    return (Map<Boolean, List<Integer>> acc, Integer candidate) -> {
+      acc.get( isPrime( acc.get(true),
+                       candidate) )
+        .add(candidate); //根据isPrime方法的返回值，从Map中取质数或非质数列表，把当前的被测数加进去
+    };
+  }
+                 
+  @Override
+  public BinaryOperator<Map<Boolean, List<Integer>>> combiner() {
+    //将第二个Map合并到第一个
+    return (Map<Boolean, List<Integer>> map1,
+            Map<Boolean, List<Integer>> map2) -> {
+      map1.get(true).addAll(map2.get(true));
+      map1.get(false).addAll(map2.get(false));
+      return map1;
+    };
+  }
+                 
+  @Override
+  public Function<Map<Boolean, List<Integer>>,
+  Map<Boolean, List<Integer>>> finisher() {
+    //收集过程最后无需转换，因此用 identity 函数收尾
+    return Function.identity();
+  }
+                 
+  @Override
+  public Set<Characteristics> characteristics() {
+    //这个收集器是IDENTITY_FINISH，但既不是UNORDERED也不是CONCURRENT，因为质数是按顺序发现的
+    return Collections.unmodifiableSet(EnumSet.of(IDENTITY_FINISH));
+  }
+}
+```
+
+> 如果只是想提供自己的供应源（supplier）、累加器（accumulator）和组合器（combiner），则不需要实现自己的收集器，可以使用`collect`方法的三个参数版本：
+>
+> ```java
+> public Map<Boolean, List<Integer>> partitionPrimesWithCustomCollector(int n) {
+>   IntStream.rangeClosed(2, n).boxed()
+>     .collect(
+>       () -> new HashMap<Boolean, List<Integer>>() {{
+>         put(true, new ArrayList<Integer>());
+>         put(false, new ArrayList<Integer>());
+>       }},  //供应源
+>       (acc, candidate) -> {
+>         acc.get( isPrime(acc.get(true), candidate) )
+>           .add(candidate);
+>       },  //累加器
+>       (map1, map2) -> {
+>         map1.get(true).addAll(map2.get(true));
+>         map1.get(false).addAll(map2.get(false));
+>       });  //组合器
+> }
+> ```
 
 ### 迭代
 
@@ -4956,6 +5272,24 @@ Stream<Integer> integers = IntStream.range(0, 100).boxed();
 ```
 
 > `Random`类提供了`ints`、`longs`、`doubles`方法，用来返回包含随机数的原语类型流。
+
+## 并行流
+
+### 获取并行流
+
+`parallelStream`方法可以从任何集合获得一个并行流：
+
+```java
+Stream<String> parallelWords = words.parallelStream();
+```
+
+此外，`parallel`方法可以将串行流转化为并行流：
+
+```java
+Stream<String> parallelWords = Stream.of(wordArray).parallel();
+```
+
+另外要注意，一个流要可以并行运行，它的操作必须是无状态的，并且可以以任意顺序执行。
 
 # 命名空间——包
 
