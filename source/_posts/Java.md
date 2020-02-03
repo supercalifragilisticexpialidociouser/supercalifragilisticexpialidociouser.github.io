@@ -375,10 +375,11 @@ int x1 = _52;
 Java使用Unicode表示字符。码点（ code point ) 是指与一个编码表中的某个字符对应的代码值。Unicode 的
 码点可以分成17 个编码级别（codeplane)。第一个编码级别称为基本的多语言级别（ basic multilingual plane ), 码点从`U+0000` 到`U+FFFF`, 其中包括经典的Unicode 编码；其余的16个级别码点从`U+10000` 到`U+10FFFF` , 其中包括一些辅助字符（supplementary character)。
 
-UTF-16 编码采用不同长度的编码表示所有Unicode 码点。在基本的多语言级别中， 每个字符用16 位表示，通常被称为编码单元（ code unit ) ; 而辅助字符采用一对连续的编码单元进行编码。这样构成的编码值落入基本的多语言级别中空闲的2048 字节内， 通常被称为替代区域（surrogate area) [ `U+D800` ~ `U+DBFF` 用于第一个编码单元，`U+DC00` ~ `U+DFFF` 用于第二个代码单元]。这样设计十分巧妙， 我们可以从中迅速地知道一个编码单元是一个字符的编码， 还是一个辅助字符的第一或第二部分。例如，`⑪`是八元数集（ http://math.ucr.edu/home/baez/octonions ) 的一个数学符号， 码点为`U+1D546`, 编码为两个代码单元`U+D835` 和`U+DD46`。
+Java字符使用UTF-16 编码，它采用不同长度的编码表示所有Unicode 码点。在基本的多语言级别中， 每个字符用16 位表示，通常被称为编码单元（ code unit ) ; 而辅助字符采用一对连续的编码单元进行编码。这样构成的编码值落入基本的多语言级别中空闲的2048 字节内， 通常被称为替代区域（surrogate area) [ `U+D800` ~ `U+DBFF` 用于第一个编码单元，`U+DC00` ~ `U+DFFF` 用于第二个代码单元]。这样设计十分巧妙， 我们可以从中迅速地知道一个编码单元是一个字符的编码， 还是一个辅助字符的第一或第二部分。例如，`⑪`是八元数集（ http://math.ucr.edu/home/baez/octonions ) 的一个数学符号， 码点为`U+1D546`, 编码为两个代码单元`U+D835` 和`U+DD46`。
 
-在Java 中，`char` 类型描述了UTF-16 编码中的一个编码单元，因此是16位的。强烈建议不要在程序中使用`char` 类型， 除非确实需要处理UTF-16 编码单元，它们太底层了。最好将字符串作为抽象数据类型处理。要将码点转换成字符串，可使用`new`
-`String(Character.toChars(codePoint))`。
+在Java 中，`char` 类型描述了UTF-16 编码中的一个编码单元，因此是16位的。强烈建议不要在程序中使用`char` 类型， 除非确实需要处理UTF-16 编码单元，它们太底层了。最好将字符串作为抽象数据类型处理。要将码点转换成字符串，可使用`new String(Character.toChars(codePoint))`。
+
+> 平台的字符编码可以通过调用静态方法`Charset.defaultCharset`获得。静态方法`Charset.availableCharsets`返回所有可用的字符集`Charset`实例。
 
 `char`类型可以用作整数类型，可以执行算术运算。`char`可以看作是无符号的整数类型。
 
@@ -1012,6 +1013,12 @@ s.getChars(start, end, buf, 0);
 ```
 
 还可以将字符串转换为一个字节数组，使用`getBytes`方法。当将`String`值导出到不支持16位Unicode字符的环境中时，最常用`getBytes`方法。
+
+要将字节数组转换成一个字符串，则使用：
+
+```java
+String str = new String(bytes, StandardCharsets.UTF_8);
+```
 
 ### 格式化字符串
 
@@ -4518,6 +4525,21 @@ Stream<User> users = ids.map(Users::lookup)
 
 每次调用`stream`都返回一个拥有0个或1个元素的流，`flatMap`方法将这些流合并起来。这意味着不存在的用户直接被丢弃。
 
+### Optional与序列化
+
+由于`Optional`类设计时就没特别考虑将其作为类的字段使用，而是作为方法返回值使用，所以它也并未实现`Serializable`接口。由于这个原因，如果你的应用使用了某些要求序列化的库或者框架，在域模型中使用`Optional`，有可能引发应用程序故障。
+
+如果你一定要实现序列化的域模型，作为替代方案，我们建议你像下面这个例子那样，提供一个能访问声明为`Optional`、变量值可能缺失的接口，代码清单如下：
+
+```java
+public class Person {
+  private Car car;
+  public Optional<Car> getCarAsOptional() {
+    return Optional.ofNullable(car);
+  }
+}
+```
+
 # 流式编程
 
 流（Stream）是Java API（Java 8引入，位于`java.util.stream`包）的新成员，它允许你以声明性方式处理数据集合。你可以把它们看成遍历数据集的高级迭代器。此外，流还可以透明地并行处理，你无需写任何多线程代码了！
@@ -5951,17 +5973,90 @@ if (p2 instanceof Student) {
 
 # 输入和输出
 
-## 标准输入和输出
+## 输入/输出流
 
-### 标准输出
+在Java API中，输入的源头（可以来自文件、网络连接或内存中的数组）称为输入流，而输出的目的地称为输出流。
 
-`System.out.println()`：输出发送到“标准输出流”，并且结尾自动带上换行符。
+> 注意：这里讨论的流与流式编程中讲的流没有关系，它们是不同的概念。
 
-`System.out.print()`：输出发送到“标准输出流”。
+### 字节流
 
-### 读取输入
+![字节流的层次结构](Java/字节流的层次结构.png)
 
-`System.in`对象只有从输入中读取单个字节的方法，要读取字符串和数值，需要使用`Scanner`。
+#### 获取流
+
+从文件中获取流：
+
+```java
+InputStream in = Files.newInputStream(path);
+OutputStream out = Files.newOutputStream(path);
+```
+
+从URL中获取流：
+
+```java
+URL url = new URL("http://horstmann.com/index.html");
+InputStream in = url.openStream();
+```
+
+从字节数组获取流：
+
+```java
+byte[] bytes = …;
+InputStream in = new ByteArrayInputStream(bytes);
+
+ByteArrayOutputStream out = new ByteArrayOutputStream();
+byte[] bytes = out.toByteArray();
+```
+
+标准流：
+
+`System.in`（`InputStream`）：标准输入流。
+
+`System.out`（`PrintStream`）：标准输出流。
+
+`System.err`（`PrintStream`）：标准错误输出流。
+
+#### 读字节
+
+读取单个字节：
+
+```java
+InputStream in = …;
+int b = in.read();
+```
+
+这个无参的`read`方法返回字节对应的整数，范围是0~255，也可能由于到达输入源的末尾而返回-1。
+
+批量读取字节：
+
+```java
+byte[] bytes = new byte[len];
+
+int actualBytesRead = in.read(bytes);
+actualBytesRead = in.read(bytes, start, n);
+
+bytes = in.readNBytes(len);
+actualBytesRead = in.readNBytes(bytes, start, n);
+```
+
+这些方法读取数据，直到该数组已满或没有更多的输入。除了`readNBytes(len)`直接返回读取到的字节数组外，其他方法返回实际读取的字节数量，如果一个字节都没有读取，则返回-1。
+
+`read`与`readNBytes`的区别在于，`read`方法只试图读取字节，如果失败了，就立刻返回一个实际读取的字节数；而`readNBytes`方法一直调用`read`方法，直到所有请求的字节都获取了或者`read`方法返回-1。
+
+Java 9增加了从流中读取所有字节的方法：
+
+```java
+byte[] bytes = in.readAllBytes();
+```
+
+如果想读取一个文件的所有字节，可以使用下面的简便方法：
+
+```java
+byte[] bytes = Files.readAllBytes(path);
+```
+
+读取一行：
 
 ```java
 Scanner in = new Scanner(System.in);
@@ -5969,15 +6064,16 @@ System.out.println("What is your name?");
 String name = in.nextLine();  //从输入中读取一行
 ```
 
-要读取单个单词（以空格分隔），调用
+读取单词：
 
 ```java
-String firstName = in.next();
+Scanner in = new Scanner(System.in);
+String firstName = in.next(); //读取以空格分隔单个单词
 ```
 
-要读取数值，使用`nextInt()`、`nextDouble()`等方法。
+`Scanner`默认以空格来分隔单词，可以通过`useDelimiter`方法使用正则表达式来指定分隔符的模式。
 
-可以使用`hasNextLine()`、`hasNext()`、`hasNextInt()`、`hasNextDouble()`方法检查是否还有一行、一个单词、一个整数或一个浮点数可以读取。
+要读取数值，使用`nextInt()`、`nextDouble()`等方法。另外，还可以使用`hasNextLine()`、`hasNext()`、`hasNextInt()`、`hasNextDouble()`方法检查是否还有一行、一个单词、一个整数或一个浮点数可以读取。
 
 ```java
 if (in.hasNextInt()) {
@@ -5994,15 +6090,61 @@ String username = terminal.readLine("User name: ");
 char[] passwd = terminal.readPassword("Password: ");
 ```
 
-在命令行中，可以使用系统中Shell的重定向语法，将文件中的数据输入到我们的程序，或者将我们程序的输出写入到文件中：
 
-```bash
-$ java mypackage.MainClass < input.txt > output.txt
+
+#### 写字节
+
+写单个字节：
+
+```java
+OutputStream out = …;
+int b = …;
+out.write(b);
 ```
 
-这样，在`mypackage.MainClass`中就可以使用标准输入和输出方法处理这些数据了。
+批量写到字节数组：
 
-### 格式化输出
+```java
+byte[] bytes = …;
+out.write(bytes);
+out.write(bytes, start, length);
+```
+
+当完成写输出流的操作后，一定要关闭该输出流以确保提交了所有的缓存输出。最好使用try-with-resources语句：
+
+```java
+try (OutputStream out = …) {
+  out.write(bytes);
+}
+```
+
+将输入流复制到输出流：
+
+```java
+try (InputStream in = …; OutputStream out = …) {
+  in.transferTo(out);
+}
+```
+
+将输入流保存到文件：
+
+```java
+Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
+```
+
+将文件内容写入输出流：
+
+```java
+Files.copy(path, out);
+```
+
+标准输出：
+
+`System.out.println()`：输出发送到“标准输出流”，并且结尾自动带上换行符。
+
+`System.out.print()`：输出发送到“标准输出流”。
+
+##### 格式化输出
 
 Java中使用`System.out.printf()`方法来进行格式化输出。该方法可接受任意多个参数，其中第一个参数是格式字符串，它是一个输出的模板。格式字符串中，以`%`字符开始的是**格式说明符**（format specifier），它们会依次被`printf()`的第二个参数、第三个参数、……所替换。
 
@@ -6051,6 +6193,136 @@ System.out.printf("Hello, %s. Next year, you'll be %d.\n", name, age);
 ```java
 System.out.printf("%,+.2f", 100000.0 /3.0);  //输出：+33,333.33
 ```
+
+
+
+### 字符流
+
+![字符流的层次结构](Java/字符流的层次结构.png)
+
+#### 获取流
+
+从字节流获取一个字符流：
+
+```java
+InputStream inStream = …;
+Reader in = new InputStreamReader(inStream, charset);
+
+OutputStream outStream = …;
+Writer out = new OutputStreamWriter(outStream, charset);
+out.write(str);
+```
+
+获取缓冲流（按块读取）：
+
+```java
+try(BufferedReader reader
+    = new BufferedReader(new InputStreamReader(url.openStream()))) {
+  Stream<String> lines = reader.lines();
+  …
+}
+```
+
+直接从文件获取缓冲流：
+
+```java
+BufferedReader reader = Files.newBufferedReader(path, charset);
+BufferedWriter writer = Files.newBufferedWriter(path, charset);
+```
+
+
+
+#### 读文本
+
+每次读一个输入的UTF-16编码单元：
+
+```java
+Reader in = …;
+int ch = in.read();
+```
+
+这个方法会返回一个范围在0~65536之间的编码单元，但也有可能由于到达输入源的末尾而返回-1。
+
+将整个文件读取到一个字符串（适合比较短的文本文件）：
+
+```java
+String content = new String(Files.readAllBytes(path), charset);
+```
+
+按行读取文件：
+
+```java
+List<String> lines = Files.readAllLines(path, charset);
+```
+
+按流处理文件：
+
+```java
+try (Stream<String> lines = Files.lines(path, charset)) {
+  …
+}
+```
+
+从文件中读取数值：
+
+```java
+Scanner in = new Scanner(path, "UTF-8");
+while (in.hasNextDouble()) {
+  double value = in.nextDouble();
+  …
+}
+```
+
+从文件中读取单词：
+
+```java
+in.useDelimiter("\\PL+"); //使用正则表达式设置单词之间的分隔符为非字母序列
+Stream<String> words = in.tokens(); //获得所有单词的流
+```
+
+#### 写文本
+
+输出字符串：
+
+```java
+Writer out = …;
+out.write(str);
+```
+
+格式化输出文本可以使用`PrintWriter`，它与`PrintStream`具有相同的API，可以使用`println`、`printf`等方法。
+
+写入文件：
+
+```java
+PrintWriter out = new PrintWriter(Files.newBufferedWriter(path, charset));
+```
+
+更简单的写入文件方法：
+
+```java
+String content = …;
+Files.write(path, content.getBytes(charset));
+```
+
+`write`方法除了可以将`byte[]`写入文件，还可以将`Iterable<? extends CharSequence>`写入文件。要将字符串写入文件，可以直接使用`writeString`方法。
+
+写入另一个输出流：
+
+```java
+PrintWriter out = new PrintWriter(new OutputStreamWriter(outStream, charset));
+```
+
+
+
+## 重定向
+
+在命令行中，可以使用系统中Shell的重定向语法，将文件中的数据输入到我们的程序，或者将我们程序的输出写入到文件中：
+
+```bash
+$ java mypackage.MainClass < input.txt > output.txt
+```
+
+这样，在`mypackage.MainClass`中就可以使用标准输入和输出方法处理这些数据了。
 
 # 异常处理
 
