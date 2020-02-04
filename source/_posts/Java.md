@@ -6194,7 +6194,73 @@ System.out.printf("Hello, %s. Next year, you'll be %d.\n", name, age);
 System.out.printf("%,+.2f", 100000.0 /3.0);  //输出：+33,333.33
 ```
 
+#### 读/写二进制数据
 
+`DataInput`接口和`DataOutput`接口提供了方便读写数值、字符、布尔值、二进制格式字符串的方法。
+
+> 这些方法都是以big-endian格式读/写数字的。
+>
+> 注意：`readUTF`和`writeUTF`方法使用的是修改过的UTF-8格式，它和标准UTF-8格式不兼容，只在JVM内部有用。
+
+使用二进制输入和输出的好处是长度固定并且效率高，其缺点就是二进制文件不能轻松地用文本编辑器来阅读。
+
+```java
+DataInput in = new DataInputStream(Files.newInputStream(path));
+DataOutput out = new DataOutputStream(Files.newOutputStream(path));
+```
+
+#### 随机存取文件
+
+`RandomAccessFile`类支持对一个文件进行随机的读/写操作。你可以通过将构造器的第二个参数设置为`"r"`选项以只读方式打开一个随机存取文件，或设置为`"rw"`选项以读/写方式打开一个随机存取文件。例如：
+
+```java
+RandomAccessFile file = new RandomAccessFile(path.toString(), "rw");
+```
+
+一个随机存取文件打开时就有一个*文件指针*指向下一个读/写字节的位置。利用`seek`方法可以将文件指针移动到指定的字节位置。`seek`的参数是一个`long`类型数值，范围为0到该文件的长度（调用`length`方法可获得该文件的长度）。`getFilePointer`方法返回文件指针的当前位置。
+
+`RandomAccessFile`类实现了`DataInput`和`DataOutput`接口，可以使用`readInt`、`writeInt`等方法对一个随机存取文件进行读/写：
+
+```java
+int value = file.readInt();
+file.seek(file.getFilePointer() - 4);
+file.writeInt(value + 1);
+```
+
+#### 内存映射文件
+
+内存映射文件提供了另外一种有效读/写随机存取大文件的方式。
+
+首先，获得一个到文件的通道（channel）：
+
+```java
+FileChannel channel = FileChannel.open(
+  path,
+  StandardOpenOption.READ,
+  StandardOpenOption.WRITE);
+```
+
+然后，将文件的一部分（如果文件不是特别大，映射全部内容）内容映射到内存中：
+
+```java
+ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, channel.size());
+```
+
+再用`get`、`getInt`等方法读取数据，或相应地使用`put`方法写数据：
+
+```java
+int offset = …;
+int value = buffer.getInt(offset);
+buffer.put(offset, value + 1);
+```
+
+当通道关闭时，对映射文件的改变会写回对应的文件。
+
+> 默认情况下，读/写数值的方法都是按照big-endian字节顺序时，你可以通过下面方法改变字节顺序：
+>
+> ```java
+> buffer.order(ByteOrder.LITTLE_ENDIAN);
+> ```
 
 ### 字符流
 
@@ -6280,6 +6346,24 @@ in.useDelimiter("\\PL+"); //使用正则表达式设置单词之间的分隔符�
 Stream<String> words = in.tokens(); //获得所有单词的流
 ```
 
+将字符串转换成流，可以使用`StringReader`：
+
+```java
+String src = "从明天起，做一个幸福的人，\n喂马，劈材，周游世界，\n从明天起，关心粮食和蔬菜，\n我有一所房子，面朝大海，春暖花开，\n从明天起，和每一个人通信，告诉他们我的幸福\n";  
+
+char[] buffer = new char[32];  
+int hasRead = 0;  
+
+try (StringReader sr = new StringReader(src)) {  
+  //采用循环读取的方式，读取字符串  
+  while ((hasRead  = sr.read(buffer)) > 0 ) {  
+    System.out.println(new String(buffer, 0, hasRead));  
+  }  
+} catch (IOException ioe) {  
+  ioe.printStackTrace();  
+}  
+```
+
 #### 写文本
 
 输出字符串：
@@ -6304,7 +6388,22 @@ String content = …;
 Files.write(path, content.getBytes(charset));
 ```
 
-`write`方法除了可以将`byte[]`写入文件，还可以将`Iterable<? extends CharSequence>`写入文件。要将字符串写入文件，可以直接使用`writeString`方法。
+`write`方法除了可以将`byte[]`写入文件，还可以将`Iterable<? extends CharSequence>`写入文件。
+
+```java
+Files.write(path, lines, charset);
+```
+
+要将字符串写入文件，还可以直接使用`writeString`方法。
+
+要向文件追加内容，可以使用：
+
+```java
+Files.write(path, content.getBytes(charset), StandardOpenOption.APPEND);
+Files.write(path, lines, charset, StandardOpenOption.APPEND);
+```
+
+> 当使用不完整的字符集例如ISO 8859-1写文本时，超出这个字符集范围之外的字符会被“替换”——通常会被替换成`?`字符或Unicode替换字符`U+FFFD`。
 
 写入另一个输出流：
 
@@ -6312,9 +6411,17 @@ Files.write(path, content.getBytes(charset));
 PrintWriter out = new PrintWriter(new OutputStreamWriter(outStream, charset));
 ```
 
+`StringWriter`是一个字符流，它将其输出收集在字符串缓冲区中，然后可用于构造字符串。
 
+```java
+StringWriter writer = new StringWriter();
+throwable.printStackTrace(new PrintWriter(writer));
+String stackTrace = writer.toString();
+```
 
-## 重定向
+关闭StringWriter是没有效果的，可以在关闭流之后仍可调用此类中的方法，而不会生成`IOException`。
+
+### 重定向
 
 在命令行中，可以使用系统中Shell的重定向语法，将文件中的数据输入到我们的程序，或者将我们程序的输出写入到文件中：
 
@@ -6323,6 +6430,37 @@ $ java mypackage.MainClass < input.txt > output.txt
 ```
 
 这样，在`mypackage.MainClass`中就可以使用标准输入和输出方法处理这些数据了。
+
+## 文件
+
+### 路径
+
+### 创建文件和目录
+
+### 复制、移动和删除文件
+
+### 访问目录内容
+
+### ZIP文件系统
+
+### 文件锁
+
+文件锁机制可解决多个同时执行的程序对同一个文件进行修改所造成的并发问题。
+
+可以调用`FileChannel`类的`lock`或`tryLock`方法来锁住一个文件：
+
+```java
+FileChannel channel = FileChannel.open(path);
+try (FileLock lock = channel.lock()) {
+  …
+}
+```
+
+如果文件已经被锁，则调用`lock`会被阻塞，直到锁被解除。而调用`tryLock`则会立刻返回文件锁（如果文件已被之前程序解锁），或者返回`null`（如果文件仍被锁）。
+
+已锁定的文件会一直保持在被锁住状态，直到对应的锁或通道关闭。
+
+## 序列化
 
 # 异常处理
 
