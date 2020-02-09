@@ -647,14 +647,92 @@ Vue.component('navigation-link', {
 `<slot>`元素的内容是后备内容。当组件没有给插槽提供任何内容时，则使用后备内容；否则，提供的内容将会取代后备内容：
 
 ```html
-template: `
-	<button type="submit">
-    <slot>Submit</slot><!-- 后备内容 -->
-  </button>
-`
+<submit-button>
+  Save  （这里的内容将取代后备内容。如果这里没有任何内容，则使用后备内容）
+</submit-button>
+<script>
+  Vue.component('submit-button', {
+    template: `
+      <button type="submit">
+        <slot>Submit</slot><!-- 后备内容 -->
+      </button>
+    `
+  });
+  …
+</script>
 ```
 
+输出为：
 
+```html
+<button type="submit">
+  Save
+</button>
+```
+
+### 具名插槽
+
+一个组件模板中，可以使用多个插槽，只需为每个`<slot>`加上一个`name` attribute，这称为具名插槽：
+
+```html
+<base-layout>
+  <!-- 通过在一个 <template> 元素上使用 v-slot 指令，以指定要取代的插槽 -->
+  <template v-slot:header>
+    <h1>Here might be a page title</h1>
+  </template>
+
+  <p>A paragraph for the main content.</p>
+  <p>And another one.</p>
+  <!-- 这些没有包含在 <template> 中的元素，默认属于 default 插槽。等价于：
+	<template v-slot:default>
+    <p>A paragraph for the main content.</p>
+    <p>And another one.</p>
+  </template>
+	-->
+
+  <template v-slot:footer>
+    <p>Here's some contact info</p>
+  </template>
+</base-layout>
+<script>
+  Vue.component('base-layout', {
+    template: `
+      <div class="container">
+        <header>
+          <slot name="header"></slot>
+        </header>
+        <main>
+					<!-- 相当于： <slot name="default"></slot> -->
+          <slot></slot>
+        </main>
+        <footer>
+          <slot name="footer"></slot>
+        </footer>
+      </div>
+    `
+  });
+  …
+</script>
+```
+
+输出为：
+
+```html
+<div class="container">
+  <header>
+    <h1>Here might be a page title</h1>
+  </header>
+  <main>
+    <p>A paragraph for the main content.</p>
+    <p>And another one.</p>
+  </main>
+  <footer>
+    <p>Here's some contact info</p>
+  </footer>
+</div>
+```
+
+注意 **`v-slot` 只能添加在 `<template>`上**（有一个例外，参见：） 。
 
 ## 生命周期
 
