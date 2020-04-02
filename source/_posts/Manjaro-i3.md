@@ -218,7 +218,7 @@ ZSH_THEME="agnoster"
 1. 下载主题到指定目录：
 
    ```bash
-   $ git clone https://github.com/bhilburn/powerlevel9k.git ~/.oh-my-zsh/custom/themes/powerlevel9k
+   $ git clone https://github.com/Powerlevel9k/powerlevel9k.git ~/.oh-my-zsh/custom/themes/powerlevel9k
    ```
 
 2. 在 `~/.zshrc` 首行添加：
@@ -248,7 +248,7 @@ ZSH_THEME="agnoster"
 
    > 注意：这里一定要用等宽字体（即这里的带“Mono”后缀），否则，有些双宽度图标字符显示不出来。
 
-5. 常用Powerlevel9k配置
+5. 常用Powerlevel9k配置（Linux终端上粘贴快捷键是：Shift-Ctrl-V）
 
    ```
    # 左侧栏目显示的要素
