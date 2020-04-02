@@ -5386,7 +5386,7 @@ export class UserModule {
 
 json-server可以利用JSON数据或JavaScript代码快速创建Web服务。
 
-faker用于帮助生成各种JSON数据。
+faker、mockjs用于帮助生成各种JSON数据。
 
 jsonwebtoken是JWT的一个实现。
 

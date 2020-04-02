@@ -331,10 +331,16 @@ font = 'WenQuanYi Zen Hei:size=8',
 
 # 安装JDK
 
-安装Oracle JDK：
+安装最新版Open JDK：
 
 ```bash
-$ sudo pacman -S jdk
+$ sudo pacman -S jdk-openjdk
+```
+
+安装指定版本Open JDK（例如JDK 11）：
+
+```bash
+$ sudo pacman -S jdk11-openjdk
 ```
 
 设置`JAVA_HOME`环境变量：修改`~/.zshrc`。
@@ -352,7 +358,7 @@ $ archlinux-java status
 切换版本：
 
 ```bash
-$ sudo archlinux-java set java-11-jdk
+$ sudo archlinux-java set java-11-openjdk
 ```
 
 
