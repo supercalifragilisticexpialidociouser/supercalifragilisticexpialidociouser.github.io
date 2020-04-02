@@ -1,10 +1,12 @@
 ---
-f5title: Python
+title: Python
 date: 2018-09-15 12:15:06
 tags: [3.7.0]
 ---
 
 # 简介
+
+<!--more-->
 
 # 开发环境
 

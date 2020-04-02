@@ -375,10 +375,11 @@ int x1 = _52;
 Java使用Unicode表示字符。码点（ code point ) 是指与一个编码表中的某个字符对应的代码值。Unicode 的
 码点可以分成17 个编码级别（codeplane)。第一个编码级别称为基本的多语言级别（ basic multilingual plane ), 码点从`U+0000` 到`U+FFFF`, 其中包括经典的Unicode 编码；其余的16个级别码点从`U+10000` 到`U+10FFFF` , 其中包括一些辅助字符（supplementary character)。
 
-UTF-16 编码采用不同长度的编码表示所有Unicode 码点。在基本的多语言级别中， 每个字符用16 位表示，通常被称为编码单元（ code unit ) ; 而辅助字符采用一对连续的编码单元进行编码。这样构成的编码值落入基本的多语言级别中空闲的2048 字节内， 通常被称为替代区域（surrogate area) [ `U+D800` ~ `U+DBFF` 用于第一个编码单元，`U+DC00` ~ `U+DFFF` 用于第二个代码单元]。这样设计十分巧妙， 我们可以从中迅速地知道一个编码单元是一个字符的编码， 还是一个辅助字符的第一或第二部分。例如，`⑪`是八元数集（ http://math.ucr.edu/home/baez/octonions ) 的一个数学符号， 码点为`U+1D546`, 编码为两个代码单元`U+D835` 和`U+DD46`。
+Java字符使用UTF-16 编码，它采用不同长度的编码表示所有Unicode 码点。在基本的多语言级别中， 每个字符用16 位表示，通常被称为编码单元（ code unit ) ; 而辅助字符采用一对连续的编码单元进行编码。这样构成的编码值落入基本的多语言级别中空闲的2048 字节内， 通常被称为替代区域（surrogate area) [ `U+D800` ~ `U+DBFF` 用于第一个编码单元，`U+DC00` ~ `U+DFFF` 用于第二个代码单元]。这样设计十分巧妙， 我们可以从中迅速地知道一个编码单元是一个字符的编码， 还是一个辅助字符的第一或第二部分。例如，`⑪`是八元数集（ http://math.ucr.edu/home/baez/octonions ) 的一个数学符号， 码点为`U+1D546`, 编码为两个代码单元`U+D835` 和`U+DD46`。
 
-在Java 中，`char` 类型描述了UTF-16 编码中的一个编码单元，因此是16位的。强烈建议不要在程序中使用`char` 类型， 除非确实需要处理UTF-16 编码单元，它们太底层了。最好将字符串作为抽象数据类型处理。要将码点转换成字符串，可使用`new`
-`String(Character.toChars(codePoint))`。
+在Java 中，`char` 类型描述了UTF-16 编码中的一个编码单元，因此是16位的。强烈建议不要在程序中使用`char` 类型， 除非确实需要处理UTF-16 编码单元，它们太底层了。最好将字符串作为抽象数据类型处理。要将码点转换成字符串，可使用`new String(Character.toChars(codePoint))`。
+
+> 平台的字符编码可以通过调用静态方法`Charset.defaultCharset`获得。静态方法`Charset.availableCharsets`返回所有可用的字符集`Charset`实例。
 
 `char`类型可以用作整数类型，可以执行算术运算。`char`可以看作是无符号的整数类型。
 
@@ -1013,6 +1014,12 @@ s.getChars(start, end, buf, 0);
 
 还可以将字符串转换为一个字节数组，使用`getBytes`方法。当将`String`值导出到不支持16位Unicode字符的环境中时，最常用`getBytes`方法。
 
+要将字节数组转换成一个字符串，则使用：
+
+```java
+String str = new String(bytes, StandardCharsets.UTF_8);
+```
+
 ### 格式化字符串
 
 `String.format()`
@@ -1644,7 +1651,7 @@ public class Application {
 
 这里，表达式`this.toString()`调用的是`Application`对象的`toString`方法，而不是`Runnable`实例的`toString`方法。
 
-### 函数
+### 高阶函数
 
 Java虽然不是一个完全的函数式编程语言，但它可以通过函数式接口来实现高阶函数功能。
 
@@ -4365,7 +4372,130 @@ List<String> strings = Collections.checkedList(new ArrayList<>(), String.class);
 
 ## Optional类型
 
-`Optional<T>`类（`java.util.Optional`）是一个容器类，代表一个值存在或不存在。
+`Optional<T>`类（`java.util.Optional`）是一个容器类，代表一个值（类型为`T`）存在或不存在。
+
+在你的代码中始终如一地使用`Optional`，能非常清晰地界定出变量值的缺失是结构上的问题，还是你算法上的缺陷，抑或是你数据中的问题。另外，我们还想特别强调，引入`Optional`类的意图并非要消除每一个`null`引用。与此相反，它的目标是帮助你更好地设计出普适的API，让程序员看到方法签名，就能了解它是否接受一个`Optional`的值。这种强制会让你更积极地将变量从`Optional`中解包出来，直面缺失的变量值。
+
+### 创建Optional对象
+
+创建一个空的`Optional`对象：
+
+```java
+Optional<Car> optCar = Optional.empty();
+```
+
+依据一个非空值创建一个`Optional`对象：
+
+```java
+Optional<Car> optCar = Optional.of(car);
+```
+
+如果`car`是一个`null`，这段代码会立即抛出一个`NullPointerException`，而不是等到你试图访问`car`的属性值时才返回一个错误。
+
+创建一个允许`null`值的`Optional`对象：
+
+```java
+Optional<Car> optCar = Optional.ofNullable(car);
+```
+
+如果`car`是`null`，那么得到的`Optional`对象就是个空对象（即`Optional.empty()`，它不是`null`）。
+
+### 提取Optional对象中封装的值
+
+#### 使用map提取
+
+你可以把`Optional`对象看成一种特殊的集合数据，它至多包含一个元素。因此，也可以使用`map`方法来提取并转换值：如果`Optional`包含一个值，那函数就将该值作为参数传递给map，对该值进行转换，并返回转换结果；如果`Optional`为空，就什么也不做，并返回一个空的`Optional`对象。
+
+```java
+Optional<Insurance> optInsurance = Optional.ofNullable(insurance);
+Optional<String> name = optInsurance.map(Insurance::getName);
+```
+
+这相当于：
+
+```java
+String name = null;
+if(insurance != null){
+	name = insurance.getName();
+}
+```
+
+使用`map`来提取`Optional`对象中封装的值的好处是，不需要显式检测和处理`null`值。
+
+#### 指定默认值的提取
+
+`orElse`方法：如果`Optional`对象中封装的值存在，则提取出该值；否则，返回`orElse`方法的参数作为默认值。
+
+```java
+String result = optionalString.orElse(""); //空串作为默认值
+```
+
+`orElseGet`方法：如果`Optional`对象中封装的值存在，则提取出该值；否则，调用`orElseGet`方法的参数指定的方法来计算一个默认值。
+
+```java
+String result = optionalString.orElseGet(() -> System.getProperty("myapp.default"));
+```
+
+`or`方法：`orElseGet`方法假设计算默认值的方法总是会返回一个非空的默认值。如果计算有可能失败，则应该使用`or`方法：
+
+```java
+Optional<String> result = optionalString.or(() ->
+  Optional.ofNullable(System.getProperty("myapp.default")));
+```
+
+如果`optionalString`中封装的值存在，则返回`optionalString`；如果`optionalString`没有值并且`System.getProperty("myapp.default")`返回非`null`值，则将该非`null`值封装进`Optional`并返回；否则，结果为空的`Optional`对象。
+
+#### 没有值时抛出异常
+
+`get`方法：如果`Optional`对象中封装的值存在，则提取出该值；否则，抛出`NoSuchElementException`异常。
+
+```java
+optionalValue.get().someMethod();
+```
+
+通常不推荐使用`get`方法来提取`Optional`封装的值，因为，它与原来不使用`Optional`来封装值时一样不安全。即不会比下面的方式更安全：
+
+```java
+value.someMethod();
+```
+
+`orElseThrow`方法：如果`Optional`对象中封装的值存在，则提取出该值；否则，抛出参数指定的异常。
+
+```java
+String result = optionalString.orElseThrow(IllegalStateException::new);
+```
+
+### 处理Optional对象中封装的值
+
+`ifPresent`方法接受一个函数。如果`Optional`对象封装的值存在的话，则它会被传递给函数；否则，不进行任何处理。
+
+```java
+optionalValue.ifPresent(v -> 处理v);
+```
+
+例如，当值存在时将其添加到一个集合中：
+
+```java
+optionalValue.ifPresent(results::add);
+```
+
+如果你想在`Optional`有值时执行某个任务，而在`Optional`没值时执行另一个任务，则应该使用`ifPresentOrElse`方法：
+
+```java
+optionalValue.ifPresentOrElse(
+	v -> 处理v值,
+	() -> 执行其他任务);
+```
+
+### 使用flatMap方法来链接Optional对象
+
+假设你有一个会返回`Optional<T>`的方法`f`，并且目标类型`T`有一个会返回`Optional<U>`的方法`g`。如果你希望像`s.f().g()`这样组合起来调用，那是行不通的。因为`s.f()`方法返回的是`Optional<T>`，而不是`T`。但是，我们可以调用：
+
+```java
+Optional<U> result = s.f().flatMap(T::g);
+```
+
+这样，如果`s.f()`存在，会继续调用`g`；否则，返回空的`Optional<U>`。
 
 ### 原语类型的Optional类型
 
@@ -4379,11 +4509,40 @@ OptionalInt maxCalories = menu.stream()
 int max = maxCalories.orElse(1);
 ```
 
+### 将Optional转变为流
 
+`stream`方法可以将`Optional<T>`放入拥有0个或1个元素的`Steam<T>`。
+
+例如：
+
+```java
+Optional<User> lookup(String id) {…} //Users的一个方法
+…
+Stream<String> ids = …;
+Stream<User> users = ids.map(Users::lookup)
+  .flatMap(Optional::stream);
+```
+
+每次调用`stream`都返回一个拥有0个或1个元素的流，`flatMap`方法将这些流合并起来。这意味着不存在的用户直接被丢弃。
+
+### Optional与序列化
+
+由于`Optional`类设计时就没特别考虑将其作为类的字段使用，而是作为方法返回值使用，所以它也并未实现`Serializable`接口。由于这个原因，如果你的应用使用了某些要求序列化的库或者框架，在域模型中使用`Optional`，有可能引发应用程序故障。
+
+如果你一定要实现序列化的域模型，作为替代方案，我们建议你像下面这个例子那样，提供一个能访问声明为`Optional`、变量值可能缺失的接口，代码清单如下：
+
+```java
+public class Person {
+  private Car car;
+  public Optional<Car> getCarAsOptional() {
+    return Optional.ofNullable(car);
+  }
+}
+```
 
 # 流式编程
 
-流是Java API的新成员，它允许你以声明性方式处理数据集合。你可以把它们看成遍历数据集的高级迭代器。此外，流还可以透明地并行处理，你无需写任何多线程代码了！
+流（Stream）是Java API（Java 8引入，位于`java.util.stream`包）的新成员，它允许你以声明性方式处理数据集合。你可以把它们看成遍历数据集的高级迭代器。此外，流还可以透明地并行处理，你无需写任何多线程代码了！
 
 下面两段代码都是用来返回低热量的菜肴名称的，并按照卡路里排序，一个是用迭代方式写的，另一个是用Java 8的流写的。
 
@@ -4574,7 +4733,7 @@ Stream<String> words = new Scanner(contents).tokens();
 
 ### 筛选
 
-`Streams`接口提供了`filter`方法，该操作会接受一个谓词（一个返回`boolean`的函数）作为参数，并返回一个包括所有符合谓词的元素的流。
+`Streams`接口提供了`filter`方法，该操作会接受一个谓词（一个返回`boolean`的函数）作为参数，并返回一个包括所有符合谓词的元素的新流。
 
 ```java
 List<String> words = …;
@@ -4615,7 +4774,7 @@ Stream<String> withoutInitialWhiteSpace = codePoints(str).dropWhile(
 
 ### 映射
 
-`map`方法接受一个函数作为参数。这个函数会被应用到源流中的每个元素上，并将其映射成一个新的元素。
+`map`方法接受一个函数作为参数。这个函数会被应用到源流中的每个元素上，并将其映射成一个新的元素。最后返回这些新元素组成的新流。
 
 ```java
 Stream<String> lowercaseWords = words.stream().map(String::toLowerCase);
@@ -4860,7 +5019,7 @@ double maxWordLength = summary.getMax();
 String result = stream.collect(Collectors.joining());
 ```
 
-如果流中元素是一个对象，则需要先将它们转换成字符串：
+如果流中元素是一个对象，且希望按自己的规则转换成字符串，则可以先通过`map`方法映射，再拼接：
 
 ```java
 String shortMenu = menu.stream().map(Dish::getName).collect(joining());
@@ -4873,6 +5032,347 @@ String result = stream.collect(Collectors.joining(", "));
 ```
 
 #### 归集
+
+`Collectors.reducing`是一个通用的收集器。实际上，前面讨论过的所有收集器，都是它的特殊情况。例如，可以用`reducing`方法创建的收集器来计算菜单的总热量：
+
+```java
+int totalCalories = menu.stream().collect(Collectors.reducing(
+  0, 
+  Dish::getCalories, 
+  (i,j) -> i+j));
+```
+
+它需要三个参数：
+
+- 第一个参数是起始值，也是流中没有元素时的返回值。
+- 第二个参数是一个转换函数（累加器），应用于流中的每个元素。
+- 第三个参数是一个`BinaryOperator`流操作（组合器），将两个项目累积成一个同类型的值。
+
+> 上面的例子只是为了说明`collect`的使用，其实要实现相同的功能，有更简洁的方法：
+>
+> ```java
+> int totalCalories = menu.stream().mapToInt(Dish::getCalories).sum();
+> ```
+>
+> 或者：
+>
+> ```java
+> int totalCalories = menu.stream().map(Dish::getCalories).reduce(Integer::sum).get();
+> ```
+
+`reducing`方法还有一个只接受单个`BinaryOperator`参数的版本。例如：找到热量最高的菜：
+
+```java
+Optional<Dish> mostCalorieDish = menu.stream().collect(Collectors.reducing(
+	(d1, d2) -> d1.getCalories() > d2.getCalories() ? d1 :d2));
+```
+
+它相当于使用第一个元素作为起始值，以恒等函数（即一个函数仅仅是返回其输入参数）作为一个转换函数。
+
+> 收集与归约
+>
+> 两种方法通常可以实现相同的功能。但`collect`方法特别适合表达可变容器上的归约，而`reduce`方法是一个不可变的归约。滥用这两种方法会造成线程不安全。例如，下面例子滥用`reduce`方法来实现`toListCollector`所做的工作：
+>
+> ```java
+> Stream<Integer> stream = Arrays.asList(1, 2, 3, 4, 5, 6).stream();
+> List<Integer> numbers = stream.reduce(
+> 	new ArrayList<Integer>(),
+> 	(List<Integer> 1, Integer e) -> {
+>     l.add(e);
+>     return l;
+>   },
+> 	(List<Integer> l1, List<Integer> l2) -> {
+>     l1.addAll(l2);
+>     return l1;
+>   });
+> ```
+>
+> 这里，`reduce`方法在原地改变了作为累加器的`List`，导致这个归约过程不能并行工作，因为由多个线程并发修改同一个数据结构可能会破坏`List`本身。在这种情况下，如果想要线程安全，就需要每次分配一个新的`List`，而对象分配又会影响性能。这就是`collect`方法特别适合表达可变容器上的归约的原因，更关键的是它适合并行操作。
+
+#### 分组
+
+一个常见的数据库操作是根据一个或多个属性对集合中的项目进行分组，用`Collectors.groupingBy`工厂方法返回的收集器就可以轻松地完成这项任务。例如，把菜单中的菜按照类型进行分类：
+
+```java
+Map<Dish.Type, List<Dish>> dishesByType =
+  menu.stream().collect(Collectors.groupingBy(Dish::getType));
+```
+
+![分组](Java/分组.png)
+
+一个更复杂的例子：把热量不到400卡路里的菜划分为“低热量”（diet），热量400到700卡路里的菜划为“普通”（normal），高于700卡路里的划为“高热量”（fat）：
+
+```java
+public enum CaloricLevel {DIET, NORMAL, FAT};
+
+Map<CaloricLevel, List<Dish>> dishesByCaloricLevel = menu.stream().collect(
+	Collectors.groupingBy(dish -> {
+    if (dish.getCalories() <= 400) return CaloricLevel.DIET;
+    else if (dish.getCalories() <= 700) return CaloricLevel.NORMAL;
+    else return CaloricLevel.FAT;
+  }));
+```
+
+##### 多级分组
+
+`Collectors.groupingBy`方法有个双参数版本可以实现多级分组。例如：
+
+```java
+Map<Dish.Type, Map<CaloricLevel, List<Dish>>> dishesByTypeCaloricLevel =
+	menu.stream().collect(
+    groupingBy(Dish::getType,  //一级分类函数
+               groupingBy(dish -> {  //二级分类函数
+                 if (dish.getCalories() <= 400) return CaloricLevel.DIET;
+                 else if (dish.getCalories() <= 700) return CaloricLevel.NORMAL;
+                 else return CaloricLevel.FAT;
+               })
+    )
+	);
+```
+
+结果为：
+
+```
+{
+	MEAT={DIET=[chicken], NORMAL=[beef], FAT=[pork]},
+	FISH={DIET=[prawns], NORMAL=[salmon]},
+	OTHER={DIET=[rice, seasonal fruit], NORMAL=[french fries, pizza]}
+}
+```
+
+##### 按子组收集
+
+上一节中，`groupingBy`的第二个参数是另一个`groupingBy`收集器。其实，传递给`groupingBy`的第二个参数的可以是任何收集器，而不一定是另一个`groupingBy`收集器。例如，要数一数菜单中每类菜有多少个，可以传递`counting`收集器作为`groupingBy`收集器的第二个参数：
+
+```java
+Map<Dish.Type, Long> typesCount = menu.stream().collect(
+  groupingBy(Dish::getType, counting()));
+```
+
+结果为：`{MEAT=3, FISH=2, OTHER=4}`。
+
+一般来说，通过`groupingBy`工厂方法的第二个参数传递的收集器将会对分到同一组中的所有流元素执行进一步归约操作。
+
+还要注意，普通的单参数`groupingBy(f)`（其中`f`是分类函数）实际上是`groupingBy(f,toList())`的简便写法。
+
+##### 并发分组
+
+调用`groupingByConcurrent`方法，将会得到一个并发分组。当与并行流一起使用时，可以并发地插入值。这与`toConcurrentMap`方法完全类似。
+
+#### 分片
+
+分片是分组的特殊情况：由一个谓词（返回一个布尔值的函数）作为分类函数，它称分片函数。分片函数返回一个布尔值，这意味着得到的分组`Map`的键类型是`Boolean`，于是它最多可以分为两组——`true`是一组，`false`是一组。例如，要把菜单按照素食和非素食分开：
+
+```java
+Map<Boolean, List<Dish>> partitionedMenu =
+	menu.stream().collect(partitioningBy(Dish::isVegetarian));
+```
+
+结果为：
+
+```
+{
+	false=[pork, beef, chicken, prawns, salmon],
+	true=[french fries, rice, season fruit, pizza]
+}
+```
+
+那么通过`Map`中键为`true`的值，就可以找出所有的素食菜肴了：
+
+```java
+List<Dish> vegetarianDishes = partitionedMenu.get(true);
+```
+
+请注意，用同样的分片谓词，对菜单`List`创建的流作筛选，然后把结果收集到另外一个`List`中也可以获得相同的素食菜肴结果：
+
+```java
+List<Dish> vegetarianDishes =
+	menu.stream().filter(Dish::isVegetarian).collect(toList());
+```
+
+但是，分片的好处在于保留了分片函数返回`true`或`false`的两套流元素列表。
+
+另外，`partitioningBy`工厂方法有一个重载版本，可以给它传递第二个收集器：
+
+```java
+Map<Boolean, Map<Dish.Type, List<Dish>>> vegetarianDishesByType =
+  menu.stream().collect(
+    partitioningBy(Dish::isVegetarian, //分片函数
+                   groupingBy(Dish::getType)));  //第二个收集器
+```
+
+结果为：
+
+```
+{
+	false={
+		FISH=[prawns, salmon], 
+		MEAT=[pork, beef, chicken]
+	},
+	true={
+		OTHER=[french fries, rice, season fruit, pizza]
+	}
+}
+```
+
+
+
+#### 把收集器的结果转换为另一种类型
+
+下面的例子将菜单中热量最高的菜肴，按照菜的类型分类：
+
+```java
+Map<Dish.Type, Optional<Dish>> mostCaloricByType =
+  menu.stream()
+    .collect(groupingBy(Dish::getType,
+                        maxBy(comparingInt(Dish::getCalories))));
+```
+
+结果为：`{FISH=Optional[salmon], OTHER=Optional[pizza], MEAT=Optional[pork]}`。
+
+这个`Map`中的值是`Optional`，因为这是`maxBy`工厂方法生成的收集器的类型，但实际上，如果菜单中没有某一类型的`Dish`，这个类型就不会对应一个`Optional. empty()`值，而且根本不会出现在`Map`的键中。`groupingBy`收集器只有在应用分组条件后，第一次在流中找到某个键对应的元素时才会把键加入分组`Map`中。这意味着`Optional`包装器在这里不是很有用，因为它不会仅仅因为它是归约收集器的返回类型而表达一个最终可能不存在却意外存在的值。
+
+因为分组操作的`Map`结果中的每个值上包装的`Optional`没什么用，所以你可能想要把它们去掉。要做到这一点，或者更一般地来说，把收集器返回的结果转换为另一种类型，你可以使用`Collectors.collectingAndThen`工厂方法返回的收集器，如下所示。
+
+```java
+Map<Dish.Type, Dish> mostCaloricByType =
+  menu.stream()
+    .collect(groupingBy(Dish::getType,  //分类函数
+                        collectingAndThen(
+                          maxBy(comparingInt(Dish::getCalories)), //要转换的收集器
+                          Optional::get)));  //转换函数
+```
+
+结果：`{FISH=salmon, OTHER=pizza, MEAT=pork}`。
+
+`Collectors.collectingAndThen`工厂方法接受两个参数——要转换的收集器以及转换函数，并返回另一个收集器。这个收集器相当于对要转换的收集器的一个包装，`collect`操作的最后一步就是将返回值用转换函数做一个映射。
+
+#### 映射
+
+常常和`groupingBy`或`partitioningBy`联合使用的收集器是`mapping`方法生成的。这个方法接受两个参数：一个函数对流中的元素做变换，另一个则将变换的结果对象收集起来。其目的是在累加之前对每个输入元素应用一个映射函数，这样就可以让接受特定类型元素的收集器适应不同类型的对象。例如，对于每种类型的`Dish`，找出菜单中都有哪些`CaloricLevel`：
+
+```java
+Map<Dish.Type, Set<CaloricLevel>> caloricLevelsByType =
+  menu.stream().collect(
+    groupingBy(Dish::getType, mapping(
+      dish -> {if (dish.getCalories() <= 400) return CaloricLevel.DIET;
+               else if (dish.getCalories() <= 700) return CaloricLevel.NORMAL;
+               else return CaloricLevel.FAT;},
+      toSet() )));
+```
+
+结果为：`{OTHER=[DIET, NORMAL], MEAT=[DIET, NORMAL, FAT], FISH=[DIET, NORMAL]}`。
+
+再例如，找到素食和非素食中热量最高的菜：
+
+```java
+Map<Boolean, Dish> mostCaloricPartitionedByVegetarian =
+  menu.stream().collect(
+    partitioningBy(Dish::isVegetarian,
+                   collectingAndThen(
+                     maxBy(comparingInt(Dish::getCalories)),
+                     Optional::get)));
+```
+
+结果为：`{false=pork, true=pizza}`。
+
+#### 实现自己的收集器
+
+要实现自己的收集器，只需要实现`Collector`接口。
+
+```java
+public interface Collector<T, A, R> {
+  Supplier<A> supplier();
+  BiConsumer<A, T> accumulator();
+  Function<A, R> finisher();
+  BinaryOperator<A> combiner();
+  Set<Characteristics> characteristics();
+}
+```
+
+该接口中：
+
+- `T`是流中要收集的元素的类型。
+- `A`是累加器类型，累加器是在收集过程中用于累积部分结果的对象。
+- `R`是收集操作得到的对象（通常但并不一定是集合）的类型。
+- `supplier`方法用于建立新的结果容器。
+- `accumulator`方法返回执行归约操作的函数，将元素添加到结果容器。
+- `finisher`方法将结果容器应用最终转换。
+- `combiner`方法用于合并两个结果容器。
+- `characteristics`方法返回一个不可变的Characteristics集合，它定义了收集器的行为——尤其是关于流是否可以并行归约，以及可以使用哪些优化的提示。
+
+例如：将前n个自然数划分为质数和非质数：
+
+```java
+public class PrimeNumbersCollector 
+    implements Collector<Integer,
+               Map<Boolean, List<Integer>>,
+               Map<Boolean, List<Integer>>> {
+  @Override
+  public Supplier<Map<Boolean, List<Integer>>> supplier() {
+    //从一个有两个空List的Map开始收集过程
+    return () -> new HashMap<Boolean, List<Integer>>() {{
+      put(true, new ArrayList<Integer>());
+      put(false, new ArrayList<Integer>());
+    }};
+  }
+                 
+  @Override
+  public BiConsumer<Map<Boolean, List<Integer>>, Integer> accumulator() {
+    //将已经找到的质数列表传递给isPrime方法
+    return (Map<Boolean, List<Integer>> acc, Integer candidate) -> {
+      acc.get( isPrime( acc.get(true),
+                       candidate) )
+        .add(candidate); //根据isPrime方法的返回值，从Map中取质数或非质数列表，把当前的被测数加进去
+    };
+  }
+                 
+  @Override
+  public BinaryOperator<Map<Boolean, List<Integer>>> combiner() {
+    //将第二个Map合并到第一个
+    return (Map<Boolean, List<Integer>> map1,
+            Map<Boolean, List<Integer>> map2) -> {
+      map1.get(true).addAll(map2.get(true));
+      map1.get(false).addAll(map2.get(false));
+      return map1;
+    };
+  }
+                 
+  @Override
+  public Function<Map<Boolean, List<Integer>>,
+  Map<Boolean, List<Integer>>> finisher() {
+    //收集过程最后无需转换，因此用 identity 函数收尾
+    return Function.identity();
+  }
+                 
+  @Override
+  public Set<Characteristics> characteristics() {
+    //这个收集器是IDENTITY_FINISH，但既不是UNORDERED也不是CONCURRENT，因为质数是按顺序发现的
+    return Collections.unmodifiableSet(EnumSet.of(IDENTITY_FINISH));
+  }
+}
+```
+
+> 如果只是想提供自己的供应源（supplier）、累加器（accumulator）和组合器（combiner），则不需要实现自己的收集器，可以使用`collect`方法的三个参数版本：
+>
+> ```java
+> public Map<Boolean, List<Integer>> partitionPrimesWithCustomCollector(int n) {
+>   IntStream.rangeClosed(2, n).boxed()
+>     .collect(
+>       () -> new HashMap<Boolean, List<Integer>>() {{
+>         put(true, new ArrayList<Integer>());
+>         put(false, new ArrayList<Integer>());
+>       }},  //供应源
+>       (acc, candidate) -> {
+>         acc.get( isPrime(acc.get(true), candidate) )
+>           .add(candidate);
+>       },  //累加器
+>       (map1, map2) -> {
+>         map1.get(true).addAll(map2.get(true));
+>         map1.get(false).addAll(map2.get(false));
+>       });  //组合器
+> }
+> ```
 
 ### 迭代
 
@@ -4931,6 +5431,201 @@ Stream<Integer> integers = IntStream.range(0, 100).boxed();
 ```
 
 > `Random`类提供了`ints`、`longs`、`doubles`方法，用来返回包含随机数的原语类型流。
+
+## 并行流
+
+### 获取并行流
+
+`parallelStream`方法可以从任何集合获得一个并行流：
+
+```java
+Stream<String> parallelWords = words.parallelStream();
+```
+
+此外，`parallel`方法可以将串行流转化为并行流：
+
+```java
+Stream<String> parallelWords = Stream.of(wordArray).parallel();
+```
+
+另外要注意，一个流要可以并行运行，它的操作必须是无状态的，并且可以以任意顺序执行。
+
+只要在终结方法执行时，流处于并行模式，那么所有延迟执行的流操作就会被并行执行。
+
+> 对顺序流调用`parallel`方法并不意味着流本身有任何实际的变化。它在内部实际上就是设了一个`boolean`标志，表示你想让调用`parallel`之后进行的所有操作都并行执行。相应地，你只需要对并行流调用`sequential`方法就可以把它变成顺序流。
+>
+> 请注意，你可能以为把这两个方法结合起来，就可以更细化地控制在遍历流时哪些操作要并行执行，哪些要
+> 顺序执行。例如，你可以这样做：
+>
+> ```java
+> stream.parallel()
+>   .filter(...)
+>   .sequential()
+>   .map(...)
+>   .parallel()
+>   .reduce();
+> ```
+>
+> 但最后一次`parallel`或`sequential`调用会影响整个流水线。在本例中，流水线会并行执行，因为最后调用的是它。
+
+### 高效使用并行流
+
+并行流并不总是比顺序流快。此外，并行流有时候会和你的直觉不一致，所以在考虑选择顺序流还是并行流时，第一个也是最重要的建议就是用适当的基准来测量其性能。
+
+自动装箱和拆箱操作会大大降低性能。Java 8中有原始类型流（`IntStream`、`LongStream`、`DoubleStream`）来避免这种操作，但凡有可能都应该用这些流。
+
+有些操作本身在并行流上的性能就比顺序流差。特别是`limit`和`findFirst`等依赖于元素顺序的操作，它们在并行流上执行的代价非常大。例如，`findAny`会比`findFirst`性能好，因为它不一定要按顺序来执行。**你总是可以调用`unordered`方法来把有序流变成无序流**。那么，如果你需要流中的n个元素而不是专门要前n个的话，对无序并行流调用`limit`可能会比单个有序流（比如数据源是一个`List`）更高效。
+
+还要考虑流的操作流水线的总计算成本。设N是要处理的元素的总数，Q是一个元素通过流水线的大致处理成本，则N*Q就是这个对成本的一个粗略的定性估计。Q值较高就意味着使用并行流时性能好的可能性比较大。
+
+对于较小的数据量，选择并行流几乎从来都不是一个好的决定。并行处理少数几个元素的好处还抵不上并行化造成的额外开销。
+
+要考虑流背后的数据结构是否易于分解。例如，`ArrayList`的拆分效率比`LinkedList`高得多，因为前者用不着遍历就可以平均拆分，而后者则必须遍历。另外，用`range`工厂方法创建的原始类型流也可以快速分解。最后，你可以自己实现`Spliterator`来完全掌控分解过程。
+
+流自身的特点，以及流水线中的中间操作修改流的方式，都可能会改变分解过程的性能。例如，一个`SIZED`流可以分成大小相等的两部分，这样每个部分都可以比较高效地并行处理，但筛选操作可能丢弃的元素个数却无法预测，导致流本身的大小未知。
+
+还要考虑终端操作中合并步骤的代价是大是小（例如`Collector`中的`combiner`方法）。如果这一步代价很大，那么组合每个子流产生的部分结果所付出的代价就可能会超出通过并行流得到的性能提升。
+
+流的数据源和可分解性：
+
+| 源              | 可分解性 |
+| --------------- | -------- |
+| ArrayList       | 极佳     |
+| LinkedList      | 差       |
+| IntStream.range | 极佳     |
+| Stream.iterate  | 差       |
+| HashSet         | 好       |
+| TreeSet         | 好       |
+
+## 分支/合并框架
+
+分支/合并框架（Java 7引入，位于`java.util.concurrent`包）的目的是以递归方式将可以并行的任务拆分成更小的任务，然后将每个子任务的结果合并起来生成整体结果。它是`ExecutorService`接口的一个实现，它把子任务分配给线程池（称为`ForkJoinPool`）中的工作线程。
+
+![分支/合并过程](Java/分支-合并过程.png)
+
+### 定义任务
+
+如果任务会产生一个结果，则通过`RecursiveTask<R>`类来定义，其中`R`就是产生的结果的类型。如果任务不返回结果，则使用`RecursiveAction`类来定义。并且要实现它唯一的抽象方法`compute`：
+
+```java
+protected abstract R compute();
+```
+
+该方法通常可以参考如下伪代码来实现：
+
+```
+if (任务足够小或不可分) {
+	顺序计算该任务
+} else {
+  将任务分成两个子任务
+  递归调用本方法，拆分每个子任务，等待所有子任务完成
+  合并每个子任务的结果
+}
+```
+
+例如：为一个数字范围（这里用一个`long[]`数组表示）求和：
+
+```java
+public class ForkJoinSumCalculator
+  	extends java.util.concurrent.RecursiveTask<Long> { //继承RecursiveTask来创建可以用于分支/合并框架的任务
+  private final long[] numbers; //要求和的数组
+  //子任务处理的数组的起始和终止位置
+  private final int start;
+  private final int end;
+  //不再将任务分解为子任务的数组大小
+  public static final long THRESHOLD = 10_000;
+  
+  //公共构造函数用于创建主任务
+  public ForkJoinSumCalculator(long[] numbers) {
+    this(numbers, 0, numbers.length);
+  }
+  
+  //私有构造函数用于以递归方式为主任务创建子任务
+  private ForkJoinSumCalculator(long[] numbers, int start, int end) {
+    this.numbers = numbers;
+    this.start = start;
+    this.end = end;
+  }
+  
+  @Override
+  protected Long compute() {
+    int length = end - start; //该任务负责求和的部分的大小
+    if (length <= THRESHOLD) { //如果大小小于或等于阈值，顺序计算结果
+      return computeSequentially();
+    }
+    //创建一个子任务来为数组的前一半求和
+    ForkJoinSumCalculator leftTask =
+      new ForkJoinSumCalculator(numbers, start, start + length/2);
+    //利用另一个ForkJoinPool线程异步执行新创建的子任务
+    leftTask.fork();
+    //创建一个任务为数组的后一半求和
+    ForkJoinSumCalculator rightTask =
+      new ForkJoinSumCalculator(numbers, start + length/2, end);
+    Long rightResult = rightTask.compute(); //同步执行第二个子任务，有可能允许进一步递归划分
+    Long leftResult = leftTask.join(); //读取第一个子任务的结果，如果尚未完成就等待
+    return leftResult + rightResult; //该任务的结果是两个子任务结果的组合
+  }
+  
+  //在子任务不再可分时计算结果的简单算法
+  private long computeSequentially() {
+    long sum = 0;
+    for (int i = start; i < end; i++) {
+      sum += numbers[i];
+    }
+    return sum;
+  }
+}
+```
+
+### 执行任务
+
+现在编写一个方法来并行对前n个自然数求和就很简单了。你只需把想要的数字数组传给`ForkJoinSumCalculator`的构造函数：
+
+```java
+public static long forkJoinSum(long n) {
+  long[] numbers = LongStream.rangeClosed(1, n).toArray(); //要求和的数组
+  ForkJoinTask<Long> task = new ForkJoinSumCalculator(numbers); //创建并行任务
+  return new ForkJoinPool().invoke(task); //放入线程池中并行执行，最后一个任务返回的值就是整个任务的结果
+}
+```
+
+当把`ForkJoinSumCalculator`任务传给`ForkJoinPool`时，这个任务就由池中的一个线程执行，这个线程会调用任务的`compute`方法。该方法会检查任务是否小到足以顺序执行，如果不够小则会把要求和的数组分成两半，分给两个新的`ForkJoinSumCalculator`，而它们也由`ForkJoinPool`安排执行。因此，这一过程可以递归重复，把原任务分为更小的任务，直到满足不方便或不可能再进一步拆分的条件（本例中是求和的项目数小于等于10 000）。这时会顺序计算每个任务的结果，然后由分支过程创建的（隐含的）任务二叉树遍历回到它的根。接下来会合并每个子任务的部分结果，从而得到总任务的结果。
+
+> 通常，`ForkJoinPool`在应用中可以重用，只需要实例化一次，让它成为单例。
+
+## Spliterator
+
+`Spliterator`是Java 8中加入的另一个新接口；这个名字代表“可分迭代器”（splitable iterator）。和`Iterator`一样，`Spliterator`也用于遍历数据源中的元素，但它是为了并行执行而设计的。
+
+```java
+public interface Spliterator<T> { //T是Spliterator遍历的元素的类型
+  //tryAdvance方法的行为类似于普通的Iterator，它会按顺序一个一个使用Spliterator中的元素，并且如果还有其他元素要遍历就返回true
+  boolean tryAdvance(Consumer<? super T> action);
+  //trySplit可以把一些元素划出去分给第二个Spliterator（由该方法返回），让它们两个并行处理
+  Spliterator<T> trySplit();
+  //estimateSize方法可以估计还剩下多少元素要遍历
+  long estimateSize();
+  //代表Spliterator本身特性集的编码。使用Spliterator的客户可以用这些特性来更好地控制和优化它的使用
+  int characteristics();
+}
+```
+
+![递归拆分过程](Java/递归拆分过程.png)
+
+`Spliterator`的特性：
+
+| 特性       | 含义                                                         |
+| ---------- | ------------------------------------------------------------ |
+| ORDERED    | 元素有既定的顺序（例如`List`），因此`Spliterator`在遍历和划分时也会遵循这一顺序 |
+| DISTINCT   | 对于任意一对遍历过的元素x和y，`x.equals(y)`返回false         |
+| SORTED     | 遍历的元素按照一个预定义的顺序排序                           |
+| SIZED      | 该Spliterator由一个已知大小的源建立（例如Set），因此estimatedSize()返回的是准确值 |
+| NONNULL    | 保证遍历的元素不会为null                                     |
+| IMMUTABLE  | Spliterator的数据源不能修改。这意味着在遍历时不能添加、删除或修改任何元素 |
+| CONCURRENT | 该Spliterator的数据源可以被其他线程同时修改而无需同步        |
+| SUBSIZED   | 该Spliterator和所有从它拆分出来的Spliterator都是SIZED        |
+
+Java 8已经为集合框架中包含的所有数据结构提供了一个默认的`Spliterator`实现，通过`spliterator`方法可得到。
 
 # 命名空间——包
 
@@ -5278,17 +5973,90 @@ if (p2 instanceof Student) {
 
 # 输入和输出
 
-## 标准输入和输出
+## 输入/输出流
 
-### 标准输出
+在Java API中，输入的源头（可以来自文件、网络连接或内存中的数组）称为输入流，而输出的目的地称为输出流。
 
-`System.out.println()`：输出发送到“标准输出流”，并且结尾自动带上换行符。
+> 注意：这里讨论的流与流式编程中讲的流没有关系，它们是不同的概念。
 
-`System.out.print()`：输出发送到“标准输出流”。
+### 字节流
 
-### 读取输入
+![字节流的层次结构](Java/字节流的层次结构.png)
 
-`System.in`对象只有从输入中读取单个字节的方法，要读取字符串和数值，需要使用`Scanner`。
+#### 获取流
+
+从文件中获取流：
+
+```java
+InputStream in = Files.newInputStream(path);
+OutputStream out = Files.newOutputStream(path);
+```
+
+从URL中获取流：
+
+```java
+URL url = new URL("http://horstmann.com/index.html");
+InputStream in = url.openStream();
+```
+
+从字节数组获取流：
+
+```java
+byte[] bytes = …;
+InputStream in = new ByteArrayInputStream(bytes);
+
+ByteArrayOutputStream out = new ByteArrayOutputStream();
+byte[] bytes = out.toByteArray();
+```
+
+标准流：
+
+`System.in`（`InputStream`）：标准输入流。
+
+`System.out`（`PrintStream`）：标准输出流。
+
+`System.err`（`PrintStream`）：标准错误输出流。
+
+#### 读字节
+
+读取单个字节：
+
+```java
+InputStream in = …;
+int b = in.read();
+```
+
+这个无参的`read`方法返回字节对应的整数，范围是0~255，也可能由于到达输入源的末尾而返回-1。
+
+批量读取字节：
+
+```java
+byte[] bytes = new byte[len];
+
+int actualBytesRead = in.read(bytes);
+actualBytesRead = in.read(bytes, start, n);
+
+bytes = in.readNBytes(len);
+actualBytesRead = in.readNBytes(bytes, start, n);
+```
+
+这些方法读取数据，直到该数组已满或没有更多的输入。除了`readNBytes(len)`直接返回读取到的字节数组外，其他方法返回实际读取的字节数量，如果一个字节都没有读取，则返回-1。
+
+`read`与`readNBytes`的区别在于，`read`方法只试图读取字节，如果失败了，就立刻返回一个实际读取的字节数；而`readNBytes`方法一直调用`read`方法，直到所有请求的字节都获取了或者`read`方法返回-1。
+
+Java 9增加了从流中读取所有字节的方法：
+
+```java
+byte[] bytes = in.readAllBytes();
+```
+
+如果想读取一个文件的所有字节，可以使用下面的简便方法：
+
+```java
+byte[] bytes = Files.readAllBytes(path);
+```
+
+读取一行：
 
 ```java
 Scanner in = new Scanner(System.in);
@@ -5296,15 +6064,16 @@ System.out.println("What is your name?");
 String name = in.nextLine();  //从输入中读取一行
 ```
 
-要读取单个单词（以空格分隔），调用
+读取单词：
 
 ```java
-String firstName = in.next();
+Scanner in = new Scanner(System.in);
+String firstName = in.next(); //读取以空格分隔单个单词
 ```
 
-要读取数值，使用`nextInt()`、`nextDouble()`等方法。
+`Scanner`默认以空格来分隔单词，可以通过`useDelimiter`方法使用正则表达式来指定分隔符的模式。
 
-可以使用`hasNextLine()`、`hasNext()`、`hasNextInt()`、`hasNextDouble()`方法检查是否还有一行、一个单词、一个整数或一个浮点数可以读取。
+要读取数值，使用`nextInt()`、`nextDouble()`等方法。另外，还可以使用`hasNextLine()`、`hasNext()`、`hasNextInt()`、`hasNextDouble()`方法检查是否还有一行、一个单词、一个整数或一个浮点数可以读取。
 
 ```java
 if (in.hasNextInt()) {
@@ -5321,15 +6090,61 @@ String username = terminal.readLine("User name: ");
 char[] passwd = terminal.readPassword("Password: ");
 ```
 
-在命令行中，可以使用系统中Shell的重定向语法，将文件中的数据输入到我们的程序，或者将我们程序的输出写入到文件中：
 
-```bash
-$ java mypackage.MainClass < input.txt > output.txt
+
+#### 写字节
+
+写单个字节：
+
+```java
+OutputStream out = …;
+int b = …;
+out.write(b);
 ```
 
-这样，在`mypackage.MainClass`中就可以使用标准输入和输出方法处理这些数据了。
+批量写到字节数组：
 
-### 格式化输出
+```java
+byte[] bytes = …;
+out.write(bytes);
+out.write(bytes, start, length);
+```
+
+当完成写输出流的操作后，一定要关闭该输出流以确保提交了所有的缓存输出。最好使用try-with-resources语句：
+
+```java
+try (OutputStream out = …) {
+  out.write(bytes);
+}
+```
+
+将输入流复制到输出流：
+
+```java
+try (InputStream in = …; OutputStream out = …) {
+  in.transferTo(out);
+}
+```
+
+将输入流保存到文件：
+
+```java
+Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
+```
+
+将文件内容写入输出流：
+
+```java
+Files.copy(path, out);
+```
+
+标准输出：
+
+`System.out.println()`：输出发送到“标准输出流”，并且结尾自动带上换行符。
+
+`System.out.print()`：输出发送到“标准输出流”。
+
+##### 格式化输出
 
 Java中使用`System.out.printf()`方法来进行格式化输出。该方法可接受任意多个参数，其中第一个参数是格式字符串，它是一个输出的模板。格式字符串中，以`%`字符开始的是**格式说明符**（format specifier），它们会依次被`printf()`的第二个参数、第三个参数、……所替换。
 
@@ -5378,6 +6193,274 @@ System.out.printf("Hello, %s. Next year, you'll be %d.\n", name, age);
 ```java
 System.out.printf("%,+.2f", 100000.0 /3.0);  //输出：+33,333.33
 ```
+
+#### 读/写二进制数据
+
+`DataInput`接口和`DataOutput`接口提供了方便读写数值、字符、布尔值、二进制格式字符串的方法。
+
+> 这些方法都是以big-endian格式读/写数字的。
+>
+> 注意：`readUTF`和`writeUTF`方法使用的是修改过的UTF-8格式，它和标准UTF-8格式不兼容，只在JVM内部有用。
+
+使用二进制输入和输出的好处是长度固定并且效率高，其缺点就是二进制文件不能轻松地用文本编辑器来阅读。
+
+```java
+DataInput in = new DataInputStream(Files.newInputStream(path));
+DataOutput out = new DataOutputStream(Files.newOutputStream(path));
+```
+
+#### 随机存取文件
+
+`RandomAccessFile`类支持对一个文件进行随机的读/写操作。你可以通过将构造器的第二个参数设置为`"r"`选项以只读方式打开一个随机存取文件，或设置为`"rw"`选项以读/写方式打开一个随机存取文件。例如：
+
+```java
+RandomAccessFile file = new RandomAccessFile(path.toString(), "rw");
+```
+
+一个随机存取文件打开时就有一个*文件指针*指向下一个读/写字节的位置。利用`seek`方法可以将文件指针移动到指定的字节位置。`seek`的参数是一个`long`类型数值，范围为0到该文件的长度（调用`length`方法可获得该文件的长度）。`getFilePointer`方法返回文件指针的当前位置。
+
+`RandomAccessFile`类实现了`DataInput`和`DataOutput`接口，可以使用`readInt`、`writeInt`等方法对一个随机存取文件进行读/写：
+
+```java
+int value = file.readInt();
+file.seek(file.getFilePointer() - 4);
+file.writeInt(value + 1);
+```
+
+#### 内存映射文件
+
+内存映射文件提供了另外一种有效读/写随机存取大文件的方式。
+
+首先，获得一个到文件的通道（channel）：
+
+```java
+FileChannel channel = FileChannel.open(
+  path,
+  StandardOpenOption.READ,
+  StandardOpenOption.WRITE);
+```
+
+然后，将文件的一部分（如果文件不是特别大，映射全部内容）内容映射到内存中：
+
+```java
+ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, channel.size());
+```
+
+再用`get`、`getInt`等方法读取数据，或相应地使用`put`方法写数据：
+
+```java
+int offset = …;
+int value = buffer.getInt(offset);
+buffer.put(offset, value + 1);
+```
+
+当通道关闭时，对映射文件的改变会写回对应的文件。
+
+> 默认情况下，读/写数值的方法都是按照big-endian字节顺序时，你可以通过下面方法改变字节顺序：
+>
+> ```java
+> buffer.order(ByteOrder.LITTLE_ENDIAN);
+> ```
+
+### 字符流
+
+![字符流的层次结构](Java/字符流的层次结构.png)
+
+#### 获取流
+
+从字节流获取一个字符流：
+
+```java
+InputStream inStream = …;
+Reader in = new InputStreamReader(inStream, charset);
+
+OutputStream outStream = …;
+Writer out = new OutputStreamWriter(outStream, charset);
+out.write(str);
+```
+
+获取缓冲流（按块读取）：
+
+```java
+try(BufferedReader reader
+    = new BufferedReader(new InputStreamReader(url.openStream()))) {
+  Stream<String> lines = reader.lines();
+  …
+}
+```
+
+直接从文件获取缓冲流：
+
+```java
+BufferedReader reader = Files.newBufferedReader(path, charset);
+BufferedWriter writer = Files.newBufferedWriter(path, charset);
+```
+
+
+
+#### 读文本
+
+每次读一个输入的UTF-16编码单元：
+
+```java
+Reader in = …;
+int ch = in.read();
+```
+
+这个方法会返回一个范围在0~65536之间的编码单元，但也有可能由于到达输入源的末尾而返回-1。
+
+将整个文件读取到一个字符串（适合比较短的文本文件）：
+
+```java
+String content = new String(Files.readAllBytes(path), charset);
+```
+
+按行读取文件：
+
+```java
+List<String> lines = Files.readAllLines(path, charset);
+```
+
+按流处理文件：
+
+```java
+try (Stream<String> lines = Files.lines(path, charset)) {
+  …
+}
+```
+
+从文件中读取数值：
+
+```java
+Scanner in = new Scanner(path, "UTF-8");
+while (in.hasNextDouble()) {
+  double value = in.nextDouble();
+  …
+}
+```
+
+从文件中读取单词：
+
+```java
+in.useDelimiter("\\PL+"); //使用正则表达式设置单词之间的分隔符为非字母序列
+Stream<String> words = in.tokens(); //获得所有单词的流
+```
+
+将字符串转换成流，可以使用`StringReader`：
+
+```java
+String src = "从明天起，做一个幸福的人，\n喂马，劈材，周游世界，\n从明天起，关心粮食和蔬菜，\n我有一所房子，面朝大海，春暖花开，\n从明天起，和每一个人通信，告诉他们我的幸福\n";  
+
+char[] buffer = new char[32];  
+int hasRead = 0;  
+
+try (StringReader sr = new StringReader(src)) {  
+  //采用循环读取的方式，读取字符串  
+  while ((hasRead  = sr.read(buffer)) > 0 ) {  
+    System.out.println(new String(buffer, 0, hasRead));  
+  }  
+} catch (IOException ioe) {  
+  ioe.printStackTrace();  
+}  
+```
+
+#### 写文本
+
+输出字符串：
+
+```java
+Writer out = …;
+out.write(str);
+```
+
+格式化输出文本可以使用`PrintWriter`，它与`PrintStream`具有相同的API，可以使用`println`、`printf`等方法。
+
+写入文件：
+
+```java
+PrintWriter out = new PrintWriter(Files.newBufferedWriter(path, charset));
+```
+
+更简单的写入文件方法：
+
+```java
+String content = …;
+Files.write(path, content.getBytes(charset));
+```
+
+`write`方法除了可以将`byte[]`写入文件，还可以将`Iterable<? extends CharSequence>`写入文件。
+
+```java
+Files.write(path, lines, charset);
+```
+
+要将字符串写入文件，还可以直接使用`writeString`方法。
+
+要向文件追加内容，可以使用：
+
+```java
+Files.write(path, content.getBytes(charset), StandardOpenOption.APPEND);
+Files.write(path, lines, charset, StandardOpenOption.APPEND);
+```
+
+> 当使用不完整的字符集例如ISO 8859-1写文本时，超出这个字符集范围之外的字符会被“替换”——通常会被替换成`?`字符或Unicode替换字符`U+FFFD`。
+
+写入另一个输出流：
+
+```java
+PrintWriter out = new PrintWriter(new OutputStreamWriter(outStream, charset));
+```
+
+`StringWriter`是一个字符流，它将其输出收集在字符串缓冲区中，然后可用于构造字符串。
+
+```java
+StringWriter writer = new StringWriter();
+throwable.printStackTrace(new PrintWriter(writer));
+String stackTrace = writer.toString();
+```
+
+关闭StringWriter是没有效果的，可以在关闭流之后仍可调用此类中的方法，而不会生成`IOException`。
+
+### 重定向
+
+在命令行中，可以使用系统中Shell的重定向语法，将文件中的数据输入到我们的程序，或者将我们程序的输出写入到文件中：
+
+```bash
+$ java mypackage.MainClass < input.txt > output.txt
+```
+
+这样，在`mypackage.MainClass`中就可以使用标准输入和输出方法处理这些数据了。
+
+## 文件
+
+### 路径
+
+### 创建文件和目录
+
+### 复制、移动和删除文件
+
+### 访问目录内容
+
+### ZIP文件系统
+
+### 文件锁
+
+文件锁机制可解决多个同时执行的程序对同一个文件进行修改所造成的并发问题。
+
+可以调用`FileChannel`类的`lock`或`tryLock`方法来锁住一个文件：
+
+```java
+FileChannel channel = FileChannel.open(path);
+try (FileLock lock = channel.lock()) {
+  …
+}
+```
+
+如果文件已经被锁，则调用`lock`会被阻塞，直到锁被解除。而调用`tryLock`则会立刻返回文件锁（如果文件已被之前程序解锁），或者返回`null`（如果文件仍被锁）。
+
+已锁定的文件会一直保持在被锁住状态，直到对应的锁或通道关闭。
+
+## 序列化
 
 # 异常处理
 
@@ -5748,7 +6831,7 @@ try (Scanner in = new Scanner(new FileInputStream("/usr/share/dict/words"), "UTF
 }
 ```
 
-如果`in`变量是在`try`之前声明的，则它必须是有效的`final`变量，即从声明之后就没被修改过：
+如果`in`变量是在`try`之前声明的，则它必须是有效的`final`变量（既可以是`final`变量，也可以是从声明之后就没被修改过的非`final`变量。这是Java 9改进的特性）：
 
 ```java
 Scanner in = new Scanner(new FileInputStream("/usr/share/dict/words"), "UTF-8");

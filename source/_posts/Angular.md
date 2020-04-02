@@ -502,6 +502,8 @@ export class AppRoutingModule { }
 
 > `forRoot()` 包含的注入器配置是全局性的，比如对路由器的配置。`forChild()` 中没有注入器配置，只有像 `RouterOutlet` 和 `RouterLink` 这样的指令。
 
+注意：**惰性加载的模块不需要导入任何其他模块中**，它们是在路由时动态加载的。
+
 # 组件
 
 组件负责控制屏幕上的一小块区域，我们称之为视图。
@@ -5050,7 +5052,17 @@ import {RouterModule} from "@angular/router";
 
 ### 安装
 
-#### 安装 Angular Material和Angular CDK
+#### 通过schematic安装
+
+```bash
+$ ng add @angular/material
+```
+
+这条`ng add`命令将安装Angular Material、Component Dev Kit（CDK）、Angular Animations，并询问您一些问题以确定要包括的功能。
+
+#### 手工安装
+
+##### 安装 Angular Material和Angular CDK
 
 ```bash
 $ npm install --save @angular/material @angular/cdk
@@ -5071,7 +5083,7 @@ export class PizzaPartyAppModule { }
 
 > 注意：Material模块的导入要放在BrowerModule模块导入之后。
 
-#### 安装 Animations
+##### 安装 Animations
 
 某些Material组件依赖于 Angular animations。（使用angular-cli，默认已经安装。）
 
@@ -5123,7 +5135,7 @@ import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 export class PizzaPartyAppModule { }
 ```
 
-#### 导入主题
+##### 导入主题
 
 打开`src/styles.scss`，添加如下代码：
 
@@ -5137,9 +5149,7 @@ export class PizzaPartyAppModule { }
 <link href="node_modules/@angular/material/prebuilt-themes/indigo-pink.css" rel="stylesheet">
 ```
 
-
-
-#### 添加手势支持
+##### 添加手势支持
 
 ```bash
 $ npm install --save hammerjs
@@ -5151,7 +5161,7 @@ $ npm install --save hammerjs
 import 'hammerjs';
 ```
 
-#### 添加Material图标支持（可选）
+##### 添加Material图标支持（可选）
 
 为了让`mat-icon`组件使用上 [Material Design Icons](https://material.io/icons/)，可以添加Material图标支持。
 
@@ -5179,7 +5189,7 @@ npm install material-design-icons --save
 @import '~material-design-icons/iconfont/material-icons.css';
 ```
 
-##### 使用Material图标
+###### 使用Material图标
 
 ```html
 <i class="material-icons">face<i>
@@ -5193,7 +5203,7 @@ npm install material-design-icons --save
 <i class="material-icons">&#xE87C;</i>
 ```
 
-##### 使用其他图标集
+###### 使用其他图标集
 
 例如，
 
@@ -5248,8 +5258,6 @@ $ npm install bootstrap --save
 @import 'variables';
 @import '../node_modules/bootstrap/scss/bootstrap';
 ```
-
-# 动画
 
 # 服务
 
@@ -5488,9 +5496,37 @@ $ npm run json
 
 
 
-# Reactive Extensions
+# 响应式扩展
+
+RxJs全称Reactive Extension for JavaScript，rxjs主要用于处理异步数据。
+
+传统赋值型的编程方式中，如果一个变量被赋值并且接下来没有再改变这个变量的值，那么这个变量不会因为赋值给他的变量变化而变化，举例说明为：
+
+```
+b = 1;
+c = 1;
+a = b+ c;
+```
+
+无论b和c接下来怎么变化，a的值2都不会变
+而响应式编程中，变量是会随着赋值给他的变量变化而变化的，举例说明：
+
+```
+b = 1;
+c = 1;
+a = b + c;
+b = 2;
+```
+
+在赋值b=2之后，a的值也随即更新为3。
 
 # 异步HTTP请求
+
+# 状态管理
+
+# 动画
+
+# 服务端渲染
 
 # 测试
 
