@@ -69,7 +69,7 @@ $ sudo pacman -S google-chrome
 将`Mod-F2`快捷键配置成打开Chromium，这通过修改`~/.i3/config`：
 
 ```
-bindsym $mod+F2 exec --no-startup-id chromium
+bindsym $mod+F2 exec --no-startup-id chromium（通过GUI安装器安装的，选择这个）
 或
 bindsym $mod+F2 exec --no-startup-id google-chrome-stable
 ```
@@ -99,6 +99,8 @@ export XMODIFIERS="@im=fcitx"
 ```
 
 然后，可以通过GUI工具`fcitx-configtool`调节输入法设置。
+
+重启系统后，按mod-D，然后输入`fcitx`回车，状态栏上就会出现输入法。右击“Configure”进入配置界面，点击添加输入法。在出现的对话框中，去掉“Only Show Current Language”勾选项，选择 WubiPinyin。
 
 # 配置显卡驱动
 
@@ -189,7 +191,7 @@ $ chsh -s /bin/zsh
 安装：
 
 ```bash
-$ sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+$ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 ```
 
 > 不要加`sudo`，否则会安装到`root`用户下，而不是当前用户。
@@ -329,10 +331,16 @@ font = 'WenQuanYi Zen Hei:size=8',
 
 # 安装JDK
 
-安装Oracle JDK：
+安装最新版Open JDK：
 
 ```bash
-$ sudo pacman -S jdk
+$ sudo pacman -S jdk-openjdk
+```
+
+安装指定版本Open JDK（例如JDK 11）：
+
+```bash
+$ sudo pacman -S jdk11-openjdk
 ```
 
 设置`JAVA_HOME`环境变量：修改`~/.zshrc`。
@@ -350,7 +358,7 @@ $ archlinux-java status
 切换版本：
 
 ```bash
-$ sudo archlinux-java set java-11-jdk
+$ sudo archlinux-java set java-11-openjdk
 ```
 
 
