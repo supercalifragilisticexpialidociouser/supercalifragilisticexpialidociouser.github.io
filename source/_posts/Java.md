@@ -6435,9 +6435,144 @@ $ java mypackage.MainClass < input.txt > output.txt
 
 ### 路径
 
+Java中使用`Path`对象来表示一个路径，它是一组目录名称的序列，后面可以跟文件名。
+
+以根路径开始的路径称为绝对路径，否则就是相对路径。根路径由文件系统来决定，例如：`/`或`C:\`。
+
+#### 构造路径
+
+可以使用`Paths.get`方法来构造一个`Path`对象：
+
+```java
+Path absolute = Paths.get("/", "home", "cay");
+Path relative = Paths.get("myapp", "conf", "user.properties");
+```
+
+`Paths.get`方法可以接收一个或多个字符串参数，这些参数会被默认的文件系统路径分隔符（UNIX是`/`，Windows是`\`）合并在一起。然后解析合并后的结果，如果结果不是该文件系统上一个有效的路径，就会抛出`InvalidPathException`异常。解析成功，则返回一个`Path`对象。
+
+`Paths.get`方法还可以直接接受一个字符串表示的路径：
+
+```java
+Path homeDirectory = Paths.get("/home/cay");
+```
+
+> 注意：`Path`对象不一定要对应实际存在的文件，它只是一个一组名称的抽象序列。要创建一个文件，先创建必要的路径，然后再调用相应方法创建文件。
+
+```java
+Path p = Paths.get("/home", "cay", "myapp.properties");
+Path parent = p.getParent(); // 路径 /home/cay
+Path file = p.getFileName(); // 最后一个元素 myapp.properties
+Path root = p.getRoot(); // 根路径 /，相对路径则返回null
+Path first = p.getName(0); // 第一个元素
+Path dir = p.subPath(1, p.getNameCount()); // 除了第一个元素之外的所有元素 cay/myapp.properties
+```
+
+`Path`接口扩展了`Iterable<Path>`元素，所以你可以使用for循环来迭代路径：
+
+```java
+for (Path component : path) {
+  …
+}
+```
+
+#### 路径组合和拆分
+
+```java
+// 返回：/home/cay/myapp/work
+Path workPath = homeDirectory.resolve("myapp/work");
+```
+
+如果`resolve`方法的参数是一个绝对路径，则返回结果就是该参数表示的`Path`对象。
+
+```java
+// 返回：/home/cay/myapp/temp
+Path tempPath = workPath.resolveSibling("temp");
+```
+
+`p.relativize(r)`返回`r`相对于`p`的相对路径：
+
+```java
+// 返回：../fred/myapp
+Paths.get("/home/cay").relativize(Paths.get("/home/fred/myapp"));
+```
+
+`normalize`方法可以去除任何冗余的`.`和`..`路径（或者任何文件系统认定的冗余路径）。
+
+`toAbsolutePath`方法返回指定路径的绝对路径。如果参数不是绝对路径，就会被解析为“用户路径”（即JVM调用的目录）下路径：
+
+```java
+// 假设从 /home/cay/myapp 目录下执行下列代码，则返回：/home/cay/myapp/config
+Paths.get("config").toAbsolutePath()
+```
+
 ### 创建文件和目录
 
+创建新目录：
+
+```java
+Files.createDirectory(path);
+```
+
+要求`path`中除了最后一个目录外都必须已经存在。要创建中间目录可以使用：
+
+```java
+Files.createDirectories(path);
+```
+
+创建空文件：
+
+```java
+Files.createFile(path);
+```
+
+如果该文件已经存在，则会抛出异常。检查文件是否存在和创建文件都是原子操作。如果文件不存在，在任何其他人创建文件之前会创建该文件。
+
+`Files.exists(path)`检查指定的文件或目录是否存在。
+
+`Files.isDirectory`方法检查指定路径是否是目录，`Files.isRegularFile`方法检查指定路径是否是普通文件（即非目录或符号链接）。
+
+创建临时文件或目录：
+
+```java
+Path tempFile = Files.createTempFile(dir, prefix, suffix);
+Path tempFile = Files.createTempFile(prefix, suffix);
+Path tempDir = Files.createTempDirectory(dir, prefix);
+Path tempDir = Files.createTempDirectory(prefix);
+```
+
 ### 复制、移动和删除文件
+
+复制文件：
+
+```java
+Files.copy(fromPath, toPath)
+```
+
+移动文件或空目录：
+
+```java
+Files.move(fromPath, toPath)
+```
+
+如果目标已经存在，则上述操作就会失败。如果你想覆盖已经存在的文件或目录，则可以指定`REPLACE_EXISTING`选项。如果你想复制所有的文件属性，则可以使用`COPY_ATTRIBUTES`选项：
+
+```java
+Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+```
+
+删除文件或空目录：
+
+```java
+Files.delete(path)
+```
+
+如果指定文件或目录不存在，`delete`方法会抛出异常。可以使用下面方法代替：
+
+```java
+boolean deleted = Files.deleteIfExists(path);
+```
+
+
 
 ### 访问目录内容
 
