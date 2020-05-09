@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="语法re2c程序由许多re2c块和指令组成，并混合着普通的C&#x2F;C++代码。生成的词法分析器通过用户接口与外部世界通信。 123456789101112131415161718192021222324252627282930313233&#x2F;*!re2c re2c:flags:i &#x3D; 1; *&#x2F;         &#x2F;&#x2F; re2c block with co">
+<meta property="og:type" content="article">
+<meta property="og:title" content="re2c">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2019/08/21/re2c/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="语法re2c程序由许多re2c块和指令组成，并混合着普通的C&#x2F;C++代码。生成的词法分析器通过用户接口与外部世界通信。 123456789101112131415161718192021222324252627282930313233&#x2F;*!re2c re2c:flags:i &#x3D; 1; *&#x2F;         &#x2F;&#x2F; re2c block with co">
+<meta property="article:published_time" content="2019-08-21T14:38:52.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:50.033Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="1.2.1">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2019/08/21/re2c/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>re2c | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2019/08/21/re2c/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          re2c
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-08-21 22:38:52" itemprop="dateCreated datePublished" datetime="2019-08-21T22:38:52+08:00">2019-08-21</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h1><p>re2c程序由许多re2c块和指令组成，并混合着普通的C/C++代码。生成的词法分析器通过用户接口与外部世界通信。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;*!re2c re2c:flags:i &#x3D; 1; *&#x2F;         &#x2F;&#x2F; re2c block with configuration that turns off #line directives</span><br><span class="line">                                     &#x2F;&#x2F;</span><br><span class="line">#include &lt;stdio.h&gt;                   &#x2F;&#x2F;    C&#x2F;C++ code</span><br><span class="line">                                     &#x2F;&#x2F;</span><br><span class="line">&#x2F;*!max:re2c*&#x2F;                        &#x2F;&#x2F; directive that defines YYMAXFILL (unused)</span><br><span class="line">&#x2F;*!re2c                              &#x2F;&#x2F; start of re2c block</span><br><span class="line">    digit  &#x3D; [0-9];                  &#x2F;&#x2F;   named definition of &#39;digit&#39;</span><br><span class="line">    number &#x3D; digit+;                 &#x2F;&#x2F;   named definition of &#39;number&#39;</span><br><span class="line">*&#x2F;                                   &#x2F;&#x2F; end of re2c block</span><br><span class="line">                                     &#x2F;&#x2F;</span><br><span class="line">static int lex(const char *YYCURSOR) &#x2F;&#x2F; YYCURSOR is defined as a function parameter</span><br><span class="line">&#123;                                    &#x2F;&#x2F;</span><br><span class="line">    const char *YYMARKER;            &#x2F;&#x2F; YYMARKER is defined as a local variable</span><br><span class="line">    &#x2F;*!re2c                          &#x2F;&#x2F; start of re2c block</span><br><span class="line">    re2c:define:YYCTYPE &#x3D; char;      &#x2F;&#x2F;   configuration that defines YYCTYPE</span><br><span class="line">    re2c:yyfill:enable  &#x3D; 0;         &#x2F;&#x2F;   configuration that turns off YYFILL</span><br><span class="line">                                     &#x2F;&#x2F;</span><br><span class="line">    * &#123; return 1; &#125;                  &#x2F;&#x2F;   default rule with its semantic action</span><br><span class="line">                                     &#x2F;&#x2F;</span><br><span class="line">    number &#123;                         &#x2F;&#x2F;   a normal rule with its semantic action</span><br><span class="line">        printf(&quot;number\n&quot;);          &#x2F;&#x2F;     ... semantic action (continued)</span><br><span class="line">        return 0;                    &#x2F;&#x2F;     ... semantic action (continued)</span><br><span class="line">    &#125;                                &#x2F;&#x2F;   end of semantic action</span><br><span class="line">                                     &#x2F;&#x2F;</span><br><span class="line">    *&#x2F;                               &#x2F;&#x2F; end of re2c block</span><br><span class="line">&#125;                                    &#x2F;&#x2F;</span><br><span class="line">                                     &#x2F;&#x2F;</span><br><span class="line">int main()                           &#x2F;&#x2F;</span><br><span class="line">&#123;                                    &#x2F;&#x2F;</span><br><span class="line">    lex(&quot;1024&quot;);                     &#x2F;&#x2F;    C&#x2F;C++ code</span><br><span class="line">    lex(&quot;;]&quot;);                       &#x2F;&#x2F;</span><br><span class="line">    return 0;                        &#x2F;&#x2F;</span><br><span class="line">&#125;                                    &#x2F;&#x2F;</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<h2 id="re2c块"><a href="#re2c块" class="headerlink" title="re2c块"></a>re2c块</h2><p>每个re2c块由一组正则表达式定义、配置和规则组成。</p>
+<blockquote>
+<p>正则表达式定义和配置总是全局的，如果相同的定义或配置多次出现在不同的re2c块中，则它们相互覆盖。</p>
+</blockquote>
+<p>默认标准re2c块是由下面指令创建：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;*!re2c </span><br><span class="line">	…</span><br><span class="line">*&#x2F;</span><br></pre></td></tr></table></figure>
+
+<p>当使用了兼容Flex模式（即使用了<code>-F</code>或<code>--flex-syntax</code>选项）时，则块的格式为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">%&#123; </span><br><span class="line">	…</span><br><span class="line">%&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>另外，还可创建可重用块，参见“可重用块”。</p>
+</blockquote>
+<h3 id="规则"><a href="#规则" class="headerlink" title="规则"></a>规则</h3><p>规则由正则表达式后跟用户定义的动作（语义动作，在成功匹配的情况下执行的C/C++代码块）组成。</p>
+<p>语义动作可以是用花括号<code>{</code>和<code>}</code>括起来的任意代码块（可跨多行）；也可以是没有大括号的代码块，前面带有<code>:=</code>并以不带空格的换行结束（只能单行）。</p>
+<p>如果多个规则匹配，则最长匹配优先。 如果多个规则匹配相同的字符串，则较早的规则优先。</p>
+<p>有两种特殊的规则：</p>
+<ul>
+<li>默认规则<code>*</code>有最低优先级，并且与它在代码中的位置无关。它匹配任何代码单元并且仅消耗一个代码单元。</li>
+<li>EOF规则<code>$</code>匹配输入的结尾。</li>
+</ul>
+<h3 id="正则表达式定义"><a href="#正则表达式定义" class="headerlink" title="正则表达式定义"></a>正则表达式定义</h3><p>定义的默认格式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">名称 &#x3D; 正则表达式 ;</span><br></pre></td></tr></table></figure>
+
+<p>当使用了兼容Flex模式（即使用了<code>-F</code>或<code>--flex-syntax</code>选项）时，则定义的格式为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">名称 正则表达式</span><br></pre></td></tr></table></figure>
+
+<p>定义和规则可以混杂在一起，只要求每个名称都应在使用前定义即可。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">end &#x3D; &quot;\x00&quot;;</span><br><span class="line"></span><br><span class="line">*   &#123; return false; &#125;</span><br><span class="line">end &#123; return in.lim - in.tok &#x3D;&#x3D; YYMAXFILL; &#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; macros</span><br><span class="line">macro &#x3D; (&quot;#&quot; | &quot;%:&quot;) ([^\n] | &quot;\\\n&quot;)* &quot;\n&quot;;</span><br><span class="line">macro &#123; continue; &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="正则表达式"><a href="#正则表达式" class="headerlink" title="正则表达式"></a>正则表达式</h4><p>正则表达式语法：</p>
+<ul>
+<li><code>&quot;foo&quot;</code>：区分大小写的字面串。当使用兼容Flex模式时，则使用<code>foo</code>。</li>
+<li><code>&#39;foo&#39;</code>：不区分大小写的字面串。</li>
+<li><code>[a-xyz]</code>和<code>[^ a-xyz]</code>：字符类。</li>
+<li><code>.</code>：除换行之外的任何字符。</li>
+<li><code>R \ S</code>：字符类R与字符类S的差集。</li>
+<li><code>R*</code>：出现零个或多个R。</li>
+<li><code>R+</code>：出现一个或多个R。</li>
+<li><code>R?</code>：出现零个或一个R。</li>
+<li><code>R{n}</code>：R重复出现恰好n次。</li>
+<li><code>R{n,}</code>：R重复出现至少n次。</li>
+<li><code>R{n,m}</code>：R重复出现n到m次。</li>
+<li><code>(R)</code>：即R。括号用于覆盖优先级或用于POSIX样式的子匹配。</li>
+<li><code>R S</code>：R后跟S。</li>
+<li><code>R | S</code>：R或S。</li>
+<li><code>R / S</code>：R后跟S，但S不消耗。</li>
+<li><code>名称</code>：引用该名称的正则表达式定义。当使用兼容Flex模式时，则使用<code>{名称}</code>。</li>
+<li><code>@stag</code></li>
+<li><code>#mtag</code></li>
+</ul>
+<p>字符类和字面串可能包含以下转义序列：</p>
+<ul>
+<li><code>\a</code>、<code>\b</code>、<code>\f</code>、<code>\n</code>、<code>\r</code>、<code>\t</code>、<code>\v</code>、<code>\\</code></li>
+<li>八进制转义符<code>\ooo</code></li>
+<li>十六进制转义符<code>\xhh</code>、<code>\uhhhh</code>和<code>\Uhhhhhhhh</code>。</li>
+</ul>
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><p>配置通常形如：<code>re2c:属性名=值;</code>。它们用于配置re2c代码。（详见官方文档：<a href="http://re2c.org/manual/manual.html#configurations" target="_blank" rel="noopener">http://re2c.org/manual/manual.html#configurations</a>）</p>
+<h2 id="指令"><a href="#指令" class="headerlink" title="指令"></a>指令</h2><p>re2c指令通常形如：<code>/*!指令名 … */</code>。它们通常用于标注出不同类型的re2c代码。（详见官方文档：<a href="http://re2c.org/manual/manual.html#directives" target="_blank" rel="noopener">http://re2c.org/manual/manual.html#directives</a>）</p>
+<h2 id="用户接口"><a href="#用户接口" class="headerlink" title="用户接口"></a>用户接口</h2><p>用户接口实际上是一些可被词法分析器用于与外界交互的符号，称为基本原语（Basic Primitives）。它们应由用户定义（哪些是必要的取决于具体场景），可以通过配置来定义，也可以是C/C++的变量、函数、宏和其他语言结构。（详见官方文档：<a href="http://re2c.org/manual/manual.html#user-interface" target="_blank" rel="noopener">http://re2c.org/manual/manual.html#user-interface</a>）</p>
+<h1 id="构建"><a href="#构建" class="headerlink" title="构建"></a>构建</h1><h2 id="生成词法分析器代码"><a href="#生成词法分析器代码" class="headerlink" title="生成词法分析器代码"></a>生成词法分析器代码</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ re2c -s -o foo.c foo.re</span><br></pre></td></tr></table></figure>
+
+<p><code>-s</code>：表示在生成的代码中，使用if语句代替switch语句。</p>
+<h3 id="选项"><a href="#选项" class="headerlink" title="选项"></a>选项</h3><p>详见官方文档：<a href="http://re2c.org/manual/manual.html#options" target="_blank" rel="noopener">http://re2c.org/manual/manual.html#options</a>。</p>
+<h2 id="编译代码"><a href="#编译代码" class="headerlink" title="编译代码"></a>编译代码</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -o foo foo.c</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="生成dot文件"><a href="#生成dot文件" class="headerlink" title="生成dot文件"></a>生成dot文件</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ re2c -D -o foo.dot foo.re</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="生成转换图"><a href="#生成转换图" class="headerlink" title="生成转换图"></a>生成转换图</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ dot -Tpng -o foo.png foo.dot</span><br></pre></td></tr></table></figure>
+
+<p>需要额外安装graphviz。</p>
+<p>输出格式主要有：png、svg和pdf。</p>
+<h1 id="EOF处理"><a href="#EOF处理" class="headerlink" title="EOF处理"></a>EOF处理</h1><p>Re2c提供了许多处理输入结束情况的方法。使用哪种方式取决于正则表达式的复杂性、性能考虑因素、输入缓冲的需要以及各种其他因素。 EOF处理可能是re2c用户界面中最复杂的部分 - 它肯定需要了解生成的词法分析器的工作原理。但是作为回报，当更简单的方法足够时，允许用户为特定环境定制词法分析器，以避免通用方法的不必要开销。粗略地说，有四种主要方法：</p>
+<ul>
+<li>使用哨兵（Sentinel）符号（简单而有效，但有限制）</li>
+<li>带填充的边界检查（通用，但复杂）</li>
+<li>EOF规则：哨兵符号和边界检查的组合（通用和简单，可能比使用带填充的边界检查更高效或更低效，具体取决于目标语法）</li>
+<li>使用通用API（用户定义，因此可能不正确）</li>
+</ul>
+<h2 id="使用哨兵符号"><a href="#使用哨兵符号" class="headerlink" title="使用哨兵符号"></a>使用哨兵符号</h2><p>这是最简单，最有效的方法。它适用于输入足够小以适应连续内存缓冲区且存在自然“哨兵”符号的情况 。哨兵符号永远不会出现在格式良好的输入中，因此它可以附加在输入结尾处，并由词法分析器用作终止信号。</p>
+<p> 哨兵方法非常有效，因为词法分析器不需要对输入结束执行任何额外的检查 —— 它自然地作为处理下一个字符的一部分。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;assert.h&gt;</span><br><span class="line"></span><br><span class="line">static int lex(const char *YYCURSOR)</span><br><span class="line">&#123;</span><br><span class="line">    int count &#x3D; 0;</span><br><span class="line">loop:</span><br><span class="line">    &#x2F;*!re2c</span><br><span class="line">    re2c:define:YYCTYPE &#x3D; char;</span><br><span class="line">    re2c:yyfill:enable &#x3D; 0;  &#x2F;&#x2F;不生成YYFILL(N)代码</span><br><span class="line"></span><br><span class="line">    *      &#123; return -1; &#125;</span><br><span class="line">    [\x00] &#123; return count; &#125;  &#x2F;&#x2F;使用\x00作为哨兵字符</span><br><span class="line">    [a-z]+ &#123; ++count; goto loop; &#125;</span><br><span class="line">    [ ]+   &#123; goto loop; &#125;</span><br><span class="line"></span><br><span class="line">    *&#x2F;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    assert(lex(&quot;&quot;) &#x3D;&#x3D; 0);</span><br><span class="line">    assert(lex(&quot;one two three&quot;) &#x3D;&#x3D; 3);</span><br><span class="line">    assert(lex(&quot;one two 123?&quot;) &#x3D;&#x3D; -1);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="带填充的边界检查"><a href="#带填充的边界检查" class="headerlink" title="带填充的边界检查"></a>带填充的边界检查</h2><p>边界检查是一种通用方法：它可以与任何输入语法一起使用。基本思路很简单：我们需要在读取下一个输入字符之前检查输入的结束。但是，如果以直接的方式实现，这将是非常低效的：检查每个输入字符将导致重大减速。 Re2c通过仅在词法分析器的某些关键状态中生成检查来避免减速。更确切地说，re2c计算底层DFA的强连接组件（SCC，大致对应于循环），并且每个SCC仅生成几个检查（通常只有一个，但通常足以使SCC非周期性）。</p>
+<p>检查的形式为<code>(YYLIMIT - YYCURSOR) &lt; n</code>，其中<code>n</code>是相应SCC中简单路径的最大长度。如果这个条件为真，则词法分析器调用<code>YYFILL(n)</code>，它必须提供至少n个输入字符，否则不返回。在检查后词法分析器继续运行时，可以确定无需检查即可安全读取下n个字符。</p>
+<p>这种方法显着减少了检查次数（并且因此使词法分析器更快），但它有一个缺点。由于词法分析器一次检查多个字符，它可能会在SCC中存在少量与短路径相对应的剩余输入字符（小于n）的情况下结束，但是由于边界检查，词法分析器无法继续处理，并且<code>YYFILL</code>无法提供更多字符，因为它是输入的结束。为了解决这个问题，re2c要求在输入结尾附加由伪字符组成的额外填充（Padding）。填充长度应为<code>YYMAXFILL</code>，它等于<code>YYFILL</code>的最大<code>n</code>参数，并且必须由re2c使用<code>/*!max:re2c*/</code> 指令生成。伪字符不应该构成有效的词素（Lexeme）后缀，否则词法分析器可能被欺骗以匹配伪词素。通常，使用<code>NULL</code>字符进行填充是个好主意。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;assert.h&gt;</span><br><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">#include &lt;string.h&gt;</span><br><span class="line"></span><br><span class="line">&#x2F;*!max:re2c*&#x2F;</span><br><span class="line"></span><br><span class="line">static int lex(const char *str)</span><br><span class="line">&#123;</span><br><span class="line">    const size_t len &#x3D; strlen(str);</span><br><span class="line">    char *buf &#x3D; malloc(len + YYMAXFILL);</span><br><span class="line">    memcpy(buf, str, len);</span><br><span class="line">    memset(buf + len, 0, YYMAXFILL); &#x2F;&#x2F;使用0来填充输入结尾</span><br><span class="line"></span><br><span class="line">    const char *YYCURSOR &#x3D; buf;</span><br><span class="line">    const char *YYLIMIT &#x3D; buf + len + YYMAXFILL;</span><br><span class="line">    int count &#x3D; 0;</span><br><span class="line"></span><br><span class="line">loop:</span><br><span class="line">    &#x2F;*!re2c</span><br><span class="line">    re2c:define:YYCTYPE &#x3D; char;</span><br><span class="line">    re2c:define:YYFILL:naked &#x3D; 1;</span><br><span class="line">    re2c:define:YYFILL &#x3D; &quot;goto error;&quot;;</span><br><span class="line"></span><br><span class="line">    *                         &#123; goto error; &#125;</span><br><span class="line">    [\x00]                    &#123; if (YYCURSOR &#x3D;&#x3D; YYLIMIT) goto end; else goto error; &#125;</span><br><span class="line">    [a-z]+                    &#123; ++count; goto loop; &#125;</span><br><span class="line">    [&#39;] ([^&#39;] | [\\][&#39;])* [&#39;] &#123; ++count; goto loop; &#125;  &#x2F;&#x2F;&quot;aha\0ha&quot;是合法的</span><br><span class="line">    [ ]+                      &#123; goto loop; &#125;</span><br><span class="line"></span><br><span class="line">    *&#x2F;</span><br><span class="line">error:</span><br><span class="line">    count &#x3D; -1;</span><br><span class="line">end:</span><br><span class="line">    free(buf);</span><br><span class="line">    return count;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    assert(lex(&quot;&quot;) &#x3D;&#x3D; 0);</span><br><span class="line">    assert(lex(&quot;one two three&quot;) &#x3D;&#x3D; 3);</span><br><span class="line">    assert(lex(&quot;one two 123?&quot;) &#x3D;&#x3D; -1);</span><br><span class="line">    assert(lex(&quot;one &#39;two&#39; &#39;th\\&#39;ree&#39; &#39;123?&#39; &#39;&#39;&quot;) &#x3D;&#x3D; 5);</span><br><span class="line">    assert(lex(&quot;one &#39;two&#39; &#39;three&quot;) &#x3D;&#x3D; -1); &#x2F;&#x2F;缺失右单引号，匹配*规则</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意，单引号字符串的语法规则允许在词素中间使用任意符号，因此语法中没有自然的哨兵符号。</p>
+<p>在此示例中，我们不使用缓冲区回填，因此<code>YYFILL</code>定义为只返回错误。请注意，只有在词法分析器到达填充（Padding）后才会调用<code>YYFILL</code>，因为只有这样才能满足检查条件。</p>
+<h2 id="EOF规则"><a href="#EOF规则" class="headerlink" title="EOF规则"></a>EOF规则</h2><p>EOF规则<code>$</code>在版本1.2中引入。</p>
+<p>基本思路是：随便指定一个字符作为哨兵符号，只有当哨兵符号被匹配（更准确地说，如果包含它的符号类被匹配）才会执行边界检查。检查的代码形如<code>YYLIMIT &lt;= YYCURSOR</code>的条件，如果不满足这个条件，那么哨兵符号只是一个普通的输入字符，词法分析器继续。否则，这是一个真正的哨兵，并且词法分析器调用<code>YYFILL(n)</code>。如果<code>YYFILL</code>返回零，则词法分析器假定它有更多输入并尝试重新匹配。否则<code>YYFILL</code>返回非零，并且词法分析器知道它已到达输入的结尾。此时有三种可能性：</p>
+<ul>
+<li>首先，它可能已经匹配了较短的词素。在这种情况下，它只是回滚到最后一个接受状态。</li>
+<li>其次，它可能已经消耗了一些字符，但未能匹配。在这种情况下，它会回退到默认规则<code>*</code>。</li>
+<li>最后，它必定处于初始状态（应该是指刚刚完成上一个词法单元的识别，准备进入下一个词法单元识别的时点）。在这情况下，它匹配EOF规则<code>$</code>。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;assert.h&gt;</span><br><span class="line">#include &lt;string.h&gt;</span><br><span class="line"></span><br><span class="line">static int lex(const char *str)</span><br><span class="line">&#123;</span><br><span class="line">    const char *YYCURSOR &#x3D; str;</span><br><span class="line">    const char *YYLIMIT &#x3D; str + strlen(str);</span><br><span class="line">    int count &#x3D; 0;</span><br><span class="line"></span><br><span class="line">loop:</span><br><span class="line">    &#x2F;*!re2c</span><br><span class="line">    re2c:define:YYCTYPE &#x3D; char;</span><br><span class="line">    re2c:yyfill:enable &#x3D; 0;</span><br><span class="line">    re2c:eof &#x3D; 0;</span><br><span class="line"></span><br><span class="line">    *                         &#123; return -1; &#125;</span><br><span class="line">    $                         &#123; return count; &#125;</span><br><span class="line">    [a-z]+                    &#123; ++count; goto loop; &#125;</span><br><span class="line">    [&#39;] ([^&#39;] | [\\][&#39;])* [&#39;] &#123; ++count; goto loop; &#125;</span><br><span class="line">    [ ]+                      &#123; goto loop; &#125;</span><br><span class="line"></span><br><span class="line">    *&#x2F;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    assert(lex(&quot;&quot;) &#x3D;&#x3D; 0);</span><br><span class="line">    assert(lex(&quot;one two three&quot;) &#x3D;&#x3D; 3);</span><br><span class="line">    assert(lex(&quot;one two 123?&quot;) &#x3D;&#x3D; -1);</span><br><span class="line">    assert(lex(&quot;one &#39;two&#39; &#39;th\\&#39;ree&#39; &#39;123?&#39; &#39;&#39;&quot;) &#x3D;&#x3D; 5);</span><br><span class="line">    assert(lex(&quot;one &#39;two&#39; &#39;three&quot;) &#x3D;&#x3D; -1);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用通用API"><a href="#使用通用API" class="headerlink" title="使用通用API"></a>使用通用API</h2><p>通用API可以与任何上述方法一起使用。 它还允许通过在基本原语中放置EOF检查来使用用户定义的方法。 通常这是<code>YYSKIP</code>（在前进到下一个输入字符时执行检查）或<code>YYPEEK</code>（在读取下一个输入字符时执行检查）。 由此产生的方法效率很低，因为它们检查每个输入字符。 但是，在输入无法缓冲或填充且末尾不包含标记字符的情况下，它们非常有用。 在使用这种特殊方法时应该谨慎，因为很容易忽略一些极端情况并得到一种只能部分工作的方法。 此外，应该注意的是，并非所有内容都可以通过通用API表达：例如，不可能重新实现EOF规则的工作方式（特别是，不可能在成功<code>YYFILL</code>之后重新匹配字符）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;assert.h&gt;</span><br><span class="line">#include &lt;string.h&gt;</span><br><span class="line"></span><br><span class="line">#define YYPEEK() *cur</span><br><span class="line">#define YYSKIP() if (++cur &gt; lim) return -1</span><br><span class="line">static int lex(const char *str)</span><br><span class="line">&#123;</span><br><span class="line">    const char *cur &#x3D; str;</span><br><span class="line">    const char *lim &#x3D; str + strlen(str) + 1;</span><br><span class="line">    int count &#x3D; 0;</span><br><span class="line"></span><br><span class="line">loop:</span><br><span class="line">    &#x2F;*!re2c</span><br><span class="line">    re2c:define:YYCTYPE &#x3D; char;</span><br><span class="line">    re2c:yyfill:enable &#x3D; 0;</span><br><span class="line">    re2c:flags:input &#x3D; custom;</span><br><span class="line"></span><br><span class="line">    *                         &#123; return -1; &#125;</span><br><span class="line">    [\x00]                    &#123; return cur &#x3D;&#x3D; lim ? count : -1; &#125;</span><br><span class="line">    [a-z]+                    &#123; ++count; goto loop; &#125;</span><br><span class="line">    [&#39;] ([^&#39;] | [\\][&#39;])* [&#39;] &#123; ++count; goto loop; &#125;</span><br><span class="line">    [ ]+                      &#123; goto loop; &#125;</span><br><span class="line"></span><br><span class="line">    *&#x2F;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    assert(lex(&quot;&quot;) &#x3D;&#x3D; 0);</span><br><span class="line">    assert(lex(&quot;one two three&quot;) &#x3D;&#x3D; 3);</span><br><span class="line">    assert(lex(&quot;one two 123?&quot;) &#x3D;&#x3D; -1);</span><br><span class="line">    assert(lex(&quot;one &#39;two&#39; &#39;th\\&#39;ree&#39; &#39;123?&#39; &#39;&#39;&quot;) &#x3D;&#x3D; 5);</span><br><span class="line">    assert(lex(&quot;one &#39;two&#39; &#39;three&quot;) &#x3D;&#x3D; -1);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意，如果语法更复杂，当两个规则重叠并且EOF检查在更短的词素已经匹配后失败时（例如，在我们的示例中没有重叠规则），此方法可能不起作用。</p>
+<h1 id="缓冲区回填"><a href="#缓冲区回填" class="headerlink" title="缓冲区回填"></a>缓冲区回填</h1><p>当输入无法一次性映射到内存中时，就会出现缓冲需求：要么是太大，要么是以流式方式（如从套接字读取）。 在这种情况下，通常的技术是分配一个固定大小的内存缓冲区，并以适合缓冲区的块（Chunks）来处理输入。 当当前块被处理时，它被移出并移入新数据。实际上它稍微复杂一些，因为词法分析器状态不是由单个输入位置组成，而是由一组相互关联的位置组成：</p>
+<ul>
+<li>游标（Cursor）：要读取的下一个输入字符（即默认API中的<code>YYCURSOR</code>或通用API中的<code>YYSKIP</code> 或 <code>YYPEEK</code>）</li>
+<li>界限（Limit）：最后一个可用的输入字符之后的位置（即默认API中的<code>YYLIMIT</code>，由通用API中的<code>YYLESSTHAN</code>隐式处理）</li>
+<li>标记器（Marker）：最近匹配的位置（如果有）（即默认API中的<code>YYMARKER</code>或通用API中的<code>YYBACKUP</code> 或<code>YYRESTORE</code>）</li>
+<li>token：当前词素的开头（隐含在re2c API中，因为它不是正常词法分析器操作所必需的，可以由用户定义和更新）</li>
+<li>上下文标记器：尾随（trailing）上下文的位置（即默认API中的<code>YYCTXMARKER</code>或通用API中的<code>YYBACKUPCTX</code> 或<code>YYRESTORECTX</code>）</li>
+<li>标签变量（Tag Variables）：子匹配位置（用<code>/*!stags:re2c*/</code> 和 <code>/*!mtags:re2c*/</code> 指令，以及通用API中的<code>YYSTAGP</code>、 <code>YYSTAGN</code>、<code>YYMTAGP</code>和<code>YYMTAGN</code>定义）</li>
+</ul>
+<p>并非所有这些位置都在每种情况下使用，但如果使用，它们必须由<code>YYFILL</code>更新。</p>
+<p>所有活动位置都包含在token和游标之间的段中，因此缓冲区起始处至token之间的所有内容都可以被丢弃。从token到界限（limit）的段应该移动到缓冲区的开头，缓冲区结尾处的空闲空间应填入新数据。 为了避免频繁的<code>YYFILL</code>调用，最好填入尽可能多的输入字符（即使较少的字符可能足以恢复词法分析器）。 根据使用的EOF处理方法，<code>YYFILL</code>实现的细节略有不同：EOF规则的情况比带填充的边界检查的情况稍微简单一些。 另请注意，如果使用<code>-f</code>或<code>--storable-state</code>选项，则<code>YYFILL</code>的语义略有不同（在关于可存储状态的部分中有所描述）。</p>
+<h2 id="带EOF规则的YYFILL"><a href="#带EOF规则的YYFILL" class="headerlink" title="带EOF规则的YYFILL"></a>带EOF规则的YYFILL</h2><p>YYFILL调用由默认API中的条件<code>YYLIMIT &lt;= YYCURSOR</code>和通用API中的<code>YYLESSTHAN()</code>触发。</p>
+<p>如果使用EOF规则，则<code>YYFILL</code>是一个类似函数的原语，它不接受任何参数并返回一个整数值（ 非零返回值表示<code>YYFILL</code>失败）。</p>
+<p>成功的<code>YYFILL</code>调用必须提供至少一个字符并相应地调整输入位置。 界限必须总是被设置为缓冲区中的最后一个输入之后的位置，并且界限位置处的字符必须是<code>re2c:eof</code>配置指定的哨兵符号。 下图显示了<code>YYFILL</code>调用之前和之后缓冲区中输入位置的相对位置（哨兵符号标记为<code>＃</code>，第二张图显示了没有足够的输入填充整个缓冲区的情况）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">               &lt;-- shift --&gt;</span><br><span class="line">             &gt;-A------------B---------C-------------D#-----------E-&gt;</span><br><span class="line">             buffer       token    marker         limit,</span><br><span class="line">                                                  cursor</span><br><span class="line">&gt;-A------------B---------C-------------D------------E#-&gt;</span><br><span class="line">             buffer,  marker        cursor        limit</span><br><span class="line">             token</span><br><span class="line"></span><br><span class="line">               &lt;-- shift --&gt;</span><br><span class="line">             &gt;-A------------B---------C-------------D#--E (EOF)</span><br><span class="line">             buffer       token    marker         limit,</span><br><span class="line">                                                  cursor</span><br><span class="line">&gt;-A------------B---------C-------------D---E#........</span><br><span class="line">             buffer,  marker       cursor limit</span><br><span class="line">             token</span><br></pre></td></tr></table></figure>
+
+<p>例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;string.h&gt;</span><br><span class="line"></span><br><span class="line">#define SIZE 4096</span><br><span class="line"></span><br><span class="line">typedef struct &#123;</span><br><span class="line">    FILE *file;</span><br><span class="line">    char buf[SIZE + 1], *lim, *cur, *tok;</span><br><span class="line">    int eof;</span><br><span class="line">&#125; Input;</span><br><span class="line"></span><br><span class="line">static int fill(Input *in)</span><br><span class="line">&#123;</span><br><span class="line">    if (in-&gt;eof) &#123;</span><br><span class="line">        return 1;</span><br><span class="line">    &#125;</span><br><span class="line">    const size_t free &#x3D; in-&gt;tok - in-&gt;buf;</span><br><span class="line">    if (free &lt; 1) &#123;</span><br><span class="line">        return 2;</span><br><span class="line">    &#125;</span><br><span class="line">    memmove(in-&gt;buf, in-&gt;tok, in-&gt;lim - in-&gt;tok);</span><br><span class="line">    in-&gt;lim -&#x3D; free;</span><br><span class="line">    in-&gt;cur -&#x3D; free;</span><br><span class="line">    in-&gt;tok -&#x3D; free;</span><br><span class="line">    in-&gt;lim +&#x3D; fread(in-&gt;lim, 1, free, in-&gt;file);</span><br><span class="line">    in-&gt;lim[0] &#x3D; 0;</span><br><span class="line">    in-&gt;eof |&#x3D; in-&gt;lim &lt; in-&gt;buf + SIZE;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static void init(Input *in, FILE *file)</span><br><span class="line">&#123;</span><br><span class="line">    in-&gt;file &#x3D; file;</span><br><span class="line">    in-&gt;cur &#x3D; in-&gt;tok &#x3D; in-&gt;lim &#x3D; in-&gt;buf + SIZE;</span><br><span class="line">    in-&gt;eof &#x3D; 0;</span><br><span class="line">    fill(in);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">#define YYFILL() fill(in)</span><br><span class="line">static int lex(Input *in)</span><br><span class="line">&#123;</span><br><span class="line">    int count &#x3D; 0;</span><br><span class="line">loop:</span><br><span class="line">    in-&gt;tok &#x3D; in-&gt;cur;</span><br><span class="line">    &#x2F;*!re2c</span><br><span class="line">    re2c:define:YYCTYPE &#x3D; char;</span><br><span class="line">    re2c:define:YYCURSOR &#x3D; in-&gt;cur;</span><br><span class="line">    re2c:define:YYLIMIT &#x3D; in-&gt;lim;</span><br><span class="line">    re2c:eof &#x3D; 0;</span><br><span class="line"></span><br><span class="line">    *                         &#123; return -1; &#125;</span><br><span class="line">    $                         &#123; return count; &#125;</span><br><span class="line">    [a-z]+                    &#123; ++count; goto loop; &#125;</span><br><span class="line">    [&#39;] ([^&#39;] | [\\][&#39;])* [&#39;] &#123; ++count; goto loop; &#125;</span><br><span class="line">    [ ]+                      &#123; goto loop; &#125;</span><br><span class="line"></span><br><span class="line">    *&#x2F;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    FILE *f &#x3D; fopen(&quot;input.txt&quot;, &quot;rb&quot;);</span><br><span class="line">    if (!f) return 1;</span><br><span class="line"></span><br><span class="line">    Input in;</span><br><span class="line">    init(&amp;in, f);</span><br><span class="line">    printf(&quot;count: %d\n&quot;, lex(&amp;in));</span><br><span class="line"></span><br><span class="line">    fclose(f);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="带填充的YYFILL"><a href="#带填充的YYFILL" class="headerlink" title="带填充的YYFILL"></a>带填充的YYFILL</h2><p>在默认情况下（即当不使用EOF规则时），<code>YYFILL</code>是一个类似函数的原语，它接受单个参数并且不返回任何值。 <code>YYFILL</code>调用由默认API中的条件<code>(YYLIMIT - YYCURSOR) &lt; n</code>和通用API中的<code>YYLESSTHAN(n)</code>触发。传递给<code>YYFILL</code>的参数是必须提供的最小字符数。如果没有这样做，<code>YYFILL</code>不能返回词法分析器（因此最好将其作为一个宏，在失败时从调用函数返回）。如果成功调用<code>YYFILL</code>，则必须将界限位置设置为缓冲区中最后一个输入位置之后的一个位置，或者设置为<code>YYMAXFILL</code>个填充（Padding）的结尾处（如果<code>YYFILL</code>已成功读取至少<code>n</code>个字符，但不足以填充整个缓冲）。下图显示了<code>YYFILL</code>调用之前和之后缓冲区中输入位置的相对位置（第二张图片上的<code>YYMAXFILL</code>个填充用<code>#</code>符号标记）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">               &lt;-- shift --&gt;                 &lt;-- need --&gt;</span><br><span class="line">             &gt;-A------------B---------C-----D-------E---F--------G-&gt;</span><br><span class="line">             buffer       token    marker cursor  limit</span><br><span class="line"></span><br><span class="line">&gt;-A------------B---------C-----D-------E---F--------G-&gt;</span><br><span class="line">             buffer,  marker cursor               limit</span><br><span class="line">             token</span><br><span class="line"></span><br><span class="line">               &lt;-- shift --&gt;                 &lt;-- need --&gt;</span><br><span class="line">             &gt;-A------------B---------C-----D-------E-F        (EOF)</span><br><span class="line">             buffer       token    marker cursor  limit</span><br><span class="line"></span><br><span class="line">&gt;-A------------B---------C-----D-------E-F###############</span><br><span class="line">             buffer,  marker cursor                   limit</span><br><span class="line">             token                        &lt;- YYMAXFILL -&gt;</span><br></pre></td></tr></table></figure>
+
+<p>例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;string.h&gt;</span><br><span class="line"></span><br><span class="line">&#x2F;*!max:re2c*&#x2F;</span><br><span class="line">#define SIZE 4096</span><br><span class="line"></span><br><span class="line">typedef struct &#123;</span><br><span class="line">    FILE *file;</span><br><span class="line">    char buf[SIZE + YYMAXFILL], *lim, *cur, *tok;</span><br><span class="line">    int eof;</span><br><span class="line">&#125; Input;</span><br><span class="line"></span><br><span class="line">static int fill(Input *in, size_t need)</span><br><span class="line">&#123;</span><br><span class="line">    if (in-&gt;eof) &#123;</span><br><span class="line">        return 1;</span><br><span class="line">    &#125;</span><br><span class="line">    const size_t free &#x3D; in-&gt;tok - in-&gt;buf;</span><br><span class="line">    if (free &lt; need) &#123;</span><br><span class="line">        return 2;</span><br><span class="line">    &#125;</span><br><span class="line">    memmove(in-&gt;buf, in-&gt;tok, in-&gt;lim - in-&gt;tok);</span><br><span class="line">    in-&gt;lim -&#x3D; free;</span><br><span class="line">    in-&gt;cur -&#x3D; free;</span><br><span class="line">    in-&gt;tok -&#x3D; free;</span><br><span class="line">    in-&gt;lim +&#x3D; fread(in-&gt;lim, 1, free, in-&gt;file);</span><br><span class="line">    if (in-&gt;lim &lt; in-&gt;buf + SIZE) &#123;</span><br><span class="line">        in-&gt;eof &#x3D; 1;</span><br><span class="line">        memset(in-&gt;lim, 0, YYMAXFILL);</span><br><span class="line">        in-&gt;lim +&#x3D; YYMAXFILL;</span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static void init(Input *in, FILE *file)</span><br><span class="line">&#123;</span><br><span class="line">    in-&gt;file &#x3D; file;</span><br><span class="line">    in-&gt;cur &#x3D; in-&gt;tok &#x3D; in-&gt;lim &#x3D; in-&gt;buf + SIZE;</span><br><span class="line">    in-&gt;eof &#x3D; 0;</span><br><span class="line">    fill(in, 1);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">#define YYFILL(n) if (fill(in, n) !&#x3D; 0) return -1</span><br><span class="line">static int lex(Input *in)</span><br><span class="line">&#123;</span><br><span class="line">    int count &#x3D; 0;</span><br><span class="line">loop:</span><br><span class="line">    in-&gt;tok &#x3D; in-&gt;cur;</span><br><span class="line">    &#x2F;*!re2c</span><br><span class="line">    re2c:define:YYCTYPE &#x3D; char;</span><br><span class="line">    re2c:define:YYCURSOR &#x3D; in-&gt;cur;</span><br><span class="line">    re2c:define:YYLIMIT &#x3D; in-&gt;lim;</span><br><span class="line"></span><br><span class="line">    *                         &#123; return -1; &#125;</span><br><span class="line">    [\x00]                    &#123; return (YYMAXFILL &#x3D;&#x3D; in-&gt;lim - in-&gt;tok) ? count : -1; &#125;</span><br><span class="line">    [a-z]+                    &#123; ++count; goto loop; &#125;</span><br><span class="line">    [&#39;] ([^&#39;] | [\\][&#39;])* [&#39;] &#123; ++count; goto loop; &#125;</span><br><span class="line">    [ ]+                      &#123; goto loop; &#125;</span><br><span class="line"></span><br><span class="line">    *&#x2F;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    FILE *f &#x3D; fopen(&quot;input.txt&quot;, &quot;rb&quot;);</span><br><span class="line">    if (!f) return 1;</span><br><span class="line"></span><br><span class="line">    Input in;</span><br><span class="line">    init(&amp;in, f);</span><br><span class="line">    printf(&quot;count: %d\n&quot;, lex(&amp;in));</span><br><span class="line"></span><br><span class="line">    fclose(f);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="可存储状态"><a href="#可存储状态" class="headerlink" title="可存储状态"></a>可存储状态</h1><p>使用<code>-f</code>或 <code>--storable-state</code>选项re2c将生成一个词法分析器，可以存储其当前状态，返回到调用者，然后在其停止的位置恢复操作。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/1-2-1/" rel="tag"># 1.2.1</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/06/29/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/" rel="prev" title="编译技术">
+      <i class="fa fa-chevron-left"></i> 编译技术
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/02/04/Vue/" rel="next" title="Vue">
+      Vue <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#语法"><span class="nav-number">1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#re2c块"><span class="nav-number">1.1.</span> <span class="nav-text">re2c块</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#规则"><span class="nav-number">1.1.1.</span> <span class="nav-text">规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#正则表达式定义"><span class="nav-number">1.1.2.</span> <span class="nav-text">正则表达式定义</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#正则表达式"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">正则表达式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置"><span class="nav-number">1.1.3.</span> <span class="nav-text">配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#指令"><span class="nav-number">1.2.</span> <span class="nav-text">指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用户接口"><span class="nav-number">1.3.</span> <span class="nav-text">用户接口</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#构建"><span class="nav-number">2.</span> <span class="nav-text">构建</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#生成词法分析器代码"><span class="nav-number">2.1.</span> <span class="nav-text">生成词法分析器代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#选项"><span class="nav-number">2.1.1.</span> <span class="nav-text">选项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编译代码"><span class="nav-number">2.2.</span> <span class="nav-text">编译代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生成dot文件"><span class="nav-number">2.3.</span> <span class="nav-text">生成dot文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生成转换图"><span class="nav-number">2.4.</span> <span class="nav-text">生成转换图</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#EOF处理"><span class="nav-number">3.</span> <span class="nav-text">EOF处理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用哨兵符号"><span class="nav-number">3.1.</span> <span class="nav-text">使用哨兵符号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#带填充的边界检查"><span class="nav-number">3.2.</span> <span class="nav-text">带填充的边界检查</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EOF规则"><span class="nav-number">3.3.</span> <span class="nav-text">EOF规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用通用API"><span class="nav-number">3.4.</span> <span class="nav-text">使用通用API</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#缓冲区回填"><span class="nav-number">4.</span> <span class="nav-text">缓冲区回填</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#带EOF规则的YYFILL"><span class="nav-number">4.1.</span> <span class="nav-text">带EOF规则的YYFILL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#带填充的YYFILL"><span class="nav-number">4.2.</span> <span class="nav-text">带填充的YYFILL</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#可存储状态"><span class="nav-number">5.</span> <span class="nav-text">可存储状态</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

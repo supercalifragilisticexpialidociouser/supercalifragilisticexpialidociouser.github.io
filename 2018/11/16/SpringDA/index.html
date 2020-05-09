@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="JDBC配置数据源使用JNDI数据源通过JNDI获取数据源的好处在于数据源完全可以在应用程序之外进行管理。另外，在应用服务器中管理的数据源通常以池的方式组织，具备更好的性能，并且还支持系统管理员对其进行热切换。 12345678@Beanpublic JndiObjectFactoryBean dataSource() &amp;#123;  JndiObjectFactoryBean jndiObjec">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringDA">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2018/11/16/SpringDA/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="JDBC配置数据源使用JNDI数据源通过JNDI获取数据源的好处在于数据源完全可以在应用程序之外进行管理。另外，在应用服务器中管理的数据源通常以池的方式组织，具备更好的性能，并且还支持系统管理员对其进行热切换。 12345678@Beanpublic JndiObjectFactoryBean dataSource() &amp;#123;  JndiObjectFactoryBean jndiObjec">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/11/16/SpringDA/SpringDA/repository-method-signatures.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/11/16/SpringDA/SpringDA/neo4j-simple.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/11/16/SpringDA/SpringDA/neo4j-relationship-entity.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/11/16/SpringDA/SpringDA/%E8%B4%AD%E7%A5%A8%E4%BA%8B%E5%8A%A1.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/11/16/SpringDA/SpringDA/%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86%E5%99%A8.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/11/16/SpringDA/SpringDA/%E4%BA%8B%E5%8A%A1%E5%B1%9E%E6%80%A7.png">
+<meta property="article:published_time" content="2018-11-16T02:34:40.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:50.019Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="programming">
+<meta property="article:tag" content="学习">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="开发">
+<meta property="article:tag" content="IT">
+<meta property="article:tag" content="技术">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/11/16/SpringDA/SpringDA/repository-method-signatures.png">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2018/11/16/SpringDA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>SpringDA | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2018/11/16/SpringDA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SpringDA
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-11-16 10:34:40" itemprop="dateCreated datePublished" datetime="2018-11-16T10:34:40+08:00">2018-11-16</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="JDBC"><a href="#JDBC" class="headerlink" title="JDBC"></a>JDBC</h1><h2 id="配置数据源"><a href="#配置数据源" class="headerlink" title="配置数据源"></a>配置数据源</h2><h3 id="使用JNDI数据源"><a href="#使用JNDI数据源" class="headerlink" title="使用JNDI数据源"></a>使用JNDI数据源</h3><p>通过JNDI获取数据源的好处在于数据源完全可以在应用程序之外进行管理。另外，在应用服务器中管理的数据源通常以池的方式组织，具备更好的性能，并且还支持系统管理员对其进行热切换。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> JndiObjectFactoryBean <span class="title">dataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  JndiObjectFactoryBean jndiObjectFB = <span class="keyword">new</span> JndiObjectFactoryBean();</span><br><span class="line">  jndiObjectFB.setJndiName(<span class="string">"jdbc/SpittrDS"</span>);</span><br><span class="line">  jndiObjectFB.setResourceRef(<span class="keyword">true</span>);</span><br><span class="line">  jndiObjectFB.setProxyInterface(javax.sql.DataSource<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">  <span class="keyword">return</span> jndiObjectFB;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">jee:jndi-lookup</span> <span class="attr">id</span>=<span class="string">"dataSource"</span></span></span><br><span class="line"><span class="tag">                 <span class="attr">jndi-name</span>=<span class="string">"/jdbc/SpitterDS"</span></span></span><br><span class="line"><span class="tag">                 <span class="attr">resource-ref</span>=<span class="string">"true"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>如果应用程序运行在Java应用服务器中，你需要将<code>resource-ref</code>属性设置为<code>true</code>，这样给定的<code>jndi-name</code>将会自动添加<code>java:comp/env/</code>前缀。</p>
+</blockquote>
+<h3 id="使用数据源连接池"><a href="#使用数据源连接池" class="headerlink" title="使用数据源连接池"></a>使用数据源连接池</h3><p>使用数据源连接池也是配置数据源的不错选择。</p>
+<p>Spring支持多种开源的连接池实现：</p>
+<ul>
+<li>BoneCP</li>
+<li>Apache Commons DBCP</li>
+<li>c3p0</li>
+</ul>
+<h4 id="DBCP"><a href="#DBCP" class="headerlink" title="DBCP"></a>DBCP</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> BasicDataSource <span class="title">dataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  BasicDataSource ds = <span class="keyword">new</span> BasicDataSource();</span><br><span class="line">  ds.setDriverClassName(<span class="string">"org.h2.Driver"</span>);</span><br><span class="line">  ds.setUrl(<span class="string">"jdbc:h2:tcp://localhost/~/spitter"</span>);</span><br><span class="line">  ds.setUsername(<span class="string">"sa"</span>);</span><br><span class="line">  ds.setPassword(<span class="string">""</span>);</span><br><span class="line">  ds.setInitialSize(<span class="number">5</span>);</span><br><span class="line">  ds.setMaxActive(<span class="number">10</span>);</span><br><span class="line">  <span class="keyword">return</span> ds;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"dataSource"</span> </span></span><br><span class="line"><span class="tag">      <span class="attr">class</span>=<span class="string">"org.apache.commons.dbcp.BasicDataSource"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">p:driverClassName</span>=<span class="string">"org.h2.Driver"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">p:url</span>=<span class="string">"jdbc:h2:tcp://localhost/~/spitter"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">p:username</span>=<span class="string">"sa"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">p:password</span>=<span class="string">""</span></span></span><br><span class="line"><span class="tag">      <span class="attr">p:initialSize</span>=<span class="string">"5"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">p:maxActive</span>=<span class="string">"10"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>BasicDataSource</code>的池配置属性：</p>
+<table>
+<thead>
+<tr>
+<th>池配置属性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>initialSize</td>
+<td>池启动时创建的初始连接数量。</td>
+</tr>
+<tr>
+<td>maxActive</td>
+<td>同一时间可从池中分配的最多连接数。如果设置为0，则表示无限制。</td>
+</tr>
+<tr>
+<td>maxIdle</td>
+<td>池里不会被释放的最多空闲连接数。如果设置为0，则表示无限制。</td>
+</tr>
+<tr>
+<td>maxOpenPreparedStatements</td>
+<td>在同一时间能够从语句池中分配的预处理语句的最大数量。如果设置为0，则表示无限制。</td>
+</tr>
+<tr>
+<td>maxWait</td>
+<td>在抛出异常之前，池等待连接回收的最大时间（当没有可用连接时）。如果设置为-1，则表示无限等待。</td>
+</tr>
+<tr>
+<td>minEvictableIdleTimeMillis</td>
+<td>连接在池中保持空闲而不被回收的最大时间。</td>
+</tr>
+<tr>
+<td>minIdle</td>
+<td>在不创建新连接的情况下，池中保持空闲的最小连接数。</td>
+</tr>
+<tr>
+<td>poolPreparedStatements</td>
+<td>是否对预处理语句进行池管理。（布尔值）</td>
+</tr>
+</tbody></table>
+<h3 id="使用JDBC驱动的数据源"><a href="#使用JDBC驱动的数据源" class="headerlink" title="使用JDBC驱动的数据源"></a>使用JDBC驱动的数据源</h3><p>在Spring中，通过JDBC驱动定义数据源是最简单的配置方式。Spring提供了三个这样的数据源类：</p>
+<ul>
+<li>DriverManagerDataSource：在每个连接请求时都会返回一个新建的连接。</li>
+<li>SimpleDriverDataSource：类似<code>DriverManagerDataSource</code>。</li>
+<li>SingleConnectionDataSource：在每个连接请求时都会返回同一个连接。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> DataSource <span class="title">dataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  DriverManagerDataSource ds = <span class="keyword">new</span> DriverManagerDataSource();</span><br><span class="line">  ds.setDriverClassName(<span class="string">"org.h2.Driver"</span>);</span><br><span class="line">  ds.setUrl(<span class="string">"jdbc:h2:tcp://localhost/~/spitter"</span>);</span><br><span class="line">  ds.setUsername(<span class="string">"sa"</span>);</span><br><span class="line">  ds.setPassword(<span class="string">""</span>);</span><br><span class="line">  <span class="keyword">return</span> ds;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"dataSource"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">class</span>=<span class="string">"org.springframework.jdbc.datasource.DriverManagerDataSource"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">p:driverClassName</span>=<span class="string">"org.h2.Driver"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">p:url</span>=<span class="string">"jdbc:h2:tcp://localhost/~/spitter"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">p:username</span>=<span class="string">"sa"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">p:password</span>=<span class="string">""</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>使用JDBC驱动的数据源都没有提供连接池功能，通常适合小应用或开发环境。</p>
+<h3 id="使用嵌入式数据源"><a href="#使用嵌入式数据源" class="headerlink" title="使用嵌入式数据源"></a>使用嵌入式数据源</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> DataSource <span class="title">dataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> EmbeddedDatabaseBuilder()</span><br><span class="line">    .setType(EmbeddedDatabaseType.H2)</span><br><span class="line">    .addScript(<span class="string">"classpath:schema.sql"</span>)</span><br><span class="line">    .addScript(<span class="string">"classpath:test-data.sql"</span>)</span><br><span class="line">    .build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span> </span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:jdbc</span>=<span class="string">"http://www.springframework.org/schema/jdbc"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:c</span>=<span class="string">"http://www.springframework.org/schema/c"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">"http://www.springframework.org/schema/jdbc</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/jdbc/spring-jdbc-3.1.xsd</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/beans/spring-beans.xsd"</span>&gt;</span></span><br><span class="line">  ...</span><br><span class="line">  <span class="tag">&lt;<span class="name">jdbc:embeddeddatabase</span> <span class="attr">id</span>=<span class="string">"dataSource"</span> <span class="attr">type</span>=<span class="string">"H2"</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">jdbc:script</span> <span class="attr">location</span>=<span class="string">"com/habuma/spitter/db/jdbc/schema.sql"</span>/&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">jdbc:script</span> <span class="attr">location</span>=<span class="string">"com/habuma/spitter/db/jdbc/test-data.sql"</span>/&gt;</span> </span><br><span class="line">  <span class="tag">&lt;/<span class="name">jdbc:embedded-database</span>&gt;</span></span><br><span class="line">  ...</span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>嵌入式的数据源适合于开发或测试环境。</p>
+<h3 id="使用profile选择数据源"><a href="#使用profile选择数据源" class="headerlink" title="使用profile选择数据源"></a>使用profile选择数据源</h3><p>参见《SpringCore》的“Spring Profile”。</p>
+<h2 id="使用JDBC模板"><a href="#使用JDBC模板" class="headerlink" title="使用JDBC模板"></a>使用JDBC模板</h2><p>Spring将数据访问的样板代码抽象到模板类中。Spring为JDBC提供了三个模板类：</p>
+<ul>
+<li><code>JdbcTemplate</code></li>
+<li><code>NamedParameterJdbcTemplate</code>：是对<code>JdbcTemplate</code>的包装，以提供命名参数而不是传统的JDBC <code>?</code> 占位符。</li>
+<li><code>SimpleJdbcTemplate</code>（已废弃）</li>
+</ul>
+<h3 id="注册JDBC模板"><a href="#注册JDBC模板" class="headerlink" title="注册JDBC模板"></a>注册JDBC模板</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> JdbcTemplate <span class="title">jdbcTemplate</span><span class="params">(DataSource dataSource)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> JdbcTemplate(dataSource);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在内部，<code>JdbcTemplate</code>将会捕获所有可能抛出的<code>SQLException</code>，并将通用的<code>SQLException</code>转换为独立于持久化方案的Spring数据访问异常，然后将其重新抛出。并且Spring的数据访问异常都继承自<code>DataAccessException</code>异常，都是运行时异常。因而，没有必要捕获Spring所抛出的数据访问异常。</p>
+<h3 id="插入数据"><a href="#插入数据" class="headerlink" title="插入数据"></a>插入数据</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Repository</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JdbcSpitterRepository</span> <span class="keyword">implements</span> <span class="title">SpitterRepository</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String INSERT_SPITTER = <span class="string">"insert into Spitter (username, password, fullname, email, updateByEmail) values (?, ?, ?, ?, ?)"</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> JdbcOperations jdbcOperations;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Inject</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">JdbcSpitterRepository</span><span class="params">(JdbcOperations jdbcOperations)</span> </span>&#123;</span><br><span class="line">  	<span class="keyword">this</span>.jdbcOperations = jdbcOperations;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addSpitter</span><span class="params">(Spitter spitter)</span> </span>&#123;</span><br><span class="line">    jdbcOperations.update(</span><br><span class="line">      INSERT_SPITTER,</span><br><span class="line">      spitter.getUsername(),</span><br><span class="line">      spitter.getPassword(),</span><br><span class="line">      spitter.getFullName(),</span><br><span class="line">      spitter.getEmail(),</span><br><span class="line">      spitter.isUpdateByEmail());</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意：<code>JdbcTemplate</code>实现了<code>JdbcOperations</code>接口。</p>
+<p>标注<code>@Repository</code>使得该类被注册成为一个数据访问Bean。</p>
+<h3 id="读取数据"><a href="#读取数据" class="headerlink" title="读取数据"></a>读取数据</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Repository</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JdbcSpitterRepository</span> <span class="keyword">implements</span> <span class="title">SpitterRepository</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String SELECT_SPITTER_BY_ID = <span class="string">"select id, username, password, fullname, email, updateByEmail from Spitter where id=?"</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> JdbcOperations jdbcOperations;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Inject</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">JdbcSpitterRepository</span><span class="params">(JdbcOperations jdbcOperations)</span> </span>&#123;</span><br><span class="line">  	<span class="keyword">this</span>.jdbcOperations = jdbcOperations;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> Spitter <span class="title">findOne</span><span class="params">(<span class="keyword">long</span> id)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> jdbcOperations.queryForObject(</span><br><span class="line">      SELECT_SPITTER_BY_ID, </span><br><span class="line">      <span class="keyword">new</span> SpitterRowMapper(), </span><br><span class="line">      id);</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">SpitterRowMapper</span> <span class="keyword">implements</span> <span class="title">RowMapper</span>&lt;<span class="title">Spitter</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Spitter <span class="title">mapRow</span><span class="params">(ResultSet rs, <span class="keyword">int</span> rowNum)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> Spitter(</span><br><span class="line">        rs.getLong(<span class="string">"id"</span>),</span><br><span class="line">        rs.getString(<span class="string">"username"</span>),</span><br><span class="line">        rs.getString(<span class="string">"password"</span>),</span><br><span class="line">        rs.getString(<span class="string">"fullName"</span>),</span><br><span class="line">        rs.getString(<span class="string">"email"</span>),</span><br><span class="line">        rs.getBoolean(<span class="string">"updateByEmail"</span>));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用Lambda表达式"><a href="#使用Lambda表达式" class="headerlink" title="使用Lambda表达式"></a>使用Lambda表达式</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Spitter <span class="title">findOne</span><span class="params">(<span class="keyword">long</span> id)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> jdbcOperations.queryForObject (</span><br><span class="line">    SELECT_SPITTER_BY_ID,</span><br><span class="line">    (rs, rowNum) -&gt; &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> Spitter(</span><br><span class="line">        rs.getLong(<span class="string">"id"</span>),</span><br><span class="line">        rs.getString(<span class="string">"username"</span>),</span><br><span class="line">        rs.getString(<span class="string">"password"</span>),</span><br><span class="line">        rs.getString(<span class="string">"fullName"</span>),</span><br><span class="line">        rs.getString(<span class="string">"email"</span>),</span><br><span class="line">        rs.getBoolean(<span class="string">"updateByEmail"</span>));</span><br><span class="line">    &#125;,</span><br><span class="line">    id);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>另外，我们还可以使用Java 8的方法引用，在单独的方法中定义映射逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Spitter <span class="title">findOne</span><span class="params">(<span class="keyword">long</span> id)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> jdbcOperations.queryForObject(</span><br><span class="line">    SELECT_SPITTER_BY_ID, </span><br><span class="line">    <span class="keyword">this</span>::mapSpitter, </span><br><span class="line">    id);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> Spitter <span class="title">mapSpitter</span><span class="params">(ResultSet rs, <span class="keyword">int</span> row)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> Spitter(</span><br><span class="line">    rs.getLong(<span class="string">"id"</span>),</span><br><span class="line">    rs.getString(<span class="string">"username"</span>),</span><br><span class="line">    rs.getString(<span class="string">"password"</span>),</span><br><span class="line">    rs.getString(<span class="string">"fullName"</span>),</span><br><span class="line">    rs.getString(<span class="string">"email"</span>),</span><br><span class="line">    rs.getBoolean(<span class="string">"updateByEmail"</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用命名参数"><a href="#使用命名参数" class="headerlink" title="使用命名参数"></a>使用命名参数</h3><p>注册<code>NamedParameterJdbcTemplate</code>  Bean：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> NamedParameterJdbcTemplate <span class="title">jdbcTemplate</span><span class="params">(DataSource dataSource)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> NamedParameterJdbcTemplate(dataSource);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Repository：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String INSERT_SPITTER = <span class="string">"insert into Spitter (username, password, fullname, email, updateByEmail) values (:username, :password, :fullname, :email, :updateByEmail)"</span>;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addSpitter</span><span class="params">(Spitter spitter)</span> </span>&#123;</span><br><span class="line">  Map&lt;String, Object&gt; paramMap = <span class="keyword">new</span> HashMap&lt;String, Object&gt;();</span><br><span class="line">  paramMap.put(<span class="string">"username"</span>, spitter.getUsername());</span><br><span class="line">  paramMap.put(<span class="string">"password"</span>, spitter.getPassword());</span><br><span class="line">  paramMap.put(<span class="string">"fullname"</span>, spitter.getFullName());</span><br><span class="line">  paramMap.put(<span class="string">"email"</span>, spitter.getEmail());</span><br><span class="line">  paramMap.put(<span class="string">"updateByEmail"</span>, spitter.isUpdateByEmail());</span><br><span class="line">  jdbcOperations.update(INSERT_SPITTER, paramMap);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用SimpleJdbcInsert-与SimpleJdbcCall"><a href="#使用SimpleJdbcInsert-与SimpleJdbcCall" class="headerlink" title="使用SimpleJdbcInsert 与SimpleJdbcCall"></a>使用<code>SimpleJdbcInsert</code> 与<code>SimpleJdbcCall</code></h2><h2 id="使用RDBMS-对象"><a href="#使用RDBMS-对象" class="headerlink" title="使用RDBMS 对象"></a>使用RDBMS 对象</h2><h1 id="MyBatis"><a href="#MyBatis" class="headerlink" title="MyBatis"></a>MyBatis</h1><h1 id="ORM"><a href="#ORM" class="headerlink" title="ORM"></a>ORM</h1><h2 id="Hibernate"><a href="#Hibernate" class="headerlink" title="Hibernate"></a>Hibernate</h2><h3 id="注册Session工厂Bean"><a href="#注册Session工厂Bean" class="headerlink" title="注册Session工厂Bean"></a>注册Session工厂Bean</h3><p>Hibernate主要是通过<code>org.hibernate.Session</code>接口提供数据访问功能。</p>
+<p>获取Hibernate Session对象的标准方式是借助于Hibernate的<code>SessionFactory</code>接口的实现类，它主要负责Hibernate Session的打开、关闭及管理。</p>
+<p>Spring提供了<code>org.springframework.orm.hibernate5.LocalSessionFactoryBean</code>来获取Hibernate SessionFactory。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> LocalSessionFactoryBean <span class="title">sessionFactory</span><span class="params">(DataSource dataSource)</span> </span>&#123;</span><br><span class="line">  LocalSessionFactoryBean sfb = <span class="keyword">new</span> LocalSessionFactoryBean();</span><br><span class="line">  sfb.setDataSource(dataSource);</span><br><span class="line">  sfb.setPackagesToScan(<span class="keyword">new</span> String[] &#123; <span class="string">"com.habuma.spittr.domain"</span> &#125;);</span><br><span class="line">  Properties props = <span class="keyword">new</span> Properties();</span><br><span class="line">  props.setProperty(<span class="string">"dialect"</span>, <span class="string">"org.hibernate.dialect.H2Dialect"</span>);</span><br><span class="line">  sfb.setHibernateProperties(props);</span><br><span class="line">  <span class="keyword">return</span> sfb;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建Repository"><a href="#创建Repository" class="headerlink" title="创建Repository"></a>创建Repository</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Repository</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HibernateSpitterRepository</span> <span class="keyword">implements</span> <span class="title">SpitterRepository</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> SessionFactory sessionFactory;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Inject</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">HibernateSpitterRepository</span><span class="params">(SessionFactory sessionFactory)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.sessionFactory = sessionFactory;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">private</span> Session <span class="title">currentSession</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> sessionFactory.getCurrentSession();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">count</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> findAll().size();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Spitter <span class="title">save</span><span class="params">(Spitter spitter)</span> </span>&#123;</span><br><span class="line">    Serializable id = currentSession().save(spitter);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Spitter((Long) id, </span><br><span class="line">                       spitter.getUsername(), </span><br><span class="line">                       spitter.getPassword(), </span><br><span class="line">                       spitter.getFullName(), </span><br><span class="line">                       spitter.getEmail(), </span><br><span class="line">                       spitter.isUpdateByEmail());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Spitter <span class="title">findOne</span><span class="params">(<span class="keyword">long</span> id)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (Spitter) currentSession().get(Spitter<span class="class">.<span class="keyword">class</span>, <span class="title">id</span>)</span>; </span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Spitter <span class="title">findByUsername</span><span class="params">(String username)</span> </span>&#123;		</span><br><span class="line">    <span class="keyword">return</span> (Spitter) currentSession() </span><br><span class="line">      .createCriteria(Spitter<span class="class">.<span class="keyword">class</span>) </span></span><br><span class="line">      .add(Restrictions.eq("username", username))</span><br><span class="line">      .list().get(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> List&lt;Spitter&gt; <span class="title">findAll</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (List&lt;Spitter&gt;) currentSession().createCriteria(Spitter<span class="class">.<span class="keyword">class</span>).<span class="title">list</span>()</span>; </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="注册PersistenceExceptionTranslationPostProcessor"><a href="#注册PersistenceExceptionTranslationPostProcessor" class="headerlink" title="注册PersistenceExceptionTranslationPostProcessor"></a>注册<code>PersistenceExceptionTranslationPostProcessor</code></h4><p>当我们直接使用Hibernate上下文的<code>Session</code>，而不是<code>HibernateTemplate</code>（不推荐）时，为了给不使用模板的Hibernate Repository添加异常转换功能，只需要在Spring应用上下文中添加一个<code>PersistenceExceptionTranslationPostProcessor</code> Bean：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> BeanPostProcessor <span class="title">persistenceTranslation</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> PersistenceExceptionTranslationPostProcessor();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>PersistenceExceptionTranslationPostProcessor</code>是一个Bean后置处理器，它会在所有拥有<code>@Repository</code>标注的类上添加一个通知器（Advisor），这样就会捕获任何平台相关的异常，并以Spring的数据访问异常重新抛出。</p>
+<h2 id="JPA"><a href="#JPA" class="headerlink" title="JPA"></a>JPA</h2><h3 id="配置实体管理器工厂"><a href="#配置实体管理器工厂" class="headerlink" title="配置实体管理器工厂"></a>配置实体管理器工厂</h3><h4 id="使用LocalEntityManagerFactoryBean"><a href="#使用LocalEntityManagerFactoryBean" class="headerlink" title="使用LocalEntityManagerFactoryBean"></a>使用LocalEntityManagerFactoryBean</h4><p>只能在简单的部署环境中使用此选项，例如单体应用程序和集成测试。</p>
+<p><code>LocalEntityManagerFactoryBean</code>生成应用程序管理的实体管理器，不能引用现有的JDBC DataSource bean定义，也不存在对全局事务的支持。此外，持久化类的编织（字节码转换）是特定于提供者的，通常需要在启动时指定特定的JVM代理。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> LocalEntityManagerFactoryBean <span class="title">entityManagerFactoryBean</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  LocalEntityManagerFactoryBean emfb = <span class="keyword">new</span> LocalEntityManagerFactoryBean();</span><br><span class="line">  emfb.setPersistenceUnitName(<span class="string">"spitterPU"</span>);</span><br><span class="line">  <span class="keyword">return</span> emfb;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>持久化单元的信息是配置在一个名为<code>persistence.xml</code>文件中的，该文件必须位于类路径下的<code>META-INF</code>目录中。</p>
+<p>persistence.xml：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">persistence</span> <span class="attr">xmlns</span>=<span class="string">"http://java.sun.com/xml/ns/persistence"</span> <span class="attr">version</span>=<span class="string">"1.0"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">persistence-unit</span> <span class="attr">name</span>=<span class="string">"spitterPU"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">class</span>&gt;</span>com.habuma.spittr.domain.Spitter<span class="tag">&lt;/<span class="name">class</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">class</span>&gt;</span>com.habuma.spittr.domain.Spittle<span class="tag">&lt;/<span class="name">class</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"toplink.jdbc.driver"</span></span></span><br><span class="line"><span class="tag">                <span class="attr">value</span>=<span class="string">"org.hsqldb.jdbcDriver"</span> /&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"toplink.jdbc.url"</span> </span></span><br><span class="line"><span class="tag">                <span class="attr">value</span>= <span class="string">"jdbc:hsqldb:hsql://localhost/spitter/spitter"</span> /&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"toplink.jdbc.user"</span></span></span><br><span class="line"><span class="tag">                <span class="attr">value</span>=<span class="string">"sa"</span> /&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"toplink.jdbc.password"</span></span></span><br><span class="line"><span class="tag">                <span class="attr">value</span>=<span class="string">""</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">persistence-unit</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">persistence</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="使用LocalContainerEntityManagerFactoryBean"><a href="#使用LocalContainerEntityManagerFactoryBean" class="headerlink" title="使用LocalContainerEntityManagerFactoryBean"></a>使用LocalContainerEntityManagerFactoryBean</h4><p><code>LocalContainerEntityManagerFactoryBean</code>生成容器管理的实体管理器，提供了完整的JPA功能。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> LocalContainerEntityManagerFactoryBean <span class="title">entityManagerFactory</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">  	DataSource dataSource, JpaVendorAdapter jpaVendorAdapter)</span> </span>&#123;</span><br><span class="line">  LocalContainerEntityManagerFactoryBean emfb =</span><br><span class="line">    <span class="keyword">new</span> LocalContainerEntityManagerFactoryBean();</span><br><span class="line">  emfb.setDataSource(dataSource);</span><br><span class="line">  emfb.setJpaVendorAdapter(jpaVendorAdapter);</span><br><span class="line">  emfb.setPackagesToScan(<span class="string">"com.habuma.spittr.domain"</span>);</span><br><span class="line">  <span class="keyword">return</span> emfb;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> JpaVendorAdapter <span class="title">jpaVendorAdapter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  HibernateJpaVendorAdapter adapter = <span class="keyword">new</span> HibernateJpaVendorAdapter();</span><br><span class="line">  adapter.setDatabase(<span class="string">"HSQL"</span>);</span><br><span class="line">  adapter.setShowSql(<span class="keyword">true</span>);</span><br><span class="line">  adapter.setGenerateDdl(<span class="keyword">false</span>);</span><br><span class="line">  adapter.setDatabasePlatform(<span class="string">"org.hibernate.dialect.HSQLDialect"</span>);</span><br><span class="line">  <span class="keyword">return</span> adapter;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> BasicDataSource <span class="title">dataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  …</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>数据源信息既可以配置在Spring应用上下文中，也可以配置在<code>persistence.xml</code>文件中，而且前者优先级更高。</p>
+<p>jpaVendorAdapter属性用于指明所使用的是哪一个厂商的JPA实现。Spring提供了多个JPA厂商适配器：</p>
+<ul>
+<li>EclipseLinkJpaVendorAdapter</li>
+<li>HibernateJpaVendorAdapter</li>
+<li>OpenJpaVendorAdapter</li>
+<li>TopLinkJpaVendorAdapter（已废弃）</li>
+</ul>
+<p>packagesToScan属性指定了自动扫描的包名，在该包中带有<code>@Entity</code>标注类将被当作实体类。</p>
+<h4 id="从JNDI中获取实体管理器工厂"><a href="#从JNDI中获取实体管理器工厂" class="headerlink" title="从JNDI中获取实体管理器工厂"></a>从JNDI中获取实体管理器工厂</h4><p>部署到Java EE服务器时，可以使用此选项。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> JndiObjectFactoryBean <span class="title">entityManagerFactory</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">  JndiObjectFactoryBean jndiObjectFB = <span class="keyword">new</span> JndiObjectFactoryBean();</span><br><span class="line">  jndiObjectFB.setJndiName(<span class="string">"jdbc/SpittrDS"</span>);</span><br><span class="line">  <span class="keyword">return</span> jndiObjectFB;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">jee:jndi-lookup</span> <span class="attr">id</span>=<span class="string">"emf"</span> <span class="attr">jndi-name</span>=<span class="string">"persistence/spitterPU"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="创建基于JPA的Repository"><a href="#创建基于JPA的Repository" class="headerlink" title="创建基于JPA的Repository"></a>创建基于JPA的Repository</h3><h4 id="注入EntityManagerFactory"><a href="#注入EntityManagerFactory" class="headerlink" title="注入EntityManagerFactory"></a>注入EntityManagerFactory</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Repository</span></span><br><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JpaSpitterRepository</span> <span class="keyword">implements</span> <span class="title">SpitterRepository</span> </span>&#123;</span><br><span class="line">  <span class="meta">@PersistenceUnit</span></span><br><span class="line">  <span class="keyword">private</span> EntityManagerFactory emf;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addSpitter</span><span class="params">(Spitter spitter)</span> </span>&#123;</span><br><span class="line">    emf.createEntityManager().persist(spitter);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> Spitter <span class="title">getSpitterById</span><span class="params">(<span class="keyword">long</span> id)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> emf.createEntityManager().find(Spitter<span class="class">.<span class="keyword">class</span>, <span class="title">id</span>)</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSpitter</span><span class="params">(Spitter spitter)</span> </span>&#123;</span><br><span class="line">    emf.createEntityManager().merge(spitter);</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="直接注入EntityManager"><a href="#直接注入EntityManager" class="headerlink" title="直接注入EntityManager"></a>直接注入EntityManager</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Repository</span></span><br><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JpaSpitterRepository</span> <span class="keyword">implements</span> <span class="title">SpitterRepository</span> </span>&#123;</span><br><span class="line">  <span class="meta">@PersistenceContext</span></span><br><span class="line">  <span class="keyword">private</span> EntityManager em;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addSpitter</span><span class="params">(Spitter spitter)</span> </span>&#123;</span><br><span class="line">    em.persist(spitter);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> Spitter <span class="title">getSpitterById</span><span class="params">(<span class="keyword">long</span> id)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> em.find(Spitter<span class="class">.<span class="keyword">class</span>, <span class="title">id</span>)</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSpitter</span><span class="params">(Spitter spitter)</span> </span>&#123;</span><br><span class="line">    em.merge(spitter);</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>EntityManager</code>并不是线程安全的，一般来讲并不适合注入到像Repository这样的单例bean中。但是，<code>@PersistenceContext</code>标注并不会真正注入<code>EntityManager</code>，而是注入一个<code>EntityManager</code>代理。真正的<code>EntityManager</code>是与当前事务相关联的那一个，如果不存在这样的<code>EntityManager</code>，就会创建一个新的。这样，我们就能始终以线程安全的方式使用实体管理器。</p>
+<h4 id="注册PersistenceAnnotationBeanPostProcessor"><a href="#注册PersistenceAnnotationBeanPostProcessor" class="headerlink" title="注册PersistenceAnnotationBeanPostProcessor"></a>注册PersistenceAnnotationBeanPostProcessor</h4><p>由于<code>@PersistenceUnit</code>和<code>@PersistenceContext</code>并不是Spring的标注，而是JPA规范的。为了让Spring理解这个标注，并注入<code>EntityManagerFactory</code>或<code>EntityManager</code>，我们必须要注册<code>PersistenceAnnotationBeanPostProcessor</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> PersistenceAnnotationBeanPostProcessor <span class="title">paPostProcessor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> PersistenceAnnotationBeanPostProcessor();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是，如果你已经使用了<code>&lt;context:annotation-config&gt;</code>或<code>&lt;context:component-scan&gt;</code>，则不需要显式注册<code>PersistenceAnnotationBeanPostProcessor</code>。因为，这些配置会自动注册<code>PersistenceAnnotationBeanPostProcessor</code> Bean。</p>
+<h4 id="注册PersistenceExceptionTranslationPostProcessor-1"><a href="#注册PersistenceExceptionTranslationPostProcessor-1" class="headerlink" title="注册PersistenceExceptionTranslationPostProcessor"></a>注册PersistenceExceptionTranslationPostProcessor</h4><p>由于没有使用模板类（已废弃）来处理异常，所以我们需要为Repository添加<code>@Repository</code>标注。因而，需要注册一个<code>PersistenceExceptionTranslationPostProcessor</code> Bean。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> BeanPostProcessor <span class="title">persistenceTranslation</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> PersistenceExceptionTranslationPostProcessor();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>不管对于JPA，还是Hibernate，异常转换都不是强制要求的。如果你希望在Repository中抛出特定的JPA或Hibernate异常，只需要不注册<code>PersistenceExceptionTranslationPostProcessor</code> Bean即可。但是使用Spring的数据访问异常，以后切换持久化机制会更容易。</p>
+</blockquote>
+<h1 id="Spring-Data"><a href="#Spring-Data" class="headerlink" title="Spring Data"></a>Spring Data</h1><p>Spring Data能够让我们只编写Repository接口，而不需要实现类。</p>
+<h2 id="Spring-Data-JDBC"><a href="#Spring-Data-JDBC" class="headerlink" title="Spring Data JDBC"></a>Spring Data JDBC</h2><h2 id="Spring-Data-JPA"><a href="#Spring-Data-JPA" class="headerlink" title="Spring Data JPA"></a>Spring Data JPA</h2><h3 id="启用Spring-Data-JPA"><a href="#启用Spring-Data-JPA" class="headerlink" title="启用Spring Data JPA"></a>启用Spring Data JPA</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableJpaRepositories</span>(basePackages=<span class="string">"com.habuma.spittr.db"</span>)</span><br><span class="line">  <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JpaConfiguration</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:jpa</span>=<span class="string">"http://www.springframework.org/schema/data/jpa"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">"http://www.springframework.org/schema/data/jpa</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/data/jpa/spring-jpa-1.0.xsd"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">jpa:repositories</span> <span class="attr">base-package</span>=<span class="string">"com.habuma.spittr.db"</span> /&gt;</span></span><br><span class="line">  ...</span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>Spring Data会扫描<code>basePackages</code>指定的包下所有扩展自<code>Repository</code>接口的所有接口。如果发现了扩展自<code>Repository</code>的接口，它会自动生成（在应用启动的时候）这个接口的实现。</p>
+<h3 id="创建Repository接口"><a href="#创建Repository接口" class="headerlink" title="创建Repository接口"></a>创建Repository接口</h3><p>自己创建的Repository接口必须扩展自<code>Repository</code>接口，通常扩展<code>JpaRepository</code>接口。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">SpitterRepository</span></span></span><br><span class="line"><span class="class">		<span class="keyword">extends</span> <span class="title">JpaRepository</span>&lt;<span class="title">Spitter</span>, <span class="title">Long</span>&gt; </span>&#123;</span><br><span class="line">  …</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>JpaRepository</code>接口本身提供了18个常用的持久化方法，而无需你编写任何实现代码。除了这些预先提供的方法外，我们还可以使用多种方式为Spring Data JPA编写自定义的查询方法。</p>
+<h4 id="根据方法签名定义查询方法"><a href="#根据方法签名定义查询方法" class="headerlink" title="根据方法签名定义查询方法"></a>根据方法签名定义查询方法</h4><p>Spring Data为Repository方法的签名定义了一组小型的邻域特定语言（DSL）。具体地说，Repository方法是由一个动词、一个可选的主题（Subject）、关键词<code>By</code>以及一个断言组成。</p>
+<p>在创建Repository实现的时候，Spring Data会根据方法的签名自动实现这些方法。</p>
+<p>Spring Data允许的动词有：<code>get</code>、<code>read</code>、<code>find</code>和<code>count</code>。其中，<code>get</code>、<code>read</code>、<code>find</code>是同义的，都用于查询数据并返回对象。而<code>count</code>则会返回匹配对象的数量，而不是对象本身。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">SpitterRepository</span></span></span><br><span class="line"><span class="class">  	<span class="keyword">extends</span> <span class="title">JpaRepository</span>&lt;<span class="title">Spitter</span>, <span class="title">Long</span>&gt; </span>&#123;</span><br><span class="line">	<span class="function">Spitter <span class="title">findByUsername</span><span class="params">(String username)</span></span>;  <span class="comment">//可以只返回一个对象</span></span><br><span class="line">  <span class="function">List&lt;Spitter&gt; <span class="title">readSpittersByFirstnameOrLastname</span><span class="params">(String first, String last)</span></span>;</span><br><span class="line">  …</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="SpringDA/repository-method-signatures.png" alt="Repository方法签名"></p>
+<p>Repository方法的主题是可选的，并且可以随便命名。例如<code>readSpittersByFirstnameOrLastname</code>、<code>readByFirstnameOrLastname</code>、<code>readThoseThingsWeWantByFirstnameOrLastname</code>都是没有区别的。要查询的对象类型是通过参数化的<code>JpaRepository</code>接口确定的，而不是方法名称中的主题。</p>
+<p>在省略主题的时候，有一种例外：如果主题的名称以<code>Distinct</code>开头的话，那么在生成查询的时候会确保所返回结果集中不包含重复记录。</p>
+<p>断言指定了一个或多个限制结果的条件，每个条件必须引用一个属性（方法参数），并且还可以指定一种比较操作。如果省略比较操作符，则默认是相等比较操作。</p>
+<p>比较操作（同一行的比较操作是同义的）：</p>
+<ul>
+<li><p>IsAfter、After、IsGreaterThan、GreaterThan</p>
+</li>
+<li><p>IsGreaterThanEqual、GreaterThanEqual</p>
+</li>
+<li><p>IsBefore、Before、IsLessThan、LessThan</p>
+</li>
+<li><p>IsLessThanEqual、LessThanEqual</p>
+</li>
+<li><p>IsBetween、Between</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">List&lt;Order&gt; <span class="title">findByShippingDateBetween</span><span class="params">(Date start, Date end)</span></span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>IsNull、Null</p>
+</li>
+<li><p>IsNotNull、NotNull</p>
+</li>
+<li><p>IsIn、In</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">List&lt;Pet&gt; <span class="title">findPetsByBreedIn</span><span class="params">(List&lt;String&gt; breed)</span></span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>IsNotIn、NotIn</p>
+</li>
+<li><p>IsStartingWith、StartingWith、StartsWith</p>
+</li>
+<li><p>IsEndingWith、EndingWith、EndsWith</p>
+</li>
+<li><p>IsContaining、Containing、Contains</p>
+</li>
+<li><p>IsLike、Like</p>
+</li>
+<li><p>IsNotLike、NotLike</p>
+</li>
+<li><p>IsTrue、True</p>
+</li>
+<li><p>IsFalse、False</p>
+</li>
+<li><p>Is、Equals</p>
+</li>
+<li><p>IsNot、Not</p>
+</li>
+</ul>
+<p>条件之间是通过<code>And</code>或<code>Or</code>连接的。</p>
+<p>在处理<code>String</code>类型的属性时，条件中可以包含<code>IgnoringCase</code>或<code>IgnoresCase</code>（两者是同义的），这样在执行对比时就不会考虑字符的大小写。例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">List&lt;Spitter&gt; <span class="title">readByFirstnameIgnoringCaseOrLastnameIgnoresCase</span><span class="params">(String first, String last)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果所有<code>String</code>类型的属性都要忽略大小写，则只需在所有条件的后面添加<code>AllIgnoringCase</code>或<code>AllIgnoresCase</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">List&lt;Spitter&gt; <span class="title">readByFirstnameOrLastnameAllIgnoresCase</span><span class="params">(String first, String last)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>注意：属性名是无关紧要的，但是它们的顺序必须与方法参数相匹配。</p>
+<p>最后，我们还可以在方法名称的结尾处添加<code>OrderBy…Asc</code>（升序）或<code>OrderBy…Desc</code>（降序），实现对结果集的排序：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">List&lt;Spitter&gt; <span class="title">readByFirstnameOrLastnameOrderByLastnameAsc</span><span class="params">(String first, String last)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">List&lt;Spitter&gt; <span class="title">readByFirstnameOrLastnameOrderByFirstnameDesc</span><span class="params">(String first, String last)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果要根据多个属性排序，只需将其依序添加到<code>OrderBy</code>之后即可：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">List&lt;Spitter&gt; <span class="title">readByFirstnameOrLastnameOrderByLastnameAscFirstnameDesc</span><span class="params">(String first, String last)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用-Query标注声明自定义查询"><a href="#使用-Query标注声明自定义查询" class="headerlink" title="使用@Query标注声明自定义查询"></a>使用<code>@Query</code>标注声明自定义查询</h4><p><code>@Query</code>仅限于单个JPA查询。</p>
+<p>如果所需的数据无法通过方法名称进行恰当地描述，那么我们可以使用<code>@Query</code>标注，为Spring Data提供要执行的查询：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Query</span>(<span class="string">"select s from Spitter s where s.email like '%gmail.com'"</span>)</span><br><span class="line"><span class="function">List&lt;Spitter&gt; <span class="title">findAllGmailSpitters</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>我们依然不需要编写<code>findAllGmailSpitters</code>方法的实现，只需提供查询即可。</p>
+<p>带参数的查询：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Query</span>(<span class="string">"select u from User u where u.emailAddress = ?1"</span>)</span><br><span class="line"><span class="function">User <span class="title">findByEmailAddress</span><span class="params">(String emailAddress)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>?1</code>表明<code>u.emailAddress</code>将映射到查询方法的第一个参数。</p>
+<h4 id="混合自定义查询"><a href="#混合自定义查询" class="headerlink" title="混合自定义查询"></a>混合自定义查询</h4><p>如果我们需要Repository所提供的功能是无法用Spring Data的方法命名约定来描述的，甚至无法用<code>@Query</code>标注设置查询来实现的。这时，Spring Data允许我们自己实现该功能，并且仍然保留Spring Data的其他便利。</p>
+<p>当Spring Data JPA为Repository接口生成实现的时候，它还会查找名字与接口相同，并且添加了<code>Impl</code>后缀（默认）的一个类。如果这个类存在的话，Spring Data JPA将会把它的方法与Spring Data JPA所生成的方法合并在一起。对于<code>SpitterRepository</code>接口而言，要查找的类名为<code>SpitterRepositoryImpl</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpitterRepositoryImpl</span> <span class="keyword">implements</span> <span class="title">SpitterSweeper</span> </span>&#123;</span><br><span class="line">  <span class="meta">@PersistenceContext</span></span><br><span class="line">  <span class="keyword">private</span> EntityManager em;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">eliteSweep</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    String update =</span><br><span class="line">      <span class="string">"UPDATE Spitter spitter "</span> +</span><br><span class="line">      <span class="string">"SET spitter.status = 'Elite' "</span> +</span><br><span class="line">      <span class="string">"WHERE spitter.status = 'Newbie' "</span> +</span><br><span class="line">      <span class="string">"AND spitter.id IN ("</span> +</span><br><span class="line">      <span class="string">"SELECT s FROM Spitter s WHERE ("</span> +</span><br><span class="line">      <span class="string">" SELECT COUNT(spittles) FROM s.spittles spittles) &gt; 10000 )"</span>;</span><br><span class="line">    <span class="keyword">return</span> em.createQuery(update).executeUpdate();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">SpitterSweeper</span></span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">int</span> <span class="title">eliteSweep</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意：<code>SpitterRepositoryImpl</code>并不需要实现<code>SpitterRepository</code>接口，将它与Spring Data 的 Repository关联起来的是它的名字。但是，要确保<code>eliteSweep</code>方法也被声明在<code>SpitterRepository</code>接口中。要实现这点，同时避免代码重复的最简单方式是修改<code>SpitterRepository</code>接口，让它扩展<code>SpitterSweeper</code>接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">SpitterRepository</span></span></span><br><span class="line"><span class="class">    <span class="keyword">extends</span> <span class="title">JpaRepository</span>&lt;<span class="title">Spitter</span>, <span class="title">Long</span>&gt;,</span></span><br><span class="line"><span class="class">            <span class="title">SpitterSweeper</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>另外，<code>Impl</code>后缀只是默认的做法，可以通过<code>@EnableJpaRepository</code>的<code>repositoryImplementationPostfix</code>属性来自定义：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EnableJpaRepositories</span>(</span><br><span class="line">  basePackages=<span class="string">"com.habuma.spittr.db"</span>,</span><br><span class="line">  repositoryImplementationPostfix=<span class="string">"Helper"</span>)</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">jpa:repositories</span> <span class="attr">base-package</span>=<span class="string">"com.habuma.spittr.db"</span></span></span><br><span class="line"><span class="tag">                  <span class="attr">repository-impl-postfix</span>=<span class="string">"Helper"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这样，Spring Data JPA将会查找名为<code>SpitterRepositoryHelper</code>的类，用它来匹配<code>SpitterRepository</code>接口。</p>
+<h2 id="Spring-Data-MongoDB"><a href="#Spring-Data-MongoDB" class="headerlink" title="Spring Data MongoDB"></a>Spring Data MongoDB</h2><h3 id="配置MongoDB"><a href="#配置MongoDB" class="headerlink" title="配置MongoDB"></a>配置MongoDB</h3><p>为了使用Spring Data MongoDB，我们要在Spring配置中添加如下配置：</p>
+<ul>
+<li>启用Spring Data MongoDB的自动化Repository生成功能；</li>
+<li>注册<code>MongoClient</code>，以便访问MongoDB数据库；</li>
+<li>注册<code>MongoTemplate</code> Bean，实现基于模板的数据库访问。</li>
+</ul>
+<p>配置方法一：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableMongoRepositories</span>(basePackages=<span class="string">"orders.db"</span>)  <span class="comment">//Enable MongoDB repositories</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MongoConfig</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Bean</span>  <span class="comment">//MongoClient bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> MongoFactoryBean <span class="title">mongo</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    MongoFactoryBean mongo = <span class="keyword">new</span> MongoFactoryBean();</span><br><span class="line">    mongo.setHost(<span class="string">"localhost"</span>);</span><br><span class="line">    <span class="keyword">return</span> mongo;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Bean</span>  <span class="comment">//MongoTemplate bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> MongoOperations <span class="title">mongoTemplate</span><span class="params">(Mongo mongo)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> MongoTemplate(mongo, <span class="string">"OrdersDB"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>配置方法二：让配置类扩展<code>AbstractMongoConfiguration</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableMongoRepositories</span>(<span class="string">"orders.db"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MongoConfig</span> <span class="keyword">extends</span> <span class="title">AbstractMongoConfiguration</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> String <span class="title">getDatabaseName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"OrdersDB"</span>;  <span class="comment">//指定数据库名</span></span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Mongo <span class="title">mongo</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> MongoClient();  <span class="comment">//创建Mongo客户端（Mongo运行在本地的27017端口）</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果MongoDB运行在其他机器上时，那么在创建<code>MongoClient</code>的时候进行指定：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Mongo <span class="title">mongo</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> MongoClient(<span class="string">"mongodbserver"</span>);</span><br><span class="line">  <span class="comment">//return new MongoClient("mongodbserver", 37017); //使用37017端口</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果MongoDB运行在生产配置上，可能启用了认证功能，这时还需要提供应用的凭证：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="keyword">private</span> Environment env;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Mongo <span class="title">mongo</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">  MongoCredential credential = MongoCredential.createMongoCRCredential(</span><br><span class="line">    env.getProperty(<span class="string">"mongo.username"</span>), </span><br><span class="line">    <span class="string">"OrdersDB"</span>,</span><br><span class="line">    env.getProperty(<span class="string">"mongo.password"</span>).toCharArray());</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> MongoClient(</span><br><span class="line">    <span class="keyword">new</span> ServerAddress(<span class="string">"localhost"</span>, <span class="number">37017</span>),</span><br><span class="line">    Arrays.asList(credential));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>配置方法三：基于XML</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:mongo</span>=<span class="string">"http://www.springframework.org/schema/data/mongo"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">"</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/data/mongo</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/data/mongo/spring-mongo.xsd</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/beans/spring-beans.xsd"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">mongo:repositories</span> <span class="attr">base-package</span>=<span class="string">"orders.db"</span> /&gt;</span><span class="comment">&lt;!--启用Repository生成功能--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">mongo:mongo</span> /&gt;</span><span class="comment">&lt;!--声明Mongo Client--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--创建MongoTemplate Bean--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"mongoTemplate"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">class</span>=<span class="string">"org.springframework.data.mongodb.core.MongoTemplate"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">ref</span>=<span class="string">"mongo"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">value</span>=<span class="string">"OrdersDB"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="对象-文档映射"><a href="#对象-文档映射" class="headerlink" title="对象-文档映射"></a>对象-文档映射</h3><p>Spring Data MongoDB提供的对象-文档映射标注：</p>
+<table>
+<thead>
+<tr>
+<th>标注</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>@Document</td>
+<td>将领域对象映射到Mongo文档，类似于JPA的<code>@Entity</code>。</td>
+</tr>
+<tr>
+<td>@Id</td>
+<td>标示ID域。</td>
+</tr>
+<tr>
+<td>@DbRef</td>
+<td>标示某个域要引用其他的文档，这个文档有可能位于另外一个数据库中。</td>
+</tr>
+<tr>
+<td>@Field</td>
+<td>为文档域指定自定义的元数据。</td>
+</tr>
+<tr>
+<td>@Version</td>
+<td>标示版本域。</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Document</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Id</span></span><br><span class="line">  <span class="keyword">private</span> String id;</span><br><span class="line">  <span class="meta">@Field</span>(<span class="string">"client"</span>)  <span class="comment">//现在属性customer将会映射到client文档域，而不是默认的customer文档域</span></span><br><span class="line">  <span class="keyword">private</span> String customer;</span><br><span class="line">  <span class="keyword">private</span> String type;</span><br><span class="line">  <span class="keyword">private</span> Collection&lt;Item&gt; items = <span class="keyword">new</span> LinkedHashSet&lt;Item&gt;();</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">getCustomer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> customer;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setCustomer</span><span class="params">(String customer)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.customer = customer;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">getType</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> type;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setType</span><span class="params">(String type)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.type = type;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> Collection&lt;Item&gt; <span class="title">getItems</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> items;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setItems</span><span class="params">(Collection&lt;Item&gt; items)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.items = items;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">getId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> id;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Item</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> Long id;</span><br><span class="line">  <span class="keyword">private</span> Order order;</span><br><span class="line">  <span class="keyword">private</span> String product;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">double</span> price;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> quantity;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> Order <span class="title">getOrder</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> order;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">getProduct</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> product;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setProduct</span><span class="params">(String product)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.product = product;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getPrice</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> price;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPrice</span><span class="params">(<span class="keyword">double</span> price)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.price = price;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getQuantity</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> quantity;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setQuantity</span><span class="params">(<span class="keyword">int</span> quantity)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.quantity = quantity;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> Long <span class="title">getId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> id;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其他的属性并没有添加标注，除非将属性设置为瞬时态（transient）的，否则Java对象中所有的域都会持久化为文档的域。并且如果我们不使用<code>@Field</code>标注进行设置的话，那么文档域中的名字将会与对应的Java属性名相同。</p>
+<p>与关系型数据库不同，<code>items</code>属性是直接内嵌到<code>Order</code>文档中的。我们没必要为<code>Item</code>类添加<code>@Document</code>标注，也没有必要为它的域指定<code>@Id</code>。因为我们不会单独将<code>Item</code>持久化为文档。当然，可以使用<code>@Field</code>为<code>Item</code>的属性自定义元数据。</p>
+<h3 id="创建Repository接口-1"><a href="#创建Repository接口-1" class="headerlink" title="创建Repository接口"></a>创建Repository接口</h3><p>自己创建的MongoDB Repository接口必须扩展自<code>Repository</code>接口，通常扩展<code>MongoRepository</code>接口。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">OrderRepository</span></span></span><br><span class="line"><span class="class">		<span class="keyword">extends</span> <span class="title">MongoRepository</span>&lt;<span class="title">Order</span>, <span class="title">String</span>&gt; </span>&#123;</span><br><span class="line">  …</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>MongoRepository</code>接口的第一个参数是带有<code>@Document</code>标注的对象类型，也就是该Repository要处理的类型；第二个参数是带有<code>@Id</code>标注的属性类型。</p>
+<h4 id="根据方法签名定义查询方法-1"><a href="#根据方法签名定义查询方法-1" class="headerlink" title="根据方法签名定义查询方法"></a>根据方法签名定义查询方法</h4><p>Spring Data JPA支持的方法签名约定也适用于Spring Data MongoDB。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">OrderRepository</span></span></span><br><span class="line"><span class="class">  	<span class="keyword">extends</span> <span class="title">MongoRepository</span>&lt;<span class="title">Order</span>, <span class="title">String</span>&gt; </span>&#123;</span><br><span class="line">  <span class="function">List&lt;Order&gt; <span class="title">findByCustomer</span><span class="params">(String c)</span></span>;</span><br><span class="line">  <span class="function">List&lt;Order&gt; <span class="title">findByCustomerLike</span><span class="params">(String c)</span></span>;</span><br><span class="line">  <span class="function">List&lt;Order&gt; <span class="title">findByCustomerAndType</span><span class="params">(String c, String t)</span></span>;</span><br><span class="line">  <span class="function">List&lt;Order&gt; <span class="title">findByCustomerLikeAndType</span><span class="params">(String c, String t)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用-Query标注声明自定义查询-1"><a href="#使用-Query标注声明自定义查询-1" class="headerlink" title="使用@Query标注声明自定义查询"></a>使用<code>@Query</code>标注声明自定义查询</h4><p><code>@Query</code>标注也可以用在MongoDB上，唯一的区别是：MongoDB的<code>@Query</code>标注接受的是一个JSON查询，而不是JPA查询。</p>
+<p>例如：查询<code>customer</code>的名称为<code>&#39;Chuck Wagon&#39;</code>的指定类型订单：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Query</span>(<span class="string">"&#123;'customer': 'Chuck Wagon', 'type' : ?0&#125;"</span>)  <span class="comment">//???到底是?0还是?1</span></span><br><span class="line"><span class="function">List&lt;Order&gt; <span class="title">findChucksOrders</span><span class="params">(String t)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="混合自定义查询-1"><a href="#混合自定义查询-1" class="headerlink" title="混合自定义查询"></a>混合自定义查询</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">OrderOperations</span> </span>&#123;</span><br><span class="line">	<span class="function">List&lt;Order&gt; <span class="title">findOrdersByType</span><span class="params">(String t)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderRepositoryImpl</span> <span class="keyword">implements</span> <span class="title">OrderOperations</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  <span class="keyword">private</span> MongoOperations mongo;  <span class="comment">//注入MongoTemplate</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> List&lt;Order&gt; <span class="title">findOrdersByType</span><span class="params">(String t)</span> </span>&#123;</span><br><span class="line">    String type = t.equals(<span class="string">"NET"</span>) ? <span class="string">"WEB"</span> : t;</span><br><span class="line">    Criteria where = Criteria.where(<span class="string">"type"</span>).is(t);</span><br><span class="line">    Query query = Query.query(where);</span><br><span class="line">    <span class="keyword">return</span> mongo.find(query, Order<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">OrderRepository</span></span></span><br><span class="line"><span class="class">  	<span class="keyword">extends</span> <span class="title">MongoRepository</span>&lt;<span class="title">Order</span>, <span class="title">String</span>&gt;, <span class="title">OrderOperations</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Spring-Data-Neo4j"><a href="#Spring-Data-Neo4j" class="headerlink" title="Spring Data Neo4j"></a>Spring Data Neo4j</h2><p>文档型数据库会将数据存储到粗粒度的文档中，而图数据库会将数据存储到多个细粒度的节点中，这些节点之间通过关系建立关联。图数据库中的一个节点通常会对应数据库中的一个概念（Concept），它会具备描述节点状态的属性。连接两个节点的关联关系可能也会带有属性。</p>
+<p>图数据库比文档数据库更加通用，可能会成为关系型数据库的无模式（Schemaless）替代方案。</p>
+<h3 id="配置Neo4j"><a href="#配置Neo4j" class="headerlink" title="配置Neo4j"></a>配置Neo4j</h3><h4 id="基于Java的配置"><a href="#基于Java的配置" class="headerlink" title="基于Java的配置"></a>基于Java的配置</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableNeo</span>4jRepositories(basePackages=<span class="string">"orders.db"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Neo4jConfig</span> <span class="keyword">extends</span> <span class="title">Neo4jConfiguration</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">Neo4jConfig</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    setBasePackage(<span class="string">"orders"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="meta">@Bean</span>(destroyMethod=<span class="string">"shutdown"</span>)</span><br><span class="line">  <span class="function"><span class="keyword">public</span> GraphDatabaseService <span class="title">graphDatabaseService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> GraphDatabaseFactory()</span><br><span class="line">      .newEmbeddedDatabase(<span class="string">"/tmp/graphdb"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>@EnableNeo4jRepositories</code>标注能够让Spring Data Neo4j自动生成Neo4j Repository实现，它的<code>basePackages</code>属性设置为<code>orders.db</code>包，这样它就会扫描这个包来查找扩展<code>Repository</code>接口的接口。</p>
+<p><code>setBasePackage</code>方法告诉Spring Data Neo4j要在<code>orders</code>包中查找<strong>模型类</strong>。</p>
+<p>上面<code>graphDatabaseService</code>方法创建了嵌入式的Neo4j数据库。在Neo4j中，嵌入式数据库不要与内存数据库相混淆。这里的“嵌入式”是指数据库引擎与应用运行在同一个JVM中，作为应用的一部分，而不是独立的服务器。数据依然会持久化到文件系统中（在本例中，也就是<code>/tmp/graghdb</code>中）。</p>
+<p>如果要连接远程Neo4j数据库，我们需要<code>spring-data-neo4j-rest</code>库在类路径下。这样，我们就可以配置<code>SpringRestGraphDatabase</code>来通过RESTful API来访问远程的Neo4j数据库：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span>(destroyMethod=<span class="string">"shutdown"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> GraphDatabaseService <span class="title">graphDatabaseService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> SpringRestGraphDatabase(</span><br><span class="line">    <span class="string">"http://graphdbserver:7474/db/data/"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果远程数据库需要认证，则还要提供应用的凭证：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span>(destroyMethod=<span class="string">"shutdown"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> GraphDatabaseService <span class="title">graphDatabaseService</span><span class="params">(Environment env)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> SpringRestGraphDatabase(</span><br><span class="line">    <span class="string">"http://graphdbserver:7474/db/data/"</span>,</span><br><span class="line">    env.getProperty(<span class="string">"db.username"</span>), env.getProperty(<span class="string">"db.password"</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="基于XML的配置"><a href="#基于XML的配置" class="headerlink" title="基于XML的配置"></a>基于XML的配置</h4><p>嵌入式数据库配置：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:neo4j</span>=<span class="string">"http://www.springframework.org/schema/data/neo4j"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">"</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/beans/spring-beans.xsd</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/data/neo4j</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/data/neo4j/spring-neo4j.xsd"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">neo4j:config</span></span></span><br><span class="line">                storeDirectory="/tmp/graphdb" &lt;!--数据存储的位置--&gt;</span><br><span class="line">                base-package="orders" /&gt;<span class="comment">&lt;!--模型类的基础包--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">neo4j:repositories</span> <span class="attr">base-package</span>=<span class="string">"orders.db"</span> /&gt;</span><span class="comment">&lt;!--启用Repository生成功能，并指定扫描Repository的基础包--&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>远程Neo4j数据库配置：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">neo4j:config</span> <span class="attr">base-package</span>=<span class="string">"orders"</span></span></span><br><span class="line"><span class="tag">              <span class="attr">graphDatabaseService</span>=<span class="string">"graphDatabaseService"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"graphDatabaseService"</span> <span class="attr">class</span>=</span></span><br><span class="line"><span class="tag">      "<span class="attr">org.springframework.data.neo4j.rest.SpringRestGraphDatabase</span>"&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">value</span>=<span class="string">"http://graphdbserver:7474/db/data/"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">value</span>=<span class="string">"db.username"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">value</span>=<span class="string">"db.password"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="对象-实体映射"><a href="#对象-实体映射" class="headerlink" title="对象-实体映射"></a>对象-实体映射</h3><p>Neo4j定义了两种类型的实体：</p>
+<ul>
+<li>节点（Node）：反映了应用中的事物。</li>
+<li>关联关系（Relationship）：定义了这些事物是如何联系在一起的。</li>
+</ul>
+<p>Spring Data Neo4j的标注：</p>
+<table>
+<thead>
+<tr>
+<th>标注</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>@NodeEntity</td>
+<td>将Java类型声明为节点实体。</td>
+</tr>
+<tr>
+<td>@RelationshipEntity</td>
+<td>将Java类型声明为关联关系实体。</td>
+</tr>
+<tr>
+<td>@StartNode</td>
+<td>将某个属性声明为关联关系实体的开始节点。</td>
+</tr>
+<tr>
+<td>@EndNode</td>
+<td>将某个属性声明为关联关系实体的结束节点。</td>
+</tr>
+<tr>
+<td>@Fetch</td>
+<td>将实体的属性声明为立即加载。</td>
+</tr>
+<tr>
+<td>@GraphId</td>
+<td>将某个属性设置为实体的ID域（类型必须是<code>Long</code>）。Neo4j上所有实体（不管是节点实体，还是关联关系实体）必需要有一个图ID。</td>
+</tr>
+<tr>
+<td>@GraphProperty</td>
+<td>显式声明某个属性。</td>
+</tr>
+<tr>
+<td>@GraphTraversal</td>
+<td>声明某个属性会自动提供一个<code>iterable</code>元素，这个元素是图遍历所构建的。</td>
+</tr>
+<tr>
+<td>@Indexed</td>
+<td>声明某个属性应该被索引。</td>
+</tr>
+<tr>
+<td>@Labels</td>
+<td>为<code>@NodeEntity</code>声明标签。</td>
+</tr>
+<tr>
+<td>@Query</td>
+<td>声明某个属性会自动提供一个<code>iterable</code>元素，这个元素是执行给定的Cypher查询所构建的。</td>
+</tr>
+<tr>
+<td>@QueryResult</td>
+<td>声明某个Java或接口能够持有查询的结果。</td>
+</tr>
+<tr>
+<td>@RelatedTo</td>
+<td>通过某个属性，声明当前的<code>@NodeEntity</code>与另外一个<code>@NodeEntity</code>之间的关联关系。</td>
+</tr>
+<tr>
+<td>@RelatedToVia</td>
+<td>在<code>@NodeEntity</code>上声明某个属性，指定其引用该节点所属的某一个<code>@RelationshipEntity</code>。</td>
+</tr>
+<tr>
+<td>@RelationshipType</td>
+<td>将某个域声明为关联实体类型。</td>
+</tr>
+<tr>
+<td>@ResultColumn</td>
+<td>在带有<code>@QueryResult</code>标注的类型上，将某个属性声明为获取查询结果集中的某个特定列。</td>
+</tr>
+</tbody></table>
+<h4 id="简单关联关系示例"><a href="#简单关联关系示例" class="headerlink" title="简单关联关系示例"></a>简单关联关系示例</h4><p><img src="SpringDA/neo4j-simple.png" alt="关系本身不包含任何属性"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@NodeEntity</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Order</span> </span>&#123;</span><br><span class="line">  <span class="meta">@GraphId</span></span><br><span class="line">  <span class="keyword">private</span> Long id;</span><br><span class="line">  <span class="keyword">private</span> String customer;</span><br><span class="line">  <span class="keyword">private</span> String type;</span><br><span class="line">  <span class="meta">@RelatedTo</span>(type=<span class="string">"HAS_ITEMS"</span>)</span><br><span class="line">  <span class="keyword">private</span> Set&lt;Item&gt; items = <span class="keyword">new</span> LinkedHashSet&lt;Item&gt;();</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@NodeEntity</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Item</span> </span>&#123;</span><br><span class="line">  <span class="meta">@GraphId</span></span><br><span class="line">  <span class="keyword">private</span> Long id;</span><br><span class="line">  <span class="keyword">private</span> String product;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">double</span> price;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> quantity;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实体中没有带任何标注的属性（例如：<code>customer</code>等），只要它们不是瞬态的，都会成为数据库中节点的属性。</p>
+<p><code>Order</code>和<code>Item</code>之间的关联关系很简单，关系本身并不包含任何的数据。因此，<code>@RelatedTo</code>标注就足以定义关联关系。</p>
+<h4 id="关联关系实体示例"><a href="#关联关系实体示例" class="headerlink" title="关联关系实体示例"></a>关联关系实体示例</h4><p><img src="SpringDA/neo4j-relationship-entity.png" alt="关联关系实体自身具有属性"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RelationshipEntity</span>(type=<span class="string">"HAS_LINE_ITEM_FOR"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LineItem</span> </span>&#123;</span><br><span class="line">  <span class="meta">@GraphId</span></span><br><span class="line">  <span class="keyword">private</span> Long id;</span><br><span class="line">  <span class="meta">@StartNode</span></span><br><span class="line">  <span class="keyword">private</span> Order order;  <span class="comment">//开始节点</span></span><br><span class="line">  <span class="meta">@EndNode</span></span><br><span class="line">  <span class="keyword">private</span> Product product;  <span class="comment">//结束节点</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> quantity;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建Repository接口-2"><a href="#创建Repository接口-2" class="headerlink" title="创建Repository接口"></a>创建Repository接口</h3><p>自己创建的Neo4j Repository接口必须扩展自<code>Repository</code>接口，通常扩展<code>GraphRepository</code>接口。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">OrderRepository</span> <span class="keyword">extends</span> <span class="title">GraphRepository</span>&lt;<span class="title">Order</span>&gt; </span>&#123;</span><br><span class="line">  …</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="根据方法签名定义查询方法-2"><a href="#根据方法签名定义查询方法-2" class="headerlink" title="根据方法签名定义查询方法"></a>根据方法签名定义查询方法</h4><p>Spring Data JPA支持的方法签名约定也适用于Spring Data Neo4j。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">OrderRepository</span> <span class="keyword">extends</span> <span class="title">GraphRepository</span>&lt;<span class="title">Order</span>&gt; </span>&#123;</span><br><span class="line">  <span class="function">List&lt;Order&gt; <span class="title">findByCustomer</span><span class="params">(String customer)</span></span>;</span><br><span class="line">  <span class="function">List&lt;Order&gt; <span class="title">findByCustomerAndType</span><span class="params">(String customer, String type)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用-Query标注声明自定义查询-2"><a href="#使用-Query标注声明自定义查询-2" class="headerlink" title="使用@Query标注声明自定义查询"></a>使用<code>@Query</code>标注声明自定义查询</h4><p>在Spring Data Neo4j中，<code>@Query</code>标注使用的是Cypher查询。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Query</span>(<span class="string">"match (o:Order)-[:HAS_ITEMS]-&gt;(i:Item) "</span> +</span><br><span class="line">       <span class="string">"where i.product='Spring in Action' return o"</span>)</span><br><span class="line"><span class="function">List&lt;Order&gt; <span class="title">findSiAOrders</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="混合自定义查询-2"><a href="#混合自定义查询-2" class="headerlink" title="混合自定义查询"></a>混合自定义查询</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">OrderOperations</span> </span>&#123;</span><br><span class="line">  <span class="function">List&lt;Order&gt; <span class="title">findSiAOrders</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">OrderRepository</span></span></span><br><span class="line"><span class="class">  <span class="keyword">extends</span> <span class="title">GraphRepository</span>&lt;<span class="title">Order</span>&gt;, <span class="title">OrderOperations</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderRepositoryImpl</span> <span class="keyword">implements</span> <span class="title">OrderOperations</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Neo4jOperations neo4j;</span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">OrderRepositoryImpl</span><span class="params">(Neo4jOperations neo4j)</span> </span>&#123; <span class="comment">//注入Neo4jTemplate</span></span><br><span class="line">    <span class="keyword">this</span>.neo4j = neo4j;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> List&lt;Order&gt; <span class="title">findSiAOrders</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Result&lt;Map&lt;String, Object&gt;&gt; result = neo4j.query(</span><br><span class="line">      <span class="string">"match (o:Order)-[:HAS_ITEMS]-&gt;(i:Item) "</span> +</span><br><span class="line">      <span class="string">"where i.product='Spring in Action' return o"</span>,</span><br><span class="line">      EndResult&lt;Order&gt; endResult = result.to(Order<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">      <span class="keyword">return</span> IteratorUtil.asList(endResult);</span><br><span class="line">      &#125;</span><br><span class="line">      &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Spring-Data-Redis"><a href="#Spring-Data-Redis" class="headerlink" title="Spring Data Redis"></a>Spring Data Redis</h2><p>Redis是一种key-value存储的数据库，它可看作是持久化的哈希Map。</p>
+<p>Spring Data的自动生成Repository功能并没有应用到Redis上。Spring Data Redis主要是通过模板来访问数据库。</p>
+<h3 id="配置Redis的连接工厂"><a href="#配置Redis的连接工厂" class="headerlink" title="配置Redis的连接工厂"></a>配置Redis的连接工厂</h3><p>Redis连接工厂会生成到Redis数据库服务器的连接。Spring Data Redis为四种Redis客户端实现提供了连接工厂：</p>
+<ul>
+<li>JedisConnectionFactory</li>
+<li>JredisConnectionFactory</li>
+<li>LettuceConnectionFactory</li>
+<li>SrpConnectionFactory</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> RedisConnectionFactory <span class="title">redisCF</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> JedisConnectionFactory();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面通过默认构造器创建的连接工厂会向<code>localhost</code>上的<code>6379</code>端口创建连接，并且没有密码。下面的配置将连接远程需要认证的服务器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> RedisConnectionFactory <span class="title">redisCF</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  JedisConnectionFactory cf = <span class="keyword">new</span> JedisConnectionFactory();</span><br><span class="line">  cf.setHostName(<span class="string">"redis-server"</span>);</span><br><span class="line">  cf.setPort(<span class="number">7379</span>);</span><br><span class="line">  cf.setPassword(<span class="string">"foobared"</span>);</span><br><span class="line">  <span class="keyword">return</span> cf;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用RedisTemplate"><a href="#使用RedisTemplate" class="headerlink" title="使用RedisTemplate"></a>使用RedisTemplate</h3><p>不使用模板的直接访问Redis，需要操作字节数组：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">RedisConnectionFactory cf = ...;</span><br><span class="line">RedisConnection conn = cf.getConnection();</span><br><span class="line"></span><br><span class="line">conn.set(<span class="string">"greeting"</span>.getBytes(), <span class="string">"Hello World"</span>.getBytes());</span><br><span class="line"></span><br><span class="line"><span class="keyword">byte</span>[] greetingBytes = conn.get(<span class="string">"greeting"</span>.getBytes());</span><br><span class="line">String greeting = <span class="keyword">new</span> String(greetingBytes);</span><br></pre></td></tr></table></figure>
+
+<p>Spring Data Redis提供了两个模板来简化Redis数据访问：</p>
+<ul>
+<li>RedisTemplate</li>
+<li>StringRedisTempate：key和value都是<code>String</code>类型。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RedisConnectionFactory cf = ...;</span><br><span class="line">RedisTemplate&lt;String, Product&gt; redis = <span class="keyword">new</span> RedisTemplate&lt;String, Product&gt;();</span><br><span class="line">redis.setConnectionFactory(cf);</span><br></pre></td></tr></table></figure>
+
+<p><code>RedisTemplate</code>的第一个泛型参数是key的类型，第二个是value的类型。</p>
+<p>如果你经常使用<code>RedisTemplate</code>或<code>StringRedisTempate</code>，可以将它们注册为Bean，然后注入到需要的地方：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> StringRedisTemplate <span class="title">stringRedisTemplate</span><span class="params">(RedisConnectionFactory cf)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> StringRedisTemplate(cf);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>RedisTemplate</code>的很多功能是以子API的形式提供的：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>子API接口（返回值类型）</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>opsForValue()</td>
+<td>ValueOperations&lt;K, V&gt;</td>
+<td>操作简单值的条目。</td>
+</tr>
+<tr>
+<td>opsForList()</td>
+<td>ListOperations&lt;K, V&gt;</td>
+<td>操作list值的条目。</td>
+</tr>
+<tr>
+<td>opsForSet()</td>
+<td>SetOperations&lt;K, V&gt;</td>
+<td>操作set值的条目。</td>
+</tr>
+<tr>
+<td>opsForZSet()</td>
+<td>ZSetOperations&lt;K, V&gt;</td>
+<td>操作ZSet值（排序的set）的条目。</td>
+</tr>
+<tr>
+<td>opsForHash()</td>
+<td>HashOperations&lt;K, HK, HV&gt;</td>
+<td>操作hash值的条目。</td>
+</tr>
+<tr>
+<td>boundValueOps(K)</td>
+<td>BoundValueOperations&lt;K, V&gt;</td>
+<td>以绑定指定key的方式，操作简单值的条目。</td>
+</tr>
+<tr>
+<td>boundListOps(K)</td>
+<td>BoundListOperations&lt;K, V&gt;</td>
+<td>以绑定指定key的方式，操作list值的条目。</td>
+</tr>
+<tr>
+<td>boundSetOps(K)</td>
+<td>BoundSetOperations&lt;K, V&gt;</td>
+<td>以绑定指定key的方式，操作set值的条目。</td>
+</tr>
+<tr>
+<td>boundZSetOps(K)</td>
+<td>BoundZSetOperations&lt;K, V&gt;</td>
+<td>以绑定指定key的方式，操作ZSet值的条目。</td>
+</tr>
+<tr>
+<td>boundHashOps(K)</td>
+<td>BoundHashOperations&lt;K, V&gt;</td>
+<td>以绑定指定key的方式，操作hash值的条目。</td>
+</tr>
+</tbody></table>
+<h4 id="操作简单值"><a href="#操作简单值" class="headerlink" title="操作简单值"></a>操作简单值</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">redis.opsForValue().set(product.getSku(), product);</span><br><span class="line"></span><br><span class="line">Product product = redis.opsForValue().get(<span class="string">"123456"</span>);<span class="comment">//如果给定的key不存在，则返回null</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="操作List类型值"><a href="#操作List类型值" class="headerlink" title="操作List类型值"></a>操作List类型值</h4><p>在List条目的尾部添加一个值，如果指定key的列表不存在，则会创建一个：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis.opsForList().rightPush(<span class="string">"cart"</span>, product);</span><br></pre></td></tr></table></figure>
+
+<p>在列表条目的头部添加一个值：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis.opsForList().leftPush(<span class="string">"cart"</span>, product);</span><br></pre></td></tr></table></figure>
+
+<p>从列表中弹出（获取并删除）一个值：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Product first = redis.opsForList().leftPop(<span class="string">"cart"</span>);</span><br><span class="line">Product last = redis.opsForList().rightPop(<span class="string">"cart"</span>);</span><br></pre></td></tr></table></figure>
+
+<p>获取指定范围内的一个或多个值（不会删除列表中任何元素）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Product&gt; products = redis.opsForList().range(<span class="string">"cart"</span>, <span class="number">2</span>, <span class="number">12</span>); <span class="comment">//从索引为2（包含）到索引为12（不包含）</span></span><br></pre></td></tr></table></figure>
+
+<p>如果范围超出了列表的边界，那么只会返回索引在范围内的元素。如果该索引范围内没有元素的话，将会返回一个空的列表。</p>
+<h4 id="操作Set类型值"><a href="#操作Set类型值" class="headerlink" title="操作Set类型值"></a>操作Set类型值</h4><p>往Set中添加一个元素：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis.opsForSet().add(<span class="string">"cart"</span>, product);</span><br></pre></td></tr></table></figure>
+
+<p>差集、交集、并集：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Product&gt; diff = redis.opsForSet().difference(<span class="string">"cart1"</span>, <span class="string">"cart2"</span>);</span><br><span class="line">List&lt;Product&gt; union = redis.opsForSet().union(<span class="string">"cart1"</span>, <span class="string">"cart2"</span>);</span><br><span class="line">List&lt;Product&gt; isect = redis.opsForSet().isect(<span class="string">"cart1"</span>, <span class="string">"cart2"</span>);</span><br></pre></td></tr></table></figure>
+
+<p>移除元素：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis.opsForSet().remove(product);</span><br></pre></td></tr></table></figure>
+
+<p>随机获取Set中的一个元素：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Product random = redis.opsForSet().randomMember(<span class="string">"cart"</span>);</span><br></pre></td></tr></table></figure>
+
+<p>因为Set没有索引和内部排序，无法精准定位某个元素。</p>
+<h4 id="将操作绑定到指定key上"><a href="#将操作绑定到指定key上" class="headerlink" title="将操作绑定到指定key上"></a>将操作绑定到指定key上</h4><p>假如我们需要对某个key上的数据进行一系列操作，不希望每次都会指定同一个key多次。使用以<code>bound</code>开头的方法，只需要绑定一次key，则后续的操作都是针对该key：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">BoundListOperations&lt;String, Product&gt; cart = redis.boundListOps(<span class="string">"cart"</span>);</span><br><span class="line">Product popped = cart.rightPop();</span><br><span class="line">cart.rightPush(product1);</span><br><span class="line">cart.rightPush(product2);</span><br><span class="line">cart.rightPush(product3);</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用key和value的序列化器"><a href="#使用key和value的序列化器" class="headerlink" title="使用key和value的序列化器"></a>使用key和value的序列化器</h3><p>当某个条目保存到Redis时，key和value都会使用Redis序列化器进行序列化。Spring Data Redis提供了多个这样的序列化器：</p>
+<ul>
+<li>GenericToStringSerializer：使用Spring转换服务进行序列化；</li>
+<li>JacksonJsonRedisSerializer：使用Jackson 1，将对象序列化为JSON；</li>
+<li>Jackson2JsonRedisSerializer：使用Jackson 2，将对象序列化为JSON；</li>
+<li>JdkSerializationRedisSerializer：使用Java序列化；（RedisTemplate的默认序列化器）</li>
+<li>OxmSerializer：使用Spring O/X映射的编排器（marshaler）和解排器（unmarshaler）实现序列化，用于XML序列化；</li>
+<li>StringRedisSerializer：序列化String类型的key和value。（StringRedisTemplate的默认序列化器）</li>
+</ul>
+<p>假设当使用RedisTemplate时，我们希望将Product类型的value序列为JSON，而key是String类型：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> RedisTemplate&lt;String, Product&gt; <span class="title">redisTemplate</span><span class="params">(RedisConnectionFactory cf)</span> </span>&#123;</span><br><span class="line">  RedisTemplate&lt;String, Product&gt; redis = <span class="keyword">new</span> RedisTemplate&lt;String, Product&gt;();</span><br><span class="line">  redis.setConnectionFactory(cf);</span><br><span class="line">  redis.setKeySerializer(<span class="keyword">new</span> StringRedisSerializer());</span><br><span class="line">  redis.setValueSerializer(<span class="keyword">new</span> Jackson2JsonRedisSerializer&lt;Product&gt;(Product<span class="class">.<span class="keyword">class</span>))</span>;</span><br><span class="line">  <span class="keyword">return</span> redis;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="事务管理"><a href="#事务管理" class="headerlink" title="事务管理"></a>事务管理</h1><p>事务（Transaction）允许你将几个操作组合成一个要么全部发生，要么全部不发生的工作单元。</p>
+<p><img src="SpringDA/%E8%B4%AD%E7%A5%A8%E4%BA%8B%E5%8A%A1.png" alt="购票事务"></p>
+<h2 id="事务的特性"><a href="#事务的特性" class="headerlink" title="事务的特性"></a>事务的特性</h2><p>原子性（Atomic）：原子性确保事务中的所有操作全部发生或全部不发生。如果所有的活动都成功了，事务也就成功了。如果任意一个活动失败了，整个事务也失败并回滚。</p>
+<p>一致性（Consistent）：一旦事务完成（不管成功还是失败），系统必须确保它所建模的业务处于一致状态。现实的数据不应该被损坏。</p>
+<p>隔离性（Isolated）：事务允许多个用户对相同的数据进行操作，每个用户的操作不会与其他用户纠缠在一起。因此，事务应该被彼此隔离，避免发生同步读写相同数据的事情（注意：隔离性往往涉及到锁定数据库中的行或表）。</p>
+<p>持久性（Durable）：一旦事务完成，事务的结果应该持久化，这样就能从任何的系统崩溃中恢复过来。</p>
+<h2 id="Spring对事务管理的支持"><a href="#Spring对事务管理的支持" class="headerlink" title="Spring对事务管理的支持"></a>Spring对事务管理的支持</h2><p>传统上，Java EE开发人员有两种事务管理选择：全局或本地事务，这两种事务都有很大的局限性。</p>
+<p>全局事务使您可以使用多个事务资源，通常是关系数据库和消息队列。应用程序服务器通过JTA管理全局事务，这是一个繁琐的API（部分原因是它的异常模型）。此外，JTA <code>UserTransaction</code>通常需要从JNDI获取，这意味着您还需要使用JNDI才能使用JTA。全局事务的使用限制了应用程序代码的任何潜在重用，因为JTA通常仅在应用程序服务器环境中可用。</p>
+<p>以前，使用全局事务的首选方法是通过EJB CMT（容器管理事务）。 CMT是一种声明式事务管理（与程序化事务管理不同）。 EJB CMT消除了与事务相关的JNDI查找的需要，尽管使用EJB本身需要使用JNDI。它消除了编写Java代码以控制事务的大部分但不是全部的需要。重要的缺点是CMT与JTA和应用服务器环境相关联。此外，仅当选择在EJB中（或至少在事务EJB外观之后）实现业务逻辑时，它才可用。</p>
+<p>本地事务是特定于资源的，例如与JDBC连接关联的事务。本地事务可能更容易使用，但具有明显的缺点：它们无法跨多个事务资源工作。例如，使用JDBC连接管理事务的代码无法在全局JTA事务中运行。由于应用程序服务器不参与事务管理，因此无法确保跨多个资源的正确性。 另一个缺点是本地事务对编程模型是侵入性的。</p>
+<p>Spring解决了全局和本地事务的缺点。它允许应用程序开发人员在任何环境中使用一致的编程模型您编写一次代码，它可以从不同环境中的不同事务管理策略中受益。 Spring Framework提供了声明式和编程式事务管理。大多数用户更喜欢声明式事务管理，我们建议在大多数情况下使用。</p>
+<p>不像EJB与JTA耦合在一起，Spring通过回调机制将实际的事务实现从事务性的代码中抽象出来。实际上，Spring对事务的支持甚至不需要JTA的实现。如果你的应用程序只使用一种持久化资源，Spring可以使用持久化机制本身所提供的事务性支持，这包括JDBC、Hibernate以及JPA。但是如果应用程序的事务跨多个资源，那么Spring会使用第三方（应用服务器）的JTA实现来支持分布式（XA）事务。</p>
+<h2 id="事务管理器"><a href="#事务管理器" class="headerlink" title="事务管理器"></a>事务管理器</h2><p>Spring并不直接管理事务，而是提供了多种事务管理器，它们将事务管理的职责委托给JTA或其他持久化机制所提供的平台相关的事务实现。</p>
+<p><img src="SpringDA/%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86%E5%99%A8.png" alt="事务管理器"></p>
+<h3 id="JDBC事务"><a href="#JDBC事务" class="headerlink" title="JDBC事务"></a>JDBC事务</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"transactionManager"</span> </span></span><br><span class="line"><span class="tag">      <span class="attr">class</span>=<span class="string">"org.springframework.jdbc.datasource.DataSourceTransactionManager"</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="JPA事务"><a href="#JPA事务" class="headerlink" title="JPA事务"></a>JPA事务</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"txManager"</span> </span></span><br><span class="line"><span class="tag">      <span class="attr">class</span>=<span class="string">"org.springframework.orm.jpa.JpaTransactionManager"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"entityManagerFactory"</span> <span class="attr">ref</span>=<span class="string">"entityManagerFactory"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>JpaTransactionManager</code>将与由工厂所产生的JPA <code>EntityManager</code>合作来构建事务。</p>
+<p><code>JpaTransactionManager</code>还支持将事务应用于简单的JDBC操作这中，这些JDBC操作所使用的<code>DataSource</code>与<code>EntityManagerFactory</code>所使用的<code>DataSource</code>必须是相同的。为了做到这一点，<code>JpaTransactionManager</code>必须装配一个<code>JpaDialect</code>实现。例如：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"jpaDialect"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">class</span>=<span class="string">"org.springframework.orm.jpa.vendor.EclipseLinkJpaDialect"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后，将<code>JpaDialect</code> Bean装配到<code>JtaTransactionManager</code>中：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"txManager"</span> </span></span><br><span class="line"><span class="tag">      <span class="attr">class</span>=<span class="string">"org.springframework.orm.jpa.JtaTransactionManager"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"entityManagerFactory"</span> <span class="attr">ref</span>=<span class="string">"entityManagerFactory"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"jpaDialect"</span> <span class="attr">ref</span>=<span class="string">"jpaDialect"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Hibernate事务"><a href="#Hibernate事务" class="headerlink" title="Hibernate事务"></a>Hibernate事务</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"txManager"</span> </span></span><br><span class="line"><span class="tag">      <span class="attr">class</span>=<span class="string">"org.springframework.orm.hibernate5.HibernateTransactionManager"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"sessionFactory"</span> <span class="attr">ref</span>=<span class="string">"sessionFactory"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="JTA事务"><a href="#JTA事务" class="headerlink" title="JTA事务"></a>JTA事务</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"txManager"</span> </span></span><br><span class="line"><span class="tag">      <span class="attr">class</span>=<span class="string">"org.springframework.transaction.jta.JtaTransactionManager"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>JtaTransactionManager</code>不需要了解<code>DataSource</code>（或任何其他特定资源），因为它使用容器的全局事务管理基础结构。</p>
+<h2 id="编程式事务"><a href="#编程式事务" class="headerlink" title="编程式事务"></a>编程式事务</h2><p>声明式事务只能在方法级别声明事务，如果想更好地控制事务边界，则编码式事务是唯一的办法。</p>
+<p>首先，注入<code>TransactionTemplate</code> 实例：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"spitterService"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">class</span>=<span class="string">"com.habuma.spitter.service.SpitterServiceImpl"</span>&gt;</span></span><br><span class="line">  …</span><br><span class="line">	<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"txTemplate"</span>&gt;</span></span><br><span class="line">  	<span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"org.springframework.transaction.support.TransactionTemplate"</span>&gt;</span></span><br><span class="line">    	<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"transactionManager"</span> <span class="attr">ref</span>=<span class="string">"transactionManager"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后，通过<code>TransactionTemplate</code>来添加事务性边界：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSpittle</span><span class="params">(<span class="keyword">final</span> Spittle spittle)</span> </span>&#123;</span><br><span class="line">  txTemplate.execute(<span class="keyword">new</span> TransactionCallback&lt;Void&gt;() &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doInTransaction</span><span class="params">(TransactionStatus txStatus)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        spitterDao.saveSpittle(spittle);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (RuntimeException e) &#123;</span><br><span class="line">        txStatus.setRollbackOnly();</span><br><span class="line">        <span class="keyword">throw</span> e;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="声明式事务"><a href="#声明式事务" class="headerlink" title="声明式事务"></a>声明式事务</h2><p>Spring对声明式事务的支持是通过使用Spring AOP框架实现的。</p>
+<p>Spring通过<code>tx</code>命名空间或<code>@Transactional</code>标注来声明事务。</p>
+<h3 id="定义事务属性"><a href="#定义事务属性" class="headerlink" title="定义事务属性"></a>定义事务属性</h3><p><img src="SpringDA/%E4%BA%8B%E5%8A%A1%E5%B1%9E%E6%80%A7.png" alt="事务属性"></p>
+<h4 id="传播行为"><a href="#传播行为" class="headerlink" title="传播行为"></a>传播行为</h4><p>传播行为（Propagation Behavior）定义了客户端与被调用方法之间的事务边界。也就是说，定义了何时创建一个事务或何时使用已有的事务。</p>
+<table>
+<thead>
+<tr>
+<th>传播行为</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PROPAGATION_MANDATORY</td>
+<td>表示该方法必须在事务中运行。如果当前事务不存在，则会抛出一个异常。</td>
+</tr>
+<tr>
+<td>PROPAGATION_NESTED</td>
+<td>表示如果当前已经存在一个事务，则该方法将会在嵌套事务中运行。嵌套的事务可以独立于当前事务进行单独地提交或回滚。如果当前事务不存在，则其行为与<code>PROPAGATION_REQUIRED</code>一样。注意各厂商对这种传播行为的支持是有所差异的。</td>
+</tr>
+<tr>
+<td>PROPAGATION_NEVER</td>
+<td>表示当前方法不应该运行在事务上下文中。如果当前正有一个事务在运行，则会抛出异常。</td>
+</tr>
+<tr>
+<td>PROPAGATION_NOT_SUPPORTED</td>
+<td>表示该方法不应该运行在事务中，如果存在当前事务，在该方法运行期间，当前事务将被挂起。如果使用<code>JTATransactionManager</code>，则需要访问<code>TransactionManager</code>。</td>
+</tr>
+<tr>
+<td>PROPAGATION_REQUIRED</td>
+<td>表示当前方法必须运行在事务中。如果当前事务存在，方法将会在该事务中运行。否则，会启动一个新的事务。</td>
+</tr>
+<tr>
+<td>PROPAGATION_REQUIRES_NEW</td>
+<td>表示当前方法必须运行在它自己的事务中（这意味着事务边界与方法自己的边界是一样的：方法在开始执行时启动一个新事务，并在方法返回或抛出异常时结束该事务）。一个新的事务将被启动，如果存在当前事务，在该方法执行期间，当前事务会被挂起；如果使用<code>JTATransactionManager</code>，则需要访问<code>TransactionManager</code>。</td>
+</tr>
+<tr>
+<td>PROPAGATION_SUPPORTS</td>
+<td>表示当前方法不需要事务上下文，但是如果存在当前事务，则该方法会在这个事务中运行。</td>
+</tr>
+</tbody></table>
+<h4 id="隔离级别"><a href="#隔离级别" class="headerlink" title="隔离级别"></a>隔离级别</h4><p>隔离级别（Isolation Level）定义了一个事务可能受其他并发事务影响的程度。</p>
+<p>多个事务并发运行时，可能会导致以下问题：</p>
+<ul>
+<li>脏读（Dirty Reads）：脏读发生在一个事务读取了另一个事务改写但尚未提交的数据时。如果改写在稍后被回滚，则第一个事务获取的数据就是无效的。</li>
+<li>不可重复读（Nonrepeatable Read）：不可重复读发生在一个事务执行相同的查询两次或两次以上，但是每次都得到不同的数据时。这通常是因为另一个并发事务在两次查询期间更新了数据。</li>
+<li>幻读（Phantom Read）：幻读与不可重复读类似，它发生在一个事务（T1）读取了几行数据，接着另一个并发事务（T2）插入了一些数据时。在随后的查询中，第一个事务（T1）就会发现多了一些原本不存在的记录。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>隔离级别</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ISOLATION_DEFAULT</td>
+<td>使用后端数据库默认的隔离级别。</td>
+</tr>
+<tr>
+<td>ISOLATION_READ_UNCOMMITTED</td>
+<td>允许读取尚未提交的数据变更，可能会导致脏读、幻读或不可重复读。</td>
+</tr>
+<tr>
+<td>ISOLATION_READ_COMMITTED</td>
+<td>允许读取并发事务已经提交的数据。可以阻止脏读，但是幻读或不可重复读仍有可能发生。</td>
+</tr>
+<tr>
+<td>ISOLATION_REPEATABLE_READ</td>
+<td>对同一字段的多次读取结果是一致的，除非数据是被本事务自己所修改。可以阻止脏读和不可重复读，但幻读仍有可能发生。</td>
+</tr>
+<tr>
+<td>ISOLATION_SERIALIZABLE</td>
+<td>完全服从ACID的隔离级别，确保阻止脏读、不可重复读以及幻读。这是最慢的事务隔离级别，因为它通常是通过完全锁定事务相关的数据库表来实现的。</td>
+</tr>
+</tbody></table>
+<h4 id="只读"><a href="#只读" class="headerlink" title="只读"></a>只读</h4><p>如果事务只对后端的数据库进行读操作，数据库可以利用事务的只读特性来进行一些特定的优化。</p>
+<p>因为只读优化是在事务启动的时候由数据库实施的，只有对那些具备启动一个新事务的传播行为（PROPAGATION_REQUIRED、PROPAGATION_REQUIRES_NEW、PROPAGATION_NESTED）的方法来说，将事务声明为只读才有意义。</p>
+<p>另外，如果采用Hibernate作为持久化机制，则将事务声明为只读会导致Hibernate的<code>flush</code>模式被设置为<code>FLUSH_NEVER</code>。这会告诉Hibernate避免和数据库进行不必要的对象同步，并将所有的更新延迟到事务结束。</p>
+<h4 id="事务超时"><a href="#事务超时" class="headerlink" title="事务超时"></a>事务超时</h4><p>事务不能运行太长时间，因为事务可能涉及对后端数据库的锁定，长时间的事务会不必要地占用数据库资源。事务超时（Timeout）是指声明一个事务，在特定的秒数后自动回滚，而不是等待其结束。</p>
+<p>因为超时时钟会在事务开始时启动，因此，只有对那些具备启动一个新事务的传播行为（PROPAGATION_REQUIRED、PROPAGATION_REQUIRES_NEW、PROPAGATION_NESTED）的方法来说，声明事务超时才有意义。</p>
+<h4 id="回滚规则"><a href="#回滚规则" class="headerlink" title="回滚规则"></a>回滚规则</h4><p>回滚规则定义了哪些异常会导致事务回滚而哪些不会。默认情况下，事务只有在遇到运行期异常时才会回滚，而在遇到检查型异常时不会回滚（这一行为与EJB的回滚行为是一致的）。</p>
+<h3 id="在XML中定义事务"><a href="#在XML中定义事务" class="headerlink" title="在XML中定义事务"></a>在XML中定义事务</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:aop</span>=<span class="string">"http://www.springframework.org/schema/aop"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:tx</span>=<span class="string">"http://www.springframework.org/schema/tx"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">"</span></span></span><br><span class="line"><span class="tag"><span class="string">         http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="tag"><span class="string">         http://www.springframework.org/schema/beans/spring-beans.xsd</span></span></span><br><span class="line"><span class="tag"><span class="string">         http://www.springframework.org/schema/tx</span></span></span><br><span class="line"><span class="tag"><span class="string">         http://www.springframework.org/schema/tx/spring-tx.xsd</span></span></span><br><span class="line"><span class="tag"><span class="string">         http://www.springframework.org/schema/aop</span></span></span><br><span class="line"><span class="tag"><span class="string">         http://www.springframework.org/schema/aop/spring-aop.xsd"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">tx:advice</span> <span class="attr">id</span>=<span class="string">"txAdvice"</span> <span class="attr">transaction-manager</span>=<span class="string">"txManager"</span>&gt;</span><span class="comment">&lt;!--声明事务性策略--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">tx:attributes</span>&gt;</span></span><br><span class="line">    	<span class="tag">&lt;<span class="name">tx:method</span> <span class="attr">name</span>=<span class="string">"save*"</span> <span class="attr">propagation</span>=<span class="string">"REQUIRED"</span> /&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">tx:method</span> <span class="attr">name</span>=<span class="string">"*"</span> <span class="attr">propagation</span>=<span class="string">"SUPPORTS"</span> <span class="attr">read-only</span>=<span class="string">"true"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">tx:attributes</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">tx:advice</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">aop:config</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:pointcut</span> <span class="attr">id</span>=<span class="string">"spitterServiceOperation"</span> </span></span><br><span class="line"><span class="tag">                  <span class="attr">expression</span>=<span class="string">"execution(* *..SpitterService.*(..))"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:advisor</span> <span class="attr">advice-ref</span>=<span class="string">"txAdvice"</span> <span class="attr">pointcut-ref</span>=<span class="string">"spitterServiceOperation"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">aop:config</span>&gt;</span></span><br><span class="line">  …</span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>事务属性是通过<code>&lt;tx:method&gt;</code>元素的属性来定义的：</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>isolation</td>
+<td>指定事务的隔离级别。</td>
+</tr>
+<tr>
+<td>propagation</td>
+<td>定义事务的传播规则。</td>
+</tr>
+<tr>
+<td>read-only</td>
+<td>指定事务是否为只读。</td>
+</tr>
+<tr>
+<td>rollback-for</td>
+<td>指定事务对于哪些检查型异常应当回滚，而不提交。</td>
+</tr>
+<tr>
+<td>no-rollback-for</td>
+<td>指定事务对于哪些异常应当继续运行，而不回滚。</td>
+</tr>
+<tr>
+<td>timeout</td>
+<td>对于长时间运行的事务定义超时时间。</td>
+</tr>
+</tbody></table>
+<p>当使用<code>&lt;tx:advice&gt;</code>来声明事务时，你还需要一个事务管理器。如果事务管理器的<code>id</code>为<code>transactionManager</code>，则可以省略<code>transaction-manager</code>属性。否则，必须显式指定。</p>
+<p><code>&lt;tx:advice&gt;</code>只是定义了AOP通知，用于把事务边界通知给方法，但没有声明哪些Bean应该被通知——我们需要一个切点来做这件事。这就是<code>&lt;aop:pointcut&gt;</code>和<code>&lt;aop:advisor&gt;</code>要做的事。</p>
+<h3 id="定义标注驱动的事务"><a href="#定义标注驱动的事务" class="headerlink" title="定义标注驱动的事务"></a>定义标注驱动的事务</h3><p>首先，在XML中配置启用标注驱动的事务：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">tx:annotation-driven</span> <span class="attr">transaction-manager</span>=<span class="string">"txManager"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>transaction-manager</code>属性的默认值是<code>transactionManager</code>。</p>
+<p><code>&lt;tx:annotation-driven</code>元素告诉Spring检查上下文中所有的Bean，并查找使用<code>@Transactional</code>标注的Bean（不管这个标注是用在类级别上，还是方法级别上）。对于每个使用<code>@Transactional</code>标注的Bean，<code>&lt;tx:annotation-driven</code>会自动为它添加事务通知。通知的事务属性是通过<code>@Transactional</code>标注的参数来定义的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Transactional</span>(propagation=Propagation.SUPPORTS, readOnly=<span class="keyword">true</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpitterServiceImpl</span> <span class="keyword">implements</span> <span class="title">SpitterService</span> </span>&#123;</span><br><span class="line">  …</span><br><span class="line">  <span class="meta">@Transactional</span>(propagation=Propagation.REQUIRED, readOnly=<span class="keyword">false</span>)</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addSpitter</span><span class="params">(Spitter spitter)</span> </span>&#123;</span><br><span class="line">    …</span><br><span class="line">  &#125;</span><br><span class="line">  …</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/11/12/SpringSecurity/" rel="prev" title="SpringSecurity">
+      <i class="fa fa-chevron-left"></i> SpringSecurity
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/11/26/SpringCache/" rel="next" title="SpringCache">
+      SpringCache <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#JDBC"><span class="nav-number">1.</span> <span class="nav-text">JDBC</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#配置数据源"><span class="nav-number">1.1.</span> <span class="nav-text">配置数据源</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用JNDI数据源"><span class="nav-number">1.1.1.</span> <span class="nav-text">使用JNDI数据源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用数据源连接池"><span class="nav-number">1.1.2.</span> <span class="nav-text">使用数据源连接池</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#DBCP"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">DBCP</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用JDBC驱动的数据源"><span class="nav-number">1.1.3.</span> <span class="nav-text">使用JDBC驱动的数据源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用嵌入式数据源"><span class="nav-number">1.1.4.</span> <span class="nav-text">使用嵌入式数据源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用profile选择数据源"><span class="nav-number">1.1.5.</span> <span class="nav-text">使用profile选择数据源</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用JDBC模板"><span class="nav-number">1.2.</span> <span class="nav-text">使用JDBC模板</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#注册JDBC模板"><span class="nav-number">1.2.1.</span> <span class="nav-text">注册JDBC模板</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#插入数据"><span class="nav-number">1.2.2.</span> <span class="nav-text">插入数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#读取数据"><span class="nav-number">1.2.3.</span> <span class="nav-text">读取数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用Lambda表达式"><span class="nav-number">1.2.4.</span> <span class="nav-text">使用Lambda表达式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用命名参数"><span class="nav-number">1.2.5.</span> <span class="nav-text">使用命名参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用SimpleJdbcInsert-与SimpleJdbcCall"><span class="nav-number">1.3.</span> <span class="nav-text">使用SimpleJdbcInsert 与SimpleJdbcCall</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用RDBMS-对象"><span class="nav-number">1.4.</span> <span class="nav-text">使用RDBMS 对象</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MyBatis"><span class="nav-number">2.</span> <span class="nav-text">MyBatis</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ORM"><span class="nav-number">3.</span> <span class="nav-text">ORM</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Hibernate"><span class="nav-number">3.1.</span> <span class="nav-text">Hibernate</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#注册Session工厂Bean"><span class="nav-number">3.1.1.</span> <span class="nav-text">注册Session工厂Bean</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建Repository"><span class="nav-number">3.1.2.</span> <span class="nav-text">创建Repository</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#注册PersistenceExceptionTranslationPostProcessor"><span class="nav-number">3.1.2.1.</span> <span class="nav-text">注册PersistenceExceptionTranslationPostProcessor</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JPA"><span class="nav-number">3.2.</span> <span class="nav-text">JPA</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置实体管理器工厂"><span class="nav-number">3.2.1.</span> <span class="nav-text">配置实体管理器工厂</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用LocalEntityManagerFactoryBean"><span class="nav-number">3.2.1.1.</span> <span class="nav-text">使用LocalEntityManagerFactoryBean</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用LocalContainerEntityManagerFactoryBean"><span class="nav-number">3.2.1.2.</span> <span class="nav-text">使用LocalContainerEntityManagerFactoryBean</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#从JNDI中获取实体管理器工厂"><span class="nav-number">3.2.1.3.</span> <span class="nav-text">从JNDI中获取实体管理器工厂</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建基于JPA的Repository"><span class="nav-number">3.2.2.</span> <span class="nav-text">创建基于JPA的Repository</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#注入EntityManagerFactory"><span class="nav-number">3.2.2.1.</span> <span class="nav-text">注入EntityManagerFactory</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#直接注入EntityManager"><span class="nav-number">3.2.2.2.</span> <span class="nav-text">直接注入EntityManager</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#注册PersistenceAnnotationBeanPostProcessor"><span class="nav-number">3.2.2.3.</span> <span class="nav-text">注册PersistenceAnnotationBeanPostProcessor</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#注册PersistenceExceptionTranslationPostProcessor-1"><span class="nav-number">3.2.2.4.</span> <span class="nav-text">注册PersistenceExceptionTranslationPostProcessor</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-Data"><span class="nav-number">4.</span> <span class="nav-text">Spring Data</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Data-JDBC"><span class="nav-number">4.1.</span> <span class="nav-text">Spring Data JDBC</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Data-JPA"><span class="nav-number">4.2.</span> <span class="nav-text">Spring Data JPA</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#启用Spring-Data-JPA"><span class="nav-number">4.2.1.</span> <span class="nav-text">启用Spring Data JPA</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建Repository接口"><span class="nav-number">4.2.2.</span> <span class="nav-text">创建Repository接口</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#根据方法签名定义查询方法"><span class="nav-number">4.2.2.1.</span> <span class="nav-text">根据方法签名定义查询方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用-Query标注声明自定义查询"><span class="nav-number">4.2.2.2.</span> <span class="nav-text">使用@Query标注声明自定义查询</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#混合自定义查询"><span class="nav-number">4.2.2.3.</span> <span class="nav-text">混合自定义查询</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Data-MongoDB"><span class="nav-number">4.3.</span> <span class="nav-text">Spring Data MongoDB</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置MongoDB"><span class="nav-number">4.3.1.</span> <span class="nav-text">配置MongoDB</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对象-文档映射"><span class="nav-number">4.3.2.</span> <span class="nav-text">对象-文档映射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建Repository接口-1"><span class="nav-number">4.3.3.</span> <span class="nav-text">创建Repository接口</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#根据方法签名定义查询方法-1"><span class="nav-number">4.3.3.1.</span> <span class="nav-text">根据方法签名定义查询方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用-Query标注声明自定义查询-1"><span class="nav-number">4.3.3.2.</span> <span class="nav-text">使用@Query标注声明自定义查询</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#混合自定义查询-1"><span class="nav-number">4.3.3.3.</span> <span class="nav-text">混合自定义查询</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Data-Neo4j"><span class="nav-number">4.4.</span> <span class="nav-text">Spring Data Neo4j</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置Neo4j"><span class="nav-number">4.4.1.</span> <span class="nav-text">配置Neo4j</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基于Java的配置"><span class="nav-number">4.4.1.1.</span> <span class="nav-text">基于Java的配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基于XML的配置"><span class="nav-number">4.4.1.2.</span> <span class="nav-text">基于XML的配置</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对象-实体映射"><span class="nav-number">4.4.2.</span> <span class="nav-text">对象-实体映射</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#简单关联关系示例"><span class="nav-number">4.4.2.1.</span> <span class="nav-text">简单关联关系示例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#关联关系实体示例"><span class="nav-number">4.4.2.2.</span> <span class="nav-text">关联关系实体示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建Repository接口-2"><span class="nav-number">4.4.3.</span> <span class="nav-text">创建Repository接口</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#根据方法签名定义查询方法-2"><span class="nav-number">4.4.3.1.</span> <span class="nav-text">根据方法签名定义查询方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用-Query标注声明自定义查询-2"><span class="nav-number">4.4.3.2.</span> <span class="nav-text">使用@Query标注声明自定义查询</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#混合自定义查询-2"><span class="nav-number">4.4.3.3.</span> <span class="nav-text">混合自定义查询</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Data-Redis"><span class="nav-number">4.5.</span> <span class="nav-text">Spring Data Redis</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置Redis的连接工厂"><span class="nav-number">4.5.1.</span> <span class="nav-text">配置Redis的连接工厂</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用RedisTemplate"><span class="nav-number">4.5.2.</span> <span class="nav-text">使用RedisTemplate</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#操作简单值"><span class="nav-number">4.5.2.1.</span> <span class="nav-text">操作简单值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#操作List类型值"><span class="nav-number">4.5.2.2.</span> <span class="nav-text">操作List类型值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#操作Set类型值"><span class="nav-number">4.5.2.3.</span> <span class="nav-text">操作Set类型值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#将操作绑定到指定key上"><span class="nav-number">4.5.2.4.</span> <span class="nav-text">将操作绑定到指定key上</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用key和value的序列化器"><span class="nav-number">4.5.3.</span> <span class="nav-text">使用key和value的序列化器</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#事务管理"><span class="nav-number">5.</span> <span class="nav-text">事务管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#事务的特性"><span class="nav-number">5.1.</span> <span class="nav-text">事务的特性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring对事务管理的支持"><span class="nav-number">5.2.</span> <span class="nav-text">Spring对事务管理的支持</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#事务管理器"><span class="nav-number">5.3.</span> <span class="nav-text">事务管理器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JDBC事务"><span class="nav-number">5.3.1.</span> <span class="nav-text">JDBC事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JPA事务"><span class="nav-number">5.3.2.</span> <span class="nav-text">JPA事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hibernate事务"><span class="nav-number">5.3.3.</span> <span class="nav-text">Hibernate事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JTA事务"><span class="nav-number">5.3.4.</span> <span class="nav-text">JTA事务</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编程式事务"><span class="nav-number">5.4.</span> <span class="nav-text">编程式事务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#声明式事务"><span class="nav-number">5.5.</span> <span class="nav-text">声明式事务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#定义事务属性"><span class="nav-number">5.5.1.</span> <span class="nav-text">定义事务属性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#传播行为"><span class="nav-number">5.5.1.1.</span> <span class="nav-text">传播行为</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#隔离级别"><span class="nav-number">5.5.1.2.</span> <span class="nav-text">隔离级别</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#只读"><span class="nav-number">5.5.1.3.</span> <span class="nav-text">只读</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#事务超时"><span class="nav-number">5.5.1.4.</span> <span class="nav-text">事务超时</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#回滚规则"><span class="nav-number">5.5.1.5.</span> <span class="nav-text">回滚规则</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在XML中定义事务"><span class="nav-number">5.5.2.</span> <span class="nav-text">在XML中定义事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定义标注驱动的事务"><span class="nav-number">5.5.3.</span> <span class="nav-text">定义标注驱动的事务</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

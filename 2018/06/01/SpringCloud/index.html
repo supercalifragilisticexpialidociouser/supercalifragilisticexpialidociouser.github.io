@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="简介Spring Cloud是建立在Spring Boot基础之上，并添加了一些系统中所有组件都会使用或偶尔需要的功能。   如果由于“非法密钥大小”而导致异常，并且您使用Sun的JDK，则需要安装Java加密扩展（JCE）无限制强制管辖权策略文件。有关更多信息，请参阅以下链接： Java 6 JCE Java 7 JCE Java 8 JCE 将文件解压缩到您使用的JRE &#x2F; JDK x64 &#x2F;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringCloud">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="简介Spring Cloud是建立在Spring Boot基础之上，并添加了一些系统中所有组件都会使用或偶尔需要的功能。   如果由于“非法密钥大小”而导致异常，并且您使用Sun的JDK，则需要安装Java加密扩展（JCE）无限制强制管辖权策略文件。有关更多信息，请参阅以下链接： Java 6 JCE Java 7 JCE Java 8 JCE 将文件解压缩到您使用的JRE &#x2F; JDK x64 &#x2F;">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/SpringCloud/%E6%A0%B8%E5%BF%83%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%BC%80%E5%8F%91%E6%A8%A1%E5%BC%8F.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/SpringCloud/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E8%B7%AF%E7%94%B1%E6%A8%A1%E5%BC%8F.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/SpringCloud/%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%BC%B9%E6%80%A7%E6%A8%A1%E5%BC%8F.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/SpringCloud/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/SpringCloud/%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E5%92%8C%E8%B7%9F%E8%B8%AA%E6%A8%A1%E5%BC%8F.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/SpringCloud/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%9E%84%E5%BB%BA%E5%92%8C%E9%83%A8%E7%BD%B2%E6%A8%A1%E5%BC%8F.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/SpringCloud/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86%E6%9E%B6%E6%9E%84.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/SpringCloud/%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/SpringCloud/%E6%96%AD%E8%B7%AF%E5%99%A8.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/SpringCloud/%E8%B7%B3%E9%97%B8%E5%86%B3%E7%AD%96.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/SpringCloud/%E6%B6%88%E6%81%AF%E7%9A%84%E5%8F%91%E5%B8%83%E5%92%8C%E6%B6%88%E8%B4%B9.png">
+<meta property="article:published_time" content="2018-06-01T14:01:12.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:50.009Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="Finchley.RELEASE">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/SpringCloud/%E6%A0%B8%E5%BF%83%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%BC%80%E5%8F%91%E6%A8%A1%E5%BC%8F.png">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>SpringCloud | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2018/06/01/SpringCloud/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SpringCloud
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-06-01 22:01:12" itemprop="dateCreated datePublished" datetime="2018-06-01T22:01:12+08:00">2018-06-01</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>Spring Cloud是建立在Spring Boot基础之上，并添加了一些系统中所有组件都会使用或偶尔需要的功能。 </p>
+<blockquote>
+<p>如果由于“非法密钥大小”而导致异常，并且您使用Sun的JDK，则需要安装Java加密扩展（JCE）无限制强制管辖权策略文件。有关更多信息，请参阅以下链接：</p>
+<p><a href="http://www.oracle.com/technetwork/java/javase/downloads/jce-6-download-429243.html" target="_blank" rel="noopener">Java 6 JCE</a></p>
+<p><a href="http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html" target="_blank" rel="noopener">Java 7 JCE</a></p>
+<p><a href="http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html" target="_blank" rel="noopener">Java 8 JCE</a></p>
+<p>将文件解压缩到您使用的JRE / JDK x64 / x86版本的<code>JDK_HOME/jre/lib/security</code>文件夹中。 </p>
+</blockquote>
+<a id="more"></a>
+
+<h1 id="微服务"><a href="#微服务" class="headerlink" title="微服务"></a>微服务</h1><p>微服务就是一些协同工作的小而自治的服务。</p>
+<ul>
+<li>很小，专注于做好一件事。<br>单一职责原则：把因相同原因而变化的东西聚合到一起，而把因不同原因而变化的东西分离开来。</li>
+<li>自治性。一个微服务就是一个独立的实体，可以独立地部署。<br>服务之间均通过网络调用进行通信，从而加强了服务之间的隔离性，避免紧耦合。</li>
+</ul>
+<p>微服务好处：</p>
+<ul>
+<li>技术异构性</li>
+<li>弹性</li>
+<li>扩展：可以只对需要扩展的服务进行扩展。</li>
+<li>简化部署</li>
+<li>与组织结构相匹配</li>
+<li>可组合性</li>
+<li>对可替代性的优化</li>
+</ul>
+<p>共享库的缺点：无法选择异构的技术；添加耦合点。</p>
+<h2 id="架构师的演化视角"><a href="#架构师的演化视角" class="headerlink" title="架构师的演化视角"></a>架构师的演化视角</h2><p>架构师必须改变那种从一开始就要设计出完美产品的相当，相反我们应该设计出一个合理的框架，在这个框架下可以慢慢演化出正确的系统。</p>
+<p>未来的变化很难预见，所以与其对所有变化的可能性进行预测，不如做一个允许变化的计划。</p>
+<p>架构师要专注在大方向上，只在很有限的情况下参与到非常具体的细节实现中来。他们需要保证系统不但能够满足当前的需求，还能够应对将来的变化 。而且他们还应该保证在这个系统上工作的开发人员要和使用这个系统的用户一样开心。</p>
+<h2 id="集成"><a href="#集成" class="headerlink" title="集成"></a>集成</h2><p>同步或异步</p>
+<p>请求/响应（RPC、REST）、基于事件（消息代理、ATOM）。</p>
+<p>编排（orchestration）或协同（choreography）</p>
+<p>在微服务内部要遵守代码重用原则，但在跨服务的情况下可以适当违反代码重用原则。</p>
+<p>如果你想要使用客户端库，一定要保证其中只包含处理底层传输协议的代码，千万不要把与目标服务相关的逻辑放到客户端库中。最后，确保由客户端来负责何时进行客户端库的升级。</p>
+<h2 id="微服务模式"><a href="#微服务模式" class="headerlink" title="微服务模式"></a>微服务模式</h2><h3 id="核心微服务开发模式：Spring-Boot"><a href="#核心微服务开发模式：Spring-Boot" class="headerlink" title="核心微服务开发模式：Spring Boot"></a>核心微服务开发模式：Spring Boot</h3><p><img src="SpringCloud/%E6%A0%B8%E5%BF%83%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%BC%80%E5%8F%91%E6%A8%A1%E5%BC%8F.png" alt="核心微服务开发模式"></p>
+<p>服务粒度</p>
+<p>通信协议</p>
+<p>接口设计：</p>
+<p>配置管理：Spring Cloud Config</p>
+<p>事件处理：Spring Cloud Stream</p>
+<h3 id="微服务路由模式"><a href="#微服务路由模式" class="headerlink" title="微服务路由模式"></a>微服务路由模式</h3><p><img src="SpringCloud/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E8%B7%AF%E7%94%B1%E6%A8%A1%E5%BC%8F.png" alt="微服务路由模式"></p>
+<p>服务发现：Spring Cloud Netflix Eureka</p>
+<p>服务路由：Spring Cloud Netflix Zuul</p>
+<h3 id="微服务客户端弹性模式"><a href="#微服务客户端弹性模式" class="headerlink" title="微服务客户端弹性模式"></a>微服务客户端弹性模式</h3><p><img src="SpringCloud/%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%BC%B9%E6%80%A7%E6%A8%A1%E5%BC%8F.png" alt="客户端弹性模式"></p>
+<p>客户端负载均衡：Spring Cloud Netflix Ribbon。Ribbon会将从注册中心发现的服务位置缓存起来，这样调用服务时就不需要每次从注册中心查找服务。Ribbon还会将表现不佳或有问题的服务实例从缓存中移除，从而防止继续调用该服务实例。</p>
+<p>断路器模式：Spring Cloud Netflix Hystrix。</p>
+<p>后备模式：Spring Cloud Netflix Hystrix。当远程服务调用失败后的替代方案。</p>
+<p>舱壁模式：Spring Cloud Netflix Hystrix。每个远程资源的调用都是隔离的，并分配到不同的线程池中。从而降低一个缓慢的远程资源调用拖垮整个应用程序的风险。</p>
+<h3 id="微服务安全模式"><a href="#微服务安全模式" class="headerlink" title="微服务安全模式"></a>微服务安全模式</h3><p><img src="SpringCloud/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%AE%89%E5%85%A8%E6%A8%A1%E5%BC%8F.png" alt="微服务安全模式"></p>
+<p>验证：Spring Cloud Security/OAuth2</p>
+<p>授权：Spring Cloud Security/OAuth2</p>
+<p>凭据管理和传播：Spring Cloud Security/OAuth2/JWT</p>
+<h3 id="微服务日志记录和跟踪模式"><a href="#微服务日志记录和跟踪模式" class="headerlink" title="微服务日志记录和跟踪模式"></a>微服务日志记录和跟踪模式</h3><p><img src="SpringCloud/%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E5%92%8C%E8%B7%9F%E8%B8%AA%E6%A8%A1%E5%BC%8F.png" alt="日志记录和跟踪模式"></p>
+<p>日志关联：Spring Cloud Sleuth</p>
+<p>日志聚合：Spring Cloud Sleuth（与Papertrail）</p>
+<p>微服务跟踪：Spring Cloud Sleuth/Zipkin</p>
+<h3 id="微服务构建和部署模式"><a href="#微服务构建和部署模式" class="headerlink" title="微服务构建和部署模式"></a>微服务构建和部署模式</h3><p><img src="SpringCloud/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%9E%84%E5%BB%BA%E5%92%8C%E9%83%A8%E7%BD%B2%E6%A8%A1%E5%BC%8F.png" alt="微服务构建和部署模式"></p>
+<p>构建和部署管道：如何创建一个可重复的构建和部署过程，只需要一键即可构建和部署到组织中的任何环境。Travis CI</p>
+<p>基础设施即代码：如何将服务的基础设施作为可在源代码管理下执行和管理的代码去对待。Docker</p>
+<p>不可变服务器：一旦创建了微服务镜像，如何确保它在部署之后永远不会更改。Docker</p>
+<p>凤凰服务器（Phoenix Server）：服务器运行的时间越长，就越容易发生配置漂移。如何确保运行微服务的服务器定期被拆卸，并重新创建一个不可变的镜像。Travis CI/Docker</p>
+<h1 id="应用上下文服务：Spring-Cloud-Context"><a href="#应用上下文服务：Spring-Cloud-Context" class="headerlink" title="应用上下文服务：Spring Cloud Context"></a>应用上下文服务：Spring Cloud Context</h1><p>Spring Cloud Context为Spring云应用程序的<code>ApplicationContext</code>提供实用程序和特殊服务（bootstrap上下文、加密、刷新范围和环境端点）。 </p>
+<p>Spring Cloud应用程序通过创建“bootstrap”上下文来运行，该上下文是主应用程序的父上下文。 它负责从外部源加载配置属性，并负责解密本地外部配置文件中的属性。 </p>
+<p>默认情况下，引导属性（不是<code>bootstrap.properties</code>，而是在引导阶段加载的属性）以高优先级添加，因此它们不能被本地配置覆盖。 </p>
+<p>通过引导上下文添加到应用程序的属性源通常是“远程的”（例如，来自Spring Cloud Config Server）。默认情况下，它们不能在本地覆盖。 如果您想覆盖这些远程属性，则远程属性源必须通过设置<code>spring.cloud.config.allowOverride = true</code>来授予其权限（无法在本地进行设置） 。一旦设置了该标志，两个更细粒度的设置将控制远程属性相对于系统属性和应用程序的本地配置的位置： </p>
+<ul>
+<li><code>spring.cloud.config.overrideNone=true</code>  ：从任何本地属性源均可覆盖 。</li>
+<li><code>spring.cloud.config.overrideSystemProperties=false</code> ：只有系统属性、命令行参数和环境变量（但不是本地配置文件）可以覆盖远程设置。 </li>
+</ul>
+<p>引导上下文的配置文件默认是<code>bootstrap.properties</code>或<code>bootstrap.yml</code>，而不是使用<code>application.yml</code>或<code>application.properties</code>，后者是主应用的配置文件。</p>
+<p>例如：bootstrap.yml</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">foo</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">uri:</span> <span class="string">$&#123;SPRING_CONFIG_URI:http://localhost:8888&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果您的应用程序需要来自服务器的任何特定于应用程序的配置，那么设置<code>spring.application.name</code>（在bootstrap.yml或application.yml中）是一个不错的主意。 </p>
+<p>引导上下文配置文件名可以通过 <code>spring.cloud.bootstrap.name</code> 来定制（默认是<code>bootstrap</code>）。引导上下文配置文件的位置可以通过<code>spring.cloud.bootstrap.location</code>  来定制（默认是空）。这些属性的行为与具有相同名称的<code>spring.config.*</code>变体类似。 </p>
+<p>引导上下文配置文件也可以有Profiles，例如：<code>bootstrap-dev.properties</code>用于<code>dev</code> Profile。</p>
+<p>您可以通过设置<code>spring.cloud.bootstrap.enabled = false</code>（例如，在系统属性中）完全禁用引导过程。 </p>
+<h2 id="应用上下文的层次结构"><a href="#应用上下文的层次结构" class="headerlink" title="应用上下文的层次结构"></a>应用上下文的层次结构</h2><p>如果您从<code>SpringApplication</code>或<code>SpringApplicationBuilder</code>构建应用程序上下文，那么Bootstrap上下文将作为该上下文的父项添加。 Bootstrap上下文是您自己能够创建的最高级应用上下文的父级。 </p>
+<p>Spring的一个特性是子级上下文继承了父级的属性源和配置文件，因此与没有使用Spring Cloud Config构建的相同上下文相比，“主”应用程序上下文包含了额外属性源。 额外的属性源：</p>
+<ul>
+<li>“bootstrap”：如果在Bootstrap上下文中找到任何<code>PropertySourceLocators</code>，并且它们具有非空属性，则可选的<code>CompositePropertySource</code>将呈现高优先级。 </li>
+<li>“applicationConfig”：<code>classpath:bootstrap.yml。</code>此外，如果Spring Profiles处于活动状态，则还包括相关文件。 <code>bootstrap.yml</code> （或<code>.properties</code>）用于配置Bootstrap上下文，它的优先级低于<code>application.yml</code>（或<code>.properties</code>），以及作为创建Spring Boot应用程序过程的常规部分添加到子项的任何其他属性源。 </li>
+</ul>
+<blockquote>
+<p>注意：引导属性具有高优先级，但 <code>bootstrap.yml</code> （或<code>.properties</code>）中的属性优先级很低，常用于设置默认值。</p>
+</blockquote>
+<p>您可以通过设置您创建的任何<code>ApplicationContext</code>的父上下文来扩展上下文层次结构。例如，通过使用它拥有的接口或<code>SpringApplicationBuilder</code>便捷方法（<code>parent()</code>、<code>child()</code>和<code>sibling()</code>）。</p>
+<p>层次结构中的每个上下文都有自己的“bootstrap”属性源（可能是空的），以避免无意中将值从父级推到他们的后代。  </p>
+<p>如果有配置服务器，则层次结构中的每个上下文也可以（原则上）具有不同的<code>spring.application.name</code>，并因此具有不同的远程属性源。 </p>
+<p>正常情况下，Spring应用上下文行为规则应用于属性解析：来自子上下文的属性覆盖父类中的同名属性（基于名称和属性源名称）。 </p>
+<h1 id="公共抽象：Spring-Cloud-Commons"><a href="#公共抽象：Spring-Cloud-Commons" class="headerlink" title="公共抽象：Spring Cloud Commons"></a>公共抽象：Spring Cloud Commons</h1><p>Spring Cloud Commons是一组用于不同Spring Cloud实现（如Spring Cloud Netflix和Spring Cloud Consul）的抽象和常用类。 </p>
+<h1 id="分布式配置中心：Spring-Cloud-Config"><a href="#分布式配置中心：Spring-Cloud-Config" class="headerlink" title="分布式配置中心：Spring Cloud Config"></a>分布式配置中心：Spring Cloud Config</h1><p>Spring Cloud Config允许将Spring Boot项目的配置保存到远程服务器上。Spring Boot微服务实例启动后，向Spring Cloud Config服务器请求配置。Spring Cloud Config服务器根据Spring Boot微服务实例发送过来的spring profile来向配置服务存储库请求相应的配置，并返回给Spring Boot微服务实例。</p>
+<h2 id="创建Spring-Cloud-Config服务器"><a href="#创建Spring-Cloud-Config服务器" class="headerlink" title="创建Spring Cloud Config服务器"></a>创建Spring Cloud Config服务器</h2><ol>
+<li><p>创建一个普通的Spring Boot项目作为Spring Cloud Config服务器。</p>
+</li>
+<li><p>在项目的pom.xml中添加相应依赖（参见官方文档）。</p>
+</li>
+<li><p>在引导类上加上<code>@EnableConfigServer</code>标注，以指示将Spring Cloud Config服务器嵌入到该项目。</p>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EnableConfigServer</span></span><br><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConfigServiceApplication</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    SpringApplication.run(ConfigServiceApplication<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>)</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="创建配置服务存储库"><a href="#创建配置服务存储库" class="headerlink" title="创建配置服务存储库"></a>创建配置服务存储库</h2><p>配置服务存储库可以是文件系统、Git存储库（本地或远程）、Etcd、Eureka、Consul、Zookeeper等。</p>
+<h3 id="基于文件系统的配置服务存储库"><a href="#基于文件系统的配置服务存储库" class="headerlink" title="基于文件系统的配置服务存储库"></a>基于文件系统的配置服务存储库</h3><p>假设我们有一个微服务叫foo，文件系统任意位置创建<code>config/foo</code>目录，并在<code>foo</code>目录下创建微服务foo需要的配置文件，配置文件名称格式：应用程序名-profile名.yml（扩展名也可以是.property）。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">foo.yml   (可以通过“Spring Cloud Config配置服务URL&#x2F;foo&#x2F;default”来访问)</span><br><span class="line">foo-dev.yml  (可以通过“Spring Cloud Config配置服务URL&#x2F;foo&#x2F;dev”来访问)</span><br></pre></td></tr></table></figure>
+
+<p>然后，在Spring Cloud Config项目的application.property中配置如下：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">server.port</span>: <span class="string">8888     #Spring Cloud配置服务器要监听的端口</span></span><br><span class="line"><span class="meta">spring.profiles.active</span>: <span class="string">native   #表示使用文件系统来作为配置服务的存储库</span></span><br><span class="line"><span class="meta">spring.cloud.config.server.native.searchLocations</span>: <span class="string">file:///…/config/foo,…,file:///…/config/bar    #指定配置文件的存储位置，每个应用程序的配置存储位置用逗号分隔</span></span><br></pre></td></tr></table></figure>
+
+<p>在上面的配置中，没有位于<code>config</code>目录下名为<code>application.yml</code>或<code>application-PROFILE.yml</code>的配置是全局的，这一点与基于Git配置服务存储库不同。而在<code>config</code>下的子目录中的配置则只适用于对应的微服务。</p>
+<h3 id="基于Git的配置服务存储库"><a href="#基于Git的配置服务存储库" class="headerlink" title="基于Git的配置服务存储库"></a>基于Git的配置服务存储库</h3><p>首先，可以在本地或远程创建一个Git存储库，并按照基于文件系统的配置服务存储库中例子一样的结构创建应用程序的配置文件。</p>
+<p>然后，在Spring Cloud Config项目的application.property中配置如下：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">server.port</span>: <span class="string">8888</span></span><br><span class="line"><span class="meta">spring.cloud.config.server.git.uri</span>=<span class="string">Git存储库的URL #如果是本地的Git存储库，则以“file://”或“file:///”（Windows）开头。</span></span><br><span class="line"><span class="meta">spring.cloud.config.server.git.searchPaths</span>=<span class="string">foo, bar  #可选</span></span><br><span class="line"><span class="meta">spring.cloud.config.server.git.username</span>=<span class="string">...   #可选</span></span><br><span class="line"><span class="meta">spring.cloud.config.server.git.password</span>=<span class="string">...   #可选</span></span><br></pre></td></tr></table></figure>
+
+<p>在上面的配置中，位于<code>config</code>目录下名为<code>application.yml</code>或<code>application-PROFILE.yml</code>的配置是全局的，适用于所有微服务。而在<code>config</code>下的子目录中的配置则只适用于对应的微服务。</p>
+<blockquote>
+<p>其他更复杂的配置参见官方文档，例如配置多个存储库。</p>
+</blockquote>
+<h2 id="配置Spring-Boot项目连接Spring-Cloud-Config服务器"><a href="#配置Spring-Boot项目连接Spring-Cloud-Config服务器" class="headerlink" title="配置Spring Boot项目连接Spring Cloud Config服务器"></a>配置Spring Boot项目连接Spring Cloud Config服务器</h2><ol>
+<li><p>在Spring Boot项目的pom.xml添加相应依赖。</p>
+</li>
+<li><p>在Spring Boot项目的bootstrap.property（推荐）或application.property中配置如下：</p>
+</li>
+</ol>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">spring.application.name</span>: <span class="string">foo   #指定应用名称，将用于向Spring Cloud配置服务器请求配置</span></span><br><span class="line"><span class="meta">spring.profiles.active</span>: <span class="string">default  #指定缺省情况下，向Spring Cloud配置服务器发送的profile</span></span><br><span class="line"><span class="meta">spring.cloud.config.uri</span>: <span class="string">Spring Cloud配置服务器的地址</span></span><br></pre></td></tr></table></figure>
+
+<p>当没有显式指定profile时，应用程序将向Spring Cloud配置服务器请求默认配置，即：<code>http://Spring Cloud配置服务器的地址/foo/default</code>。</p>
+<p>如果需要显式指定profile，则需要将项目构建成JAR，然后用<code>-Dspring.profiles.active</code>系统属性来指定profile：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ java -Dspring.profiles.active=dev -jar target/foo-0.0.1-SNAPSHOT.jar</span><br></pre></td></tr></table></figure>
+
+<p>则应用程序foo将请求<code>http://Spring Cloud配置服务器的地址/foo/dev</code>来获取配置。</p>
+<p>从远程服务器上获取的配置将覆盖本地相同的配置，而本地独有的配置仍然可用。</p>
+<p>这些配置信息，可以通过<code>@Value</code>等标注，在代码中读取到。</p>
+<h2 id="刷新配置"><a href="#刷新配置" class="headerlink" title="刷新配置"></a>刷新配置</h2><p>当配置服务存储库发生变更时，Spring Cloud 配置服务器总是读取最新配置。但是，Spring Boot应用，则只会在启动时向Spring Cloud 配置服务器请求一次配置。为了使Spring Boot应用能够在启动后刷新最新配置，需要在Spring Boot项目的引导类上加上<code>@RefreshScope</code>标注：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RefreshScope</span></span><br><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FooApplication</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    SpringApplication.run(FooApplication<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>)</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后，在需要刷新配置时，通过访问：<code>http://Spring Boot应用地址/refresh</code>来执行刷新。或者，通过重启Spring Boot项目也可以刷新配置。</p>
+<h2 id="保护敏感的配置信息"><a href="#保护敏感的配置信息" class="headerlink" title="保护敏感的配置信息"></a>保护敏感的配置信息</h2><h1 id="服务治理：Spring-Cloud-Eureka"><a href="#服务治理：Spring-Cloud-Eureka" class="headerlink" title="服务治理：Spring Cloud Eureka"></a>服务治理：Spring Cloud Eureka</h1><p>Spring Cloud Eureka是基于Netflix Eureka做了二次封装，主要负责完成微服务架构中的服务治理功能（即微服务实例的自动化注册和发现）。</p>
+<p><img src="SpringCloud/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86%E6%9E%B6%E6%9E%84.png" alt="服务治理架构"></p>
+<p>服务注册：每个服务单元（Eureka客户端）向注册中心登记自己提供的服务，并周期性地发送心跳来更新它有服务租约，未及时更新服务租约的服务被认为是不可用的，将从服务清单中剔除，从而达到排除故障服务的效果。</p>
+<p>服务注册中心会维护类似下面的一个服务清单：</p>
+<table>
+<thead>
+<tr>
+<th>服务名</th>
+<th>位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>服务A</td>
+<td>192.168.0.100:8000, 192.168.0.101:8000</td>
+</tr>
+<tr>
+<td>服务B</td>
+<td>192.168.0.100:9000, 192.168.0.101:9000, 192.168.0.102:9000</td>
+</tr>
+</tbody></table>
+<p>Eureka服务器没有后端存储，但注册表中的服务实例必须发送心跳信号以保持其注册是最新的（所以这可以在内存中完成）。客户端还有一个Eureka注册的内存缓存（因此他们不必每次请求注册服务都去注册中心）。 </p>
+<p>服务发现：服务间的调用不再通过指定具体的实例地址来实现，而是通过服务名向注册中心查询服务的信息（并把它们缓存到本地并周期性地刷新服务状态），据此向服务的某个实例发起请求。</p>
+<blockquote>
+<p>在非云的世界中，服务位置解析通常由DNS和网络负载均衡器的组合来解决。这种模型对基于云的微服务不适用的原因是：</p>
+<ul>
+<li>单点故障：虽然负载均衡器可以实现高可用，但它往往是应用程序基础设施中的集中式阻塞点，是整个基础设施的单点故障。</li>
+<li>有限的水平可伸缩性：大多数负载均衡器是通过使用热插拔实现冗余，但只能使用单个服务器来处理负载，辅助负载均衡器仅在主负载均衡器中断的情况下才能进行故障切换。此外，商业负载均衡器还受到有限数量的许可证限制。</li>
+<li>静态管理：大多数负载均衡器使用集中式的数据库来存储路由规则，添加新路由的唯一方法通常是通过供应商的专有API。开发人员通常要手动定义和部署服务的映射规则。</li>
+</ul>
+</blockquote>
+<h2 id="搭建服务注册中心（Eureka服务端）"><a href="#搭建服务注册中心（Eureka服务端）" class="headerlink" title="搭建服务注册中心（Eureka服务端）"></a>搭建服务注册中心（Eureka服务端）</h2><h3 id="引入依赖"><a href="#引入依赖" class="headerlink" title="引入依赖"></a>引入依赖</h3><p>pom.xml：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-dependencies<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>Finchley.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-netflix-eureka-server<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="配置注册中心"><a href="#配置注册中心" class="headerlink" title="配置注册中心"></a>配置注册中心</h3><h4 id="独立模式"><a href="#独立模式" class="headerlink" title="独立模式"></a>独立模式</h4><p>独立模式是指只有一个Eureka注册中心提供服务发现和注册。默认情况下，Eureka是采用对等模式，因此要通过配置禁止注册中心注册自己。</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server</span>:<span class="string"></span></span><br><span class="line">  <span class="attr">port</span>: <span class="string">8761</span></span><br><span class="line"></span><br><span class="line"><span class="attr">eureka</span>:<span class="string"></span></span><br><span class="line">  <span class="attr">instance</span>:<span class="string"></span></span><br><span class="line">    <span class="attr">hostname</span>: <span class="string">localhost</span></span><br><span class="line">  <span class="attr">client</span>:<span class="string"></span></span><br><span class="line">    <span class="attr">registerWithEureka</span>: <span class="string">false     #不向注册中心注册自己</span></span><br><span class="line">    <span class="attr">fetchRegistry</span>: <span class="string">false          #不需要向注册中心查询服务</span></span><br><span class="line">    <span class="attr">serviceUrl</span>:<span class="string"></span></span><br><span class="line">      <span class="attr">defaultZone</span>: <span class="string">http://$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：在独立模式下，<code>serviceUrl</code>指向与本地实例相同的主机。 </p>
+</blockquote>
+<h4 id="对等模式"><a href="#对等模式" class="headerlink" title="对等模式"></a>对等模式</h4><p>对等模式是指通过运行多个Eureka注册中心实例并要求它们相互注册，从而实现高可用。一个Eureka实例，既提供服务注册和发现服务，同时，它也是一个客户端，并将它注册到其他Eureka实例中。您可以将多个对等端添加到系统，并且只要它们两两至少通过一个边相互连接，就可以在它们之间同步注册。如下例所示：</p>
+<p>application.yml：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">profiles:</span> <span class="string">peer1</span></span><br><span class="line"><span class="attr">server:</span></span><br><span class="line">	<span class="attr">port:</span> <span class="number">1111</span></span><br><span class="line"><span class="attr">eureka:</span></span><br><span class="line">  <span class="attr">instance:</span></span><br><span class="line">    <span class="attr">hostname:</span> <span class="string">peer1</span></span><br><span class="line">  <span class="attr">client:</span></span><br><span class="line">    <span class="attr">serviceUrl:</span></span><br><span class="line">      <span class="attr">defaultZone:</span> <span class="string">http://peer2/eureka/</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">profiles:</span> <span class="string">peer2</span></span><br><span class="line"><span class="attr">server:</span></span><br><span class="line">	<span class="attr">port:</span> <span class="number">1112</span></span><br><span class="line"><span class="attr">eureka:</span></span><br><span class="line">  <span class="attr">instance:</span></span><br><span class="line">    <span class="attr">hostname:</span> <span class="string">peer2</span></span><br><span class="line">  <span class="attr">client:</span></span><br><span class="line">    <span class="attr">serviceUrl:</span></span><br><span class="line">      <span class="attr">defaultZone:</span> <span class="string">http://peer1/eureka/</span></span><br></pre></td></tr></table></figure>
+
+<p>如果您在知道自己的主机名的机器上运行（默认情况下，它使用<code>java.net.InetAddress</code>查找），则不需要<code>eureka.instance.hostname</code>。 </p>
+<h3 id="启用服务注册中心"><a href="#启用服务注册中心" class="headerlink" title="启用服务注册中心"></a>启用服务注册中心</h3><p>通过标注<code>@EnableEurekaServer</code>来启用服务注册中心：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableEurekaServer</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">new</span> SpringApplicationBuilder(Application<span class="class">.<span class="keyword">class</span>).<span class="title">web</span>(<span class="title">true</span>).<span class="title">run</span>(<span class="title">args</span>)</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="启动注册中心"><a href="#启动注册中心" class="headerlink" title="启动注册中心"></a>启动注册中心</h3><p>以Spring Boot方式启动该注册中心。</p>
+<p>访问Eureka注册中心主页： <a href="http://localhost:8761/、http://peer1、http://peer2" target="_blank" rel="noopener">http://localhost:8761/、http://peer1、http://peer2</a></p>
+<p>Eureka提供的HTTP端点在 <code>/eureka/*</code> 下。</p>
+<h2 id="Eureka客户端"><a href="#Eureka客户端" class="headerlink" title="Eureka客户端"></a>Eureka客户端</h2><p>Eureka客户端使得Spring Boot应用可以向注册中心发布自己提供的服务（服务提供者），并且从注册中心发现并消费服务（服务消费者）。</p>
+<p>Eureka客户端可以同时既是服务消费者又是服务提供者。</p>
+<h3 id="引入依赖-1"><a href="#引入依赖-1" class="headerlink" title="引入依赖"></a>引入依赖</h3><p>pom.xml：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-dependencies<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>Finchley.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-netflix-eureka-client<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>只要在类路径中包含了<code>spring-cloud-starter-netflix-eureka-client</code>，Spring Boot应用程序将自动向Eureka服务器注册。 </p>
+<blockquote>
+<p><code>spring-cloud-starter-netflix-eureka-client</code>和<code>spring-cloud-starter-netflix-eureka-server</code>实际上已经包含了<code>spring-cloud-starter-netflix-ribbon</code>依赖。</p>
+</blockquote>
+<h3 id="配置Eureka客户端"><a href="#配置Eureka客户端" class="headerlink" title="配置Eureka客户端"></a>配置Eureka客户端</h3><p>application.properties：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">spring.application.name</span>=<span class="string">hello-app</span></span><br><span class="line"><span class="meta">eureka.client.serviceUrl.defaultZone</span>=<span class="string">http://localhost:8761/eureka/</span></span><br></pre></td></tr></table></figure>
+
+<p>在对等模式下，<code>defaultZone</code>可以设置为逗号分隔的多个注册中心地址：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">eureka.client.serviceUrl.defaultZone</span>=<span class="string">http://peer1/eureka/,http://peer2/eureka/</span></span><br></pre></td></tr></table></figure>
+
+<p>实际上，Eureka客户端只需要注册到一个注册中心，注册信息会被自动同步到相连的其他注册中心。这样，Eureka客户端的注册信息就可以通过这些注册中心中的任一台获得。但设置多个注册中心的好处是不会出现单点故障。</p>
+<p>如果注册中心需要安全认证，则可以写成：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">eureka.client.serviceUrl.defaultZone</span>=<span class="string">http://用户名:密码@localhost:8761/eureka/</span></span><br></pre></td></tr></table></figure>
+
+<p>默认情况下，使用主机名来向注册中心注册。如果Java无法确定主机名，则使用IP地址来注册。也可以显式设置使用IP地址来注册，只要设置<code>eureka.instance.preferIpAddress=true</code>（默认是<code>false</code>）。在采用Docker的情况下，建议使用IP地址来注册，因为容器的主机名通常是随机生成的，并且容器没有DNS记录。</p>
+<h3 id="发现服务"><a href="#发现服务" class="headerlink" title="发现服务"></a>发现服务</h3><p>Application.java：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableDiscoveryClient</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		SpringApplication.run(Application<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>)</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>@EnableDiscoveryClient</code>不是必需的。只要在类路径上存在<code>DiscoveryClient</code>实现，Spring Boot应用程序就会向注册中心注册实例、服务续约、取消租约和查询服务功能。</p>
+</blockquote>
+<p>然后，就可以用下列代码来查找服务实例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="keyword">private</span> DiscoveryClient discoveryClient;  <span class="comment">//注入服务发现客户端</span></span><br><span class="line">…</span><br><span class="line">List&lt;ServiceInstance&gt; instances = discoveryClient.getInstances(<span class="string">"服务名"</span>);  <span class="comment">//从注册中心中获取指定服务实例</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意，当使用带有Ribbon功能的Spring RestTemplate或Netflix Feign客户端来调用服务时，已经自动使用DiscoveryClient来查找服务了，不需要自已手动写这些代码。</p>
+</blockquote>
+<h3 id="服务消费"><a href="#服务消费" class="headerlink" title="服务消费"></a>服务消费</h3><p>服务消费者主要完成两个目标：发现服务和消费服务（即调用服务）。其中发现服务由Eureka客户端（即<code>DiscoveryClient</code>）完成，而服务消费则由下列三种方式完成。</p>
+<ul>
+<li>标准的Spring RestTemplate类来调用服务，需要开发人员自己负责负载均衡；</li>
+<li>使用带有Ribbon功能的Spring RestTemplate来调用服务；</li>
+<li>使用Netflix Feign客户端来调用服务。</li>
+</ul>
+<p>后两者都集成了Ribbon，都具有客户端负载均衡能力。</p>
+<h4 id="Ribbon-RestTemplate"><a href="#Ribbon-RestTemplate" class="headerlink" title="Ribbon+RestTemplate"></a>Ribbon+RestTemplate</h4><p>在应用主类中注册一个<code>RestTemplate</code> Bean，并通过<code>@LoadBalanced</code> 标注开启客户端负载均衡。</p>
+<p>Application.java：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableDiscoveryClient</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="meta">@LoadBalanced</span> <span class="comment">//这个Bean将带有客户端负载均衡功能</span></span><br><span class="line">  <span class="function">RestTemplate <span class="title">restTemplate</span><span class="params">()</span> </span>&#123; </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> RestTemplate();</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		SpringApplication.run(Application<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>)</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ConsumerController.java：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConsumerController</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  <span class="keyword">private</span> RestTemplate restTemplate;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@RequestMapping</span>(value=<span class="string">"/ribbon-consumer"</span>, method=RequestMethod.GET)</span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">helloConsumer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 这里URL中是一个服务名，而不是具体的地址。它自动从注册中心发现服务，不需要显式手动使用DiscoveryClient来查找服务。</span></span><br><span class="line">    <span class="keyword">return</span> restTemplate.getForEntity(<span class="string">"http://hello-app/hello"</span>, String<span class="class">.<span class="keyword">class</span>).<span class="title">getBody</span>()</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>服务名不区分大小写，因此<code>hello-app</code>和<code>HELLO-APP</code>都是可以的。</p>
+</blockquote>
+<h4 id="Feign"><a href="#Feign" class="headerlink" title="Feign"></a>Feign</h4><ol>
+<li>引入feign依赖：</li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-openfeign<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>启用Feign：</li>
+</ol>
+<p>Application.java：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableDiscoveryClient</span></span><br><span class="line"><span class="meta">@EnableFeignClients</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplication.run(ServiceFeignApplication<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>定义一个feign接口，通过<code>@FeignClient（&quot;服务名&quot;）</code>，来绑定某个服务提供者。 然后，再使用Spring MVC的标注（例如<code>@GetMappint</code>）来将该服务提供者提供的REST接口绑定到指定方法上。这样，后续只要调用该方法，就相当向该服务提供者提供的REST接口发起了请求。</li>
+</ol>
+<p>HelloFeignClient.java：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FeignClient</span>(<span class="string">"hello-app"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">HelloFeignClient</span> </span>&#123;</span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"/hello"</span>)</span><br><span class="line">    <span class="function">String <span class="title">sayHello</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在Web层的控制器，对外暴露一个”/hi”的API接口，通过上面定义的Feign客户端HelloFeignClient来消费服务。 </p>
+<p>HiController.java：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HiController</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  HelloFeignClient helloFeignClient;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@GetMapping</span>(<span class="string">"/hi"</span>)</span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">sayHi</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> helloFeignClient.sayHello();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="启动应用"><a href="#启动应用" class="headerlink" title="启动应用"></a>启动应用</h3><p>按正常方式启动这个Spring Boot应用。</p>
+<p>在浏览器中访问：<a href="http://localhost:8080/hi" target="_blank" rel="noopener">http://localhost:8080/hi</a> （假设该服务提供者提供了一个<code>/hi</code>服务）</p>
+<h3 id="服务下线"><a href="#服务下线" class="headerlink" title="服务下线"></a>服务下线</h3><p>当服务实例进行正常的关闭操作时，它会触发一个服务下线的REST请求给Eureka服务注册中心，告诉服务注册中心：”我要下线了“。服务注册中心在接收到下线请求后，将该服务的状态置为”下线“（DOWN），并把该下线事件传播出去。</p>
+<h2 id="配置详解"><a href="#配置详解" class="headerlink" title="配置详解"></a>配置详解</h2><h3 id="注册中心配置"><a href="#注册中心配置" class="headerlink" title="注册中心配置"></a>注册中心配置</h3><p>参见<code>org.springframework.cloud.netflix.eureka.server.EurekaServerConfigBean</code>。</p>
+<table>
+<thead>
+<tr>
+<th>配置参数</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>eureka.server.enable-self-preservation</td>
+<td>false</td>
+<td>是否启用注册中心的保护机制。值为<code>true</code>时，Eureka 会统计15分钟之内心跳失败的比例如果低于85%将会触发保护机制，这时将不会剔除服务提供者。值为<code>false</code>时，服务注册中心会将不可用的实例正确剔除。</td>
+</tr>
+</tbody></table>
+<h3 id="服务实例配置"><a href="#服务实例配置" class="headerlink" title="服务实例配置"></a>服务实例配置</h3><p>参见：<code>org.springframework.cloud.netflix.eureka.EurekaInstanceConfigBean</code>。</p>
+<table>
+<thead>
+<tr>
+<th>配置参数</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>eureka.instance.prefer-ip-address</td>
+<td>false</td>
+<td>不使用主机名来定义注册中心的地址，而使用IP地址的形式，如果设置了eureka.instance.ip-address 属性，则使用该属性配置的IP，否则自动获取除环路IP外的第一个IP地址</td>
+</tr>
+<tr>
+<td>eureka.instance.ip-address</td>
+<td></td>
+<td>IP地址</td>
+</tr>
+<tr>
+<td>eureka.instance.hostname</td>
+<td></td>
+<td>设置当前实例的主机名称。</td>
+</tr>
+<tr>
+<td>eureka.instance.appname</td>
+<td></td>
+<td>服务名，默认取 spring.application.name 配置值，如果没有则为 unknown。同一服务有多个实例时，服务名是相同的。</td>
+</tr>
+<tr>
+<td>eureka.instance.lease-renewal-interval-in-seconds</td>
+<td>30</td>
+<td>定义服务续约任务（心跳）的调用间隔，单位：秒</td>
+</tr>
+<tr>
+<td>eureka.instance.lease-expiration-duration-in-seconds</td>
+<td>90</td>
+<td>定义服务失效的时间，单位：秒</td>
+</tr>
+<tr>
+<td>eureka.instance.status-page-url-path</td>
+<td>/info</td>
+<td>状态页面的URL，相对路径，默认使用 HTTP 访问，如果需要使用 HTTPS则需要使用绝对路径配置</td>
+</tr>
+<tr>
+<td>eureka.instance.status-page-url</td>
+<td></td>
+<td>状态页面的URL，绝对路径</td>
+</tr>
+<tr>
+<td>eureka.instance.health-check-url-path</td>
+<td>/health</td>
+<td>健康检查页面的URL，相对路径，默认使用 HTTP 访问，如果需要使用 HTTPS则需要使用绝对路径配置</td>
+</tr>
+<tr>
+<td>eureka.instance.health-check-url</td>
+<td></td>
+<td>健康检查页面的URL，绝对路径</td>
+</tr>
+</tbody></table>
+<h3 id="服务注册配置"><a href="#服务注册配置" class="headerlink" title="服务注册配置"></a>服务注册配置</h3><p>参见：<code>org.springframework.cloud.netflix.eureka.EurekaClientConfigBean</code>。</p>
+<table>
+<thead>
+<tr>
+<th>配置参数</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>eureka.client.serviceUrl</td>
+<td>defalutZone: <a href="http://localhost:8761/eureka/" target="_blank" rel="noopener">http://localhost:8761/eureka/</a></td>
+<td>指定注册中心。配置值是一个<code>HashMap</code>类型。</td>
+</tr>
+<tr>
+<td>eureka.client.enabled</td>
+<td>true</td>
+<td>启用Eureka客户端。</td>
+</tr>
+<tr>
+<td>eureka.client.registryFetchIntervalSeconds</td>
+<td>30</td>
+<td>从注册中心获取注册信息的时间间隔。单位为秒。</td>
+</tr>
+<tr>
+<td>eureka.client.instanceInfoReplicationIntervalSeconds</td>
+<td>30</td>
+<td>更新实例信息到注册中心的时间间隔。单位为秒。</td>
+</tr>
+<tr>
+<td>eureka.client.initialInstanceInfoReplicationIntervalSeconds</td>
+<td>40</td>
+<td></td>
+</tr>
+<tr>
+<td>eureka.client.eurekaServiceUrlPollIntervalSeconds</td>
+<td>300</td>
+<td>轮询Eureka服务端地址更改的时间间隔。单位为秒。</td>
+</tr>
+<tr>
+<td>eureka.client.eurekaServerReadTimeoutSeconds</td>
+<td>8</td>
+<td>读取Eureka服务器信息的超时时间。单位为秒。</td>
+</tr>
+<tr>
+<td>eureka.client.eurekaServerConnectTimeoutSeconds</td>
+<td>5</td>
+<td>连接Eureka服务器的超时时间。单位为秒。</td>
+</tr>
+<tr>
+<td>eureka.client.eurekaServerTotalConnections</td>
+<td>200</td>
+<td>所有Eureka服务端的连接总数。</td>
+</tr>
+<tr>
+<td>eureka.client.eurekaServerTotalConnectionsPerHost</td>
+<td>50</td>
+<td>每个Eureka服务端的连接总数。</td>
+</tr>
+<tr>
+<td>eureka.client.eurekaConnectionIdleTimeoutSeconds</td>
+<td>30</td>
+<td>连接闲置时间。单位为秒。</td>
+</tr>
+<tr>
+<td>eureka.client.heartbeatExecutorThreadPoolSize</td>
+<td>2</td>
+<td>心跳连接池的初始化线程数。</td>
+</tr>
+<tr>
+<td>eureka.client.heartbeatExecutorExponentialBackOffBound</td>
+<td>10</td>
+<td>心跳超时重试延迟时间的最大乘数值。</td>
+</tr>
+<tr>
+<td>eureka.client.cacheRefreshExecutorThreadPoolSize</td>
+<td>2</td>
+<td>缓存刷新线程池的初始化线程数。</td>
+</tr>
+<tr>
+<td>eureka.client.cacheRefreshExecutorExponentialBackOffBound</td>
+<td>10</td>
+<td>缓存刷新重试延迟时间的最大乘数值。</td>
+</tr>
+<tr>
+<td>eureka.client.useDnsForFetchingServiceUrls</td>
+<td>false</td>
+<td>使用DNS来获取Eureka服务端的serviceUrl。</td>
+</tr>
+<tr>
+<td>eureka.client.registerWithEureka</td>
+<td>true</td>
+<td>是否要将自身的实例信息注册到Eureka服务端。</td>
+</tr>
+<tr>
+<td>eureka.client.preferSameZoneEureka</td>
+<td>true</td>
+<td>是否偏好使用处于相同Zone的Eureka服务端。</td>
+</tr>
+<tr>
+<td>eureka.client.filterOnlyUpInstances</td>
+<td>true</td>
+<td>获取实例时是否过滤，仅保留UP状态的实例。</td>
+</tr>
+<tr>
+<td>eureka.client.fetchRegistry</td>
+<td>true</td>
+<td>是否从Eureka服务端获取注册信息。</td>
+</tr>
+</tbody></table>
+<h1 id="客户端负载均衡：Spring-Cloud-Ribbon"><a href="#客户端负载均衡：Spring-Cloud-Ribbon" class="headerlink" title="客户端负载均衡：Spring Cloud Ribbon"></a>客户端负载均衡：Spring Cloud Ribbon</h1><p><img src="SpringCloud/%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1.png" alt="客户端负载均衡"></p>
+<h1 id="断路器：Spring-Cloud-Hystrix"><a href="#断路器：Spring-Cloud-Hystrix" class="headerlink" title="断路器：Spring Cloud Hystrix"></a>断路器：Spring Cloud Hystrix</h1><p><img src="SpringCloud/%E6%96%AD%E8%B7%AF%E5%99%A8.png" alt="断路器"></p>
+<p><img src="SpringCloud/%E8%B7%B3%E9%97%B8%E5%86%B3%E7%AD%96.png" alt="跳闸决策"></p>
+<h2 id="引入依赖-2"><a href="#引入依赖-2" class="headerlink" title="引入依赖"></a>引入依赖</h2><h2 id="启用断路器"><a href="#启用断路器" class="headerlink" title="启用断路器"></a>启用断路器</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableCircuitBreaker</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">new</span> SpringApplicationBuilder(Application<span class="class">.<span class="keyword">class</span>).<span class="title">web</span>(<span class="title">true</span>).<span class="title">run</span>(<span class="title">args</span>)</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="用断路器包装远程资源调用"><a href="#用断路器包装远程资源调用" class="headerlink" title="用断路器包装远程资源调用"></a>用断路器包装远程资源调用</h2><p>通过在Java方法上标记<code>@HystrixCommand</code>标注来将该方法交由断路器进行管理。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@HystrixCommand</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> List&lt;License&gt; <span class="title">getLicensesByOrg</span><span class="params">(String orgId)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> licenseRepository.findByOrgId(orgId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="配置断路器"><a href="#配置断路器" class="headerlink" title="配置断路器"></a>配置断路器</h2><h3 id="配置的级别"><a href="#配置的级别" class="headerlink" title="配置的级别"></a>配置的级别</h3><ul>
+<li>应用程序级</li>
+<li>类级别：通过<code>@DefaultProperties</code>标注。</li>
+<li>在类中定义的线程池级别。</li>
+</ul>
+<h3 id="配置调用超时"><a href="#配置调用超时" class="headerlink" title="配置调用超时"></a>配置调用超时</h3><h3 id="后备处理"><a href="#后备处理" class="headerlink" title="后备处理"></a>后备处理</h3><h3 id="实现舱壁模式"><a href="#实现舱壁模式" class="headerlink" title="实现舱壁模式"></a>实现舱壁模式</h3><h1 id="声明式服务调用：Spring-Cloud-Feign"><a href="#声明式服务调用：Spring-Cloud-Feign" class="headerlink" title="声明式服务调用：Spring Cloud Feign"></a>声明式服务调用：Spring Cloud Feign</h1><h1 id="API网关：Spring-Cloud-Zuul"><a href="#API网关：Spring-Cloud-Zuul" class="headerlink" title="API网关：Spring Cloud Zuul"></a>API网关：Spring Cloud Zuul</h1><h2 id="建立Zuul网关服务器"><a href="#建立Zuul网关服务器" class="headerlink" title="建立Zuul网关服务器"></a>建立Zuul网关服务器</h2><h3 id="创建Spring-Boot项目并添加相关依赖"><a href="#创建Spring-Boot项目并添加相关依赖" class="headerlink" title="创建Spring Boot项目并添加相关依赖"></a>创建Spring Boot项目并添加相关依赖</h3><h3 id="启用Zuul服务"><a href="#启用Zuul服务" class="headerlink" title="启用Zuul服务"></a>启用Zuul服务</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableZuulProxy</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">new</span> SpringApplicationBuilder(Application<span class="class">.<span class="keyword">class</span>).<span class="title">web</span>(<span class="title">true</span>).<span class="title">run</span>(<span class="title">args</span>)</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>另外，还有一个<code>@EnableZuulServer</code>标注，它也启用Zuul服务，但不会加载任何Zuul反向代理过滤器，也不会使用Eureka进行服务发现。也就是说，当开发人员不想使用Zuul默认预置的功能时 ，例如需要使用Eureka之外的其他服务发现引擎时，才会使用该标注。</p>
+</blockquote>
+<h3 id="配置Zuul"><a href="#配置Zuul" class="headerlink" title="配置Zuul"></a>配置Zuul</h3><p>Zuul默认自动使用Eureka来通过服务ID查找服务，然后使用Ribbon对来自Zuul的请求进行客户端负载均衡。</p>
+<h2 id="路由"><a href="#路由" class="headerlink" title="路由"></a>路由</h2><h3 id="通过服务发现自动映射路由"><a href="#通过服务发现自动映射路由" class="headerlink" title="通过服务发现自动映射路由"></a>通过服务发现自动映射路由</h3><h3 id="使用服务发现手动映射路由"><a href="#使用服务发现手动映射路由" class="headerlink" title="使用服务发现手动映射路由"></a>使用服务发现手动映射路由</h3><h3 id="使用静态URL手动映射路由"><a href="#使用静态URL手动映射路由" class="headerlink" title="使用静态URL手动映射路由"></a>使用静态URL手动映射路由</h3><p>将路由配置放到Spring Cloud配置服务器以实现动态加载路由配置。</p>
+<h2 id="过滤器"><a href="#过滤器" class="headerlink" title="过滤器"></a>过滤器</h2><h1 id="保护微服务：Spring-Cloud-Security"><a href="#保护微服务：Spring-Cloud-Security" class="headerlink" title="保护微服务：Spring Cloud Security"></a>保护微服务：Spring Cloud Security</h1><h2 id="创建授权服务器"><a href="#创建授权服务器" class="headerlink" title="创建授权服务器"></a>创建授权服务器</h2><h3 id="创建一个Spring-Boot项目"><a href="#创建一个Spring-Boot项目" class="headerlink" title="创建一个Spring Boot项目"></a>创建一个Spring Boot项目</h3><h3 id="添加相应依赖"><a href="#添加相应依赖" class="headerlink" title="添加相应依赖"></a>添加相应依赖</h3><h3 id="启用授权服务器"><a href="#启用授权服务器" class="headerlink" title="启用授权服务器"></a>启用授权服务器</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableAuthorizationServer</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">new</span> SpringApplicationBuilder(Application<span class="class">.<span class="keyword">class</span>).<span class="title">web</span>(<span class="title">true</span>).<span class="title">run</span>(<span class="title">args</span>)</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置授权服务器"><a href="#配置授权服务器" class="headerlink" title="配置授权服务器"></a>配置授权服务器</h3><h3 id="注册客户端应用程序"><a href="#注册客户端应用程序" class="headerlink" title="注册客户端应用程序"></a>注册客户端应用程序</h3><h3 id="配置授权服务器的端点"><a href="#配置授权服务器的端点" class="headerlink" title="配置授权服务器的端点"></a>配置授权服务器的端点</h3><h2 id="用户认证"><a href="#用户认证" class="headerlink" title="用户认证"></a>用户认证</h2><h2 id="创建受保护资源"><a href="#创建受保护资源" class="headerlink" title="创建受保护资源"></a>创建受保护资源</h2><h3 id="创建一个Spring-Boot项目-1"><a href="#创建一个Spring-Boot项目-1" class="headerlink" title="创建一个Spring Boot项目"></a>创建一个Spring Boot项目</h3><h3 id="添加相应依赖-1"><a href="#添加相应依赖-1" class="headerlink" title="添加相应依赖"></a>添加相应依赖</h3><h3 id="启用资源服务器"><a href="#启用资源服务器" class="headerlink" title="启用资源服务器"></a>启用资源服务器</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableResourceServer</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">new</span> SpringApplicationBuilder(Application<span class="class">.<span class="keyword">class</span>).<span class="title">web</span>(<span class="title">true</span>).<span class="title">run</span>(<span class="title">args</span>)</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置资源服务器"><a href="#配置资源服务器" class="headerlink" title="配置资源服务器"></a>配置资源服务器</h3><h3 id="定义访问控制规则"><a href="#定义访问控制规则" class="headerlink" title="定义访问控制规则"></a>定义访问控制规则</h3><h2 id="访问受保护的资源"><a href="#访问受保护的资源" class="headerlink" title="访问受保护的资源"></a>访问受保护的资源</h2><h3 id="通过Feign访问受保护资源"><a href="#通过Feign访问受保护资源" class="headerlink" title="通过Feign访问受保护资源"></a>通过Feign访问受保护资源</h3><h2 id="在OAuth2中使用JWT"><a href="#在OAuth2中使用JWT" class="headerlink" title="在OAuth2中使用JWT"></a>在OAuth2中使用JWT</h2><h1 id="消息总线：Spring-Cloud-Bus"><a href="#消息总线：Spring-Cloud-Bus" class="headerlink" title="消息总线：Spring Cloud Bus"></a>消息总线：Spring Cloud Bus</h1><h1 id="消息驱动：Spring-Cloud-Stream"><a href="#消息驱动：Spring-Cloud-Stream" class="headerlink" title="消息驱动：Spring Cloud Stream"></a>消息驱动：Spring Cloud Stream</h1><p><img src="SpringCloud/%E6%B6%88%E6%81%AF%E7%9A%84%E5%8F%91%E5%B8%83%E5%92%8C%E6%B6%88%E8%B4%B9.png" alt="消息的发布和消费"></p>
+<h2 id="消息生产者"><a href="#消息生产者" class="headerlink" title="消息生产者"></a>消息生产者</h2><h2 id="消息消费者"><a href="#消息消费者" class="headerlink" title="消息消费者"></a>消息消费者</h2><h1 id="分布式服务跟踪：Spring-Cloud-Sleuth"><a href="#分布式服务跟踪：Spring-Cloud-Sleuth" class="headerlink" title="分布式服务跟踪：Spring Cloud Sleuth"></a>分布式服务跟踪：Spring Cloud Sleuth</h1>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Finchley-RELEASE/" rel="tag"># Finchley.RELEASE</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/06/01/SpringWeb/" rel="prev" title="SpringWeb">
+      <i class="fa fa-chevron-left"></i> SpringWeb
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/06/09/Flex-Bison/" rel="next" title="Flex-Bison">
+      Flex-Bison <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#微服务"><span class="nav-number">2.</span> <span class="nav-text">微服务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#架构师的演化视角"><span class="nav-number">2.1.</span> <span class="nav-text">架构师的演化视角</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集成"><span class="nav-number">2.2.</span> <span class="nav-text">集成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#微服务模式"><span class="nav-number">2.3.</span> <span class="nav-text">微服务模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#核心微服务开发模式：Spring-Boot"><span class="nav-number">2.3.1.</span> <span class="nav-text">核心微服务开发模式：Spring Boot</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#微服务路由模式"><span class="nav-number">2.3.2.</span> <span class="nav-text">微服务路由模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#微服务客户端弹性模式"><span class="nav-number">2.3.3.</span> <span class="nav-text">微服务客户端弹性模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#微服务安全模式"><span class="nav-number">2.3.4.</span> <span class="nav-text">微服务安全模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#微服务日志记录和跟踪模式"><span class="nav-number">2.3.5.</span> <span class="nav-text">微服务日志记录和跟踪模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#微服务构建和部署模式"><span class="nav-number">2.3.6.</span> <span class="nav-text">微服务构建和部署模式</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#应用上下文服务：Spring-Cloud-Context"><span class="nav-number">3.</span> <span class="nav-text">应用上下文服务：Spring Cloud Context</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#应用上下文的层次结构"><span class="nav-number">3.1.</span> <span class="nav-text">应用上下文的层次结构</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#公共抽象：Spring-Cloud-Commons"><span class="nav-number">4.</span> <span class="nav-text">公共抽象：Spring Cloud Commons</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分布式配置中心：Spring-Cloud-Config"><span class="nav-number">5.</span> <span class="nav-text">分布式配置中心：Spring Cloud Config</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#创建Spring-Cloud-Config服务器"><span class="nav-number">5.1.</span> <span class="nav-text">创建Spring Cloud Config服务器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建配置服务存储库"><span class="nav-number">5.2.</span> <span class="nav-text">创建配置服务存储库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基于文件系统的配置服务存储库"><span class="nav-number">5.2.1.</span> <span class="nav-text">基于文件系统的配置服务存储库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于Git的配置服务存储库"><span class="nav-number">5.2.2.</span> <span class="nav-text">基于Git的配置服务存储库</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置Spring-Boot项目连接Spring-Cloud-Config服务器"><span class="nav-number">5.3.</span> <span class="nav-text">配置Spring Boot项目连接Spring Cloud Config服务器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#刷新配置"><span class="nav-number">5.4.</span> <span class="nav-text">刷新配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#保护敏感的配置信息"><span class="nav-number">5.5.</span> <span class="nav-text">保护敏感的配置信息</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#服务治理：Spring-Cloud-Eureka"><span class="nav-number">6.</span> <span class="nav-text">服务治理：Spring Cloud Eureka</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#搭建服务注册中心（Eureka服务端）"><span class="nav-number">6.1.</span> <span class="nav-text">搭建服务注册中心（Eureka服务端）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#引入依赖"><span class="nav-number">6.1.1.</span> <span class="nav-text">引入依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置注册中心"><span class="nav-number">6.1.2.</span> <span class="nav-text">配置注册中心</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#独立模式"><span class="nav-number">6.1.2.1.</span> <span class="nav-text">独立模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#对等模式"><span class="nav-number">6.1.2.2.</span> <span class="nav-text">对等模式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启用服务注册中心"><span class="nav-number">6.1.3.</span> <span class="nav-text">启用服务注册中心</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动注册中心"><span class="nav-number">6.1.4.</span> <span class="nav-text">启动注册中心</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Eureka客户端"><span class="nav-number">6.2.</span> <span class="nav-text">Eureka客户端</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#引入依赖-1"><span class="nav-number">6.2.1.</span> <span class="nav-text">引入依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置Eureka客户端"><span class="nav-number">6.2.2.</span> <span class="nav-text">配置Eureka客户端</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#发现服务"><span class="nav-number">6.2.3.</span> <span class="nav-text">发现服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务消费"><span class="nav-number">6.2.4.</span> <span class="nav-text">服务消费</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Ribbon-RestTemplate"><span class="nav-number">6.2.4.1.</span> <span class="nav-text">Ribbon+RestTemplate</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Feign"><span class="nav-number">6.2.4.2.</span> <span class="nav-text">Feign</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动应用"><span class="nav-number">6.2.5.</span> <span class="nav-text">启动应用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务下线"><span class="nav-number">6.2.6.</span> <span class="nav-text">服务下线</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置详解"><span class="nav-number">6.3.</span> <span class="nav-text">配置详解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#注册中心配置"><span class="nav-number">6.3.1.</span> <span class="nav-text">注册中心配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务实例配置"><span class="nav-number">6.3.2.</span> <span class="nav-text">服务实例配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务注册配置"><span class="nav-number">6.3.3.</span> <span class="nav-text">服务注册配置</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#客户端负载均衡：Spring-Cloud-Ribbon"><span class="nav-number">7.</span> <span class="nav-text">客户端负载均衡：Spring Cloud Ribbon</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#断路器：Spring-Cloud-Hystrix"><span class="nav-number">8.</span> <span class="nav-text">断路器：Spring Cloud Hystrix</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#引入依赖-2"><span class="nav-number">8.1.</span> <span class="nav-text">引入依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启用断路器"><span class="nav-number">8.2.</span> <span class="nav-text">启用断路器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用断路器包装远程资源调用"><span class="nav-number">8.3.</span> <span class="nav-text">用断路器包装远程资源调用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置断路器"><span class="nav-number">8.4.</span> <span class="nav-text">配置断路器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置的级别"><span class="nav-number">8.4.1.</span> <span class="nav-text">配置的级别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置调用超时"><span class="nav-number">8.4.2.</span> <span class="nav-text">配置调用超时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#后备处理"><span class="nav-number">8.4.3.</span> <span class="nav-text">后备处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现舱壁模式"><span class="nav-number">8.4.4.</span> <span class="nav-text">实现舱壁模式</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#声明式服务调用：Spring-Cloud-Feign"><span class="nav-number">9.</span> <span class="nav-text">声明式服务调用：Spring Cloud Feign</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#API网关：Spring-Cloud-Zuul"><span class="nav-number">10.</span> <span class="nav-text">API网关：Spring Cloud Zuul</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#建立Zuul网关服务器"><span class="nav-number">10.1.</span> <span class="nav-text">建立Zuul网关服务器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建Spring-Boot项目并添加相关依赖"><span class="nav-number">10.1.1.</span> <span class="nav-text">创建Spring Boot项目并添加相关依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启用Zuul服务"><span class="nav-number">10.1.2.</span> <span class="nav-text">启用Zuul服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置Zuul"><span class="nav-number">10.1.3.</span> <span class="nav-text">配置Zuul</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由"><span class="nav-number">10.2.</span> <span class="nav-text">路由</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#通过服务发现自动映射路由"><span class="nav-number">10.2.1.</span> <span class="nav-text">通过服务发现自动映射路由</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用服务发现手动映射路由"><span class="nav-number">10.2.2.</span> <span class="nav-text">使用服务发现手动映射路由</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用静态URL手动映射路由"><span class="nav-number">10.2.3.</span> <span class="nav-text">使用静态URL手动映射路由</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#过滤器"><span class="nav-number">10.3.</span> <span class="nav-text">过滤器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#保护微服务：Spring-Cloud-Security"><span class="nav-number">11.</span> <span class="nav-text">保护微服务：Spring Cloud Security</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#创建授权服务器"><span class="nav-number">11.1.</span> <span class="nav-text">创建授权服务器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建一个Spring-Boot项目"><span class="nav-number">11.1.1.</span> <span class="nav-text">创建一个Spring Boot项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加相应依赖"><span class="nav-number">11.1.2.</span> <span class="nav-text">添加相应依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启用授权服务器"><span class="nav-number">11.1.3.</span> <span class="nav-text">启用授权服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置授权服务器"><span class="nav-number">11.1.4.</span> <span class="nav-text">配置授权服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#注册客户端应用程序"><span class="nav-number">11.1.5.</span> <span class="nav-text">注册客户端应用程序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置授权服务器的端点"><span class="nav-number">11.1.6.</span> <span class="nav-text">配置授权服务器的端点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用户认证"><span class="nav-number">11.2.</span> <span class="nav-text">用户认证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建受保护资源"><span class="nav-number">11.3.</span> <span class="nav-text">创建受保护资源</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建一个Spring-Boot项目-1"><span class="nav-number">11.3.1.</span> <span class="nav-text">创建一个Spring Boot项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加相应依赖-1"><span class="nav-number">11.3.2.</span> <span class="nav-text">添加相应依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启用资源服务器"><span class="nav-number">11.3.3.</span> <span class="nav-text">启用资源服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置资源服务器"><span class="nav-number">11.3.4.</span> <span class="nav-text">配置资源服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定义访问控制规则"><span class="nav-number">11.3.5.</span> <span class="nav-text">定义访问控制规则</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#访问受保护的资源"><span class="nav-number">11.4.</span> <span class="nav-text">访问受保护的资源</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#通过Feign访问受保护资源"><span class="nav-number">11.4.1.</span> <span class="nav-text">通过Feign访问受保护资源</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在OAuth2中使用JWT"><span class="nav-number">11.5.</span> <span class="nav-text">在OAuth2中使用JWT</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#消息总线：Spring-Cloud-Bus"><span class="nav-number">12.</span> <span class="nav-text">消息总线：Spring Cloud Bus</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#消息驱动：Spring-Cloud-Stream"><span class="nav-number">13.</span> <span class="nav-text">消息驱动：Spring Cloud Stream</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#消息生产者"><span class="nav-number">13.1.</span> <span class="nav-text">消息生产者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息消费者"><span class="nav-number">13.2.</span> <span class="nav-text">消息消费者</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分布式服务跟踪：Spring-Cloud-Sleuth"><span class="nav-number">14.</span> <span class="nav-text">分布式服务跟踪：Spring Cloud Sleuth</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

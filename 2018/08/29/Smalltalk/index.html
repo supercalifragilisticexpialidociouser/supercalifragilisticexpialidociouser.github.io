@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="简介Smalltalk是一个面向对象的、动态类型的编程语言。 IDE：Pharo、Squeak 词法字符集 a-z A-Z 0-9 .+&#x2F;*~&lt;&gt;@%|&amp;? blank, tab, cr, ff, lf  标识符全局变量的首字母必须大写，局部变量的首字母必须小写。 关键字关键字实际上是以冒号结尾的标识符（例如keyword:），它只有在它形成“关键字消息”的时候才有意义。 保留">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Smalltalk">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2018/08/29/Smalltalk/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="简介Smalltalk是一个面向对象的、动态类型的编程语言。 IDE：Pharo、Squeak 词法字符集 a-z A-Z 0-9 .+&#x2F;*~&lt;&gt;@%|&amp;? blank, tab, cr, ff, lf  标识符全局变量的首字母必须大写，局部变量的首字母必须小写。 关键字关键字实际上是以冒号结尾的标识符（例如keyword:），它只有在它形成“关键字消息”的时候才有意义。 保留">
+<meta property="article:published_time" content="2018-08-29T02:29:20.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:50.006Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="programming">
+<meta property="article:tag" content="学习">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="开发">
+<meta property="article:tag" content="IT">
+<meta property="article:tag" content="技术">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2018/08/29/Smalltalk/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Smalltalk | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2018/08/29/Smalltalk/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Smalltalk
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-08-29 10:29:20" itemprop="dateCreated datePublished" datetime="2018-08-29T10:29:20+08:00">2018-08-29</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>Smalltalk是一个面向对象的、动态类型的编程语言。</p>
+<p>IDE：<a href="https://pharo.org/" target="_blank" rel="noopener">Pharo</a>、<a href="https://squeak.org/" target="_blank" rel="noopener">Squeak</a></p>
+<h1 id="词法"><a href="#词法" class="headerlink" title="词法"></a>词法</h1><h2 id="字符集"><a href="#字符集" class="headerlink" title="字符集"></a>字符集</h2><ul>
+<li>a-z</li>
+<li>A-Z</li>
+<li>0-9</li>
+<li>.+/*~&lt;&gt;@%|&amp;?</li>
+<li>blank, tab, cr, ff, lf</li>
+</ul>
+<h2 id="标识符"><a href="#标识符" class="headerlink" title="标识符"></a>标识符</h2><p>全局变量的首字母必须大写，局部变量的首字母必须小写。</p>
+<h2 id="关键字"><a href="#关键字" class="headerlink" title="关键字"></a>关键字</h2><p>关键字实际上是以冒号结尾的标识符（例如<code>keyword:</code>），它只有在它形成“关键字消息”的时候才有意义。</p>
+<h2 id="保留字"><a href="#保留字" class="headerlink" title="保留字"></a>保留字</h2><p> <code>nil</code>、<code>true</code>、<code>false</code>、<code>self</code>、<code>super</code>和<code>Smalltalk</code></p>
+<p><code>self</code>引用消息接收者。</p>
+<p><code>super</code>引用定义当前代码的对象的父类，而不是引用接收者的父类。</p>
+<h2 id="数值"><a href="#数值" class="headerlink" title="数值"></a>数值</h2><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">5</span>        <span class="comment">"十进制数5"</span></span><br><span class="line"><span class="number">16</span>r7f    <span class="comment">"十六进制数7f"</span></span><br><span class="line">基数r111 <span class="comment">"任意进制数11"</span></span><br><span class="line"><span class="number">2e-5</span>     <span class="comment">"浮点数"</span></span><br><span class="line"><span class="number">22</span>/<span class="number">7</span>     <span class="comment">"分数"</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="字符"><a href="#字符" class="headerlink" title="字符"></a>字符</h2><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">$h</span>    <span class="comment">"字符h"</span></span><br><span class="line"><span class="string">$ </span>    <span class="comment">"$后跟一个空格表示空格字符"</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h2><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">'这是字符串'</span></span><br><span class="line"><span class="string">'I'</span><span class="string">'m here'</span></span><br><span class="line"></span><br><span class="line">x := <span class="string">'String'</span>, <span class="string">'Concatenation'</span>.                    <span class="comment">"string concatenation"</span></span><br></pre></td></tr></table></figure>
+
+<p>字符串中的单引号，使用两个单引号（<code>&#39;&#39;</code>）表示。</p>
+<h2 id="布尔值"><a href="#布尔值" class="headerlink" title="布尔值"></a>布尔值</h2><p><code>true</code>：<code>True</code>类的唯一实例。</p>
+<p><code>false</code>：<code>False</code>类的唯一实例。</p>
+<h2 id="空值"><a href="#空值" class="headerlink" title="空值"></a>空值</h2><p> <code>nil</code>：代表未初始化的值。</p>
+<h2 id="符号"><a href="#符号" class="headerlink" title="符号"></a>符号</h2><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">#red</span>    <span class="comment">"符号red"</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h2><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">"这是注释"</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h1><p>Smalltalk中的变量是没有类型的，即它可以引用任意类型对象。因此，声明变量时，不需要指定类型。</p>
+<p>Smalltalk的对象是有类型的（实际上是类）。</p>
+<p>变量必须在使用前声明。</p>
+<h2 id="作用域"><a href="#作用域" class="headerlink" title="作用域"></a>作用域</h2><h3 id="全局作用域"><a href="#全局作用域" class="headerlink" title="全局作用域"></a>全局作用域</h3><p>在<code>Smalltalk</code>字典中定义，对所有对象可见。</p>
+<p>全局变量命名，约定以大写字母开始。</p>
+<h3 id="方法临时作用域"><a href="#方法临时作用域" class="headerlink" title="方法临时作用域"></a>方法临时作用域</h3><p>在方法内部声明，只在方法内部可见。</p>
+<p>方法临时变量要在方法体的开头处声明。</p>
+<p>方法临时变量命名，约定以小写字母开始。</p>
+<h3 id="块临时作用域"><a href="#块临时作用域" class="headerlink" title="块临时作用域"></a>块临时作用域</h3><p>在块中声明，只在块中可见。</p>
+<h3 id="池作用域"><a href="#池作用域" class="headerlink" title="池作用域"></a>池作用域</h3><p>在字典对象中的变量。</p>
+<h3 id="方法参数作用域"><a href="#方法参数作用域" class="headerlink" title="方法参数作用域"></a>方法参数作用域</h3><h3 id="块参数作用域"><a href="#块参数作用域" class="headerlink" title="块参数作用域"></a>块参数作用域</h3><h3 id="类作用域"><a href="#类作用域" class="headerlink" title="类作用域"></a>类作用域</h3><p>类变量在类和类的实例中可见。</p>
+<p>类变量命名，约定以大写字母开始。</p>
+<h3 id="类实例作用域"><a href="#类实例作用域" class="headerlink" title="类实例作用域"></a>类实例作用域</h3><p>类实例变量只在类中可见，在实例中不可见。相当于，java中的<code>private static</code>。</p>
+<p>类实例变量命名，约定以大写字母开始。</p>
+<h3 id="实例变量作用域"><a href="#实例变量作用域" class="headerlink" title="实例变量作用域"></a>实例变量作用域</h3><p>实例变量只在对象中可见，相当于私有成员变量。</p>
+<p>实例变量命名，约定以小写字母开始。</p>
+<h2 id="局部变量声明"><a href="#局部变量声明" class="headerlink" title="局部变量声明"></a>局部变量声明</h2><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">| x y |</span><br></pre></td></tr></table></figure>
+
+<p>声明了两个局部变量<code>x</code>和<code>y</code>。</p>
+<h1 id="表达式"><a href="#表达式" class="headerlink" title="表达式"></a>表达式</h1><h2 id="赋值"><a href="#赋值" class="headerlink" title="赋值"></a>赋值</h2><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">x := <span class="number">5.</span></span><br><span class="line">x := y := z := <span class="number">6.</span></span><br><span class="line">x := (y := <span class="number">6</span>) + <span class="number">1.</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="块"><a href="#块" class="headerlink" title="块"></a>块</h2><p>块（也叫闭包）也是对象。</p>
+<p>除非有显式的返回，否则块的值是它的最后一个表达式的值 。</p>
+<p>块可以嵌套。</p>
+<p>块的一般形式：</p>
+<figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ 参数 | 局部变量声明 表达式 ]</span><br></pre></td></tr></table></figure>
+
+<p>无参块：</p>
+<figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ y := <span class="number">1.</span> z := <span class="number">2.</span> ]</span><br></pre></td></tr></table></figure>
+
+<p>带参数块：</p>
+<figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">| block |</span><br><span class="line">block := [:x :y | x * <span class="number">2</span> + y].</span><br><span class="line">block value: <span class="number">5</span> value: <span class="number">3</span>     <span class="comment">"结果为13"</span></span><br></pre></td></tr></table></figure>
+
+<p>块也是对象，value是它的一个方法，它的作用就是返回块的结果。</p>
+<h2 id="消息"><a href="#消息" class="headerlink" title="消息"></a>消息</h2><p>消息实际上就是方法调用。</p>
+<h3 id="一元消息"><a href="#一元消息" class="headerlink" title="一元消息"></a>一元消息</h3><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">object unaryMessage     <span class="comment">"相当于Java：object.unaryMessage()"</span></span><br><span class="line">myDept manager name last  <span class="comment">"相当于Java：myDept.manager().name().last()"</span></span><br></pre></td></tr></table></figure>
+
+<p>上面例子中，<code>object</code>是接收者，而<code>unaryMessage</code>是发送给接收者的消息。</p>
+<p><code>myDept</code>是接收者，<code>manager</code>是发送给<code>myDept</code>的消息，<code>name</code>是发送给<code>myDept manager</code>的结果的消息，<code>last</code>是发送给<code>myDept manager name</code>的结果的消息。这形成了一个消息链。</p>
+<h3 id="二元消息"><a href="#二元消息" class="headerlink" title="二元消息"></a>二元消息</h3><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">5</span> + <span class="number">3</span>  <span class="comment">"5是接收者对象，(+ 3)是消息，这个消息带一个参数3。"</span></span><br></pre></td></tr></table></figure>
+
+<p>预定义的二元消息：</p>
+<p>+</p>
+<p>-</p>
+<p>*</p>
+<p>/</p>
+<p>**：幂</p>
+<p>//：整除</p>
+<p>\：求模</p>
+<p>&lt;</p>
+<p>&lt;=</p>
+<p>&gt;</p>
+<p>&gt;=</p>
+<p>=：内容相等</p>
+<p>~=：内容不相等</p>
+<p>==：引用相等</p>
+<p>~~：引用不相等</p>
+<p>&amp;：逻辑与</p>
+<p>|：逻辑或</p>
+<p>,：拼接两个集合</p>
+<p>@：创建Point类的实例</p>
+<p>-&gt;：创建Association类的实例</p>
+<h3 id="关键字消息"><a href="#关键字消息" class="headerlink" title="关键字消息"></a>关键字消息</h3><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">'elephant'</span> copyFrom: <span class="number">3</span> to: <span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+<p><code>&#39;elephant&#39;</code>是接收者对象，<code>(copyFrom: 3 to: 5)</code>是消息，这个消息有两个关键字<code>copyFrom:</code>和<code>to:</code>，每个关键字带一个参数。</p>
+<p>上面例子相当于Java：<code>&quot;elephant&quot;.copyFromTo(3, 5)</code>。</p>
+<p>Smalltalk没有内在的控制结构，其他语言中的条件语句、循环语句，在Smalltalk中就是一个关键字消息。</p>
+<h3 id="消息优先级"><a href="#消息优先级" class="headerlink" title="消息优先级"></a>消息优先级</h3><p>一元消息优先级最高，二元消息其次，关键字消息最低。</p>
+<p>通过圆括号可以改变优先级。</p>
+<p>同等优先级下，从左到右进行运算。</p>
+<h3 id="消息级联"><a href="#消息级联" class="headerlink" title="消息级联"></a>消息级联</h3><p>分号表示消息级联：</p>
+<figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">|p|</span><br><span class="line">p := <span class="type">Client</span> new</span><br><span class="line">  name: <span class="string">'Jack'</span>;</span><br><span class="line">  age: <span class="number">32</span>;</span><br><span class="line">  address: <span class="string">'Earth'</span>.</span><br></pre></td></tr></table></figure>
+
+<p>相当于：</p>
+<figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">|p|</span><br><span class="line">p := <span class="type">Client</span> new.</span><br><span class="line">p name: <span class="string">'Jack'</span>.</span><br><span class="line">p age: <span class="number">32.</span></span><br><span class="line">p address: <span class="string">'Earth'</span>.</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="集合"><a href="#集合" class="headerlink" title="集合"></a>集合</h1><p>Smalltalk中，集合的索引都是从1开始。</p>
+<h2 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h2><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">| b x y sum max |</span><br><span class="line">x := #(<span class="number">4</span> <span class="number">3</span> <span class="number">2</span> <span class="number">1</span>).                                 <span class="comment">"constant array"</span></span><br><span class="line">x := <span class="type">Array</span> with: <span class="number">5</span> with: <span class="number">4</span> with: <span class="number">3</span> with: <span class="number">2.</span>      <span class="comment">"create array with up to 4 elements"</span></span><br><span class="line">x := <span class="type">Array</span> new: <span class="number">4.</span>                               <span class="comment">"allocate an array with specified size"</span></span><br><span class="line">x                                                <span class="comment">"set array elements"</span></span><br><span class="line">   at: <span class="number">1</span> put: <span class="number">5</span>;</span><br><span class="line">   at: <span class="number">2</span> put: <span class="number">4</span>;</span><br><span class="line">   at: <span class="number">3</span> put: <span class="number">3</span>;</span><br><span class="line">   at: <span class="number">4</span> put: <span class="number">2.</span></span><br><span class="line">b := x isEmpty.                                  <span class="comment">"test if array is empty"</span></span><br><span class="line">y := x size.                                     <span class="comment">"array size"</span></span><br><span class="line">y := x at: <span class="number">4.</span>                                    <span class="comment">"get array element at index"</span></span><br><span class="line">b := x includes: <span class="number">3.</span>                              <span class="comment">"test if element is in array"</span></span><br><span class="line">y := x copyFrom: <span class="number">2</span> to: <span class="number">4.</span>                        <span class="comment">"subarray"</span></span><br><span class="line">y := x indexOf: <span class="number">3</span> ifAbsent: [<span class="number">0</span>].                 <span class="comment">"first position of element within array"</span></span><br><span class="line">y := x occurrencesOf: <span class="number">3.</span>                         <span class="comment">"number of times object in collection"</span></span><br><span class="line">x do: [:a | <span class="type">Transcript</span> show: a printString; cr]. <span class="comment">"iterate over the array"</span></span><br><span class="line">b := x conform: [:a | (a &gt;= <span class="number">1</span>) &amp; (a &lt;= <span class="number">4</span>)].      <span class="comment">"test if all elements meet condition"</span></span><br><span class="line">y := x select: [:a | a &gt; <span class="number">2</span>].                     <span class="comment">"return collection of elements that pass test"</span></span><br><span class="line">y := x reject: [:a | a &lt; <span class="number">2</span>].                     <span class="comment">"return collection of elements that fail test"</span></span><br><span class="line">y := x collect: [:a | a + a].                    <span class="comment">"transform each element for new collection"</span></span><br><span class="line">y := x detect: [:a | a &gt; <span class="number">3</span>] ifNone: [].          <span class="comment">"find position of first element that passes test"</span></span><br><span class="line">sum := <span class="number">0.</span> x do: [:a | sum := sum + a]. sum.      <span class="comment">"sum array elements"</span></span><br><span class="line">sum := <span class="number">0.</span> <span class="number">1</span> to: (x size) </span><br><span class="line">            do: [:a | sum := sum + (x at: a)].   <span class="comment">"sum array elements"</span></span><br><span class="line">sum := x inject: <span class="number">0</span> into: [:a :c | a + c].        <span class="comment">"sum array elements"</span></span><br><span class="line">max := x inject: <span class="number">0</span> into: [:a :c | (a &gt; c)        <span class="comment">"find max element in array"</span></span><br><span class="line">   ifTrue: [a]</span><br><span class="line">   ifFalse: [c]].</span><br><span class="line">y := x shuffled.                                 <span class="comment">"randomly shuffle collection"</span></span><br><span class="line">y := x asArray.                                  <span class="comment">"convert to array"</span></span><br><span class="line"><span class="comment">"y := x asByteArray."</span>                            <span class="comment">"note: this instruction not available on Squeak"</span></span><br><span class="line">y := x asWordArray.                              <span class="comment">"convert to word array"</span></span><br><span class="line">y := x asOrderedCollection.                      <span class="comment">"convert to ordered collection"</span></span><br><span class="line">y := x asSortedCollection.                       <span class="comment">"convert to sorted collection"</span></span><br><span class="line">y := x asBag.                                    <span class="comment">"convert to bag collection"</span></span><br><span class="line">y := x asSet.                                    <span class="comment">"convert to set collection"</span></span><br></pre></td></tr></table></figure>
+
+<p>数组元素的类型可以不相同。</p>
+<h2 id="有序集合"><a href="#有序集合" class="headerlink" title="有序集合"></a>有序集合</h2><p>类似一个可扩展的数组 。</p>
+<figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">| b x y sum max |</span><br><span class="line">x := <span class="type">OrderedCollection</span> </span><br><span class="line">     with: <span class="number">4</span> with: <span class="number">3</span> with: <span class="number">2</span> with: <span class="number">1.</span>            <span class="comment">"create collection with up to 4 elements"</span></span><br><span class="line">x := <span class="type">OrderedCollection</span> new.                      <span class="comment">"allocate collection"</span></span><br><span class="line">x add: <span class="number">3</span>; add: <span class="number">2</span>; add: <span class="number">1</span>; add: <span class="number">4</span>; yourself.      <span class="comment">"add element to collection"</span></span><br><span class="line">y := x addFirst: <span class="number">5.</span>                              <span class="comment">"add element at beginning of collection"</span></span><br><span class="line">y := x removeFirst.                              <span class="comment">"remove first element in collection"</span></span><br><span class="line">y := x addLast: <span class="number">6.</span>                               <span class="comment">"add element at end of collection"</span></span><br><span class="line">y := x removeLast.                               <span class="comment">"remove last element in collection"</span></span><br><span class="line">y := x addAll: #(<span class="number">7</span> <span class="number">8</span> <span class="number">9</span>).                         <span class="comment">"add multiple elements to collection"</span></span><br><span class="line">y := x removeAll: #(<span class="number">7</span> <span class="number">8</span> <span class="number">9</span>).                      <span class="comment">"remove multiple elements from collection"</span></span><br><span class="line">x at: <span class="number">2</span> put: <span class="number">3.</span>                                  <span class="comment">"set element at index"</span></span><br><span class="line">y := x remove: <span class="number">5</span> ifAbsent: [].                   <span class="comment">"remove element from collection"</span></span><br><span class="line">b := x isEmpty.                                  <span class="comment">"test if empty"</span></span><br><span class="line">y := x size.                                     <span class="comment">"number of elements"</span></span><br><span class="line">y := x at: <span class="number">2.</span>                                    <span class="comment">"retrieve element at index"</span></span><br><span class="line">y := x first.                                    <span class="comment">"retrieve first element in collection"</span></span><br><span class="line">y := x last.                                     <span class="comment">"retrieve last element in collection"</span></span><br><span class="line">b := x includes: <span class="number">5.</span>                              <span class="comment">"test if element is in collection"</span></span><br><span class="line">y := x copyFrom: <span class="number">2</span> to: <span class="number">3.</span>                        <span class="comment">"subcollection"</span></span><br><span class="line">y := x indexOf: <span class="number">3</span> ifAbsent: [<span class="number">0</span>].                 <span class="comment">"first position of element within collection"</span></span><br><span class="line">y := x occurrencesOf: <span class="number">3.</span>                         <span class="comment">"number of times object in collection"</span></span><br><span class="line">x do: [:a | <span class="type">Transcript</span> show: a printString; cr]. <span class="comment">"iterate over the collection"</span></span><br><span class="line">b := x conform: [:a | (a &gt;= <span class="number">1</span>) &amp; (a &lt;= <span class="number">4</span>)].      <span class="comment">"test if all elements meet condition"</span></span><br><span class="line">y := x select: [:a | a &gt; <span class="number">2</span>].                     <span class="comment">"return collection of elements that pass test"</span></span><br><span class="line">y := x reject: [:a | a &lt; <span class="number">2</span>].                     <span class="comment">"return collection of elements that fail test"</span></span><br><span class="line">y := x collect: [:a | a + a].                    <span class="comment">"transform each element for new collection"</span></span><br><span class="line">y := x detect: [:a | a &gt; <span class="number">3</span>] ifNone: [].          <span class="comment">"find position of first element that passes test"</span></span><br><span class="line">sum := <span class="number">0.</span> x do: [:a | sum := sum + a]. sum.      <span class="comment">"sum elements"</span></span><br><span class="line">sum := <span class="number">0.</span> <span class="number">1</span> to: (x size) </span><br><span class="line">            do: [:a | sum := sum + (x at: a)].   <span class="comment">"sum elements"</span></span><br><span class="line">sum := x inject: <span class="number">0</span> into: [:a :c | a + c].        <span class="comment">"sum elements"</span></span><br><span class="line">max := x inject: <span class="number">0</span> into: [:a :c | (a &gt; c)        <span class="comment">"find max element in collection"</span></span><br><span class="line">   ifTrue: [a]</span><br><span class="line">   ifFalse: [c]].</span><br><span class="line">y := x shuffled.                                 <span class="comment">"randomly shuffle collection"</span></span><br><span class="line">y := x asArray.                                  <span class="comment">"convert to array"</span></span><br><span class="line">y := x asOrderedCollection.                      <span class="comment">"convert to ordered collection"</span></span><br><span class="line">y := x asSortedCollection.                       <span class="comment">"convert to sorted collection"</span></span><br><span class="line">y := x asBag.                                    <span class="comment">"convert to bag collection"</span></span><br><span class="line">y := x asSet.                                    <span class="comment">"convert to set collection"</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="排序集合"><a href="#排序集合" class="headerlink" title="排序集合"></a>排序集合</h2><p> 类似于OrderedCollection，但可指定排序标准。</p>
+<figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">x := <span class="type">SortedCollection</span> </span><br><span class="line">     with: <span class="number">4</span> with: <span class="number">3</span> with: <span class="number">2</span> with: <span class="number">1.</span>              <span class="comment">"create collection with up to 4 elements"</span></span><br><span class="line">x := <span class="type">SortedCollection</span> new.                         <span class="comment">"allocate collection"</span></span><br><span class="line">x := <span class="type">SortedCollection</span> sortBlock: [:a :c | a &gt; c].  <span class="comment">"set sort criteria"</span></span><br><span class="line">x add: <span class="number">3</span>; add: <span class="number">2</span>; add: <span class="number">1</span>; add: <span class="number">4</span>; yourself.        <span class="comment">"add element to collection"</span></span><br><span class="line">y := x addFirst: <span class="number">5.</span>                                <span class="comment">"add element at beginning of collection"</span></span><br><span class="line">y := x removeFirst.                                <span class="comment">"remove first element in collection"</span></span><br><span class="line">y := x addLast: <span class="number">6.</span>                                 <span class="comment">"add element at end of collection"</span></span><br><span class="line">y := x removeLast.                                 <span class="comment">"remove last element in collection"</span></span><br><span class="line">y := x addAll: #(<span class="number">7</span> <span class="number">8</span> <span class="number">9</span>).                           <span class="comment">"add multiple elements to collection"</span></span><br><span class="line">y := x removeAll: #(<span class="number">7</span> <span class="number">8</span> <span class="number">9</span>).                        <span class="comment">"remove multiple elements from collection"</span></span><br><span class="line">y := x remove: <span class="number">5</span> ifAbsent: [].                     <span class="comment">"remove element from collection"</span></span><br><span class="line">b := x isEmpty.                                    <span class="comment">"test if empty"</span></span><br><span class="line">y := x size.                                       <span class="comment">"number of elements"</span></span><br><span class="line">y := x at: <span class="number">2.</span>                                      <span class="comment">"retrieve element at index"</span></span><br><span class="line">y := x first.                                      <span class="comment">"retrieve first element in collection"</span></span><br><span class="line">y := x last.                                       <span class="comment">"retrieve last element in collection"</span></span><br><span class="line">b := x includes: <span class="number">4.</span>                                <span class="comment">"test if element is in collection"</span></span><br><span class="line">y := x copyFrom: <span class="number">2</span> to: <span class="number">3.</span>                          <span class="comment">"subcollection"</span></span><br><span class="line">y := x indexOf: <span class="number">3</span> ifAbsent: [<span class="number">0</span>].                   <span class="comment">"first position of element within collection"</span></span><br><span class="line">y := x occurrencesOf: <span class="number">3.</span>                           <span class="comment">"number of times object in collection"</span></span><br><span class="line">x do: [:a | <span class="type">Transcript</span> show: a printString; cr].   <span class="comment">"iterate over the collection"</span></span><br><span class="line">b := x conform: [:a | (a &gt;= <span class="number">1</span>) &amp; (a &lt;= <span class="number">4</span>)].        <span class="comment">"test if all elements meet condition"</span></span><br><span class="line">y := x select: [:a | a &gt; <span class="number">2</span>].                       <span class="comment">"return collection of elements that pass test"</span></span><br><span class="line">y := x reject: [:a | a &lt; <span class="number">2</span>].                       <span class="comment">"return collection of elements that fail test"</span></span><br><span class="line">y := x collect: [:a | a + a].                      <span class="comment">"transform each element for new collection"</span></span><br><span class="line">y := x detect: [:a | a &gt; <span class="number">3</span>] ifNone: [].            <span class="comment">"find position of first element that passes test"</span></span><br><span class="line">sum := <span class="number">0.</span> x do: [:a | sum := sum + a]. sum.        <span class="comment">"sum elements"</span></span><br><span class="line">sum := <span class="number">0.</span> <span class="number">1</span> to: (x size) </span><br><span class="line">            do: [:a | sum := sum + (x at: a)].     <span class="comment">"sum elements"</span></span><br><span class="line">sum := x inject: <span class="number">0</span> into: [:a :c | a + c].          <span class="comment">"sum elements"</span></span><br><span class="line">max := x inject: <span class="number">0</span> into: [:a :c | (a &gt; c)          <span class="comment">"find max element in collection"</span></span><br><span class="line">   ifTrue: [a]</span><br><span class="line">   ifFalse: [c]].</span><br><span class="line">y := x asArray.                                     <span class="comment">"convert to array"</span></span><br><span class="line">y := x asOrderedCollection.                         <span class="comment">"convert to ordered collection"</span></span><br><span class="line">y := x asSortedCollection.                          <span class="comment">"convert to sorted collection"</span></span><br><span class="line">y := x asBag.                                       <span class="comment">"convert to bag collection"</span></span><br><span class="line">y := x asSet.                                       <span class="comment">"convert to set collection"</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="包"><a href="#包" class="headerlink" title="包"></a>包</h2><p> 类似于OrderedCollection，但元素没有特定的顺序。 </p>
+ <figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">x := <span class="type">Bag</span> with: <span class="number">4</span> with: <span class="number">3</span> with: <span class="number">2</span> with: <span class="number">1.</span>        <span class="comment">"create collection with up to 4 elements"</span></span><br><span class="line">x := <span class="type">Bag</span> new.                                    <span class="comment">"allocate collection"</span></span><br><span class="line">x add: <span class="number">4</span>; add: <span class="number">3</span>; add: <span class="number">1</span>; add: <span class="number">2</span>; yourself.      <span class="comment">"add element to collection"</span></span><br><span class="line">x add: <span class="number">3</span> withOccurrences: <span class="number">2.</span>                     <span class="comment">"add multiple copies to collection"</span></span><br><span class="line">y := x addAll: #(<span class="number">7</span> <span class="number">8</span> <span class="number">9</span>).                         <span class="comment">"add multiple elements to collection"</span></span><br><span class="line">y := x removeAll: #(<span class="number">7</span> <span class="number">8</span> <span class="number">9</span>).                      <span class="comment">"remove multiple elements from collection"</span></span><br><span class="line">y := x remove: <span class="number">4</span> ifAbsent: [].                   <span class="comment">"remove element from collection"</span></span><br><span class="line">b := x isEmpty.                                  <span class="comment">"test if empty"</span></span><br><span class="line">y := x size.                                     <span class="comment">"number of elements"</span></span><br><span class="line">b := x includes: <span class="number">3.</span>                              <span class="comment">"test if element is in collection"</span></span><br><span class="line">y := x occurrencesOf: <span class="number">3.</span>                         <span class="comment">"number of times object in collection"</span></span><br><span class="line">x do: [:a | <span class="type">Transcript</span> show: a printString; cr]. <span class="comment">"iterate over the collection"</span></span><br><span class="line">b := x conform: [:a | (a &gt;= <span class="number">1</span>) &amp; (a &lt;= <span class="number">4</span>)].      <span class="comment">"test if all elements meet condition"</span></span><br><span class="line">y := x select: [:a | a &gt; <span class="number">2</span>].                     <span class="comment">"return collection of elements that pass test"</span></span><br><span class="line">y := x reject: [:a | a &lt; <span class="number">2</span>].                     <span class="comment">"return collection of elements that fail test"</span></span><br><span class="line">y := x collect: [:a | a + a].                    <span class="comment">"transform each element for new collection"</span></span><br><span class="line">y := x detect: [:a | a &gt; <span class="number">3</span>] ifNone: [].          <span class="comment">"find position of first element that passes test"</span></span><br><span class="line">sum := <span class="number">0.</span> x do: [:a | sum := sum + a]. sum.      <span class="comment">"sum elements"</span></span><br><span class="line">sum := x inject: <span class="number">0</span> into: [:a :c | a + c].        <span class="comment">"sum elements"</span></span><br><span class="line">max := x inject: <span class="number">0</span> into: [:a :c | (a &gt; c)        <span class="comment">"find max element in collection"</span></span><br><span class="line">   ifTrue: [a]</span><br><span class="line">   ifFalse: [c]].</span><br><span class="line">y := x asOrderedCollection.                       <span class="comment">"convert to ordered collection"</span></span><br><span class="line">y := x asSortedCollection.                        <span class="comment">"convert to sorted collection"</span></span><br><span class="line">y := x asBag.                                     <span class="comment">"convert to bag collection"</span></span><br><span class="line">y := x asSet.                                     <span class="comment">"convert to set collection"</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="集"><a href="#集" class="headerlink" title="集"></a>集</h2><p> 像Bag一样，但不允许重复元素。</p>
+<h3 id="IdentitySet"><a href="#IdentitySet" class="headerlink" title="IdentitySet"></a>IdentitySet</h3><p> 使用同一测试（即<code>==</code>而非<code>=</code>） </p>
+ <figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">x := <span class="type">Set</span> with: <span class="number">4</span> with: <span class="number">3</span> with: <span class="number">2</span> with: <span class="number">1.</span>        <span class="comment">"create collection with up to 4 elements"</span></span><br><span class="line">x := <span class="type">Set</span> new.                                    <span class="comment">"allocate collection"</span></span><br><span class="line">x add: <span class="number">4</span>; add: <span class="number">3</span>; add: <span class="number">1</span>; add: <span class="number">2</span>; yourself.      <span class="comment">"add element to collection"</span></span><br><span class="line">y := x addAll: #(<span class="number">7</span> <span class="number">8</span> <span class="number">9</span>).                         <span class="comment">"add multiple elements to collection"</span></span><br><span class="line">y := x removeAll: #(<span class="number">7</span> <span class="number">8</span> <span class="number">9</span>).                      <span class="comment">"remove multiple elements from collection"</span></span><br><span class="line">y := x remove: <span class="number">4</span> ifAbsent: [].                   <span class="comment">"remove element from collection"</span></span><br><span class="line">b := x isEmpty.                                  <span class="comment">"test if empty"</span></span><br><span class="line">y := x size.                                     <span class="comment">"number of elements"</span></span><br><span class="line">x includes: <span class="number">4.</span>                                   <span class="comment">"test if element is in collection"</span></span><br><span class="line">x do: [:a | <span class="type">Transcript</span> show: a printString; cr]. <span class="comment">"iterate over the collection"</span></span><br><span class="line">b := x conform: [:a | (a &gt;= <span class="number">1</span>) &amp; (a &lt;= <span class="number">4</span>)].      <span class="comment">"test if all elements meet condition"</span></span><br><span class="line">y := x select: [:a | a &gt; <span class="number">2</span>].                     <span class="comment">"return collection of elements that pass test"</span></span><br><span class="line">y := x reject: [:a | a &lt; <span class="number">2</span>].                     <span class="comment">"return collection of elements that fail test"</span></span><br><span class="line">y := x collect: [:a | a + a].                    <span class="comment">"transform each element for new collection"</span></span><br><span class="line">y := x detect: [:a | a &gt; <span class="number">3</span>] ifNone: [].          <span class="comment">"find position of first element that passes test"</span></span><br><span class="line">sum := <span class="number">0.</span> x do: [:a | sum := sum + a]. sum.      <span class="comment">"sum elements"</span></span><br><span class="line">sum := x inject: <span class="number">0</span> into: [:a :c | a + c].        <span class="comment">"sum elements"</span></span><br><span class="line">max := x inject: <span class="number">0</span> into: [:a :c | (a &gt; c)        <span class="comment">"find max element in collection"</span></span><br><span class="line">   ifTrue: [a]</span><br><span class="line">   ifFalse: [c]].</span><br><span class="line">y := x asArray.                                  <span class="comment">"convert to array"</span></span><br><span class="line">y := x asOrderedCollection.                      <span class="comment">"convert to ordered collection"</span></span><br><span class="line">y := x asSortedCollection.                       <span class="comment">"convert to sorted collection"</span></span><br><span class="line">y := x asBag.                                    <span class="comment">"convert to bag collection"</span></span><br><span class="line">y := x asSet.                                    <span class="comment">"convert to set collection"</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Interval"><a href="#Interval" class="headerlink" title="Interval"></a>Interval</h3><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">| b x y sum max |</span><br><span class="line">x := <span class="type">Interval</span> from: <span class="number">5</span> to: <span class="number">10.</span>                     <span class="comment">"create interval object"</span></span><br><span class="line">x := <span class="number">5</span> to: <span class="number">10.</span></span><br><span class="line">x := <span class="type">Interval</span> from: <span class="number">5</span> to: <span class="number">10</span> by: <span class="number">2.</span>               <span class="comment">"create interval object with specified increment"</span></span><br><span class="line">x := <span class="number">5</span> to: <span class="number">10</span> by: <span class="number">2.</span></span><br><span class="line">b := x isEmpty.                                   <span class="comment">"test if empty"</span></span><br><span class="line">y := x size.                                      <span class="comment">"number of elements"</span></span><br><span class="line">x includes: <span class="number">9.</span>                                    <span class="comment">"test if element is in collection"</span></span><br><span class="line">x do: [:k | <span class="type">Transcript</span> show: k printString; cr].  <span class="comment">"iterate over interval"</span></span><br><span class="line">b := x conform: [:a | (a &gt;= <span class="number">1</span>) &amp; (a &lt;= <span class="number">4</span>)].       <span class="comment">"test if all elements meet condition"</span></span><br><span class="line">y := x select: [:a | a &gt; <span class="number">7</span>].                      <span class="comment">"return collection of elements that pass test"</span></span><br><span class="line">y := x reject: [:a | a &lt; <span class="number">2</span>].                      <span class="comment">"return collection of elements that fail test"</span></span><br><span class="line">y := x collect: [:a | a + a].                     <span class="comment">"transform each element for new collection"</span></span><br><span class="line">y := x detect: [:a | a &gt; <span class="number">3</span>] ifNone: [].           <span class="comment">"find position of first element that passes test"</span></span><br><span class="line">sum := <span class="number">0.</span> x do: [:a | sum := sum + a]. sum.       <span class="comment">"sum elements"</span></span><br><span class="line">sum := <span class="number">0.</span> <span class="number">1</span> to: (x size) </span><br><span class="line">            do: [:a | sum := sum + (x at: a)].    <span class="comment">"sum elements"</span></span><br><span class="line">sum := x inject: <span class="number">0</span> into: [:a :c | a + c].         <span class="comment">"sum elements"</span></span><br><span class="line">max := x inject: <span class="number">0</span> into: [:a :c | (a &gt; c)         <span class="comment">"find max element in collection"</span></span><br><span class="line">   ifTrue: [a]</span><br><span class="line">   ifFalse: [c]].</span><br><span class="line">y := x asArray.                                   <span class="comment">"convert to array"</span></span><br><span class="line">y := x asOrderedCollection.                       <span class="comment">"convert to ordered collection"</span></span><br><span class="line">y := x asSortedCollection.                        <span class="comment">"convert to sorted collection"</span></span><br><span class="line">y := x asBag.                                     <span class="comment">"convert to bag collection"</span></span><br><span class="line">y := x asSet.                                     <span class="comment">"convert to set collection"</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="关联表"><a href="#关联表" class="headerlink" title="关联表"></a>关联表</h3><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">| x y |</span><br><span class="line">x := <span class="symbol">#myVar</span>-&gt;<span class="string">'hello'</span>.</span><br><span class="line">y := x key.</span><br><span class="line">y := x value.</span><br></pre></td></tr></table></figure>
+
+<h3 id="字典和同一字典"><a href="#字典和同一字典" class="headerlink" title="字典和同一字典"></a>字典和同一字典</h3><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line">| b x y |</span><br><span class="line">x := <span class="type">Dictionary</span> new.                   <span class="comment">"allocate collection"</span></span><br><span class="line">x add: <span class="symbol">#a</span>-&gt;<span class="number">4</span>; </span><br><span class="line">  add: <span class="symbol">#b</span>-&gt;<span class="number">3</span>; </span><br><span class="line">  add: <span class="symbol">#c</span>-&gt;<span class="number">1</span>; </span><br><span class="line">  add: <span class="symbol">#d</span>-&gt;<span class="number">2</span>; yourself.                <span class="comment">"add element to collection"</span></span><br><span class="line">x at: <span class="symbol">#e</span> put: <span class="number">3.</span>                       <span class="comment">"set element at index"</span></span><br><span class="line">b := x isEmpty.                        <span class="comment">"test if empty"</span></span><br><span class="line">y := x size.                           <span class="comment">"number of elements"</span></span><br><span class="line">y := x at: <span class="symbol">#a</span> ifAbsent: [].            <span class="comment">"retrieve element at index"</span></span><br><span class="line">y := x keyAtValue: <span class="number">3</span> ifAbsent: [].     <span class="comment">"retrieve key for given value with error block"</span></span><br><span class="line">y := x removeKey: <span class="symbol">#e</span> ifAbsent: [].     <span class="comment">"remove element from collection"</span></span><br><span class="line">b := x includes: <span class="number">3.</span>                    <span class="comment">"test if element is in values collection"</span></span><br><span class="line">b := x includesKey: <span class="symbol">#a</span>.                <span class="comment">"test if element is in keys collection"</span></span><br><span class="line">y := x occurrencesOf: <span class="number">3.</span>               <span class="comment">"number of times object in collection"</span></span><br><span class="line">y := x keys.                           <span class="comment">"set of keys"</span></span><br><span class="line">y := x values.                         <span class="comment">"bag of values"</span></span><br><span class="line">x do: [:a | <span class="type">Transcript</span> show: a printString; cr].            <span class="comment">"iterate over the values collection"</span></span><br><span class="line">x keysDo: [:a | <span class="type">Transcript</span> show: a printString; cr].        <span class="comment">"iterate over the keys collection"</span></span><br><span class="line">x associationsDo: [:a | <span class="type">Transcript</span> show: a printString; cr].<span class="comment">"iterate over the associations"</span></span><br><span class="line">x keysAndValuesDo: [:aKey :aValue | <span class="type">Transcript</span>              <span class="comment">"iterate over keys and values"</span></span><br><span class="line">   show: aKey printString; space;</span><br><span class="line">   show: aValue printString; cr].</span><br><span class="line">b := x conform: [:a | (a &gt;= <span class="number">1</span>) &amp; (a &lt;= <span class="number">4</span>)].      <span class="comment">"test if all elements meet condition"</span></span><br><span class="line">y := x select: [:a | a &gt; <span class="number">2</span>].                     <span class="comment">"return collection of elements that pass test"</span></span><br><span class="line">y := x reject: [:a | a &lt; <span class="number">2</span>].                     <span class="comment">"return collection of elements that fail test"</span></span><br><span class="line">y := x collect: [:a | a + a].                    <span class="comment">"transform each element for new collection"</span></span><br><span class="line">y := x detect: [:a | a &gt; <span class="number">3</span>] ifNone: [].          <span class="comment">"find position of first element that passes test"</span></span><br><span class="line">sum := <span class="number">0.</span> x do: [:a | sum := sum + a]. sum.      <span class="comment">"sum elements"</span></span><br><span class="line">sum := x inject: <span class="number">0</span> into: [:a :c | a + c].        <span class="comment">"sum elements"</span></span><br><span class="line">max := x inject: <span class="number">0</span> into: [:a :c | (a &gt; c)        <span class="comment">"find max element in collection"</span></span><br><span class="line">   ifTrue: [a]</span><br><span class="line">   ifFalse: [c]].</span><br><span class="line">y := x asArray.                                   <span class="comment">"convert to array"</span></span><br><span class="line">y := x asOrderedCollection.                       <span class="comment">"convert to ordered collection"</span></span><br><span class="line">y := x asSortedCollection.                        <span class="comment">"convert to sorted collection"</span></span><br><span class="line">y := x asBag.                                     <span class="comment">"convert to bag collection"</span></span><br><span class="line">y := x asSet.                                     <span class="comment">"convert to set collection"</span></span><br><span class="line"></span><br><span class="line"><span class="type">Smalltalk</span> at: <span class="symbol">#CMRGlobal</span> put: <span class="string">'CMR entry'</span>.        <span class="comment">"put global in Smalltalk Dictionary"</span></span><br><span class="line">x := <span class="type">Smalltalk</span> at: <span class="symbol">#CMRGlobal</span>.                    <span class="comment">"read global from Smalltalk Dictionary"</span></span><br><span class="line"><span class="type">Transcript</span> show: (<span class="type">CMRGlobal</span> printString).         <span class="comment">"entries are directly accessible by name"</span></span><br><span class="line"><span class="type">Smalltalk</span> keys do: [ :k |                         <span class="comment">"print out all classes"</span></span><br><span class="line">   ((<span class="type">Smalltalk</span> at: k) isKindOf: <span class="type">Class</span>)</span><br><span class="line">      ifFalse: [<span class="type">Transcript</span> show: k printString; cr]].</span><br><span class="line"><span class="type">Smalltalk</span> at: <span class="symbol">#CMRDictionary</span> put: (<span class="type">Dictionary</span> new). <span class="comment">"set up user defined dictionary"</span></span><br><span class="line"><span class="type">CMRDictionary</span> at: <span class="symbol">#MyVar1</span> put: <span class="string">'hello1'</span>.            <span class="comment">"put entry in dictionary"</span></span><br><span class="line"><span class="type">CMRDictionary</span> add: <span class="symbol">#MyVar2</span>-&gt;<span class="string">'hello2'</span>.               <span class="comment">"add entry to dictionary use key-&gt;value combo"</span></span><br><span class="line"><span class="type">CMRDictionary</span> size.                                 <span class="comment">"dictionary size"</span></span><br><span class="line"><span class="type">CMRDictionary</span> keys do: [ :k |                       <span class="comment">"print out keys in dictionary"</span></span><br><span class="line">   <span class="type">Transcript</span> show: k printString; cr].</span><br><span class="line"><span class="type">CMRDictionary</span> values do: [ :k |                     <span class="comment">"print out values in dictionary"</span></span><br><span class="line">   <span class="type">Transcript</span> show: k printString; cr].</span><br><span class="line"><span class="type">CMRDictionary</span> keysAndValuesDo: [:aKey :aValue |     <span class="comment">"print out keys and values"</span></span><br><span class="line">   <span class="type">Transcript</span></span><br><span class="line">      show: aKey printString;</span><br><span class="line">      space;</span><br><span class="line">      show: aValue printString;</span><br><span class="line">      cr].</span><br><span class="line"><span class="type">CMRDictionary</span> associationsDo: [:aKeyValue |           <span class="comment">"another iterator for printing key values"</span></span><br><span class="line">   <span class="type">Transcript</span> show: aKeyValue printString; cr].</span><br><span class="line"><span class="type">Smalltalk</span> removeKey: <span class="symbol">#CMRGlobal</span> ifAbsent: [].         <span class="comment">"remove entry from Smalltalk dictionary"</span></span><br><span class="line"><span class="type">Smalltalk</span> removeKey: <span class="symbol">#CMRDictionary</span> ifAbsent: [].     <span class="comment">"remove user dictionary from Smalltalk dictionary"</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="内部流"><a href="#内部流" class="headerlink" title="内部流"></a>内部流</h3><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="语句"><a href="#语句" class="headerlink" title="语句"></a>语句</h1><p>语句使用<code>.</code>作为分隔符，最后一条语句不需要加<code>.</code>号。</p>
+<h2 id="返回语句"><a href="#返回语句" class="headerlink" title="返回语句"></a>返回语句</h2><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">^ 返回对象</span><br></pre></td></tr></table></figure>
+
+<h2 id="表达式语句"><a href="#表达式语句" class="headerlink" title="表达式语句"></a>表达式语句</h2><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">x := <span class="number">5.</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="条件语句"><a href="#条件语句" class="headerlink" title="条件语句"></a>条件语句</h3><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">tries &gt; <span class="number">5</span></span><br><span class="line">  ifTrue: [^ <span class="string">'Too many tries'</span>]</span><br><span class="line">  ifFalse: [^ <span class="string">'Trying again'</span>].</span><br><span class="line">  </span><br><span class="line">x &gt; <span class="number">10</span></span><br><span class="line">  ifTrue: [x &gt; <span class="number">5</span></span><br><span class="line">    ifTrue: [<span class="string">'A'</span>]</span><br><span class="line">  	ifFalse: [<span class="string">'B'</span>]]</span><br><span class="line">  ifFalse: [<span class="string">'C'</span>].</span><br></pre></td></tr></table></figure>
+
+<h3 id="循环语句"><a href="#循环语句" class="headerlink" title="循环语句"></a>循环语句</h3><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">| x y |</span><br><span class="line">x := <span class="number">4.</span> y := <span class="number">1.</span></span><br><span class="line">[x &gt; <span class="number">0</span>] whileTrue: [x := x - <span class="number">1.</span> y := y * <span class="number">2</span>].     <span class="comment">"while true loop"</span></span><br><span class="line">[x &gt;= <span class="number">4</span>] whileFalse: [x := x + <span class="number">1.</span> y := y * <span class="number">2</span>].   <span class="comment">"while false loop"</span></span><br><span class="line">x timesRepeat: [y := y * <span class="number">2</span>].                     <span class="comment">"times repeat loop (i := 1 to x)"</span></span><br><span class="line"><span class="number">1</span> to: x do: [:a | y := y * <span class="number">2</span>].                   <span class="comment">"for loop"</span></span><br><span class="line"><span class="number">1</span> to: x by: <span class="number">2</span> do: [:a | y := y / <span class="number">2</span>].             <span class="comment">"for loop with specified increment"</span></span><br><span class="line">#(<span class="number">5</span> <span class="number">4</span> <span class="number">3</span>) do: [:a | x := x + a].                  <span class="comment">"iterate over array elements"</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="类"><a href="#类" class="headerlink" title="类"></a>类</h1><p>类是定义某种对象特性的对象。</p>
+<h2 id="创建实例"><a href="#创建实例" class="headerlink" title="创建实例"></a>创建实例</h2><figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">AClass</span> new   <span class="comment">"相当于Java：new AClass()"</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><p>任何方法都会至少有一个返回值，如果有显式返回，默认将会返回<code>^self</code>。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/07/03/Kubernetes/" rel="prev" title="Kubernetes">
+      <i class="fa fa-chevron-left"></i> Kubernetes
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/09/15/Python/" rel="next" title="Python">
+      Python <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#词法"><span class="nav-number">2.</span> <span class="nav-text">词法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#字符集"><span class="nav-number">2.1.</span> <span class="nav-text">字符集</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#标识符"><span class="nav-number">2.2.</span> <span class="nav-text">标识符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关键字"><span class="nav-number">2.3.</span> <span class="nav-text">关键字</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#保留字"><span class="nav-number">2.4.</span> <span class="nav-text">保留字</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数值"><span class="nav-number">2.5.</span> <span class="nav-text">数值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字符"><span class="nav-number">2.6.</span> <span class="nav-text">字符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字符串"><span class="nav-number">2.7.</span> <span class="nav-text">字符串</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#布尔值"><span class="nav-number">2.8.</span> <span class="nav-text">布尔值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#空值"><span class="nav-number">2.9.</span> <span class="nav-text">空值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#符号"><span class="nav-number">2.10.</span> <span class="nav-text">符号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注释"><span class="nav-number">2.11.</span> <span class="nav-text">注释</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#变量"><span class="nav-number">3.</span> <span class="nav-text">变量</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#作用域"><span class="nav-number">3.1.</span> <span class="nav-text">作用域</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#全局作用域"><span class="nav-number">3.1.1.</span> <span class="nav-text">全局作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#方法临时作用域"><span class="nav-number">3.1.2.</span> <span class="nav-text">方法临时作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#块临时作用域"><span class="nav-number">3.1.3.</span> <span class="nav-text">块临时作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#池作用域"><span class="nav-number">3.1.4.</span> <span class="nav-text">池作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#方法参数作用域"><span class="nav-number">3.1.5.</span> <span class="nav-text">方法参数作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#块参数作用域"><span class="nav-number">3.1.6.</span> <span class="nav-text">块参数作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类作用域"><span class="nav-number">3.1.7.</span> <span class="nav-text">类作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类实例作用域"><span class="nav-number">3.1.8.</span> <span class="nav-text">类实例作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实例变量作用域"><span class="nav-number">3.1.9.</span> <span class="nav-text">实例变量作用域</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#局部变量声明"><span class="nav-number">3.2.</span> <span class="nav-text">局部变量声明</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#表达式"><span class="nav-number">4.</span> <span class="nav-text">表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#赋值"><span class="nav-number">4.1.</span> <span class="nav-text">赋值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#块"><span class="nav-number">4.2.</span> <span class="nav-text">块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息"><span class="nav-number">4.3.</span> <span class="nav-text">消息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#一元消息"><span class="nav-number">4.3.1.</span> <span class="nav-text">一元消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二元消息"><span class="nav-number">4.3.2.</span> <span class="nav-text">二元消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关键字消息"><span class="nav-number">4.3.3.</span> <span class="nav-text">关键字消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#消息优先级"><span class="nav-number">4.3.4.</span> <span class="nav-text">消息优先级</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#消息级联"><span class="nav-number">4.3.5.</span> <span class="nav-text">消息级联</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#集合"><span class="nav-number">5.</span> <span class="nav-text">集合</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数组"><span class="nav-number">5.1.</span> <span class="nav-text">数组</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#有序集合"><span class="nav-number">5.2.</span> <span class="nav-text">有序集合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#排序集合"><span class="nav-number">5.3.</span> <span class="nav-text">排序集合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#包"><span class="nav-number">5.4.</span> <span class="nav-text">包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集"><span class="nav-number">5.5.</span> <span class="nav-text">集</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#IdentitySet"><span class="nav-number">5.5.1.</span> <span class="nav-text">IdentitySet</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Interval"><span class="nav-number">5.5.2.</span> <span class="nav-text">Interval</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关联表"><span class="nav-number">5.5.3.</span> <span class="nav-text">关联表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#字典和同一字典"><span class="nav-number">5.5.4.</span> <span class="nav-text">字典和同一字典</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内部流"><span class="nav-number">5.5.5.</span> <span class="nav-text">内部流</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#语句"><span class="nav-number">6.</span> <span class="nav-text">语句</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#返回语句"><span class="nav-number">6.1.</span> <span class="nav-text">返回语句</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#表达式语句"><span class="nav-number">6.2.</span> <span class="nav-text">表达式语句</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#条件语句"><span class="nav-number">6.2.1.</span> <span class="nav-text">条件语句</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#循环语句"><span class="nav-number">6.2.2.</span> <span class="nav-text">循环语句</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#类"><span class="nav-number">7.</span> <span class="nav-text">类</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#创建实例"><span class="nav-number">7.1.</span> <span class="nav-text">创建实例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法"><span class="nav-number">7.2.</span> <span class="nav-text">方法</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

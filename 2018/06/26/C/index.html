@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="简介C语言是一门很接近底层的过程性高级编程语言，是高性能计算的主要选择，例如：系统编程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/26/C/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="简介C语言是一门很接近底层的过程性高级编程语言，是高性能计算的主要选择，例如：系统编程。">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/26/C/C/C%E8%AF%AD%E8%A8%80%E4%BF%9D%E7%95%99%E5%AD%97.png">
+<meta property="article:published_time" content="2018-06-26T02:22:06.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:49.933Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="C11">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/26/C/C/C%E8%AF%AD%E8%A8%80%E4%BF%9D%E7%95%99%E5%AD%97.png">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2018/06/26/C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>C | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2018/06/26/C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          C
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-06-26 10:22:06" itemprop="dateCreated datePublished" datetime="2018-06-26T10:22:06+08:00">2018-06-26</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>C语言是一门很接近底层的过程性高级编程语言，是高性能计算的主要选择，例如：系统编程。</p>
+<a id="more"></a>
+
+<h1 id="开发环境"><a href="#开发环境" class="headerlink" title="开发环境"></a>开发环境</h1><h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="静态代码分析工具"><a href="#静态代码分析工具" class="headerlink" title="静态代码分析工具"></a>静态代码分析工具</h3><p>lint/splint</p>
+<h3 id="IDE"><a href="#IDE" class="headerlink" title="IDE"></a>IDE</h3><p>Windows：Visual Studio</p>
+<p>OS X：Xcode</p>
+<p>其他：Eclipse CDT、CLion、Code::Blocks、KDevelop</p>
+<h2 id="交互模式"><a href="#交互模式" class="headerlink" title="交互模式"></a>交互模式</h2><p>无 </p>
+<h2 id="解释模式"><a href="#解释模式" class="headerlink" title="解释模式"></a>解释模式</h2><p>无</p>
+<h2 id="编译模式"><a href="#编译模式" class="headerlink" title="编译模式"></a>编译模式</h2><p>C的编译器可以选择gcc，也可以选择clang。</p>
+<p>安装好gcc或clang后，可以将它们链接到名为cc（通常放在<code>/usr/bin/cc</code>）的默认编译器。</p>
+<p>可以通过下面命令来查看编译器的版本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ cc --version</span><br><span class="line">$ gcc --version</span><br><span class="line">$ clang --version</span><br></pre></td></tr></table></figure>
+
+<p>可以使用下列命令将<code>hello.c</code>编译成可执行文件<code>hello</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cc hello.c -o hello -g -Wall -O3</span><br></pre></td></tr></table></figure>
+
+<p>如果省略<code>-o hello</code>，则生成可执行文件名为<code>a.out</code>（Windows下为<code>a.exe</code>）。</p>
+<p><code>-Wall</code>要求编译器输出警告信息，默认只有错误信息才会输出。</p>
+<p><code>-O3</code>表示采用三级优化等级。</p>
+<p><code>-g</code>表示在目标文件和可执行文件中包含符号表和源代码行号信息。</p>
+<p>使用<code>-save-temps</code>选项，会将整个构建过程中产生的中间文件全部输出：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -o hello hello.c -save-temps</span><br></pre></td></tr></table></figure>
+
+<p>上述命令将生成：<code>hello</code>、<code>hello.i</code>、<code>hello.o</code>和<code>hello.s</code>。</p>
+<p>另外，可以使用选项<code>-std</code>来指定采用哪一种C语言定义。</p>
+<p>GCC的语言标准化选项：</p>
+<ul>
+<li><code>-std=iso9899:1990</code>、<code>-std=c90</code>、<code>-std=c89</code>或<code>-ansi</code>：遵循ISO/IEC 9899:1990。</li>
+<li><code>-std=iso9899:199409</code>：遵循“AMDI”，这是1995针对ISO/IEC 9899:1990的国际化修正。</li>
+<li><code>-std=iso9899:1999</code>、<code>-std=c99</code>：遵循ISO/IEC 9899:1999，以及2001年的技术勘误。</li>
+<li><code>-std=iso9899:2011</code>、<code>-std=c11</code>：遵循ISO/IEC 9899:2011。</li>
+<li><code>-std=gnu89</code>、<code>-std=gnu90</code>：支持ISO/IEC 9899:1990和GNU扩展内容。这是版本5之前的默认选项。</li>
+<li><code>-std=gnu99</code>：支持ISO/IEC 9899:1999和GNU扩展内容。</li>
+<li><code>-std=gnu11</code>：支持ISO/IEC 9899:2011和GNU扩展内容，但不具备C11标准中可选的多线程特性。这是版本5以后的默认选项。</li>
+</ul>
+<p>接下来，将介绍如何分别生产每个阶段的中间文件。</p>
+<p>如果只是想检测源文件的语法是否正确，而不执行预处理、编译、汇编或链接，则可以使用<code>-fsyntax-only</code>选项。</p>
+<p>可以一次性编译多个源文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -o foo foo.c bar.c</span><br></pre></td></tr></table></figure>
+
+<h3 id="预处理"><a href="#预处理" class="headerlink" title="预处理"></a>预处理</h3><p>将源代码提交给编译器之前，由预处理器展开源代码文件中的宏。</p>
+<p>可用下列命令查看预处理的结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -E -C -o hello.i hello.c</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>-E</code>选项表示仅作预处理，不进行编译、汇编或链接。</p>
+<p><code>-C</code> 选项在执行预处理时保留注释。</p>
+</blockquote>
+<p>在命令中，可以使用<code>-D宏名[=定义]</code>方式来定义宏：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc hello.c -DFOO</span><br></pre></td></tr></table></figure>
+
+<p>省略“=定义”部分，则该宏被定义为值1。</p>
+<p>宏<code>FOO</code>必须是在源文件和头文件中都没有被定义过的。</p>
+<p>该选项经常搭配源代码中的<code>#ifdef</code>指令使用，可以实现条件式编译。</p>
+<p>相应地，选项<code>-U宏名</code> 表示“取消”宏定义。</p>
+<p>另外，还可以使用<code>-I</code>、<code>-iquote</code>、<code>-isystem</code>和<code>-isysroot</code>等选项来自定义头文件搜索路径。（参见预处理指令的“#include”部分）</p>
+<h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><p>编译器的核心任务是把C程序翻译成机器的汇编语言。</p>
+<p>下列命令可输出翻译的汇编语言文件<code>hello.s</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -S hello.c</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>-S</code>选项表示编译到汇编语言，不进行汇编和链接。</p>
+</blockquote>
+<p>如果想把C语言变量的名称作为汇编语言语句中的注释，可以加上<code>-fverbose-asm</code>选项：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -S -fverbose-asm hello.c</span><br></pre></td></tr></table></figure>
+
+<h3 id="汇编"><a href="#汇编" class="headerlink" title="汇编"></a>汇编</h3><p>在汇编阶段，GCC调用宿主系统的汇编器，把汇编语言翻译成可执行的二进制代码，即输出一个目标文件。</p>
+<p>可以使用下列命令输出目标文件<code>hello.o</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -c hello.c</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>-c</code>选项指示GCC只编译和汇编，不进行链接。</p>
+</blockquote>
+<p>可以使用GCC的<code>-Wa,参数1,参数2,…</code>选项（参数可以有多个，之间使用逗号分隔）给汇编器传递参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -v -o hello -Wa,-as=hello.sym,-L hello.c</span><br></pre></td></tr></table></figure>
+
+<p><code>-v</code>：显示编译器调用的程序。</p>
+<p>紧跟<code>-Wa</code>后面，以逗号开头，中间不能有空格的都是传递给汇编器的参数。<code>,-as=hello.sym</code>表示把符号表输出到<code>hello.sym</code>文件中。<code>,-L</code>表示在符号表中包含本地符号。本地符号指具有内部链接的C标识符。（不要把该汇编器选项与GCC的<code>-L</code>选项混淆！）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -g -c -Wa,-a=hello.list,-L hello.c</span><br></pre></td></tr></table></figure>
+
+<p>如果没有带<code>-g</code>选项，则<code>hello.list</code>只会包含生成的二进制机器码及相应的汇编代码，然后后面再跟上符号表内容。则带上了<code>-g</code>选项后，还会将C代码插入到对应的二进制代码和汇编代码之间，从而允许逐行地查看编译器如何把C语句翻译为二进制机器码。</p>
+<p>有一类反汇编器（disassembler），例如：objdump，可以查看目标文件。只需执行下列命令，就可输出二进制机器码及其对应的汇编代码：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ objdump -d hello.o</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="链接"><a href="#链接" class="headerlink" title="链接"></a>链接</h3><p>链接器把多个二进制目标文件链接成一个单独的可执行文件。</p>
+<h4 id="链接顺序"><a href="#链接顺序" class="headerlink" title="链接顺序"></a>链接顺序</h4><p>在命令中，链接库要放在源文件之后。如果有多个链接库，则被依赖的库，要放在依赖它的库之后。例如：<code>foo.o</code>依赖于<code>bar1</code>库，而<code>bar1</code>库依赖于<code>bar2</code>库，则应该输入：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc foo.o -lbar1 -lbar2</span><br></pre></td></tr></table></figure>
+
+<p>任何其他顺序，比如<code>gcc -lbar1 -lbar2 foo.o</code>，都可能失败。链接器是按顺序搜索库的，它首先查看第一个目标<code>foo.o</code>，将无法解析的函数、结构和变量名记入一个列表。然后链接器查看下一个目标——<code>bar1</code>，并在这个目标内搜索列表中仍然缺失的项目，同时有可能在列表中添加新的项目；接着在<code>bar2</code>中查找仍然缺失的项目。如果直到搜索完最后的目标仍然存在未解析的符号（包括在最后的隐含的<code>-lc</code>），链接器将终止运行并向用户给出最后剩下的未解析项目。因此，如果顺序不对，有些项目将错过搜索它所在库的机会。</p>
+<h4 id="链接库"><a href="#链接库" class="headerlink" title="链接库"></a>链接库</h4><p>链接库分为静态和动态两种。</p>
+<p>静态链接库：当要<strong>链接时</strong>，链接器会找出程序所需的函数，然后将它们拷贝到执行文件中，由于这种拷贝是完整的，所以一旦链接成功，静态链接库也就不再需要了。</p>
+<p>动态链接库（也称共享链接库）：它是一种特殊目标文件，它可以在<strong>运行时</strong>被链接到一个程序。因此，在运行时动态链接库必须在搜索路径中。</p>
+<p>使用静态链接库生成的可执行文件，会明显比使用动态链接库生成的可执行文件大，而且内存使用效率也更低。</p>
+<p>名为<code>foo</code>的链接库，它的静态链接库文件名必须是<code>libfoo.a</code>，即带上前缀<code>lib</code> 和后缀<code>.a</code>；而动态链接库文件名则以<code>lib</code> 为前缀，以<code>.so</code>或<code>.dylib</code> 为后缀。</p>
+<p>创建静态链接库：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ar -cr libfoo.a foo.o bar.o</span><br></pre></td></tr></table></figure>
+
+<p>创建动态链接库：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -shared -o libfoo.so foo.o bar.o</span><br></pre></td></tr></table></figure>
+
+<p>链接动态链接库和静态链接库的方式是一样的。</p>
+<p>当搜索路径中同时存在同一个链接库的静态和动态版本时，gcc优先使用动态链接库。在这种情况下，可以使用<code>-static</code>选项来显式指示使用静态链接库：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -static -o hello hello.o -lncurses</span><br></pre></td></tr></table></figure>
+
+<p>另一种显式指示使用静态链接库的方式是，在命令行中显示使用静态链接库文件，而不使用<code>-l</code>选项：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -o hello hello.o /usr/lib/libncurses.a</span><br></pre></td></tr></table></figure>
+
+<h4 id="默认标准库"><a href="#默认标准库" class="headerlink" title="默认标准库"></a>默认标准库</h4><p>gcc在编译C代码时，会默认带上<code>-lc</code>选项，即默认链接标准库<code>c</code>。标准库的大部分函数通常放在静态链接库文件<code>libc.a</code>或动态链接库文件<code>libc.so</code>中。这些链接库一般位于<code>/lib/</code>或<code>/usr/lib/</code>，或者位于GCC默认搜索的其他链接库目录。</p>
+<h4 id="非标准库"><a href="#非标准库" class="headerlink" title="非标准库"></a>非标准库</h4><p>如果要链接的是非标准的链接库，则必需显式使用<code>-l</code>选项。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -o hello hello.c -lncurses</span><br></pre></td></tr></table></figure>
+
+<p>上述命令将链接非标准的<code>ncurses</code>库，并且将自动在标准库目录中搜索它的库文件<code>libncurses.a</code>。</p>
+<h4 id="库搜索路径"><a href="#库搜索路径" class="headerlink" title="库搜索路径"></a>库搜索路径</h4><p>有三种方式可以链接在GCC默认搜索路径以外的链接库。</p>
+<p>方式一是把链接库作为普通的目标文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -o hello hello.c /usr/<span class="built_in">local</span>/lib/libncurses.a</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>采用这种方式，不需要使用<code>-l</code>选项指定链接库。</p>
+</blockquote>
+<p>方式二是使用<code>-L</code>选项来为GCC增加一个搜索链接库的目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -o hello -L/usr/<span class="built_in">local</span>/lib/ -lncurses hello.c</span><br></pre></td></tr></table></figure>
+
+<p>在同一命令中，<code>-L</code>选项可以有多个，或者在一个<code>-L</code>选项内使用冒号分割的路径列表。</p>
+<p>方式三是把所需链接库的目录加到环境变量<code>LIBRARYPATH</code>中，目录列表使用逗号分隔。环境变量<code>LIBRARYPATH</code>添加的搜索路径的优先级小于<code>-L</code>添加的搜索路径。</p>
+<blockquote>
+<p>环境变量<code>LD_LIBRARY_PATH</code> （OS X中是<code>DYLD_LIBRARY_PATH</code>）提供了共享链接库文件的搜索位置，搜索目录之间使用逗号分隔。注意，该环境变量不是由GCC所读取，而是由可执行文件读取，并动态链接到共享链接库。</p>
+</blockquote>
+<p>不在通常位置的链接库，可以通过<code>find 基路径 -name &#39;foo*&#39;</code>来查找。通常，链接库如果放在<code>/some/path/lib</code>中，则对应的头文件一定在<code>/some/path/include</code>中。</p>
+<p>在硬盘中到处找库文件是一件很恼人的事情，可以使用<code>pkg-config</code>，它维护了一个包含配置信息和位置信息的数据库，然后<code>pkg-config</code>会报告编译时需要的这些信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ pkg-config --libs gsl libxml-2.0</span><br><span class="line">-lgsl -lgslcblas -lm -lxml2   (不仅能获取链接库名，而且会输出它们的依赖顺序。并且如果这些库没在位置，还会使用“-L”选项指出它的位置)</span><br><span class="line">$ pkg-config --cflags gsl libxml-2.0</span><br><span class="line">-I/usr/include/libxml2   （获取头文件的位置）</span><br></pre></td></tr></table></figure>
+
+<p>在shell的命令行中，当把一条命令用单引号包围时，这条命令会被其自身的输出替代。例如，输入：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc <span class="string">'pkg-config --cflags --libs gsl libxml-2.0'</span> -o specific specific.c</span><br></pre></td></tr></table></figure>
+
+<p>编译器看到的是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -I/usr/include/libxml2 -lgsl -lgslcblas -lm -lxml2 -o specific specific.c</span><br></pre></td></tr></table></figure>
+
+<h4 id="给链接器传递参数"><a href="#给链接器传递参数" class="headerlink" title="给链接器传递参数"></a>给链接器传递参数</h4><p>通过使用<code>-Wl</code>选项（可以有多个）后接一个逗号分隔的列表（中间不能有空格），可以直接将选项传递给链接器，例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -lncurses -v -Wl,-Map,hello.map hello.c</span><br></pre></td></tr></table></figure>
+
+<p>上述命令指示链接器输出一个链接脚本和一个内在映射。</p>
+<h4 id="运行时链接"><a href="#运行时链接" class="headerlink" title="运行时链接"></a>运行时链接</h4><p>上面指定库搜索路径的方式都是为链接器服务的，而如果要为可执行程序在运行时提供共享链接库的搜索路径，则有两种方法：</p>
+<p>方法一、在环境变量<code>LD_LIBRARY_PATH</code>（Linux、Cygwin）或<code>DYLD_LIBRARY_PATH</code>（OS X）中定义运行时链接的库搜索路径。</p>
+<p>方法二、通过<code>-Wl,R</code>选项将库搜索路径显式标注到可执行文件中：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LDADD = -Llibpath -Wl,Rlibpath</span><br></pre></td></tr></table></figure>
+
+<h4 id="独立程序"><a href="#独立程序" class="headerlink" title="独立程序"></a>独立程序</h4><p>链接器除了链接链接库外，还需要链接操作系统专用的启动码（startup code），程序需要启动码才能被加载，并与操作系统进行顺利交互。</p>
+<p>启动码位于标准目标文件<code>crt0.o</code> 中，其中包含了可执行文件实际的入口点。</p>
+<p>另外，在大多数系统中，GCC也会自动链接目标文件<code>crtbegin.o</code>和<code>crtend.o</code>中的初始化与清理子程序。</p>
+<p>然而，如果正在编写一个独立程序，例如操作系统或在嵌入式微控制器上执行的应用，可以使用<code>-ffreestanding</code>和<code>-nostartfiles</code>选项，指示GCC不要链接启动码。</p>
+<p>使用<code>-nostdlib</code>选项可以禁止自动链接到C标准链接库。如果使用该选项，则必须为程序中所用到的标准函数提供自己的版本。</p>
+<p>最后，在独立环境中，C程序不需要从<code>main()</code>开始。可以在GCC命令行中使用<strong>链接器选项</strong><code>-ename</code>，为程序指定其他的入口点。</p>
+<h3 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h3><h4 id="优化等级"><a href="#优化等级" class="headerlink" title="优化等级"></a>优化等级</h4><p>优化等级代表多个优化技术的集合，使用<code>-O</code>选项设定。</p>
+<ul>
+<li><code>-O0</code>：关闭所有的优化选项。</li>
+<li><code>-O</code>、<code>-O1</code>：不会增加过多的编译时间的优化。</li>
+<li><code>-O2</code>：应用几乎所有支持的优化技术。使用该选项通常情况下会增加编译时间。</li>
+<li><code>-O3</code>：包括了<code>-O2</code>所有的优化技术，同时生成inline函数。</li>
+<li><code>-Os</code>：类似<code>-O2</code>，但没有包括任何可能导致代码大小增加的优化技术。该选项使得最终的程序文件大小显著地减小，常常被用于生成最终版本。</li>
+</ul>
+<h4 id="优化技术"><a href="#优化技术" class="headerlink" title="优化技术"></a>优化技术</h4><p>GCC可以使用<code>-f</code>选项指示需要采用的优化技术，从而允许对优化进行更为细致的控制。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -Wall -O3 -fno-inline-functions -o hello hello.c -lncurses</span><br></pre></td></tr></table></figure>
+
+<p>上述命令启用<code>-O3</code>的所有优化技术，但是禁用其中的函数inline编译。</p>
+<h4 id="适用于特定架构的选项"><a href="#适用于特定架构的选项" class="headerlink" title="适用于特定架构的选项"></a>适用于特定架构的选项</h4><p>这些适用于特定架构的选项都以<code>-m</code>开头。</p>
+<h2 id="调试模式"><a href="#调试模式" class="headerlink" title="调试模式"></a>调试模式</h2><p>C语言的调试器可以使用GDB或LLDB，这里使用GDB。</p>
+<p>为了使用gdb调试程序，必需先使用GCC的<code>-g</code>选项编译和链接程序，这样才会在生成的可执行程序中包含符号表。例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc hello.c -o hello -g -Wall</span><br></pre></td></tr></table></figure>
+
+<p>然后，以要调试的可执行程序为参数启动gdb：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gdb ./hello</span><br></pre></td></tr></table></figure>
+
+<p>执行完上述命令后，将进入gdb的交互模式。可以在提示符<code>(gdb)</code>后输入调试命令进行调试。</p>
+<p><code>list</code>或<code>l</code>（实际上<code>li</code>、<code>lis</code>也是可以的，只要不会造成歧义。下同）调试命令会列出被调试程度的起始几行源代码（默认显示10行，可以使用<code>set listsize 行数</code>自定义）。如果连续使用<code>list</code>命令，则会不断显示接下来的若干行源代码。</p>
+<ul>
+<li><code>list 行号</code>表示从当前文件的指定行开始显示若干行代码（默认显示10行）。</li>
+<li><code>list 文件名:行号</code>表示从指定文件的指定行开始显示若干行代码（默认显示10行）。</li>
+<li><code>list 函数名</code>表示从指定函数定义处开始显示若干行代码（默认显示10行）。</li>
+<li><code>list 起始行 结束行</code>表示显示指定范围内的源代码。</li>
+</ul>
+<p><code>break</code>调试命令用于设置断点。例如，<code>b 15</code>表示在当前文件的第15行设置断点。<code>b hello.c:15</code>表示在<code>hello.c</code>文件的第15行设置断点。<code>b main</code>在main函数的第一行代码处设定断点。</p>
+<p>可以使用两种方式为断点设置生效条件：</p>
+<ul>
+<li>带条件的<code>break</code>命令：<code>break 28 if i == limit - 1</code>。</li>
+<li>带条件的<code>condition</code>命令：<code>condition 2 *p1 != *p2</code>。要删除中断条件，只要使用不带中断条件的<code>condition</code>命令。例如，<code>condition 2</code>。</li>
+</ul>
+<p><code>tbreak</code>调试命令用于设置临时断点。GDB到时这个断点后就自动删除它，即只中断一次的断点。用法同<code>break</code>。</p>
+<p><code>delete</code> 或<code>d</code>调试命令用于删除断点。<code>d 2</code>表示删除编号为2的断点。<code>d 1-3</code>表示删除编号从1到3的断点。<code>d</code>表示删除所有断点。</p>
+<p><code>disable</code>调试命令用于禁用断点。<code>disable 2</code>表示禁用编号为2的断点。<code>disable 1-3</code>表示禁用编号从1到3的断点。<code>disable</code>表示禁用所有断点。</p>
+<p><code>ignore</code>调试命令用于忽略断点而不中断程序的执行。<code>ignore 2 5</code>表示忽略编号为2的断点5次。</p>
+<p><code>info break</code>表示列出所有断点。</p>
+<p><code>watch 表达式</code> ：当<code>表达式</code>的值改变时，调试器中断程序执行。与<code>break</code>设置的断点是针对代码行不同，<code>watch</code>设置的观测点（watchpoint）是针对表达式。</p>
+<p><code>rwatch 表达式</code>：每当程序读取跟计算<code>表达式</code>相关的任何对象时，调试器中断程序执行。</p>
+<p><code>awatch 表达式</code>：每当程序读取或修改跟计算<code>表达式</code>相关的任何对象时，调试器中断程序执行。</p>
+<p><code>run</code>调试命令开始执行程序直到遇到断点或程序结尾。</p>
+<p><code>next</code>调试命令不带参数时，继续执行下一行代码，然后再次中断。<code>next 5</code>表示继续执行接下来的5行代码，然后中断。如果在执行完这5行之前碰到断点，则程序将在该断点处中断。</p>
+<p><code>step</code>或<code>s</code>调试命令不带参数时，如果当前行有函数调用，则跳进函数内，并在函数内的第一行代码处停下来。如果当前行没有函数调用，则同<code>step</code>命令。<code>step 5</code>表示在跳进函数内继续执行5行代码后中断或继续执行5行代码后中断。如果在执行完这5行之前碰到断点，则程序将在该断点处中断。</p>
+<p><code>finish</code>调试命令表示继续执行到当前的函数结束，并在程序流将控制权交回到该函数的调用者时中断。</p>
+<p><code>print</code>调试命令显示当前上下文中给定表达式的值。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">(gdb) p *a</span><br><span class="line">$1 &#x3D; 65</span><br><span class="line">(gdb) p&#x2F;t （“&#x2F;t”表示输出二进制表示法。p与格式选项之间不能有空格。p不带参数时表示输出上一条命令的值）</span><br><span class="line">$2 &#x3D; 1000001</span><br><span class="line">(gdb) p&#x2F;c  (“&#x2F;c”表示输出字符和它的十进制编码)</span><br><span class="line">$3 &#x3D; 65 &#39;A&#39;</span><br></pre></td></tr></table></figure>
+
+<p>GDB以<code>$编号=值</code>方式输出结果，其中<code>$编号</code>是一个GDB变量，可以在后续引用它。</p>
+<p>如果<code>arr</code>是一个数组，则<code>p *arr</code>显示数组第一个元素，<code>p *arr@10</code>显示从地址<code>arr</code>开始的10个数据。</p>
+<p><code>x</code>命令可以显示指定内存区域的值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(gdb) x&#x2F;s msg   （以字符串形式显示从msg指针开始到空字符结束的内存区域值）</span><br><span class="line">0x402000 &lt;msg&gt;: &quot;Hello world!\n&quot;</span><br><span class="line">(gdb) x&#x2F;15xb   （以十六进制形式显示从msg指针开始的15个字节内容）</span><br><span class="line">0x402000 &lt;msg&gt;: 0x48 0x65 0x6c 0x6c 0x6f 0x20 0x77 0x6f</span><br><span class="line">0x402008 &lt;msg+8&gt;:    0x72 0x6c 0x64 0x21 0x0a 0x00 0x00</span><br></pre></td></tr></table></figure>
+
+<p><code>continue</code>或<code>c</code>调试命令让程序可以继续执行，直到遇到下一个断点或程序的尾部。<code>continue 5</code>表示继续执行程序，并且当前断言将被忽略5次。</p>
+<p>在<code>(gdb)</code>提示符后直接回车，则GDB会重复执行上一个命令，只要该动作是合理的。例如，GDB会自动重复执行<code>step</code>和<code>next</code>命令，但是不会自动重复执行<code>run</code>命令。</p>
+<p><code>backtrace</code>或<code>bt</code>可获知程序流执行到此位置时函数调用的次序（即调用轨迹）。另外，<code>where</code>和<code>info stack</code>作用与<code>bt</code>类似。</p>
+<p><code>frame</code>或<code>info frame</code>查看当前栈帧（frame）信息，<code>f 1</code>查看编号为1的栈帧信息。栈帧编号从0开始（当前栈帧）。</p>
+<p><code>info locals</code>列出当前栈帧处的函数的局部变量及它们的当前值。</p>
+<p><code>info args</code>列出当前栈帧处的函数的参数及它们的当前值。</p>
+<p><code>quit</code>调试命令退出GDB。</p>
+<p><code>kill</code>调试命令终止调试程序，但不会退出GDB，所有被调试程序的设置，包括被调试程序的命令行参数都会被保留下来。当再次使用<code>run</code>命令执行程序时，GDB如果发现可执行文件已经被修改过，会重新加载它。</p>
+<p><code>info</code>调试命令显示被调试程序的状态信息。</p>
+<p><code>show</code>调试命令显示调试器的状态信息。</p>
+<p><code>help</code>调试命令会显示调试命令类别列表。要显示某一类别下的命令，可在<code>help</code>后跟上类别名称，例如：<code>help aliases</code>。如果要显示某个命令用法，则可在<code>help</code>后跟上该命令名称，例如：<code>h run</code>。</p>
+<p>可以使用<code>Tab</code>键进行自动补全。</p>
+<p>如果一开始启动GDB时，没有指定被调试的程序。则可以使用<code>file</code>调试命令来指定被调试程序。</p>
+<p>如果希望在启动GDB时，不显示启动信息，则可使用<code>-silent</code>或<code>-quiet</code>选项（GDB命令行选项前可以使用一个或二个连字号）。例如：<code>gdb -silent</code>。</p>
+<p>有三种方式可以为被调试程序传递参数：</p>
+<ul>
+<li><p>使用GDB的<code>--args</code>选项：<code>--args</code>选项后面必须紧接着被调试程序，然后是被调试程序的命令行参数。例如，</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gdb --args myprog -d <span class="string">"<span class="variable">$HOME</span>"</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>使用<code>set args</code>调试命令。例如，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(gdb) set args -d &quot;$HOME&quot;</span><br></pre></td></tr></table></figure>
+
+<p><code>set args</code>后不跟参数时，表示消除所有被调试程序的命令行参数。</p>
+<p><code>show args</code>调试命令显示当前传递给被调试程序的命令行参数。</p>
+</li>
+<li><p>使用<code>run</code>调试命令后跟被调试程序的命令行参数。例如，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(gdb) run -d &quot;$HOME&quot;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h1 id="程序结构"><a href="#程序结构" class="headerlink" title="程序结构"></a>程序结构</h1><p>C程序主要由函数组成，函数定义不能嵌套，但函数可以调用其他函数，函数包含循序执行语句。</p>
+<p>C程序的顶层结构包含：</p>
+<ul>
+<li>注释</li>
+<li>预处理指令</li>
+<li>全局声明</li>
+<li>函数原型和定义</li>
+</ul>
+<h2 id="第一个程序"><a href="#第一个程序" class="headerlink" title="第一个程序"></a>第一个程序</h2><p>hello.c：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Hello world!"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="源文件"><a href="#源文件" class="headerlink" title="源文件"></a>源文件</h2><p>C程序的源代码保存在<strong>源文件</strong>中，扩展名通常是<code>.c</code>。</p>
+<p>另外，可将多个源文件共享的声明和定义保存到一个单独的头文件（header file）中，头文件习惯上使用扩展名<code>.h</code>。然后，在每个需要的源文件中利用<code>#include</code>指令来引用该头文件。 </p>
+<blockquote>
+<p>每个源文件，如果不是完全为空， 则必须以一个换行符作为结尾。</p>
+</blockquote>
+<h2 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h2><p>C代码是区分大小写的。</p>
+<p>编译器转换代码时所处的环境称为翻译环境（translation environment），程序执行时所处的环境称为运行环境（execution environment）。C语言定义了两个字符集：源代码字符集和运行字符集。源代码字符集是用于组成C代码的字符集，而运行字符集是可以被执行程序解释的字符集。在许多C语言的实现中，这两个字符集是一样的。</p>
+<p>这两种字符集都包含基本字符集（basic character set）和扩展字符（extended character）。C语言没有规定扩展字符，这通常由本地语言决定。扩展字符加上基本字符集，组成扩展字符集（extended character set）。</p>
+<p>基本字符集包括：</p>
+<ul>
+<li>拉丁字母（大小写共52个字符）</li>
+<li>十进制阿拉伯数字（10个）</li>
+<li>29个符号：<code>!&quot;#%&amp;&#39;()*+,-./:;&lt;=&gt;?[\]^_{|}~</code></li>
+<li>5种空白符：空格、水平制表符、垂直制表符、换行符、换页符</li>
+<li>4个不可打印字符：NULL字符、警报（alert）、退格（backspace）、回车（carriage return）</li>
+</ul>
+<p>原本C语言主要使用7位的ASCII码。现在，也可以采用两种表示大型字符集的标准化方法：</p>
+<ul>
+<li>宽字符（wide character）：每个字符使用相同的位长。虽然C标准没规定宽字符必须使用Unicode字符集，但许多实现使用UTF-16和UTF-32来处理宽字符。</li>
+<li>多字节字符（multibyte character）：每个字符可以采用一个或多个字节表示。某些多字节字符的编码机制是带状态的，对给定多字节序列的翻译会受到控制字符位置的影响。这种控制字符称为移位序列（shift sequence）。UTF-8不需要使用移位序列。</li>
+</ul>
+<p>多字节字符串比宽字符串更难处理。但多字节字符编码独立于系统架构，而宽字符编码是依赖于所给定系统的字节顺序的（即大端和小端字节顺序问题）。</p>
+<h3 id="转义序列"><a href="#转义序列" class="headerlink" title="转义序列"></a>转义序列</h3><h4 id="通用字符名"><a href="#通用字符名" class="headerlink" title="通用字符名"></a>通用字符名</h4><p>通用字符名（universal character name）即字符的Unicode值，与实现的编码格式无关。其格式如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">\uxxxx   <span class="comment">//一个x表示一个十六进制数字</span></span><br><span class="line">\Uxxxxxxxx</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>\uxxxx</code>等价于<code>\U0000xxxx</code>。</p>
+</blockquote>
+<p>通用字符名可以用于标识符、字符常量、字符串字面量，但是不得用于表示<em>基本字符集</em>内的字符。</p>
+<p>当采用通用字符名指定一个字符时，编译器会将其存储（转换）为当前实现版本所使用的字符集对应的编码。</p>
+<h4 id="特殊字符转义序列"><a href="#特殊字符转义序列" class="headerlink" title="特殊字符转义序列"></a>特殊字符转义序列</h4><table>
+<thead>
+<tr>
+<th>转义序列</th>
+<th>字符值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\&#39;</code></td>
+<td>一个单引号</td>
+</tr>
+<tr>
+<td><code>\&quot;</code></td>
+<td>一个双引号</td>
+</tr>
+<tr>
+<td><code>\?</code></td>
+<td>一个问号</td>
+</tr>
+<tr>
+<td><code>\\</code></td>
+<td>一个反斜线</td>
+</tr>
+<tr>
+<td><code>\a</code></td>
+<td>警告</td>
+</tr>
+<tr>
+<td><code>\b</code></td>
+<td>退格</td>
+</tr>
+<tr>
+<td><code>\f</code></td>
+<td>换页</td>
+</tr>
+<tr>
+<td><code>\n</code></td>
+<td>换行</td>
+</tr>
+<tr>
+<td><code>\r</code></td>
+<td>回车</td>
+</tr>
+<tr>
+<td><code>\t</code></td>
+<td>水平制表符</td>
+</tr>
+<tr>
+<td><code>\v</code></td>
+<td>垂直制表符</td>
+</tr>
+</tbody></table>
+<p>特殊字符转义序列只能出现在字符字面量或字符串字面量中。</p>
+<h4 id="八进制和十六进制转义序列"><a href="#八进制和十六进制转义序列" class="headerlink" title="八进制和十六进制转义序列"></a>八进制和十六进制转义序列</h4><p>八进制和十六进制转义序列可以表示<code>unsigned char</code>类型的取值范围内的任何字符，或者<code>wchar_t</code>类型取值范围内的任何宽字符。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">\o、\oo、\ooo  <span class="comment">//八进制转义序列。一个o表示一个八进制数字</span></span><br><span class="line">\x…  <span class="comment">//十六进制转义序列。一个x表示一个十六进制数字</span></span><br></pre></td></tr></table></figure>
+
+<p>八进制和十六进制转义序列用法与通用字符名相同。</p>
+<h4 id="双字符组"><a href="#双字符组" class="headerlink" title="双字符组"></a>双字符组</h4><table>
+<thead>
+<tr>
+<th>双字符组</th>
+<th>等效字符</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;:</code></td>
+<td><code>[</code></td>
+</tr>
+<tr>
+<td><code>:&gt;</code></td>
+<td><code>]</code></td>
+</tr>
+<tr>
+<td><code>&lt;%</code></td>
+<td><code>{</code></td>
+</tr>
+<tr>
+<td><code>%&gt;</code></td>
+<td><code>}</code></td>
+</tr>
+<tr>
+<td><code>%:</code></td>
+<td><code>#</code></td>
+</tr>
+<tr>
+<td><code>%:%:</code></td>
+<td><code>##</code></td>
+</tr>
+</tbody></table>
+<p>上述字符出现在字符字面量或字符串字面量中，则不会被解释成双字符组。在其他位置时，才被解释为双字符组。例如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> arr&lt;::&gt; = &lt;% <span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span> %&gt;;  <span class="comment">//等价于：int arr[] = &#123;10, 20, 30&#125;;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="三字符组"><a href="#三字符组" class="headerlink" title="三字符组"></a>三字符组</h4><table>
+<thead>
+<tr>
+<th>三字符组</th>
+<th>等效字符</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>??(</code></td>
+<td><code>[</code></td>
+</tr>
+<tr>
+<td><code>??)</code></td>
+<td><code>]</code></td>
+</tr>
+<tr>
+<td><code>??&lt;</code></td>
+<td><code>{</code></td>
+</tr>
+<tr>
+<td><code>??&gt;</code></td>
+<td><code>}</code></td>
+</tr>
+<tr>
+<td><code>??=</code></td>
+<td><code>#</code></td>
+</tr>
+<tr>
+<td><code>??/</code></td>
+<td><code>\</code></td>
+</tr>
+<tr>
+<td><code>??!</code></td>
+<td>`</td>
+</tr>
+<tr>
+<td><code>??&#39;</code></td>
+<td><code>^</code></td>
+</tr>
+<tr>
+<td><code>??-</code></td>
+<td><code>~</code></td>
+</tr>
+</tbody></table>
+<p>三字符组不同于双字符组，它是在预处理阶段被替换成等效字符。并且，它在任何位置都会被解释为三字符组，包括在字符字面量和字符串字面量中。</p>
+<h4 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h4><p>无论何时，只要反斜线符后面紧跟着换行符，预处理器就会将两者（反斜线符和换行符）都删除。</p>
+<h2 id="保留字"><a href="#保留字" class="headerlink" title="保留字"></a>保留字</h2><p><img src="C/C%E8%AF%AD%E8%A8%80%E4%BF%9D%E7%95%99%E5%AD%97.png" alt="C语言保留字"></p>
+<h2 id="标识符"><a href="#标识符" class="headerlink" title="标识符"></a>标识符</h2><p>C语言有四种标识符的命名空间：</p>
+<ul>
+<li>标签名（label）</li>
+<li>标识（tag）：用来标识结构、联合与枚举类型</li>
+<li>结构或联合中的成员名称</li>
+<li>普通标识符</li>
+</ul>
+<h2 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 单行注释以//开始直到行尾。（仅适用于C99或更新的版本。）</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 这是块注释，它可以适用于C89。</span></span><br><span class="line"><span class="comment">   块注释可以跨越多行。</span></span><br><span class="line"><span class="comment">   块注释不能再嵌套块注释，但可以嵌套单//行注释。</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>在字符或字符串字面量中的<code>/*</code>、<code>*/</code>或<code>//</code>，不会被视为注释。</p>
+<p>如果想要注释掉包含块注释的部分代码，可以使用条件预处理指令：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">if</span> 0</span></span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">double</span> pi = <span class="number">3.1415926</span>;  <span class="comment">/* pi是一个常量 */</span></span><br><span class="line">  area = pi * r * r;  <span class="comment">/* 计算面积 */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<p>预处理器会把每个注释都替换成一个空格。因此，<code>min/*max*/Value</code>将变成两个标记：“min Value”。</p>
+<h2 id="程序入口"><a href="#程序入口" class="headerlink" title="程序入口"></a>程序入口</h2><p>每个C程序都必须定义至少一个<code>main</code>函数，它是程序开始执行时第一个被调用的函数，是程序结构中最顶层的函数，其他函数会以子例程的方式被它调用。</p>
+<p><code>main</code>函数有如下形式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 无参形式</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;…&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;…&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 带参形式。</span></span><br><span class="line"><span class="comment">// 参数argc表示在命令行中执行main()函数的参数个数，包含程序名在内，argc的值至少是1；</span></span><br><span class="line"><span class="comment">// 参数argv是这些参数名组成的数组。</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Program name: %s\n"</span>, argv[<span class="number">0</span>]); <span class="comment">// argv[0]保存着程序名。</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">1</span>; i&lt;argc; ++i)</span><br><span class="line">     <span class="built_in">printf</span>(<span class="string">"Argument %d: %s\n"</span>, i, argv[i]);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="编程规范"><a href="#编程规范" class="headerlink" title="编程规范"></a>编程规范</h2><p>C语言采用自由的代码格式，没有换行或缩排规则。除了预处理指令的格式化自由度会低一些：一条指令必须独占一行，并且<code>#</code>符号前面除了空格与制表符之外，不能有别的字符。</p>
+<p>一些通用的编程规范：（非强制）</p>
+<ul>
+<li>每个新的声明和语句都新起一行；</li>
+<li>使用缩进以反映语句块的嵌套结构。</li>
+</ul>
+<h1 id="基本类型"><a href="#基本类型" class="headerlink" title="基本类型"></a>基本类型</h1><h2 id="数值类型"><a href="#数值类型" class="headerlink" title="数值类型"></a>数值类型</h2><h3 id="整数类型"><a href="#整数类型" class="headerlink" title="整数类型"></a>整数类型</h3><p>有符号整型：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>同义词</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>int</td>
+<td>signed、signed int</td>
+</tr>
+<tr>
+<td>short</td>
+<td>short int、signed short、signed short int</td>
+</tr>
+<tr>
+<td>long</td>
+<td>long int、signed long、signed long int</td>
+</tr>
+<tr>
+<td>long long（C99）</td>
+<td>long long int、signed long long、signed long long int</td>
+</tr>
+</tbody></table>
+<p>无符号整型：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>同义词</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>unsigned int</td>
+<td>unsigned</td>
+</tr>
+<tr>
+<td>unsigned short</td>
+<td>unsigned short int</td>
+</tr>
+<tr>
+<td>unsigned long</td>
+<td>unsigned long int</td>
+</tr>
+<tr>
+<td>unsigned long long（C99）</td>
+<td>unsigned long long int</td>
+</tr>
+</tbody></table>
+<p>整型的存储空间大小和取值范围：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>存储空间大小</th>
+<th>最小值</th>
+<th>最大值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>char</td>
+<td>1个字节</td>
+<td>-128或0</td>
+<td>127或255</td>
+</tr>
+<tr>
+<td>signed char</td>
+<td>1个字节</td>
+<td>-128</td>
+<td>127</td>
+</tr>
+<tr>
+<td>unsigned char</td>
+<td>1个字节</td>
+<td>0</td>
+<td>255</td>
+</tr>
+<tr>
+<td>int</td>
+<td>2个或4个字节</td>
+<td>-32768或-2147483648</td>
+<td>32767或2147483647</td>
+</tr>
+<tr>
+<td>unsigned int</td>
+<td>2个或4个字节</td>
+<td>0</td>
+<td>65535或4294967295</td>
+</tr>
+<tr>
+<td>short</td>
+<td>2个字节</td>
+<td>-32768</td>
+<td>32767</td>
+</tr>
+<tr>
+<td>unsigned short</td>
+<td>2个字节</td>
+<td>0</td>
+<td>65535</td>
+</tr>
+<tr>
+<td>long</td>
+<td>4个字节</td>
+<td>-2147483648</td>
+<td>2147483647</td>
+</tr>
+<tr>
+<td>unsigned long</td>
+<td>4个字节</td>
+<td>0</td>
+<td>4294967295</td>
+</tr>
+<tr>
+<td>long long</td>
+<td>8个字节</td>
+<td>-9223372036854775808</td>
+<td>9223372036854775807</td>
+</tr>
+<tr>
+<td>unsigned long long</td>
+<td>8个字节</td>
+<td>0</td>
+<td>18446744073709551615</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>可以在<code>limits.h</code>头文件中找到所采用编译器中整数类型的取值范围，它们定义为宏，例如宏<code>INT_MIN</code>、<code>INT_MAX</code>和<code>UINT_MAX</code>等。</p>
+</blockquote>
+<p>在整数的算术运算中，可能会发生溢出（overflow）情况。C语言仅对无符号整数类型指明了溢出的处理结果，对其他类型则没有定义。无符号整数运算的有效结果，等于除以<code>UTYPE_MAX + 1</code>之后的余数。其中<code>UTYPE_MAX</code>是该无符号类型所能表示的最大值。</p>
+<h4 id="确定位长的整数类型"><a href="#确定位长的整数类型" class="headerlink" title="确定位长的整数类型"></a>确定位长的整数类型</h4><p>在C99中，头文件stdint.h中定义了确定位长的整数类型。</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>含义</th>
+<th>实现版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>intN_t、uintN_t</td>
+<td>位长为N的整数类型</td>
+<td>可选</td>
+</tr>
+<tr>
+<td>int_leastN_t、uint_leastN_t</td>
+<td>位长至少为N的整数类型</td>
+<td>要求N = 8、16、32、64</td>
+</tr>
+<tr>
+<td>int_fastN_t、uint_fastN_t</td>
+<td>处理位长至少为N的最快速的整数类型</td>
+<td>要求N = 8、16、32、64</td>
+</tr>
+<tr>
+<td>intmax_t、uintmax_t</td>
+<td>位长最大的整数类型</td>
+<td>需要</td>
+</tr>
+<tr>
+<td>intptr_t、uintptr_t</td>
+<td>位长足以存储指针值的整数类型</td>
+<td>可选</td>
+</tr>
+</tbody></table>
+<p>带符号的确定位长整数类型有个特点：必须使用2的补码的二进制表示方式。因此，它们的最小值是-2^N-1^，最大值是2^N-1^-1。</p>
+<h4 id="整数字面量"><a href="#整数字面量" class="headerlink" title="整数字面量"></a>整数字面量</h4><p>十进制整数字面量：起始数字不可为0。例如：255。</p>
+<p>八进制整数字面量：以0开始的数字。例如：047。</p>
+<p>十六进制整数字面量：以0x或0X作为前缀的数字。例如：0xFF、0Xff。</p>
+<p>整数字面量通常会认定为<code>int</code>类型，除非这个字面量值在<code>int</code>所能表示的范围之外。在这种情况下，编译器会按照类型层次自动选择第一个范围足够表示该值的类型。</p>
+<ul>
+<li>对于十进制字面量来说，类型层次为：<code>int</code>、<code>long</code>、<code>long long</code>。</li>
+<li>对于八进制和十六进制字面量来说，类型层次为：<code>int</code>、<code>unsigned int</code>、<code>long</code>、<code>unsigned long</code>、<code>long long</code>、<code>unsigned long long</code>。</li>
+</ul>
+<p>也可以利用后缀来显式地定义字面量的类型。如果字面量具有后缀<code>l</code>或<code>L</code>，其类型就是<code>long</code>（在必要情况下，还可以为一个范围更大的类型。这个“更大”对应于前面提到的类型层次）。类似地，如果后缀是<code>ll</code> 或<code>LL</code>，则类型至少为<code>long long</code>。后缀为<code>u</code> 或<code>U</code>则为无符号类型。<code>long</code>后缀与无符号后缀可以混合使用：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">512U</span>     <span class="comment">//unsigned int</span></span><br><span class="line"><span class="number">0Xf0f</span>UL  <span class="comment">//unsigned long</span></span><br><span class="line"><span class="number">0777L</span>L   <span class="comment">//long long</span></span><br><span class="line"><span class="number">0xAAA</span>llu <span class="comment">//unsigned long long</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="浮点类型"><a href="#浮点类型" class="headerlink" title="浮点类型"></a>浮点类型</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>存储大小</th>
+<th>取值范围</th>
+<th>最小正数值</th>
+<th>精度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>float</td>
+<td>4位</td>
+<td>±3.4E38</td>
+<td>1.2E-38</td>
+<td>6位</td>
+</tr>
+<tr>
+<td>double</td>
+<td>8位</td>
+<td>±1.7E308</td>
+<td>2.3E-308</td>
+<td>15位</td>
+</tr>
+<tr>
+<td>long  double</td>
+<td>10位</td>
+<td>±1.1E4932</td>
+<td>3.4E-4932</td>
+<td>19位</td>
+</tr>
+</tbody></table>
+<p>C语言中，对浮点数进行算术运算时，通常需要采用<code>double</code>或者更高精度的类型。实现版本所采用的浮点精度由头文件float.h中定义的宏<code>FLT_EVAL_METHOD</code>指定。例如，如果宏<code>FLT_EVAL_METHOD</code>值为1,则下面的乘法运算采用<code>double</code>类型：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">float</span> <span class="built_in">height</span> = <span class="number">1.2345</span>, <span class="built_in">width</span> = <span class="number">2.3456</span>;</span><br><span class="line"><span class="keyword">double</span> area = <span class="built_in">height</span> * <span class="built_in">width</span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="浮点字面量"><a href="#浮点字面量" class="headerlink" title="浮点字面量"></a>浮点字面量</h4><p>十进制浮点字面量：10.0、10.、.234、67e-12（“e”或“E”是以10为底数）。</p>
+<p>十六进制浮点字面量（C99）：0xa.fP0、0X5.78p9（“p”或“P”是以2为底数）。</p>
+<p>十六进制浮点字面量的一个优点是，它可以被精准地存储在计算机的二进制浮点格式中，没有取近似值的误差。</p>
+<p>十六进制浮点字面量必须包括指数部分，即便其指数值为0。这么做是为了区分类型后缀F（在指数之后）与十六进制数字F（在指数之前）。</p>
+<p>浮点字面量默认是<code>double</code>类型，可以用后缀<code>f</code>或<code>F</code>来注明该字面量是<code>float</code>类型，或者用后缀<code>l</code>或<code>L</code>来注明此字面量是<code>long double</code>类型。</p>
+<h3 id="复数浮点类型"><a href="#复数浮点类型" class="headerlink" title="复数浮点类型"></a>复数浮点类型</h3><p>C99支持复数浮点类型，并扩充了数学库以包括复数算术函数，它们声明在头文件complex.h中。</p>
+<p>C11标准中，对复数的支持是可选的。如果定义了宏<code>__STDC_NO_COMPLEX__</code>，则所采用的实现版本不支持复数，即不包含头文件complex.h。</p>
+<p>在C语言中，复数被表示成一对浮点数，这对浮点数分别是实部和虚部。两者的数据类型是一样的，可以是<code>float</code>、<code>double</code>或<code>long double</code>。相应地，有三种复数浮点类型：</p>
+<ul>
+<li><code>float _Complex</code></li>
+<li><code>double _Complex</code></li>
+<li><code>long double _Complex</code></li>
+</ul>
+<p>另外，实现版本中可能还包括三种表示纯虚数的类型：</p>
+<ul>
+<li><code>float imaginary</code></li>
+<li><code>double imaginary</code></li>
+<li><code>long double imaginary</code></li>
+</ul>
+<p>头文件complex.h定义了宏<code>complex</code>和<code>I</code>。宏<code>complex</code>是关键字<code>_Complex</code>的同义词。宏<code>I</code>代表虚数单位i，且其类型是<code>const float _Complex</code>。</p>
+<p>C11中提供了宏<code>CMPLX</code>、<code>CMPLXF</code>和<code>CMPLXL</code>，分别用于构造<code>double _Complex</code>、<code>float _Complex</code>和<code>long double _Complex</code>复数。例如：<code>CMPLX(1.0, 2.0)</code>。</p>
+<h2 id="字符类型"><a href="#字符类型" class="headerlink" title="字符类型"></a>字符类型</h2><p>C语言中的字符类型实际上都是整数类型，可以对它们做算术运算。由程序自身决定是否将字符类型变量的值解释为字符码或其他东西。</p>
+<h3 id="单字节字符"><a href="#单字节字符" class="headerlink" title="单字节字符"></a>单字节字符</h3><p><code>char</code>类型表示单字节字符。它可以是<code>signed char</code>的同义词，也可以是<code>unsigned char</code>的同义词，这由所采用的编译器实现版本决定。严格地说，<code>char</code>、<code>signed char</code>和<code>unsigned char</code>是三种不同的数据类型，需要进行转换才能把一种类型映射到另一种类型。</p>
+<p>如果程序会用到的字符值包括小于0或大于127的情况，则应该使用<code>signed char</code>和<code>unsigned char</code>，而不是<code>char</code>。</p>
+<p>单字节字符字面量使用单引号包围：<code>&#39;a&#39;</code>、<code>&#39;9&#39;</code>、<code>&#39;\0&#39;</code>、<code>&#39;\33&#39;</code>、<code>&#39;\033&#39;</code>、<code>&#39;\x1B&#39;</code>、<code>&#39;\t&#39;</code>。</p>
+<p>源代码字符集中的所有字符，均可表示为字符字面量，除了单引号、反斜线和换行符。为了表示这些字符，必须使用转义字符：<code>&#39;\&#39;&#39;</code>、<code>&#39;\\&#39;</code>、<code>&#39;\n&#39;</code>。</p>
+<blockquote>
+<p> 注意：单字节字符字面量默认的类型是<code>int</code>。</p>
+</blockquote>
+<p>可以使用字符字面量或整数值初始化<code>char</code>类型变量：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> tab = <span class="string">'\t'</span>;</span><br><span class="line"><span class="keyword">char</span> character = <span class="number">74</span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>char</code>类型变量有双重性：可以把它解释为一个字符，也可以解释为一个整数。因此，可以对<code>char</code>类型的值进行算术运算，同时仍把它当做一个字符：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> letter = <span class="string">'C'</span>;</span><br><span class="line">letter = letter + <span class="number">3</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="宽字符"><a href="#宽字符" class="headerlink" title="宽字符"></a>宽字符</h3><p>C语言用<code>wchar_t</code>类型（stddef.h）表示宽字符。当宽字符采用Unicode标准时（即定义了宏<code>__STDC_ISO_10646__</code>），<code>wchar_t</code>类型至少是16位或32位长，<code>wchar_t</code>类型的一个值代表一个Unicode字符。</p>
+<blockquote>
+<p>在Windows中，<code>wchar_t</code>有2个字节，存储UTF-16编码的字符。</p>
+</blockquote>
+<p>由于<code>wchar_t</code>的大小是由实现代码定义，当代码需要在不同的系统之间移植时，这种不确定性和可变性降低了其可用性。因此，C11引入额外的宽字符类型<code>char16_t</code>和<code>char32_t</code>（uchar.h）。它们被定义为无符号整数类型，在定义了宏<code>_STDC_UTF_16__</code>的C实现中，类型<code>char16_t</code>的字符采用UTF-16编码；在定义了宏<code>_STDC_UTF_32__</code>的C实现中，类型<code>char32_t</code>的字符采用UTF-32编码。</p>
+<p><code>wchar_t</code>字符字面量必须有一个<code>L</code>前缀，<code>char16_t</code>字符字面量必须有一个<code>u</code>前缀，<code>char32_t</code>字符字面量必须有一个<code>U</code>前缀：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// wchar_t</span></span><br><span class="line">L'A'、L'\xF82'、L'\u0100'</span><br><span class="line"><span class="comment">// char16_t</span></span><br><span class="line">u'A'、u'\x10f'、u'\u0100'</span><br><span class="line"><span class="comment">// char32_t</span></span><br><span class="line">U'A'、U'\x222B'、U'\u27FA'</span><br></pre></td></tr></table></figure>
+
+<h3 id="多字节字符"><a href="#多字节字符" class="headerlink" title="多字节字符"></a>多字节字符</h3><p>C语言中没有专门的多字节字符类型，而是使用<code>char</code>数组或<code>char</code>指针来存储多字节字符。因此，也没有专门的多字节字符字面量。</p>
+<p>C语言提供了一些标准函数，来在宽字符与多字节字符之间转换。</p>
+<p><code>wctomb()</code>用于将宽字符转换为多字节字符：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">wchar_t wc = L'\x3B1';    // Greek lowercase alpha</span><br><span class="line"><span class="keyword">char</span> mbStr[<span class="number">10</span>] = <span class="string">""</span>;</span><br><span class="line"><span class="keyword">int</span> nBytes = <span class="number">0</span>;  <span class="comment">// 多字节字符所需要的字节数量</span></span><br><span class="line">nBytes = wctomb(mbStr, wc);  <span class="comment">// mbStr = "\xCE\xB1"</span></span><br><span class="line"><span class="keyword">if</span>(nBytes &lt; <span class="number">0</span>)</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Not a valid multibyte character in your locale."</span>);</span><br></pre></td></tr></table></figure>
+
+<p>相应地，<code>mbtowc()</code>将一个多字节字符转换为宽字符。</p>
+<h2 id="布尔类型"><a href="#布尔类型" class="headerlink" title="布尔类型"></a>布尔类型</h2><p>C99引入了无符号整数类型<code>_Bool</code>用来表示布尔类型。布尔值真被定义为<code>1</code>，假被定义为<code>0</code>。</p>
+<p>如果程序中包含<code>stdbool.h</code>头文件，则可以使用标识符<code>bool</code>、<code>true</code>和<code>false</code>。宏<code>bool</code>是<code>_Bool</code>类型的同义词，符号常量<code>true</code>值为<code>1</code>，<code>false</code>值为<code>0</code>。</p>
+<h2 id="空类型"><a href="#空类型" class="headerlink" title="空类型"></a>空类型</h2><p>C语言中空类型使用<code>void</code>表示。</p>
+<p> 不可以用<code>void</code>声明变量或常量。</p>
+<h3 id="void用于函数声明"><a href="#void用于函数声明" class="headerlink" title="void用于函数声明"></a>void用于函数声明</h3><p>声明没有返回值的函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">perror</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>声明不带参数的函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">FILE *<span class="title">tmpfile</span><span class="params">(<span class="keyword">void</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="void类型表达式"><a href="#void类型表达式" class="headerlink" title="void类型表达式"></a>void类型表达式</h3><p>void类型表达式指的是没有值的表达式。例如，调用一个没有返回值的函数，就是一种void类型表达式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> filename[] = <span class="string">"memo.txt"</span>;</span><br><span class="line"><span class="keyword">if</span> (fopen(filename, <span class="string">"r"</span>) == <span class="literal">NULL</span>)</span><br><span class="line">  perror(filename);  <span class="comment">//void表达式</span></span><br></pre></td></tr></table></figure>
+
+<p>使用<code>(void)</code>对一个表达式进行强制类型转换，将显式地丢弃该表达式的值：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">void</span>)<span class="built_in">printf</span>(<span class="string">"I don't need this function's return value!\n"</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="指向void的指针"><a href="#指向void的指针" class="headerlink" title="指向void的指针"></a>指向void的指针</h3><p>一个<code>void *</code>类型的指针代表了对象的地址，但没有该对象的类型信息。这种“无数据类型”指针主要用于声明函数，让函数可使用各种类型的指针参数，或者返回一个“多用途”的指针。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">realloc</span><span class="params">(<span class="keyword">void</span> *ptr, <span class="keyword">size_t</span> <span class="built_in">size</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>可将一个void指针值赋值给另一个对象指针类型，反之亦然，这都不需要进行显式的类型转换。</p>
+<h1 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h1><h2 id="变量声明"><a href="#变量声明" class="headerlink" title="变量声明"></a>变量声明</h2><h2 id="常量声明"><a href="#常量声明" class="headerlink" title="常量声明"></a>常量声明</h2><h3 id="define"><a href="#define" class="headerlink" title="#define"></a><code>#define</code></h3><h3 id="const"><a href="#const" class="headerlink" title="const"></a><code>const</code></h3><h2 id="命名规范"><a href="#命名规范" class="headerlink" title="命名规范"></a>命名规范</h2><h1 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h1><h1 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h1><p><code>char</code>字符串使用双引号包围，<code>wchar_t</code>字符串字面量需要在左引号前加上<code>L</code>前缀，<code>char16_t</code>字符串字面量必须有一个<code>u</code>前缀，<code>char32_t</code>字符串字面量必须有一个<code>U</code>前缀，使用UTF-8编码的多字节字符串字面量必须有一个<code>u8</code>前缀：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> *pStr = <span class="string">"Hello, world!"</span>;</span><br><span class="line"><span class="keyword">wchar_t</span> proverb[] = <span class="string">L"A nod is as good as a wink to a blind horse."</span>;</span><br><span class="line"><span class="keyword">char16_t</span> *str16 = <span class="string">u"This is a Unicode string using UTF-16 encoding."</span>;</span><br><span class="line"><span class="keyword">char32_t</span> *str32 = <span class="string">U"This is a Unicode string using UTF-32 encoding."</span>;</span><br><span class="line"><span class="keyword">char</span> *str8 = <span class="string">u8"This is a Unicode string using UTF-8 encoding."</span>;</span><br></pre></td></tr></table></figure>
+
+<p>源代码字符集中的所有字符（包括多字节字符），均可表示为字符串字面量，除了单引号、反斜线和换行符。为了表示这些字符，必须使用转义字符：<code>&#39;\&#39;&#39;</code>、<code>&#39;\\&#39;</code>、<code>&#39;\n&#39;</code>。无法用单字节表示的字符，会以多字节字符方式存储。</p>
+<p>字符串字面量是一个静态的字符数组，它内部包含字符码，最后跟着一个字符串终止符，也就是空字符（<code>\0</code>）。空字符串<code>&quot;&quot;</code>在内存中占用一个字节，该字节存储了用来表示字符串终止的空字符。</p>
+<p>可以使用字符串字面量来初始化一个<code>char</code>数组，也可以初始化一个指向<code>char</code>的指针：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> doc_path[<span class="number">128</span>] = <span class="string">".\\share\\doc"</span>;  <span class="comment">//".\share\doc"</span></span><br><span class="line"><span class="keyword">char</span> *pStr = <span class="string">"Hello, world!"</span>;</span><br></pre></td></tr></table></figure>
+
+<p>字符串字面量与数组名称的功能一样，它代表了其第一个元素的地址。</p>
+<p>字符串字面量中的字符采用实现默认的字符编码。C11提供了一个UTF-8字符串字面量，它以<code>u8</code>为前缀，字符采用UTF-8编码。当实现版本默认编码为UTF-8时，以<code>u8</code>前缀的字符串字面量与不带前缀的字符串字面量是一样的。</p>
+<p>类似地，可以通过使用<code>L</code>、<code>u</code>和<code>U</code>前缀，来定义<code>wchar_t</code>、<code>char16_t</code>和<code>char32_t</code>宽字符串字面量。宽字符串字面量是以一个以0字符结尾的宽字符数组。</p>
+<p>编译器通过调用<code>mbstowcs()</code>、<code>mbrtoc16()</code>和<code>mbrtoc32()</code>函数，会将宽字符串字面量中的多字节字符隐式地转换为相应类型的宽字符。</p>
+<p>如果字符串字面量中的多字节字符或者转义序列无法在扩展字符集中表示，该字符串字面量的值将是未定义的。换句话说，其值将取决于所使用的编译器。</p>
+<p>编译器的预处理器会将紧邻的字符串字面量（这指是的仅仅通过空格隔开的两个字符串）串联成一个字符串。这种串联方式同样有助于将一个很长的字符串分割成多行以方便阅读。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PRG_NAME <span class="meta-string">"EasyLine"</span></span></span><br><span class="line"><span class="keyword">char</span> msg[] = <span class="string">"The installation of "</span> PRG_NAME</span><br><span class="line">             <span class="string">"is now complete."</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果任何紧邻的字符串字面量有前缀，那么串联获得的字符串字面量也具有该前缀。具有不同前缀的字符串字面量是否可以被串联，取决于编译器。</p>
+<p>分割字符串字面量为多行的另一种方法，就是利用每行结尾部分的反斜线：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> info[] = </span><br><span class="line"><span class="string">"This is a string literal broken up into\</span></span><br><span class="line"><span class="string">  several source code lines.\nNow one more line:\n\</span></span><br><span class="line"><span class="string">that's enough, the string ends here."</span>;</span><br></pre></td></tr></table></figure>
+
+<p>“serveral”之前的空格属于字符串字面量的一部分。而且，两个显式写成<code>\n</code>的换行符也属于字符串字面量一部分。</p>
+<p>虽然C语言没有严格地禁止修改字符串字面量，但不应该试图这么做。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> *p = <span class="string">"house"</span>;</span><br><span class="line">*p = <span class="string">'m'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这个语句不具有可移植性，在某些系统下，将会产生运行错误。一个原因是，编译器将字符串字面量视为常量，可能会将其存储在只读存储器中，这种情况下，试图对此字符串执行写入操作将会产生错误。另一个原因是，如果程序中有两个或更多完全相同的字符串字面量，编译器可能会将它们存储在相同的位置，因此，修改一个字符串会对其他字符串造成不可预计的影响。</p>
+<p>然而，如果使用一个字符串常量来初始化一个数组变量，则可以修改数组内容：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> s[] = <span class="string">"house"</span>;</span><br><span class="line">s[<span class="number">0</span>] = <span class="string">'m'</span>;</span><br></pre></td></tr></table></figure>
+
+<h1 id="枚举类型"><a href="#枚举类型" class="headerlink" title="枚举类型"></a>枚举类型</h1><p>基本类型和枚举类型统称算术类型（arithmetic type）。</p>
+<p>枚举类型是一种由用户在程序中定义的整数类型。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> color &#123;black, red, green, yellow, blue, white=<span class="number">7</span>, gray&#125;;</span><br><span class="line"><span class="keyword">enum</span> color bgColor = blue, fgColor = yellow;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">setFgColor</span><span class="params">(<span class="keyword">enum</span> color fgc)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>枚举常量的数据类型是<code>int</code>。</p>
+<p>对于给定枚举类型中的每个枚举常量都表示一个特定值，该值可以是隐式地由枚举值的位置所决定，也可以是显式地使用一个常量表达式来初始化。如果没有初始化，第一个枚举常量的值为0，其后面常量的值为前面枚举量值加1。因此，上面例子中的枚举常量的值依次为：0、1、2、3、4、7、8。</p>
+<p>由于枚举类型总是对应一种标准整数类型。因此，C程序可以使用枚举类型的变量进行一般算术运算。</p>
+<p>一个枚举中的不同枚举常量，可以具有相同的值。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> &#123;OFF, ON, STOP=<span class="number">0</span>, GO=<span class="number">1</span>, CLOSED=<span class="number">0</span>, OPEN=<span class="number">1</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>枚举类型定义时，如果只想定义常量，而不想声明属于该枚举类型的变量， 则可以省略类型名。用这种方式定义整数常量，比使用一长串的<code>#define</code>命令更好，因为枚举同时提供编译器常量的名称及其数值，这会带来额外的好处，例如，在调试器中可以显示常量名称。</p>
+<h1 id="表达式"><a href="#表达式" class="headerlink" title="表达式"></a>表达式</h1><h2 id="算术表达式"><a href="#算术表达式" class="headerlink" title="算术表达式"></a>算术表达式</h2><h2 id="关系表达式"><a href="#关系表达式" class="headerlink" title="关系表达式"></a>关系表达式</h2><h2 id="逻辑表达式"><a href="#逻辑表达式" class="headerlink" title="逻辑表达式"></a>逻辑表达式</h2><h2 id="赋值表达式"><a href="#赋值表达式" class="headerlink" title="赋值表达式"></a>赋值表达式</h2><h3 id="交换值"><a href="#交换值" class="headerlink" title="交换值"></a>交换值</h3><h2 id="位运算表达式"><a href="#位运算表达式" class="headerlink" title="位运算表达式"></a>位运算表达式</h2><h2 id="条件表达式"><a href="#条件表达式" class="headerlink" title="条件表达式"></a>条件表达式</h2><h1 id="语句"><a href="#语句" class="headerlink" title="语句"></a>语句</h1><h2 id="语句结束符"><a href="#语句结束符" class="headerlink" title="语句结束符"></a>语句结束符</h2><h2 id="表达式语句"><a href="#表达式语句" class="headerlink" title="表达式语句"></a>表达式语句</h2><h2 id="块语句"><a href="#块语句" class="headerlink" title="块语句"></a>块语句</h2><h2 id="空语句"><a href="#空语句" class="headerlink" title="空语句"></a>空语句</h2><h2 id="选择语句"><a href="#选择语句" class="headerlink" title="选择语句"></a>选择语句</h2><h3 id="条件语句"><a href="#条件语句" class="headerlink" title="条件语句"></a>条件语句</h3><h3 id="多分支语句"><a href="#多分支语句" class="headerlink" title="多分支语句"></a>多分支语句</h3><h2 id="循环语句"><a href="#循环语句" class="headerlink" title="循环语句"></a>循环语句</h2><h3 id="while循环"><a href="#while循环" class="headerlink" title="while循环"></a>while循环</h3><h3 id="do-while循环"><a href="#do-while循环" class="headerlink" title="do-while循环"></a>do-while循环</h3><h3 id="for循环"><a href="#for循环" class="headerlink" title="for循环"></a>for循环</h3><h2 id="跳转语句"><a href="#跳转语句" class="headerlink" title="跳转语句"></a>跳转语句</h2><h1 id="子程序"><a href="#子程序" class="headerlink" title="子程序"></a>子程序</h1><h2 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h2><h3 id="函数定义"><a href="#函数定义" class="headerlink" title="函数定义"></a>函数定义</h3><p>函数定义不能嵌套在另一个函数的定义之中。</p>
+<h3 id="函数声明"><a href="#函数声明" class="headerlink" title="函数声明"></a>函数声明</h3><h3 id="func"><a href="#func" class="headerlink" title="__func__"></a><code>__func__</code></h3><p>预定义标识符<code>__func__</code>，可以在任何函数中使用它来获取该函数的名称（字符串）。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">test_func</span><span class="params">(<span class="keyword">char</span> *s)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (s==<span class="literal">NULL</span>) &#123;</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%s: received null pointer argument\n"</span>, __func__);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="运算符"><a href="#运算符" class="headerlink" title="运算符"></a>运算符</h2><h3 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h3><h3 id="结合性"><a href="#结合性" class="headerlink" title="结合性"></a>结合性</h3><h2 id="函数类型"><a href="#函数类型" class="headerlink" title="函数类型"></a>函数类型</h2><h1 id="指针"><a href="#指针" class="headerlink" title="指针"></a>指针</h1><p>算术类型和指针类型统称标量类型（scalar type）。</p>
+<h1 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h1><p>数组和结构统称聚合类型（aggregate type）。指针和聚合类型也称为派生类型。</p>
+<h1 id="联合"><a href="#联合" class="headerlink" title="联合"></a>联合</h1><h2 id="位字段"><a href="#位字段" class="headerlink" title="位字段"></a>位字段</h2><h1 id="集合类型"><a href="#集合类型" class="headerlink" title="集合类型"></a>集合类型</h1><h2 id="列表"><a href="#列表" class="headerlink" title="列表"></a>列表</h2><h2 id="映射-字典"><a href="#映射-字典" class="headerlink" title="映射/字典"></a>映射/字典</h2><h2 id="集"><a href="#集" class="headerlink" title="集"></a>集</h2><h1 id="作用域和可见性"><a href="#作用域和可见性" class="headerlink" title="作用域和可见性"></a>作用域和可见性</h1><h2 id="作用域"><a href="#作用域" class="headerlink" title="作用域"></a>作用域</h2><p>C语言有四种作用域：</p>
+<ul>
+<li>文件作用域：如果声明标识符的地方位于所有语句块和参数列表之外，则该标识符就具有文件作用域。文件作用域的标识符在声明后直到翻译单元结束的任何地方可以访问。</li>
+<li>块作用域：除标签之外，在语句块内声明的标识符具有块作用域。这样的标识符只能在从其声明处到包含该声明的最小语句块结尾处的范围内可以访问。在一个函数定义头部的参数名称，也具有块作用域，其在整个函数体内都有效。<br>块作用域可以嵌套。</li>
+<li>函数原型作用域：函数原型中参数名具有函数原型作用域。这些参数名在原型外没有意义，通常只用注释。</li>
+<li>函数作用域：一个标签的作用域一定是该标签所在的整个函数体内，即使它被放在嵌套语句块内。例如，可以使用<code>goto</code>语句，在同一个函数体内，从任意点跳到某个标签处。</li>
+</ul>
+<p>标识符的作用域通常从声明之后开始，但是结构、联合、枚举的类型名称，以及枚举常量的名称是个例外：当它们出现在声明中时，它们的作用域就立刻开始，因此它们可以在声明中被本身再次引用。</p>
+<h3 id="标识符屏蔽"><a href="#标识符屏蔽" class="headerlink" title="标识符屏蔽"></a>标识符屏蔽</h3><p>内层块作用域中声明的标识符屏蔽外层块作用域或文件作用域中声明的同名标识符。</p>
+<p>函数原型中的参数名屏蔽外层块作用域或文件作用域中声明的同名标识符。</p>
+<h1 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h1><h1 id="类型系统"><a href="#类型系统" class="headerlink" title="类型系统"></a>类型系统</h1><h2 id="类型兼容"><a href="#类型兼容" class="headerlink" title="类型兼容"></a>类型兼容</h2><h2 id="类型转换"><a href="#类型转换" class="headerlink" title="类型转换"></a>类型转换</h2><h3 id="隐式转换"><a href="#隐式转换" class="headerlink" title="隐式转换"></a>隐式转换</h3><h4 id="算术转换"><a href="#算术转换" class="headerlink" title="算术转换"></a>算术转换</h4><h5 id="类型转换等级"><a href="#类型转换等级" class="headerlink" title="类型转换等级"></a>类型转换等级</h5><ol>
+<li><p>标准整数类型的等级次序：<code>_Bool &lt; char &lt; short &lt; int &lt; long &lt; long long</code>。</p>
+</li>
+<li><p>带符号整数类型与其对应的无符号整数类型具有相同的等级。</p>
+</li>
+<li><p>标准整数类型比相同宽度的扩展整数类型等级更高。</p>
+</li>
+<li><p>枚举类型与其对应的整数类型具有相同的等级。</p>
+</li>
+<li><p>浮点类型的等级次序：<code>float &lt; double &lt; long double</code>。</p>
+</li>
+<li><p>浮点类型的转换等级总是高于任何整数类型。</p>
+</li>
+<li><p>复数浮点类型与其实部和虚部的类型等级一样。</p>
+</li>
+</ol>
+<h5 id="算术转换规则"><a href="#算术转换规则" class="headerlink" title="算术转换规则"></a>算术转换规则</h5><ol>
+<li><p>如果两个操作数中的一个是浮点类型，则转换等级较低的操作数就会被转换成为转换等级较高的操作数的类型。然而，实数类型只能转换为实数类型，复数类型只能被转换为复数类型：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;complex.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">short n = <span class="number">-10</span>;</span><br><span class="line"><span class="keyword">double</span> x = <span class="number">0.5</span>, y = <span class="number">0.0</span>;</span><br><span class="line"><span class="keyword">float</span> <span class="built_in">_Complex</span> f_z = <span class="number">2.0F</span> + <span class="number">3.0F</span> * I;</span><br><span class="line"><span class="keyword">double</span> <span class="built_in">_Complex</span> d_z = <span class="number">0.0</span>;</span><br><span class="line"></span><br><span class="line">y = n * x;  <span class="comment">//n的值转换为double类型</span></span><br><span class="line">d_z = f_z + x;  <span class="comment">//只有f_z的值被转换为double _Complex类型，该运算的结果也是double _Complex类型</span></span><br><span class="line">f_z = f_z / <span class="number">3</span>;  <span class="comment">//常数3被转换为float类型</span></span><br><span class="line">d_z = d_z - f_z;  <span class="comment">//f_z的值被转换为double _Complex类型</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果两个操作数都是整数，则会对该两个操作数进行整数提升。即，转换等级低于<code>int</code>的操作数将会自动转换为<code>int</code>类型。如果<code>int</code>范围难以满足需要，则会转换为<code>unsigned int</code>类型。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> c = <span class="string">'?'</span>;</span><br><span class="line"><span class="keyword">unsigned</span> short var = <span class="number">100</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (c &lt; <span class="string">'A'</span>)  <span class="comment">//字符常量'A'的类型是int，c的值被隐式提升为int以进行比较</span></span><br><span class="line">  var = var + <span class="number">1</span>;  <span class="comment">//在加法之前，var值被提升到int或unsigned int类型</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果在整数提升之后，操作数依然具有不同的类型，则</p>
+<ul>
+<li><p>如果一个操作数是无符号类型T，其转换等级不低于另一个操作数，则另一个操作数就会转换为T类型。</p>
+</li>
+<li><p>如果一个操作数是带符号类型T，其转换等级高于另一个操作数。只要T类型范围足以表示另一个操作数类型所有可能值，则另一个操作数会被转换为T类型。若T类型 不足以表示另一个操作数类型所有可能值，则两个操作数都会被转换为与T相对应的无符号类型。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> i = <span class="number">-1</span>;</span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> limit = <span class="number">200U</span>;</span><br><span class="line"><span class="keyword">long</span> n = <span class="number">30L</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (i &lt; limit)  <span class="comment">//i的值（-1）将被转换为unsigned int类型，这样等到的结果是一个很大的正数。在任何一个系统上，这个值都大于limit值。因此，此if条件为false。</span></span><br><span class="line">  x = limit * n; <span class="comment">//如果long的范围覆盖unsigned int，则limit将转换为n的类型（即long）。否则（例如int和long都是32位长），那么limit和n都将被转换为unsigned long类型。</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+</li>
+</ol>
+<h5 id="其他隐式转换"><a href="#其他隐式转换" class="headerlink" title="其他隐式转换"></a>其他隐式转换</h5><ol>
+<li>在赋值和初始化过程时，右操作数总是被转换成左操作数的类型。</li>
+<li></li>
+</ol>
+<h3 id="显式转换"><a href="#显式转换" class="headerlink" title="显式转换"></a>显式转换</h3><h2 id="类型推断"><a href="#类型推断" class="headerlink" title="类型推断"></a>类型推断</h2><h2 id="sizeof"><a href="#sizeof" class="headerlink" title="sizeof"></a>sizeof</h2><p><code>sizeof(类型)</code> 表示获取指定类型的空间大小。</p>
+<p><code>sizeof 表达式</code> 或<code>sizeof(表达式)</code> 表示获取指定表达式类型的空间大小。</p>
+<p><code>sizeof</code>的结果类型是<code>size_t</code>（stddef.h），它是作为一个无符号整数类型（如<code>unsigned long</code>）定义在头文件<code>stddef.h</code>、<code>stdio.h</code>以及其他头文件中。</p>
+<h2 id="对象在内存中的对齐方式"><a href="#对象在内存中的对齐方式" class="headerlink" title="对象在内存中的对齐方式"></a>对象在内存中的对齐方式</h2><p>类型指定了该类型中用于存储对象的内存地址形式，这些形式包括：</p>
+<ul>
+<li>所有地址都可以存储</li>
+<li>只有偶数地址可以存储</li>
+<li>只有被4整除的地址可以存储</li>
+<li>……</li>
+</ul>
+<p>一个类型的对齐用该类型中两个对象在内存中相距的字节数量来表示。类型对齐的具体值随C语言实现版本的不同而异，但是它们都是2的正整数指数，如1、2、4、8等。</p>
+<p>如果一个类型的对齐比另一个类型具有更大的值，则称该类型的对齐方式比另一个类型的对齐方式更严格。</p>
+<p>C11提供了操作符<code>_Alignof</code>来获取一个类型的对齐，修饰符<code>_Alignas</code>来指定一个对象的对齐。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">_Alignof(<span class="keyword">int</span>)   <span class="comment">//返回size_t类型的值4</span></span><br></pre></td></tr></table></figure>
+
+<p>如果一个对齐值小于等于<code>_Alignof(max_align_t)</code>，则称为基础对齐。所有基本类型和指针类型有一个基础对齐值。此外，实现版本可能也支持对齐值大于<code>_Alignof(max_align_t)</code>，这种情况被称为扩展对齐（extended alignment）。</p>
+<p>当一个对象用修饰符<code>_Alignas</code>定义时，它可拥有较其类型本身所需的对齐值更为严格的对齐值。<code>_Alignas</code>的参数可以是一个整数常量表达式，其值为一个有效的对齐值，或一个类型：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">_Alignas(<span class="number">4</span>) short var;  <span class="comment">//定义short类型的变量var，其拥有4字节的对齐值</span></span><br><span class="line">_Alignas(<span class="keyword">double</span>) <span class="keyword">float</span> x;  <span class="comment">//定义float类型变量x，其拥有double类型的对齐值</span></span><br></pre></td></tr></table></figure>
+
+<p><code>_Alignas(type)</code>等效于<code>_Alignas(_Alignof(type))</code>。</p>
+<p>头文件stdalign.h中定义了<code>alignof</code>和<code>alignas</code>作为<code>_Alignof</code>和<code>_Alignas</code>的同义词。</p>
+<h2 id="typedef"><a href="#typedef" class="headerlink" title="typedef"></a>typedef</h2><h1 id="别名"><a href="#别名" class="headerlink" title="别名"></a>别名</h1><h2 id="类型别名"><a href="#类型别名" class="headerlink" title="类型别名"></a>类型别名</h2><h1 id="输入和输出"><a href="#输入和输出" class="headerlink" title="输入和输出"></a>输入和输出</h1><h1 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h1><h1 id="断言"><a href="#断言" class="headerlink" title="断言"></a>断言</h1><h1 id="正则表达式"><a href="#正则表达式" class="headerlink" title="正则表达式"></a>正则表达式</h1><h1 id="并发编程"><a href="#并发编程" class="headerlink" title="并发编程"></a>并发编程</h1><h1 id="网络编程"><a href="#网络编程" class="headerlink" title="网络编程"></a>网络编程</h1><h1 id="国际化和本地化"><a href="#国际化和本地化" class="headerlink" title="国际化和本地化"></a>国际化和本地化</h1><h2 id="日期和时间"><a href="#日期和时间" class="headerlink" title="日期和时间"></a>日期和时间</h2><h1 id="元编程"><a href="#元编程" class="headerlink" title="元编程"></a>元编程</h1><h1 id="预处理指令"><a href="#预处理指令" class="headerlink" title="预处理指令"></a>预处理指令</h1><p>预处理指令通常都是独占一行，因为行结束符视为预处理器指令的终止。</p>
+<h2 id="include"><a href="#include" class="headerlink" title="#include"></a>#include</h2><p>include目录的搜索顺序：</p>
+<ol>
+<li>包含指定源文件的目录（只对在<code>#include</code>指令中以引号括起来的头文件名进行搜索）。</li>
+<li>采用<code>-iquote 路径1:…:路径N</code> 选项指定的目录（只对在<code>#include</code>指令中以引号括起来的头文件名进行搜索）。</li>
+<li>采用<code>-I 路径1:…:路径N</code> 选项指定的目录（对所有<code>#include</code> 指令中的头文件名进行搜索，无论文件名是在引号中，还是在尖括号中）。</li>
+<li>采用环境变量<code>CPATH</code>指定的目录。</li>
+<li>采用<code>-isystem 路径1:…:路径N</code> 选项指定的目录（只对在<code>#include</code>指令中以尖括号括起来的头文件名进行搜索）。</li>
+<li>采用环境变量<code>C_INCLUDE_PATH</code> 指定的目录。</li>
+<li>系统默认的include目录。</li>
+</ol>
+<h1 id="模块"><a href="#模块" class="headerlink" title="模块"></a>模块</h1><p>每个C源文件，连同通过<code>#include</code>指令引用的头文件，构成一个翻译单元（translation unit）。</p>
+<p>编译器将一个C程序的每个翻译单元翻译成一个独立的目标文件（object file）。目标文件的扩展名通常为<code>.o</code>或<code>.obj</code>。然后，编译器调用链接器（linker）将所有的目标文件和所用到的链接库函数结合起来，成为一个可执行文件（executable file）。</p>
+<p>目标文件也称为模块（module）。一个链接库包含了多个编译好的可以快速获取的模块，模块里有许多标准函数。</p>
+<h1 id="构建管理"><a href="#构建管理" class="headerlink" title="构建管理"></a>构建管理</h1><p>make工具可以自动管理具有任意大小与复杂程序的程序的编译过程，而且，它会比较相关文件的更新时间，以避免重复之前的工作。更重要的是，使用make命令可以管理定义如何构建各种目标的规则，并且自动分析所涉及文件之间的依赖关系 。</p>
+<h2 id="Makefile文件"><a href="#Makefile文件" class="headerlink" title="Makefile文件"></a>Makefile文件</h2><p>make在执行构建时，需要一个构建文件来告诉make如何去构建程序。这个构建文件默认是<code>makefile</code>（GNU make还可以是<code>Makefile</code>） 文件，也可以使用<code>-f</code>选项来显式指定一个构建文件。</p>
+<blockquote>
+<p>实际上，makefile文件不是必须的。在执行<code>make</code>时，如果没有找到makefile文件，则使用make的内置规则（即<code>make -p</code>输出的内容）。</p>
+</blockquote>
+<p>MyMakefile：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># A basic makefile</span></span><br><span class="line"></span><br><span class="line">CC = gcc</span><br><span class="line">CFLAGS = -Wall -g -std=c11 -Os</span><br><span class="line"></span><br><span class="line"><span class="section">hello: hello.o</span></span><br><span class="line">	<span class="variable">$(CC)</span> <span class="variable">$(CFLAGS)</span> -o <span class="variable">$@</span> <span class="variable">$&lt;</span></span><br><span class="line"><span class="section">hello.o: hello.c</span></span><br><span class="line">	<span class="variable">$(CC)</span> -o <span class="variable">$@</span> -c <span class="variable">$&lt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>$@</code>：引用当前规则的目标。</p>
+<p><code>$&lt;</code>：引用当前规则的第一个依赖。</p>
+<h2 id="执行构建"><a href="#执行构建" class="headerlink" title="执行构建"></a>执行构建</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ make -f MyMakefile</span><br></pre></td></tr></table></figure>
+
+<p>如果只想看一下make会执行哪些命令，而不实际执行，则可以使用<code>-n</code>选项（或者<code>--just-print</code>、<code>--dry-run</code>或<code>--recon</code>）。</p>
+<p>如果makefile文件是默认名称，则只需要在makefile所在位置执行<code>make</code>。</p>
+<p>make还可以显式指定从某个目标（或某几个目标）开始执行，例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ make hello.o</span><br></pre></td></tr></table></figure>
+
+<p>make没有显式指定目标时，默认从makefile的第一个目标开始执行。</p>
+<h2 id="注释-1"><a href="#注释-1" class="headerlink" title="注释"></a>注释</h2><p>构建文件中，以<code>#</code>开始的行是注释。但在命令脚本中出现的<code>#</code>，不是make的注释（但有可能是shell的注释）。</p>
+<h2 id="规则"><a href="#规则" class="headerlink" title="规则"></a>规则</h2><p>构建文件主要是通过规则来告诉make如何去构建程序的。</p>
+<p>规则由三部分组成：目标（target）、依赖（prerequisite）和命令脚本（command script）。</p>
+<p>依赖描述了“何时”构建目标，命令脚本则描述了“如何”构建目标。</p>
+<p>只要依赖发生了变化（即依赖比目标新），并且该依赖要么不依赖其他依赖，要么它所依赖的依赖没有发生变化，make就会执行相应的命令脚本，以构建目标。如果该依赖所依赖的依赖也发生了变化，则递归地先处理上一级依赖的变化，然后再执行本规则的命令脚本，以构建目标。</p>
+<p>规则的一般格式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">目标1 [… 目标N]: [依赖1 [… 依赖N]]</span><br><span class="line">	[命令行1</span><br><span class="line">	…</span><br><span class="line">	命令行N]</span><br></pre></td></tr></table></figure>
+
+<p>第一个”目标“必须放在本行的开始，左边不能有空白符。</p>
+<p>每个命令行都必须以制表符（不能是空格）开始。</p>
+<p>注释和空白行会被忽略。</p>
+<h3 id="命令脚本"><a href="#命令脚本" class="headerlink" title="命令脚本"></a>命令脚本</h3><p>命令脚本中的每个命令行都是在一个新的shell实例中单独执行。因此，每个命令都不依赖于其他前面行的命令的副作用。</p>
+<p>例如，下面的命令将不会执行<code>src/</code>子目录下的<code>etags</code>：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">TAGS:</span></span><br><span class="line">	cd src/</span><br><span class="line">	etags *.c</span><br></pre></td></tr></table></figure>
+
+<p>在尝试构建<code>TAGS</code>时，make会在当前目录下执行shell命令<code>cd src/</code>。当该命令执行完毕时，make会在一个新的shell实例中执行<code>etags *.c</code>，还是在当前目录下。</p>
+<p>有两种方式让多个命令在同一个shell下执行：把它们放在一行并用分号隔开它们，或者加上分号和反斜线，让它们逻辑上成为在一行：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">TAGS:</span></span><br><span class="line">	cd src/ ; etags *.c ;\</span><br><span class="line">	cd .. ; ls src/TAGS</span><br></pre></td></tr></table></figure>
+
+<p>在同一个shell中执行多个命令的另一个原因是可以加快处理速度，特别在大型项目中尤其突出。</p>
+<h3 id="模式规则"><a href="#模式规则" class="headerlink" title="模式规则"></a>模式规则</h3><p>模式规则的一般格式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[目标1 [… 目标N]:] 目标模式 : 依赖模式</span><br><span class="line">	[命令行1</span><br><span class="line">	…</span><br><span class="line">	命令行N]</span><br></pre></td></tr></table></figure>
+
+<p>如果包含一个显式的目标列表，则该规则就是静态模式规则。这时，目标列表中的每个目标依次都要匹配目标模式，并且静态模式规则只适用于它的目标列表中的目标。例如：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">circulararea.o circle.o: %.o: %.c</span><br><span class="line">	<span class="variable">$(CC)</span> <span class="variable">$(CFLAGS)</span> -o <span class="variable">$@</span> -c <span class="variable">$&lt;</span></span><br></pre></td></tr></table></figure>
+
+<p>目标模式中允许出现通配符<code>%</code>。当make采用<code>%.o</code>模式匹配目标列表中的每个目标时，目标匹配通配符<code>%</code>的部分被称为stem（词干）。这个stem会取代<code>%.c</code>中的百分号，以生成依赖。</p>
+<p>每个模式中只会使用一次通配符。如果想在模式中使用字面意义的百分号，则需要使用<code>\%</code>。另外，在模式中<code>\\</code>表示字面意义的反斜线。</p>
+<p>如果省略目标列表，则该规则被称为隐式规则（implicit rule）。隐式规则适用于任意目标。例如：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">%.o: %.c</span></span><br><span class="line">	<span class="variable">$(CC)</span> <span class="variable">$(CFLAGS)</span> -o <span class="variable">$@</span> -c <span class="variable">$&lt;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果一个目标和显式规则（有目标列表的规则）没有命令脚本，make会尝试对该目标使用隐式规则。</p>
+<p>对于同一个目标，可能存在许多隐式规则可以匹配它。make会根据哪个依赖有效，或者应用哪个规则可以生成有效的依赖，从隐式规则列表中挑选出第一个规则。</p>
+<p>如果make生成了在makefile中没有被提及的任何中间文件，这些中间文件都会在达成相应目标后被删除。</p>
+<p>例如：makefile</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">%: %.o</span></span><br><span class="line">	cc -o <span class="variable">$@</span> <span class="variable">$^</span></span><br><span class="line"><span class="section">%.o: %.c</span></span><br><span class="line">	cc -c -o <span class="variable">$@</span> <span class="variable">$&lt;</span></span><br></pre></td></tr></table></figure>
+
+<p>则，</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ ls</span><br><span class="line">Makefile square.c</span><br><span class="line">$ make -r square</span><br><span class="line">cc -c -o square.o square.c</span><br><span class="line">cc -o square square.o</span><br><span class="line">rm square.o</span><br><span class="line">$ ls</span><br><span class="line">Makefile square square.c</span><br></pre></td></tr></table></figure>
+
+<p>根据目标，make找到了Makefile中的两个隐式规则以及有效的源文件，并采用间接的方法构建了目标，然后自动地清理中间目标文件（<code>square.o</code>），因为这个中间文件没有在Makefile或命令行中被提及。</p>
+<h3 id="内置规则"><a href="#内置规则" class="headerlink" title="内置规则"></a>内置规则</h3><p>make为一些常见的操作（例如，将C源代码编译成目标文件）定义了许多内置规则（以及所使用的预定义变量），可以运行<code>make -p</code> 命令，它不会构建项目，而只是显示make的内置规则和变量。</p>
+<p>自己在makefile中定义的规则优先级高于内置规则。</p>
+<p>可以在makefile中重写内置规则和变量。</p>
+<p>如果要禁用内置规则，则需要使用<code>-r</code>选项：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ make -r foo</span><br></pre></td></tr></table></figure>
+
+<h3 id="目标是链接库成员"><a href="#目标是链接库成员" class="headerlink" title="目标是链接库成员"></a>目标是链接库成员</h3><p>大多数程序不仅依赖源代码，还依赖链接库。对于目标是链接库成员的情况，make为这类目标提供一个特殊的表示法：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">AR = ar -rv</span><br><span class="line"></span><br><span class="line"><span class="section">libcircularmath.a(circulararea.o): circulararea.o</span></span><br><span class="line">	<span class="variable">$(AR)</span> <span class="variable">$@</span> <span class="variable">$%</span></span><br></pre></td></tr></table></figure>
+
+<p>上述规则将执行下面的命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ar -rv libcircularmath.a circulararea.o</span><br></pre></td></tr></table></figure>
+
+<h3 id="双冒号规则"><a href="#双冒号规则" class="headerlink" title="双冒号规则"></a>双冒号规则</h3><p>双冒号规则在目标与依赖之间有两个冒号，而普通规则的目标与依赖之间只有一个冒号。</p>
+<p>在同一个makefile中，一个目标可以出现在多个规则中。但是这些规则必须是同一类型的规则，要么都是普通规则，要么都是双冒号规则。而不允许一个目标同时出现在两种不同类型的规则中。</p>
+<p>双冒号规则和普通规则的处理的不同点表现在以 下几个方面： </p>
+<ol>
+<li>对于一个没有依赖的双冒号规则，当引用此目标时，规则的命令脚本将会被无条件执行。而普通规则，当规则的目标文件存在时（不是伪目标），此规则的命令脚本永远不会被执行（目标文件永远是最新的）。 </li>
+<li>当同一个文件作为多个双冒号规则的目标时，只会选择第一个依赖比目标新的那条规则，其他双冒号规则（不管依赖是否比目标新）将不会执行， 而不是像普通规则那样，选择最后一个依赖比目标新的规则。这就意味着对这些双冒号规则的处理就像多个不同的普通规则一样。</li>
+</ol>
+<h3 id="伪目标"><a href="#伪目标" class="headerlink" title="伪目标"></a>伪目标</h3><p>并非将要生成的文件名的目标，称为伪目标（phony target）。</p>
+<p>没有依赖的伪目标，只要被调用，不管是普通规则，还是双冒号规则，它的命令脚本总会被执行。</p>
+<p>另外，作为<code>.PHONY</code>的依赖的目标总是伪目标，而不管是否存在文件名与它对应。例如：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"><span class="meta-keyword">.PHONY</span>: bin</span></span><br><span class="line"><span class="section">bin: circle</span></span><br><span class="line">	<span class="variable">$(MKDIR)</span> <span class="variable">$@</span></span><br><span class="line">	<span class="variable">$(CP)</span> <span class="variable">$&lt;</span> <span class="variable">$@</span>/</span><br><span class="line">	<span class="variable">$(CHMOD)</span> 600 <span class="variable">$@</span>/<span class="variable">$&lt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h2><p>make中的变量可在多个层次中定义。通过make命令行参数定义的变量优先级最高，而在makefile中定义的变量优先级最低。</p>
+<p>可以使用<code>make -p</code> 命令来获取所有变量的来源。</p>
+<h3 id="通过make命令行参数定义"><a href="#通过make命令行参数定义" class="headerlink" title="通过make命令行参数定义"></a>通过make命令行参数定义</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ make CFLAGS=<span class="string">"-g -Wall"</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="通过环境变量定义"><a href="#通过环境变量定义" class="headerlink" title="通过环境变量定义"></a>通过环境变量定义</h3><p>在运行make之前从shell中设定环境变量，这样make就可以利用这些变量了。例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">export</span> CFLAGS=<span class="string">'-g -Wall -O3'</span></span><br></pre></td></tr></table></figure>
+
+<p>如果变量定义与要执行的命令在同一行，可以省略<code>export</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ PANTS=kakhi PLANTS=<span class="string">"ficus fern"</span> env | grep <span class="string">'P.*NTS'</span></span><br></pre></td></tr></table></figure>
+
+<p>这样定义的变量只在当前命令行中可访问，等号两边不要有空格，变量定义要放在命令之前且使用空格分隔，多个变量定义之间也使用空格分隔。</p>
+<h3 id="在makefile中定义"><a href="#在makefile中定义" class="headerlink" title="在makefile中定义"></a>在makefile中定义</h3><p>根据定义的方式不同，变量可以分为递归展开（recursively expanded）变量和简单展开（simply expanded）变量。</p>
+<h4 id="递归展开变量"><a href="#递归展开变量" class="headerlink" title="递归展开变量"></a>递归展开变量</h4><p>递归展开变量定义可使用<code>=</code>运算符：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEBUGFLAGS = <span class="variable">$(CFLAGS)</span> -ggdb -DDEBUG -O0</span><br></pre></td></tr></table></figure>
+
+<p>递归展开变量<code>DEBUGFLAGS</code>的定义体中的引用变量<code>$(CFLAGS)</code>，只有在<code>DEBUGFLAGS</code>被引用时才会被展开。</p>
+<h4 id="简单展开变量"><a href="#简单展开变量" class="headerlink" title="简单展开变量"></a>简单展开变量</h4><p>简单展开变量定义可使用<code>:=</code>运算符：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">OBJ = circle.o circulararea.o</span><br><span class="line">TESTOBJ := <span class="variable">$(OBJ)</span> profile.o</span><br></pre></td></tr></table></figure>
+
+<p>简单展开变量<code>TESTOBJ</code>定义体中的引用变量<code>$(OBJ)</code>，在定义时就已经展开。这样，后续<code>OBJ</code>即使有修改，也不会影响<code>$(TESTOBJ)</code>的值。</p>
+<h4 id="附加运算符"><a href="#附加运算符" class="headerlink" title="附加运算符"></a>附加运算符</h4><p>附加运算符<code>+=</code>将更多字符附加到一个变量现有值的后面。</p>
+<p>对简单展开变量执行附加运算符后，结果仍是简单展开变量；而对递归展开变量或者尚未定义的变量执行附加运算符后，结果为递归展开变量。</p>
+<p>例如：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">OBJ += profile.o</span><br></pre></td></tr></table></figure>
+
+<p>附加运算符在展开新文本到变量现有值时，会自动插入一个空格。</p>
+<h4 id="条件赋值运算符"><a href="#条件赋值运算符" class="headerlink" title="条件赋值运算符"></a>条件赋值运算符</h4><p>条件赋值运算符<code>?=</code>只能给一个尚未定义的变量赋值，如果变量已经存在，则赋值不会起作用。并且条件赋值运算符定义的变量总是递归展开变量。</p>
+<h4 id="通过宏定义变量"><a href="#通过宏定义变量" class="headerlink" title="通过宏定义变量"></a>通过宏定义变量</h4><p>参见“宏”。</p>
+<h4 id="重写变量"><a href="#重写变量" class="headerlink" title="重写变量"></a>重写变量</h4><p>在makefile中，可以使用<code>override</code>关键字来重写在命令行或shell环境中定义的任何变量：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> CPPLFAGS = -DDEBUG</span><br></pre></td></tr></table></figure>
+
+<h4 id="目标专用的变量赋值"><a href="#目标专用的变量赋值" class="headerlink" title="目标专用的变量赋值"></a>目标专用的变量赋值</h4><p>可以为某个目标定义专用变量：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">目标列表 : [<span class="keyword">override</span>] 变量赋值</span><br></pre></td></tr></table></figure>
+
+<p>这些目标专用变量或模式专用变量会取代任何其他地方定义的同名变量定义。</p>
+<p>一个规则只能定义一个专用变量，如果要对同一目标定义多个专用变量，则要定义多个规则：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">debug symbols: CFLAGS += <span class="variable">$(DEBUGCFLAGS)</span></span><br><span class="line"><span class="section">symbols: ASMFLAGS = -Wa,-as=<span class="variable">$*</span>.sm,-L</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="引用变量"><a href="#引用变量" class="headerlink" title="引用变量"></a>引用变量</h3><p>变量名称如果包含多个字符，则在命令脚本引用时，必须使用<code>$(变量名)</code>形式引用；如果变量名只有一个字符，则可采用<code>$变量名</code>形式引用。</p>
+<blockquote>
+<p>这与在shell中引用变量不同，在shell中不管变量名是一个字符，还是多个字符，都是采用<code>$变量名</code>形式。</p>
+</blockquote>
+<h4 id="替换引用"><a href="#替换引用" class="headerlink" title="替换引用"></a>替换引用</h4><p>例如：引用变量<code>$(OBJ)</code>的值中所有以<code>.o</code>结尾单词的结尾部分<code>.o</code>替换为<code>.sym</code>。</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SYMTABS = $(OBJ: .o = .sym)</span><br></pre></td></tr></table></figure>
+
+<h3 id="内置变量"><a href="#内置变量" class="headerlink" title="内置变量"></a>内置变量</h3><p><code>$@</code>：当前目标。</p>
+<p><code>$*</code>：模式规则中<code>%</code>所代表部分。</p>
+<p><code>$&lt;</code>：第一个依赖。</p>
+<p><code>$^</code>：依赖列表，排除了重复的元素。</p>
+<p><code>$?</code>：比目标新的依赖列表。</p>
+<p><code>$+</code>：依赖完整列表，包括重复的元素。</p>
+<p><code>$%</code>：如果目标是一个链接库成员，变量<code>$%</code> 是链接库成员名，而<code>$@</code>是链接库文件名。</p>
+<p>上述内置变量还可以跟上<code>D</code>或<code>F</code>后缀。例如，<code>$(@D)</code>展开为目标的目录部分（不包含文件名），而<code>$(@F)</code>展开为目标的文件名（不包含目录）。</p>
+<h2 id="宏"><a href="#宏" class="headerlink" title="宏"></a>宏</h2><p>宏与变量之间没有实质的差别。宏通常用于定义包括多行的变量。</p>
+<p>宏的一般形式：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">define</span> 宏名</span><br><span class="line">宏值</span><br><span class="line"><span class="keyword">endef</span></span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">define</span> installtarget</span><br><span class="line">@echo Installing <span class="variable">$@</span> in <span class="variable">$(USRBINDIR)</span> ... ;\</span><br><span class="line"><span class="variable">$(MKDIR)</span> -m 7700 <span class="variable">$(USRBINDIR)</span>;\</span><br><span class="line"><span class="variable">$(CP)</span> <span class="variable">$@</span> <span class="variable">$(USRBINDIR)</span>/ ;\</span><br><span class="line">@echo ... done.</span><br><span class="line"><span class="keyword">endef</span></span><br></pre></td></tr></table></figure>
+
+<p>引用宏的语法与引用变量相同，例如：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">circle: <span class="variable">$(OBJ)</span> <span class="variable">$(LIB)</span></span></span><br><span class="line">	<span class="variable">$(CC)</span> <span class="variable">$(LDFLAGS)</span> -o <span class="variable">$@</span> <span class="variable">$^</span></span><br><span class="line"><span class="keyword">ifdef</span> INSTALLTOO</span><br><span class="line">	<span class="variable">$(installtarget)</span></span><br><span class="line"><span class="keyword">endif</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="函数-1"><a href="#函数-1" class="headerlink" title="函数"></a>函数</h2><h3 id="内置函数"><a href="#内置函数" class="headerlink" title="内置函数"></a>内置函数</h3><h3 id="自定义函数"><a href="#自定义函数" class="headerlink" title="自定义函数"></a>自定义函数</h3><p>可以使用<code>define</code> 命令和<code>:=</code> 赋值运算符来自定义函数，类似于变量或宏。</p>
+<p>函数体中可以包含带编号的形参引用。例如，<code>$1</code>表示第一个参数、<code>$2</code>表示第二个参数等等。</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 一个条件式的赋值作为提醒，用户可能在命令行定义“STATIC=1”或“STATIC=yes”</span></span><br><span class="line">STATIC ?=</span><br><span class="line"></span><br><span class="line"><span class="comment"># 一个生成库模块名的函数</span></span><br><span class="line"><span class="keyword">define</span> getmodulename</span><br><span class="line">	<span class="variable">$(<span class="built_in">if</span> $2, $1, $(<span class="built_in">addsuffix</span> .so, $(<span class="built_in">basename</span> $1)</span>))</span><br><span class="line"><span class="keyword">endef</span></span><br><span class="line"></span><br><span class="line"><span class="section">all: circle</span></span><br><span class="line"></span><br><span class="line"><span class="section">circle: circle.o $(call getmodulename, circulararea.o, <span class="variable">$(STATIC)</span>)</span></span><br><span class="line">	<span class="variable">$(CC)</span> -o <span class="variable">$@</span> <span class="variable">$^</span></span><br><span class="line">	</span><br><span class="line"><span class="keyword">ifndef</span> STATIC</span><br><span class="line"><span class="section">%.so: %.o</span></span><br><span class="line">	<span class="variable">$(CC)</span> -shared -o <span class="variable">$@</span> <span class="variable">$&lt;</span></span><br><span class="line"><span class="keyword">endif</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="函数调用"><a href="#函数调用" class="headerlink" title="函数调用"></a>函数调用</h3><p>内置函数调用的一般格式：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$(内置函数名 参数1[, …, 参数N])</span><br></pre></td></tr></table></figure>
+
+<p>自定义函数调用的一般格式：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$(<span class="built_in">call</span> 自定义函数名[, 参数1, …, 参数N])</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>call</code>是一个内置函数。</p>
+</blockquote>
+<h2 id="指令"><a href="#指令" class="headerlink" title="指令"></a>指令</h2><h3 id="条件"><a href="#条件" class="headerlink" title="条件"></a>条件</h3><p>没有定义的变量与定义成空的变量是相同的含义。</p>
+<p><code>ifdef</code></p>
+<p><code>ifndef</code></p>
+<p><code>ifeq</code></p>
+<p><code>ifneq</code></p>
+<h3 id="include-1"><a href="#include-1" class="headerlink" title="include"></a>include</h3><h3 id="override"><a href="#override" class="headerlink" title="override"></a>override</h3><h3 id="export-unexport"><a href="#export-unexport" class="headerlink" title="export/unexport"></a>export/unexport</h3><h3 id="vpath"><a href="#vpath" class="headerlink" title="vpath"></a>vpath</h3><h2 id="CMake"><a href="#CMake" class="headerlink" title="CMake"></a>CMake</h2><p>在 linux 平台下使用 CMake 生成 Makefile 并编译的流程如下：</p>
+<ol>
+<li>编写 CMake 配置文件 <code>CMakeLists.txt</code> 。</li>
+<li>执行命令 <code>cmake PATH</code> 或者 <code>ccmake PATH</code> 生成本地化的 <code>makefile</code>文件。其中， <code>PATH</code> 是 <code>CMakeLists.txt</code> 文件所在的目录。<code>ccmake</code> 和 <code>cmake</code> 的区别在于前者提供了一个交互式的界面。</li>
+<li>使用 <code>make</code> 命令进行编译。</li>
+</ol>
+<h1 id="程序剖析"><a href="#程序剖析" class="headerlink" title="程序剖析"></a>程序剖析</h1><p>使用GCC的<code>-p</code>选项会在程序中加入一些特殊的函数，以当执行程序时输出剖析信息（profiling information）。剖析信息相当有用，可以辅助解决性能相关的问题，因为它可以帮助了解程序中哪些函数正在耗费时间。剖析信息被存储到一个名为<code>mon.out</code>的文件中。然后可以使用prof工具程序来以多种方式来分析剖析信息。</p>
+<p>在编译程序时可以使用<code>-pg</code>选项启用它。剖析信息输出的默认文件名是<code>gmon.out</code> 。GNU剖析器（profiler）gprof结合GCC选项<code>-pg</code>使用，可以生成一张调用图，显示程序内函数间是如何相互调用的。如果<code>-pg</code>选项结合选项<code>-g</code>使用，GCC选项就会为调试器提供源代码行号信息，并且gprof也可以提供逐行的剖析信息。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C11/" rel="tag"># C11</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/06/09/Flex-Bison/" rel="prev" title="Flex-Bison">
+      <i class="fa fa-chevron-left"></i> Flex-Bison
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/07/03/Kubernetes/" rel="next" title="Kubernetes">
+      Kubernetes <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#开发环境"><span class="nav-number">2.</span> <span class="nav-text">开发环境</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装"><span class="nav-number">2.1.</span> <span class="nav-text">安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#静态代码分析工具"><span class="nav-number">2.1.1.</span> <span class="nav-text">静态代码分析工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IDE"><span class="nav-number">2.1.2.</span> <span class="nav-text">IDE</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#交互模式"><span class="nav-number">2.2.</span> <span class="nav-text">交互模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解释模式"><span class="nav-number">2.3.</span> <span class="nav-text">解释模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编译模式"><span class="nav-number">2.4.</span> <span class="nav-text">编译模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#预处理"><span class="nav-number">2.4.1.</span> <span class="nav-text">预处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#编译"><span class="nav-number">2.4.2.</span> <span class="nav-text">编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#汇编"><span class="nav-number">2.4.3.</span> <span class="nav-text">汇编</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#链接"><span class="nav-number">2.4.4.</span> <span class="nav-text">链接</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#链接顺序"><span class="nav-number">2.4.4.1.</span> <span class="nav-text">链接顺序</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#链接库"><span class="nav-number">2.4.4.2.</span> <span class="nav-text">链接库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#默认标准库"><span class="nav-number">2.4.4.3.</span> <span class="nav-text">默认标准库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#非标准库"><span class="nav-number">2.4.4.4.</span> <span class="nav-text">非标准库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#库搜索路径"><span class="nav-number">2.4.4.5.</span> <span class="nav-text">库搜索路径</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#给链接器传递参数"><span class="nav-number">2.4.4.6.</span> <span class="nav-text">给链接器传递参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#运行时链接"><span class="nav-number">2.4.4.7.</span> <span class="nav-text">运行时链接</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#独立程序"><span class="nav-number">2.4.4.8.</span> <span class="nav-text">独立程序</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#优化"><span class="nav-number">2.4.5.</span> <span class="nav-text">优化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#优化等级"><span class="nav-number">2.4.5.1.</span> <span class="nav-text">优化等级</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#优化技术"><span class="nav-number">2.4.5.2.</span> <span class="nav-text">优化技术</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#适用于特定架构的选项"><span class="nav-number">2.4.5.3.</span> <span class="nav-text">适用于特定架构的选项</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#调试模式"><span class="nav-number">2.5.</span> <span class="nav-text">调试模式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#程序结构"><span class="nav-number">3.</span> <span class="nav-text">程序结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#第一个程序"><span class="nav-number">3.1.</span> <span class="nav-text">第一个程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#源文件"><span class="nav-number">3.2.</span> <span class="nav-text">源文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编码"><span class="nav-number">3.3.</span> <span class="nav-text">编码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#转义序列"><span class="nav-number">3.3.1.</span> <span class="nav-text">转义序列</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#通用字符名"><span class="nav-number">3.3.1.1.</span> <span class="nav-text">通用字符名</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#特殊字符转义序列"><span class="nav-number">3.3.1.2.</span> <span class="nav-text">特殊字符转义序列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#八进制和十六进制转义序列"><span class="nav-number">3.3.1.3.</span> <span class="nav-text">八进制和十六进制转义序列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#双字符组"><span class="nav-number">3.3.1.4.</span> <span class="nav-text">双字符组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#三字符组"><span class="nav-number">3.3.1.5.</span> <span class="nav-text">三字符组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#其他"><span class="nav-number">3.3.1.6.</span> <span class="nav-text">其他</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#保留字"><span class="nav-number">3.4.</span> <span class="nav-text">保留字</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#标识符"><span class="nav-number">3.5.</span> <span class="nav-text">标识符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注释"><span class="nav-number">3.6.</span> <span class="nav-text">注释</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#程序入口"><span class="nav-number">3.7.</span> <span class="nav-text">程序入口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编程规范"><span class="nav-number">3.8.</span> <span class="nav-text">编程规范</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基本类型"><span class="nav-number">4.</span> <span class="nav-text">基本类型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数值类型"><span class="nav-number">4.1.</span> <span class="nav-text">数值类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#整数类型"><span class="nav-number">4.1.1.</span> <span class="nav-text">整数类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#确定位长的整数类型"><span class="nav-number">4.1.1.1.</span> <span class="nav-text">确定位长的整数类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#整数字面量"><span class="nav-number">4.1.1.2.</span> <span class="nav-text">整数字面量</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#浮点类型"><span class="nav-number">4.1.2.</span> <span class="nav-text">浮点类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#浮点字面量"><span class="nav-number">4.1.2.1.</span> <span class="nav-text">浮点字面量</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#复数浮点类型"><span class="nav-number">4.1.3.</span> <span class="nav-text">复数浮点类型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字符类型"><span class="nav-number">4.2.</span> <span class="nav-text">字符类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#单字节字符"><span class="nav-number">4.2.1.</span> <span class="nav-text">单字节字符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#宽字符"><span class="nav-number">4.2.2.</span> <span class="nav-text">宽字符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多字节字符"><span class="nav-number">4.2.3.</span> <span class="nav-text">多字节字符</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#布尔类型"><span class="nav-number">4.3.</span> <span class="nav-text">布尔类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#空类型"><span class="nav-number">4.4.</span> <span class="nav-text">空类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#void用于函数声明"><span class="nav-number">4.4.1.</span> <span class="nav-text">void用于函数声明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#void类型表达式"><span class="nav-number">4.4.2.</span> <span class="nav-text">void类型表达式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#指向void的指针"><span class="nav-number">4.4.3.</span> <span class="nav-text">指向void的指针</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#声明"><span class="nav-number">5.</span> <span class="nav-text">声明</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#变量声明"><span class="nav-number">5.1.</span> <span class="nav-text">变量声明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常量声明"><span class="nav-number">5.2.</span> <span class="nav-text">常量声明</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#define"><span class="nav-number">5.2.1.</span> <span class="nav-text">#define</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#const"><span class="nav-number">5.2.2.</span> <span class="nav-text">const</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#命名规范"><span class="nav-number">5.3.</span> <span class="nav-text">命名规范</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数组"><span class="nav-number">6.</span> <span class="nav-text">数组</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#字符串"><span class="nav-number">7.</span> <span class="nav-text">字符串</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#枚举类型"><span class="nav-number">8.</span> <span class="nav-text">枚举类型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#表达式"><span class="nav-number">9.</span> <span class="nav-text">表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#算术表达式"><span class="nav-number">9.1.</span> <span class="nav-text">算术表达式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关系表达式"><span class="nav-number">9.2.</span> <span class="nav-text">关系表达式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#逻辑表达式"><span class="nav-number">9.3.</span> <span class="nav-text">逻辑表达式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#赋值表达式"><span class="nav-number">9.4.</span> <span class="nav-text">赋值表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#交换值"><span class="nav-number">9.4.1.</span> <span class="nav-text">交换值</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#位运算表达式"><span class="nav-number">9.5.</span> <span class="nav-text">位运算表达式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#条件表达式"><span class="nav-number">9.6.</span> <span class="nav-text">条件表达式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#语句"><span class="nav-number">10.</span> <span class="nav-text">语句</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#语句结束符"><span class="nav-number">10.1.</span> <span class="nav-text">语句结束符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#表达式语句"><span class="nav-number">10.2.</span> <span class="nav-text">表达式语句</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#块语句"><span class="nav-number">10.3.</span> <span class="nav-text">块语句</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#空语句"><span class="nav-number">10.4.</span> <span class="nav-text">空语句</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#选择语句"><span class="nav-number">10.5.</span> <span class="nav-text">选择语句</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#条件语句"><span class="nav-number">10.5.1.</span> <span class="nav-text">条件语句</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多分支语句"><span class="nav-number">10.5.2.</span> <span class="nav-text">多分支语句</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#循环语句"><span class="nav-number">10.6.</span> <span class="nav-text">循环语句</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#while循环"><span class="nav-number">10.6.1.</span> <span class="nav-text">while循环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#do-while循环"><span class="nav-number">10.6.2.</span> <span class="nav-text">do-while循环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#for循环"><span class="nav-number">10.6.3.</span> <span class="nav-text">for循环</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#跳转语句"><span class="nav-number">10.7.</span> <span class="nav-text">跳转语句</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#子程序"><span class="nav-number">11.</span> <span class="nav-text">子程序</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#函数"><span class="nav-number">11.1.</span> <span class="nav-text">函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#函数定义"><span class="nav-number">11.1.1.</span> <span class="nav-text">函数定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#函数声明"><span class="nav-number">11.1.2.</span> <span class="nav-text">函数声明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#func"><span class="nav-number">11.1.3.</span> <span class="nav-text">__func__</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运算符"><span class="nav-number">11.2.</span> <span class="nav-text">运算符</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#优先级"><span class="nav-number">11.2.1.</span> <span class="nav-text">优先级</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结合性"><span class="nav-number">11.2.2.</span> <span class="nav-text">结合性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#函数类型"><span class="nav-number">11.3.</span> <span class="nav-text">函数类型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#指针"><span class="nav-number">12.</span> <span class="nav-text">指针</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#结构"><span class="nav-number">13.</span> <span class="nav-text">结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#联合"><span class="nav-number">14.</span> <span class="nav-text">联合</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#位字段"><span class="nav-number">14.1.</span> <span class="nav-text">位字段</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#集合类型"><span class="nav-number">15.</span> <span class="nav-text">集合类型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#列表"><span class="nav-number">15.1.</span> <span class="nav-text">列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#映射-字典"><span class="nav-number">15.2.</span> <span class="nav-text">映射&#x2F;字典</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集"><span class="nav-number">15.3.</span> <span class="nav-text">集</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#作用域和可见性"><span class="nav-number">16.</span> <span class="nav-text">作用域和可见性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#作用域"><span class="nav-number">16.1.</span> <span class="nav-text">作用域</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#标识符屏蔽"><span class="nav-number">16.1.1.</span> <span class="nav-text">标识符屏蔽</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内存管理"><span class="nav-number">17.</span> <span class="nav-text">内存管理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#类型系统"><span class="nav-number">18.</span> <span class="nav-text">类型系统</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#类型兼容"><span class="nav-number">18.1.</span> <span class="nav-text">类型兼容</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类型转换"><span class="nav-number">18.2.</span> <span class="nav-text">类型转换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#隐式转换"><span class="nav-number">18.2.1.</span> <span class="nav-text">隐式转换</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#算术转换"><span class="nav-number">18.2.1.1.</span> <span class="nav-text">算术转换</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#类型转换等级"><span class="nav-number">18.2.1.1.1.</span> <span class="nav-text">类型转换等级</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#算术转换规则"><span class="nav-number">18.2.1.1.2.</span> <span class="nav-text">算术转换规则</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#其他隐式转换"><span class="nav-number">18.2.1.1.3.</span> <span class="nav-text">其他隐式转换</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#显式转换"><span class="nav-number">18.2.2.</span> <span class="nav-text">显式转换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类型推断"><span class="nav-number">18.3.</span> <span class="nav-text">类型推断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sizeof"><span class="nav-number">18.4.</span> <span class="nav-text">sizeof</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#对象在内存中的对齐方式"><span class="nav-number">18.5.</span> <span class="nav-text">对象在内存中的对齐方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#typedef"><span class="nav-number">18.6.</span> <span class="nav-text">typedef</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#别名"><span class="nav-number">19.</span> <span class="nav-text">别名</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#类型别名"><span class="nav-number">19.1.</span> <span class="nav-text">类型别名</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#输入和输出"><span class="nav-number">20.</span> <span class="nav-text">输入和输出</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#异常处理"><span class="nav-number">21.</span> <span class="nav-text">异常处理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#断言"><span class="nav-number">22.</span> <span class="nav-text">断言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#正则表达式"><span class="nav-number">23.</span> <span class="nav-text">正则表达式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#并发编程"><span class="nav-number">24.</span> <span class="nav-text">并发编程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#网络编程"><span class="nav-number">25.</span> <span class="nav-text">网络编程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#国际化和本地化"><span class="nav-number">26.</span> <span class="nav-text">国际化和本地化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#日期和时间"><span class="nav-number">26.1.</span> <span class="nav-text">日期和时间</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#元编程"><span class="nav-number">27.</span> <span class="nav-text">元编程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#预处理指令"><span class="nav-number">28.</span> <span class="nav-text">预处理指令</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#include"><span class="nav-number">28.1.</span> <span class="nav-text">#include</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#模块"><span class="nav-number">29.</span> <span class="nav-text">模块</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#构建管理"><span class="nav-number">30.</span> <span class="nav-text">构建管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Makefile文件"><span class="nav-number">30.1.</span> <span class="nav-text">Makefile文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#执行构建"><span class="nav-number">30.2.</span> <span class="nav-text">执行构建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注释-1"><span class="nav-number">30.3.</span> <span class="nav-text">注释</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#规则"><span class="nav-number">30.4.</span> <span class="nav-text">规则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#命令脚本"><span class="nav-number">30.4.1.</span> <span class="nav-text">命令脚本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#模式规则"><span class="nav-number">30.4.2.</span> <span class="nav-text">模式规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内置规则"><span class="nav-number">30.4.3.</span> <span class="nav-text">内置规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#目标是链接库成员"><span class="nav-number">30.4.4.</span> <span class="nav-text">目标是链接库成员</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#双冒号规则"><span class="nav-number">30.4.5.</span> <span class="nav-text">双冒号规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#伪目标"><span class="nav-number">30.4.6.</span> <span class="nav-text">伪目标</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量"><span class="nav-number">30.5.</span> <span class="nav-text">变量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#通过make命令行参数定义"><span class="nav-number">30.5.1.</span> <span class="nav-text">通过make命令行参数定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通过环境变量定义"><span class="nav-number">30.5.2.</span> <span class="nav-text">通过环境变量定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在makefile中定义"><span class="nav-number">30.5.3.</span> <span class="nav-text">在makefile中定义</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#递归展开变量"><span class="nav-number">30.5.3.1.</span> <span class="nav-text">递归展开变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#简单展开变量"><span class="nav-number">30.5.3.2.</span> <span class="nav-text">简单展开变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#附加运算符"><span class="nav-number">30.5.3.3.</span> <span class="nav-text">附加运算符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#条件赋值运算符"><span class="nav-number">30.5.3.4.</span> <span class="nav-text">条件赋值运算符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#通过宏定义变量"><span class="nav-number">30.5.3.5.</span> <span class="nav-text">通过宏定义变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重写变量"><span class="nav-number">30.5.3.6.</span> <span class="nav-text">重写变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#目标专用的变量赋值"><span class="nav-number">30.5.3.7.</span> <span class="nav-text">目标专用的变量赋值</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#引用变量"><span class="nav-number">30.5.4.</span> <span class="nav-text">引用变量</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#替换引用"><span class="nav-number">30.5.4.1.</span> <span class="nav-text">替换引用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内置变量"><span class="nav-number">30.5.5.</span> <span class="nav-text">内置变量</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#宏"><span class="nav-number">30.6.</span> <span class="nav-text">宏</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#函数-1"><span class="nav-number">30.7.</span> <span class="nav-text">函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内置函数"><span class="nav-number">30.7.1.</span> <span class="nav-text">内置函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义函数"><span class="nav-number">30.7.2.</span> <span class="nav-text">自定义函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#函数调用"><span class="nav-number">30.7.3.</span> <span class="nav-text">函数调用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#指令"><span class="nav-number">30.8.</span> <span class="nav-text">指令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#条件"><span class="nav-number">30.8.1.</span> <span class="nav-text">条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#include-1"><span class="nav-number">30.8.2.</span> <span class="nav-text">include</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#override"><span class="nav-number">30.8.3.</span> <span class="nav-text">override</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#export-unexport"><span class="nav-number">30.8.4.</span> <span class="nav-text">export&#x2F;unexport</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vpath"><span class="nav-number">30.8.5.</span> <span class="nav-text">vpath</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CMake"><span class="nav-number">30.9.</span> <span class="nav-text">CMake</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#程序剖析"><span class="nav-number">31.</span> <span class="nav-text">程序剖析</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="JMX能够让我们管理、监视和配置应用——甚至在应用的运行期间。 JMX管理应用的核心组件是MBean（Managed Bean）。所谓的MBean就是暴露特定方法的JavaBean，这些方法定义了管理接口。JMX规范定义了如下4种类型的MBean：  标准MBean：标准MBean的管理接口是通过在固定的接口上执行反射确定的，Bean类会实现这个接口； 动态MBean：动态MBean的管理接口是在">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringJMX">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/27/SpringJMX/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="JMX能够让我们管理、监视和配置应用——甚至在应用的运行期间。 JMX管理应用的核心组件是MBean（Managed Bean）。所谓的MBean就是暴露特定方法的JavaBean，这些方法定义了管理接口。JMX规范定义了如下4种类型的MBean：  标准MBean：标准MBean的管理接口是通过在固定的接口上执行反射确定的，Bean类会实现这个接口； 动态MBean：动态MBean的管理接口是在">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/27/SpringJMX/SpringJMX/MBeanExporter.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/27/SpringJMX/SpringJMX/%E4%BB%A3%E7%90%86MBean.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/27/SpringJMX/SpringJMX/JMX-notification.png">
+<meta property="article:published_time" content="2018-12-27T05:57:18.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:50.019Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="programming">
+<meta property="article:tag" content="学习">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="开发">
+<meta property="article:tag" content="IT">
+<meta property="article:tag" content="技术">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/27/SpringJMX/SpringJMX/MBeanExporter.png">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2018/12/27/SpringJMX/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>SpringJMX | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2018/12/27/SpringJMX/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SpringJMX
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-12-27 13:57:18" itemprop="dateCreated datePublished" datetime="2018-12-27T13:57:18+08:00">2018-12-27</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>JMX能够让我们管理、监视和配置应用——甚至在应用的运行期间。</p>
+<p>JMX管理应用的核心组件是MBean（Managed Bean）。所谓的MBean就是暴露特定方法的JavaBean，这些方法定义了管理接口。JMX规范定义了如下4种类型的MBean：</p>
+<ul>
+<li>标准MBean：标准MBean的管理接口是通过在固定的接口上执行反射确定的，Bean类会实现这个接口；</li>
+<li>动态MBean：动态MBean的管理接口是在运行时通过调用<code>DynamicMBean</code>接口的方法来确定的。因为管理接口不是通过静态接口定义的，因此可以在运行时改变；</li>
+<li>开发MBean：开发MBean是一种特殊的动态MBean，其属性和方法只限定于原始类型、原始类型的包装类以及可以分解为原始类型或原始类型包装类的任意类型；</li>
+<li>模型MBean：模型MBean也是一种特殊的动态MBean，用于充当管理接口与受管资源的中介。模型MBean并不像它们所声明的那样来编写。它们通常通过工厂生成，工厂会使用元信息来组装管理接口。</li>
+</ul>
+<a id="more"></a>
+
+<h1 id="将Spring-Bean导出为MBean"><a href="#将Spring-Bean导出为MBean" class="headerlink" title="将Spring Bean导出为MBean"></a>将Spring Bean导出为MBean</h1><p>Spring的<code>MBeanExporter</code>可以把一个或多个Spring Bean导出为MBean服务器（MBean Server）内的模型MBean。MBean服务器（也称为MBean代理）是MBean生存的容器，对MBean的访问，是通过MBean服务器来实现的。</p>
+<p><img src="SpringJMX/MBeanExporter.png" alt="MBeanExporter"></p>
+<p>将Spring Bean导出为JMX MBean之后，可以使用基于JMX的管理工具（例如JConsole或VisualVM）查看正在运行的应用程序，显示Bean的属性并调用Bean的方法。</p>
+<p>下面注册了一个<code>MBeanExporter</code>，它会将<code>spittleController</code> Bean导出为一个模型MBean：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> MBeanExporter <span class="title">mbeanExporter</span><span class="params">(SpittleController spittleController)</span> </span>&#123;</span><br><span class="line">  MBeanExporter exporter = <span class="keyword">new</span> MBeanExporter();</span><br><span class="line">  Map&lt;String, Object&gt; beans = <span class="keyword">new</span> HashMap&lt;String, Object&gt;();</span><br><span class="line">  beans.put(<span class="string">"spitter:name=SpittleController"</span>, spittleController);</span><br><span class="line">  exporter.setBeans(beans);</span><br><span class="line">  <span class="keyword">return</span> exporter;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每个<code>Map</code>条目的key就是MBean的名称（由管理域名字和一个key-value对组成）。</p>
+<blockquote>
+<p>根据以上配置，<code>MBeanExporter</code>会假设它正在一个且只有一个应用服务器（例如Tomcat）或提供MBean服务器的其他上下文中运行。但是，如果Spring应用程序是独立的应用或运行的容器没有提供MBean服务器，我们就需要在Spring上下文中配置一个MBean服务器。</p>
+<p>在XML配置中，<code>&lt;context:mbean-server&gt;</code>元素可以为我们实现该功能。如果使用Java配置的话，就是直接配置类型为<code>MBeanServerFactoryBean</code>的Bean。</p>
+<p><code>MBeanServerFactoryBean</code>会创建一个MBean服务器，并将其作为Spring应用上下文中的Bean。默认情况下，这个Bean的ID是<code>mbeanServer</code>。了解到这一点，我们就可以将它装配到<code>MBeanExporter</code>的<code>server</code>属性中用来指定MBean要暴露到哪个MBean服务器中。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">beans</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"mbeanServer"</span> </span></span><br><span class="line"><span class="tag">        <span class="attr">class</span>=<span class="string">"org.springframework.jmx.support.MBeanServerFactoryBean"</span>/&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!--</span></span><br><span class="line"><span class="comment">    this bean needs to be eagerly pre-instantiated in order for the exporting to occur;</span></span><br><span class="line"><span class="comment">    this means that it must not be marked as lazily initialized</span></span><br><span class="line"><span class="comment">    --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"exporter"</span> <span class="attr">class</span>=<span class="string">"org.springframework.jmx.export.MBeanExporter"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"beans"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">map</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">entry</span> <span class="attr">key</span>=<span class="string">"bean:name=testBean1"</span> <span class="attr">value-ref</span>=<span class="string">"testBean"</span>/&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">map</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"server"</span> <span class="attr">ref</span>=<span class="string">"mbeanServer"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"testBean"</span> <span class="attr">class</span>=<span class="string">"org.springframework.jmx.JmxTestBean"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"name"</span> <span class="attr">value</span>=<span class="string">"TEST"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"age"</span> <span class="attr">value</span>=<span class="string">"100"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>SpittleController.java：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/spittles"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpittleController</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> DEFAULT_SPITTLES_PER_PAGE = <span class="number">25</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> spittlesPerPage = DEFAULT_SPITTLES_PER_PAGE;</span><br><span class="line">  <span class="keyword">private</span> SpittleRepository spittleRepository;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSpittlesPerPage</span><span class="params">(<span class="keyword">int</span> spittlesPerPage)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.spittlesPerPage = spittlesPerPage;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSpittlesPerPage</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> spittlesPerPage;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">SpittleController</span><span class="params">(SpittleRepository spittleRepository)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.spittleRepository = spittleRepository;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@RequestMapping</span>(method=RequestMethod.GET)</span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">spittles</span><span class="params">(Model model)</span> </span>&#123;</span><br><span class="line">    model.addAttribute(spittleRepository.findSpittles(Long.MAX_VALUE, <span class="number">20</span>));</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"spittles"</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>默认情况下，<code>SpittleController</code>所有的public成员都将被导出为MBean的操作或属性。为了对MBean的属性和操作获得更细粒度的控制，Spring提供了几种选择：</p>
+<ul>
+<li>通过名称来声明需要暴露或忽略的Bean方法；</li>
+<li>通过为Bean增加接口来选择要暴露的方法；</li>
+<li>通过标注来标识托管的属性和方法。</li>
+</ul>
+<blockquote>
+<p>要暴露属性，只需要暴露它的存取器方法</p>
+</blockquote>
+<h2 id="通过名称暴露方法"><a href="#通过名称暴露方法" class="headerlink" title="通过名称暴露方法"></a>通过名称暴露方法</h2><p><code>MethodNameBasedMBeanInfoAssembler</code> MBean信息装配器有一个<code>managedMethods</code>属性可以接受一个方法名称列表，用于指定哪些方法将暴露为MBean的操作。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> MethodNameBasedMBeanInfoAssembler <span class="title">assembler</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  MethodNameBasedMBeanInfoAssembler assembler =</span><br><span class="line">    <span class="keyword">new</span> MethodNameBasedMBeanInfoAssembler();</span><br><span class="line">  assembler.setManagedMethods(<span class="keyword">new</span> String[] &#123;</span><br><span class="line">    <span class="string">"getSpittlesPerPage"</span>, <span class="string">"setSpittlesPerPage"</span></span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="keyword">return</span> assembler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>本示例所暴露的是<code>spittlesPerPage</code>属性的存取器方法，也就是将<code>spittlesPerPage</code>属性暴露为MBean的托管属性。而<code>spittles</code>方法则不会暴露为MBean的操作。</p>
+<p>这个装配器只是告诉哪些方法要暴露为MBean的操作，但没有具体指定是哪些Bean的方法。因此，我们还需要将它装配进<code>MBeanExporter</code>中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> MBeanExporter <span class="title">mbeanExporter</span><span class="params">(SpittleController spittleController,</span></span></span><br><span class="line"><span class="function"><span class="params">                                   MBeanInfoAssembler assembler)</span> </span>&#123;</span><br><span class="line">  MBeanExporter exporter = <span class="keyword">new</span> MBeanExporter();</span><br><span class="line">  Map&lt;String, Object&gt; beans = <span class="keyword">new</span> HashMap&lt;String, Object&gt;();</span><br><span class="line">  beans.put(<span class="string">"spitter:name=SpittleController"</span>, spittleController);</span><br><span class="line">  exporter.setBeans(beans);</span><br><span class="line">  exporter.setAssembler(assembler);</span><br><span class="line">  <span class="keyword">return</span> exporter;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>另一个基于方法名称的装配器是<code>MethodExclusionMBeanInfoAssembler</code>，它是<code>MethodNameBasedMBeanInfoAssembler</code>的反操作，它指定不需要暴露为MBean托管操作的方法名称列表：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> MethodExclusionMBeanInfoAssembler <span class="title">assembler</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  MethodExclusionMBeanInfoAssembler assembler =</span><br><span class="line">    <span class="keyword">new</span> MethodExclusionMBeanInfoAssembler();</span><br><span class="line">  assembler.setIgnoredMethods(<span class="keyword">new</span> String[] &#123;</span><br><span class="line">    <span class="string">"spittles"</span></span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="keyword">return</span> assembler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用接口定义MBean的操作和属性"><a href="#使用接口定义MBean的操作和属性" class="headerlink" title="使用接口定义MBean的操作和属性"></a>使用接口定义MBean的操作和属性</h2><p>基于方法名称的装配器虽然简单、直接，但如果需要把多个Spring Bean导出为MBean，则为装配器所配置的方法名称列表将会变得非常庞大；而且，如果希望暴露一个Bean的某个方法，但不希望暴露另一个Bean的同名方法，基于方法名称的方式将不能很好满足需要。这时，使用<code>InterfaceBasedMBeanInfoAssembler</code>，通过使用接口来选择Bean的哪些方法需要暴露为MBean的操作和属性将更合适。</p>
+<p>假设我们定义了如下接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">SpittleControllerManagedOperations</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">int</span> <span class="title">getSpittlesPerPage</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">setSpittlesPerPage</span><span class="params">(<span class="keyword">int</span> spittlesPerPage)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们选择暴露<code>getSpittlesPerPage</code>方法和<code>setSpittlesPerPage</code>方法。</p>
+<p>然后，使用如下的装配器替换之前基于方法名称的装配器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> InterfaceBasedMBeanInfoAssembler <span class="title">assembler</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  InterfaceBasedMBeanInfoAssembler assembler =</span><br><span class="line">    <span class="keyword">new</span> InterfaceBasedMBeanInfoAssembler();</span><br><span class="line">  assembler.setManagedInterfaces(</span><br><span class="line">    <span class="keyword">new</span> Class&lt;?&gt;[] &#123; SpittleControllerManagedOperations<span class="class">.<span class="keyword">class</span> &#125;</span></span><br><span class="line"><span class="class">  )</span>;</span><br><span class="line">  <span class="keyword">return</span> assembler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>需要注意的是：<code>SpittleController</code>并不需要显式实现<code>SpittleControllerManagedOperations</code>接口。这个接口只是为了标识导出的内容，我们并不需要在代码中直接实现该接口。但是，为了MBean与实现类之间有一个一致的协议，建议实现这个接口。</p>
+<h2 id="使用标注驱动的MBean"><a href="#使用标注驱动的MBean" class="headerlink" title="使用标注驱动的MBean"></a>使用标注驱动的MBean</h2><p><code>MetadataMBeanInfoAssembler</code>装配器可以使用标注标识哪些Bean的方法需要暴露为MBean的托管操作和属性。但是，直接使用这种装配器手工装配非常繁杂。相反，我们应该使用Spring Context配置命名空间中的<code>&lt;context:mbean-export&gt;</code>元素，它装配了MBean导出器以及为了在Spring启用标注驱动的MBean所需要的装配器。我们要做的就是使用它来替换之前所使用的<code>MBeanExporter</code> Bean：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">context:mbean-export</span> <span class="attr">server</span>=<span class="string">"mbeanServer"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>现在，要把任意Spring Bean转变为MBean，只需要使用<code>@ManagedResource</code>标注Bean，并使用<code>@ManagedOperation</code>或<code>@ManagedAttribute</code>标注需要暴露为MBean操作的Bean方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="meta">@ManagedResource</span>(objectName=<span class="string">"spitter:name=SpittleController"</span>) <span class="comment">//将SpittleController导出为MBean</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpittleController</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="meta">@ManagedAttribute</span> <span class="comment">//将spittlesPerPage暴露为托管属性</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSpittlesPerPage</span><span class="params">(<span class="keyword">int</span> spittlesPerPage)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.spittlesPerPage = spittlesPerPage;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="meta">@ManagedAttribute</span> <span class="comment">//将spittlesPerPage暴露为托管属性</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSpittlesPerPage</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> spittlesPerPage;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>objectName</code>属性标识了域（<code>spitter</code>）和MBean的名称（<code>SpittleController</code>）。</p>
+<p>如果托管属性是只读或只写的，只需要标注两个存取器方法中的一个。</p>
+<p>我们还可以使用<code>@ManagedOperation</code>标注替换<code>@ManagedAttribute</code>标注来标注存取器方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ManagedOperation</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSpittlesPerPage</span><span class="params">(<span class="keyword">int</span> spittlesPerPage)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">this</span>.spittlesPerPage = spittlesPerPage;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@ManagedOperation</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSpittlesPerPage</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> spittlesPerPage;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这会将方法暴露为MBean的托管操作，但是并不会把<code>spittlesPerPage</code>属性暴露为MBean的托管属性。</p>
+<h2 id="处理MBean冲突"><a href="#处理MBean冲突" class="headerlink" title="处理MBean冲突"></a>处理MBean冲突</h2><p>MBean指定的对象名称是由管理域名和key-value对组成的，如果MBean服务器中不存在与我们MBean名字相同的已注册MBean，则我们的MBean注册时就不会有问题。但是如果名字冲突，默认情况下，<code>MBeanExporter</code>将抛出<code>InstanceAlreadyExistsException</code>异常。</p>
+<p>我们可以通过<code>MBeanExporter</code>的<code>registrationBehaviorName</code>属性或者<code>&lt;context:mbean-export&gt;</code>的<code>registration</code>属性指定冲突处理机制来改变默认行为。</p>
+<p>Spring提供了3种处理MBean名字冲突的机制：</p>
+<ul>
+<li><code>FAIL_ON_EXISTING</code>：如果已存在同名的MBean，则失败（默认行为）；</li>
+<li><code>IGNORE_EXISTING</code>：忽略冲突，同时也不注册新的MBean；</li>
+<li><code>REPLACTING_EXISTING</code>：用新的MBean覆盖已存在的MBean。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> MBeanExporter <span class="title">mbeanExporter</span><span class="params">(SpittleController spittleController,</span></span></span><br><span class="line"><span class="function"><span class="params">                                   MBeanInfoAssembler assembler)</span> </span>&#123;</span><br><span class="line">  MBeanExporter exporter = <span class="keyword">new</span> MBeanExporter();</span><br><span class="line">  Map&lt;String, Object&gt; beans = <span class="keyword">new</span> HashMap&lt;String, Object&gt;();</span><br><span class="line">  beans.put(<span class="string">"spitter:name=SpittleController"</span>, spittleController);</span><br><span class="line">  exporter.setBeans(beans);</span><br><span class="line">  exporter.setAssembler(assembler);</span><br><span class="line">  exporter.setRegistrationPolicy(RegistrationPolicy.IGNORE_EXISTING);</span><br><span class="line">  <span class="keyword">return</span> exporter;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="远程MBean"><a href="#远程MBean" class="headerlink" title="远程MBean"></a>远程MBean</h1><p>现在我们已使用<code>MBeanExporter</code>注册了我们的MBean，我们还需要一种方式来访问它们并进行管理。正如之前所看到的，我们可以使用诸如JConsole之类的工具来访问本地的MBean服务器，进而显示和操纵MBean，但是像JConsole之类的工具并不适合在程序中对MBean进行管理。幸运的是，还存在另一种方式可以把MBean作为远程对象进行访问。</p>
+<h2 id="暴露远程MBean"><a href="#暴露远程MBean" class="headerlink" title="暴露远程MBean"></a>暴露远程MBean</h2><p>使MBean成为远程对象的最简单方式是配置Spring的<code>ConnectorServerFactoryBean</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> ConnectorServerFactoryBean <span class="title">connectorServerFactoryBean</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> ConnectorServerFactoryBean();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>ConnectorServerFactoryBean</code>会创建和启动JSR-160 <code>JMSConnectorServer</code>。默认情况下，服务器使用JMXMP协议并监听9875端口号，即它将绑定<code>service:jmx:jmxmp://localhost:9875</code>。</p>
+<p>除了JMXMP协议外，根据不同JMX实现，我们有多种远程访问协议可供选择，包括RMI、SOAP、Hessian/Burlap、IIOP等。为MBean绑定不同的远程访问协议，我们仅需要设置<code>ConnectorServerFactoryBean</code>的<code>serviceUrl</code>属性。例如，使用RMI远程访问MBean：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> ConnectorServerFactoryBean <span class="title">connectorServerFactoryBean</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  ConnectorServerFactoryBean csfb = <span class="keyword">new</span> ConnectorServerFactoryBean();</span><br><span class="line">  csfb.setServiceUrl(<span class="string">"service:jmx:rmi://localhost/jndi/rmi://localhost:1099/spitter"</span>);</span><br><span class="line">  <span class="keyword">return</span> csfb;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这里，我们将<code>ConnectorServerFactoryBean</code>绑定到一个RMI注册表，该注册表监听本机的1099端口。这意味着我们需要一个RMI注册表运行时，并监听该端口。在本示例中我们不使用<code>RmiServiceExporter</code>，而是通过在Spring中声明<code>RmiRegistryFactoryBean</code>来启动一个RMI注册表：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> RmiRegistryFactoryBean <span class="title">rmiRegistryFB</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  RmiRegistryFactoryBean rmiRegistryFB = <span class="keyword">new</span> RmiRegistryFactoryBean();</span><br><span class="line">  rmiRegistryFB.setPort(<span class="number">1099</span>);</span><br><span class="line">  <span class="keyword">return</span> rmiRegistryFB;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="访问远程MBean"><a href="#访问远程MBean" class="headerlink" title="访问远程MBean"></a>访问远程MBean</h2><p>要想访问远程MBean服务器，我们需要在Spring上下文中配置<code>MBeanServerConnectionFactoryBean</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> MBeanServerConnectionFactoryBean <span class="title">connectionFactoryBean</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  MBeanServerConnectionFactoryBean mbscfb = <span class="keyword">new</span> MBeanServerConnectionFactoryBean();</span><br><span class="line">  mbscfb.setServiceUrl(<span class="string">"service:jmx:rmi://localhost/jndi/rmi://localhost:1099/spitter"</span>);</span><br><span class="line">  <span class="keyword">return</span> mbscfb;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由<code>MBeanServerConnectionFactoryBean</code>所生成的<code>MBeanServerConnection</code>实际上是作为远程MBean服务器的本地代理，它能够以<code>MBeanServerConnection</code>形式注入到其他Bean的属性中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> JmxClient <span class="title">jmxClient</span><span class="params">(MBeanServerConnection connection)</span> </span>&#123;</span><br><span class="line">  JmxClient jmxClient = <span class="keyword">new</span> JmxClient();</span><br><span class="line">  jmxClient.setMbeanServerConnection(connection);</span><br><span class="line">  <span class="keyword">return</span> jmxClient;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>获取远程MBean服务器中已注册的MBean数量：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> mbeanCount = mbeanServerConnection.getMBeanCount();</span><br></pre></td></tr></table></figure>
+
+<p>查询远程MBean服务器中所有MBean的名称：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.util.Set mbeanNames = mbeanServerConnection.queryNames(<span class="keyword">null</span>, <span class="keyword">null</span>);</span><br></pre></td></tr></table></figure>
+
+<p>获取MBean属性的值：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">String cronExpression = mbeanServerConnection.getAttribute(</span><br><span class="line">  <span class="keyword">new</span> ObjectName(<span class="string">"spitter:name=SpittleController"</span>), <span class="string">"spittlesPerPage"</span>);</span><br></pre></td></tr></table></figure>
+
+<p>改变MBean属性的值：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mbeanServerConnection.setAttribute(</span><br><span class="line">  <span class="keyword">new</span> ObjectName(<span class="string">"spitter:name=SpittleController"</span>),</span><br><span class="line">  <span class="keyword">new</span> Attribute(<span class="string">"spittlesPerPage"</span>, <span class="number">10</span>));</span><br></pre></td></tr></table></figure>
+
+<p>调用MBean的操作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mbeanServerConnection.invoke(</span><br><span class="line">  <span class="keyword">new</span> ObjectName(<span class="string">"spitter:name=SpittleController"</span>),</span><br><span class="line">  <span class="string">"setSpittlesPerPage"</span>,</span><br><span class="line">  <span class="keyword">new</span> Object[] &#123; <span class="number">100</span> &#125;,</span><br><span class="line">  <span class="keyword">new</span> String[] &#123;<span class="string">"int"</span>&#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="代理MBean"><a href="#代理MBean" class="headerlink" title="代理MBean"></a>代理MBean</h2><p>直接使用<code>MBeanServerConnection</code>访问远程的MBean是一种很笨拙的方法。为了更直接地调用远程MBean的方法，我们需要代理远程MBean。</p>
+<p>Spring的<code>MBeanProxyFactoryBean</code>是一个代理工厂Bean，它可以让我们直接访问远程的MBean，就如同配置在本地的其他Bean一样。</p>
+<p><img src="SpringJMX/%E4%BB%A3%E7%90%86MBean.png" alt="代理MBean"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> MBeanProxyFactoryBean <span class="title">remoteSpittleControllerMBean</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">  	MBeanServerConnection mbeanServerClient)</span> </span>&#123;</span><br><span class="line">  MBeanProxyFactoryBean proxy = <span class="keyword">new</span> MBeanProxyFactoryBean();</span><br><span class="line">  proxy.setObjectName(<span class="string">"spitter:name=SpittleController"</span>); <span class="comment">//指定远程MBean的对象名称</span></span><br><span class="line">  proxy.setServer(mbeanServerClient);</span><br><span class="line">  proxy.setProxyInterface(SpittleControllerManagedOperations<span class="class">.<span class="keyword">class</span>)</span>; <span class="comment">//指定了代理需要实现的接口</span></span><br><span class="line">  <span class="keyword">return</span> proxy;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>现在，类型为<code>SpittleControllerManagedOperations</code>的任意Bean属性，都可以用<code>remoteSpittleControllerMBean</code> Bean来注入，它将代理远程的MBean。使用起来就像是本地配置的Bean。</p>
+<h1 id="JMX通知"><a href="#JMX通知" class="headerlink" title="JMX通知"></a>JMX通知</h1><p>JMX通知（Notification）是MBean与外部世界<strong>主动</strong>通信的一种方法，而不是等待外部应用对MBean进行查询以获得信息。</p>
+<p><img src="SpringJMX/JMX-notification.png" alt="JMX通知"></p>
+<h2 id="发布通知"><a href="#发布通知" class="headerlink" title="发布通知"></a>发布通知</h2><p>Spring通过<code>NotificationPublisherAware</code>接口提供了发送JMX通知的支持。任何希望发送通知的MBean都必须实现这个接口。</p>
+<p>例如，我们希望每发布一百万Spittle时，发布一个JMX通知：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@ManagedResource</span>(<span class="string">"spitter:name=SpitterNotifier"</span>)</span><br><span class="line"><span class="meta">@ManagedNotification</span>(notificationTypes=<span class="string">"SpittleNotifier.OneMillionSpittles"</span>,</span><br><span class="line">                     name=<span class="string">"TODO"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpittleNotifierImpl</span></span></span><br><span class="line"><span class="class">  	<span class="keyword">implements</span> <span class="title">NotificationPublisherAware</span>, <span class="title">SpittleNotifier</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> NotificationPublisher notificationPublisher;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setNotificationPublisher</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    	NotificationPublisher notificationPublisher)</span> </span>&#123; <span class="comment">//注入notificationPublisher</span></span><br><span class="line">    <span class="keyword">this</span>.notificationPublisher = notificationPublisher;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">millionthSpittlePosted</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    notificationPublisher.sendNotification( <span class="comment">//发送JMX通知</span></span><br><span class="line">      <span class="keyword">new</span> Notification(SpittleNotifier.OneMillionSpittles<span class="string">", this, 0));</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这样，只要到达一百万Spittle时，调用<code>millionthSpittlePosted</code>方法，就会发布一个JMX通知。</p>
+<h2 id="监听通知"><a href="#监听通知" class="headerlink" title="监听通知"></a>监听通知</h2><p>接收MBean通知的标准方法是使用<code>MBeanExporter</code>注册一个实现<code>javax.management.NotificationListener</code>接口的监听器。</p>
+<p>首先，实现监听器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PagingNotificationListener</span> <span class="keyword">implements</span> <span class="title">NotificationListener</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleNotification</span><span class="params">(Notification notification, Object handback)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当接收到JMX通知时，将会调用<code>handleNotification</code>方法处理通知。</p>
+<p>然后，使用<code>MBeanExporter</code>注册<code>PagingNotificationListener</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> MBeanExporter <span class="title">mbeanExporter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  MBeanExporter exporter = <span class="keyword">new</span> MBeanExporter();</span><br><span class="line">  Map&lt;?, NotificationListener&gt; mappings = <span class="keyword">new</span> HashMap&lt;?, NotificationListener&gt;();</span><br><span class="line">  mappings.put(<span class="string">"Spitter:name=PagingNotificationListener"</span>,</span><br><span class="line">               <span class="keyword">new</span> PagingNotificationListener());</span><br><span class="line">  exporter.setNotificationListenerMappings(mappings);</span><br><span class="line">  <span class="keyword">return</span> exporter;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>MBeanExporter</code>的<code>setNotificationListenerMappings</code>属性用于在监听器和监听器所希望监听的MBean之间建立映射。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/12/12/SpringMessage/" rel="prev" title="SpringMessage">
+      <i class="fa fa-chevron-left"></i> SpringMessage
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/01/03/SpringTask/" rel="next" title="SpringTask">
+      SpringTask <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#将Spring-Bean导出为MBean"><span class="nav-number">1.</span> <span class="nav-text">将Spring Bean导出为MBean</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#通过名称暴露方法"><span class="nav-number">1.1.</span> <span class="nav-text">通过名称暴露方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用接口定义MBean的操作和属性"><span class="nav-number">1.2.</span> <span class="nav-text">使用接口定义MBean的操作和属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用标注驱动的MBean"><span class="nav-number">1.3.</span> <span class="nav-text">使用标注驱动的MBean</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理MBean冲突"><span class="nav-number">1.4.</span> <span class="nav-text">处理MBean冲突</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#远程MBean"><span class="nav-number">2.</span> <span class="nav-text">远程MBean</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#暴露远程MBean"><span class="nav-number">2.1.</span> <span class="nav-text">暴露远程MBean</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#访问远程MBean"><span class="nav-number">2.2.</span> <span class="nav-text">访问远程MBean</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代理MBean"><span class="nav-number">2.3.</span> <span class="nav-text">代理MBean</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JMX通知"><span class="nav-number">3.</span> <span class="nav-text">JMX通知</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#发布通知"><span class="nav-number">3.1.</span> <span class="nav-text">发布通知</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#监听通知"><span class="nav-number">3.2.</span> <span class="nav-text">监听通知</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

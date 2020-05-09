@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="简介微信公众平台是运营者通过公众号为微信用户提供资讯和服务的平台 。公众号是以微信用户的一个联系人形式存在的。 微信公众平台开发是指为微信公众号进行业务开发。而为移动应用、PC端网站、公众号第三方平台的开发，请前往微信开放平台接入。 微信公众号类型：  订阅号：为用户提供信息订阅，类似报纸杂志。 服务号：为用户提供服务交互。 企业号：用公司内部办公（OA）。  为了识别用户，每个用户针对每个公众号">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微信公众平台">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2018/05/22/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%B9%B3%E5%8F%B0/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="简介微信公众平台是运营者通过公众号为微信用户提供资讯和服务的平台 。公众号是以微信用户的一个联系人形式存在的。 微信公众平台开发是指为微信公众号进行业务开发。而为移动应用、PC端网站、公众号第三方平台的开发，请前往微信开放平台接入。 微信公众号类型：  订阅号：为用户提供信息订阅，类似报纸杂志。 服务号：为用户提供服务交互。 企业号：用公司内部办公（OA）。  为了识别用户，每个用户针对每个公众号">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/05/22/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%B9%B3%E5%8F%B0/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%B9%B3%E5%8F%B0/%E5%85%AC%E4%BC%97%E5%8F%B7%E6%94%AF%E4%BB%98%E6%B5%81%E7%A8%8B.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/05/22/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%B9%B3%E5%8F%B0/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%B9%B3%E5%8F%B0/%E5%8D%A1%E5%88%B8%E7%A4%BA%E5%9B%BE.jpg">
+<meta property="article:published_time" content="2018-05-22T01:55:40.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:50.033Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="programming">
+<meta property="article:tag" content="学习">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="开发">
+<meta property="article:tag" content="IT">
+<meta property="article:tag" content="技术">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/05/22/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%B9%B3%E5%8F%B0/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%B9%B3%E5%8F%B0/%E5%85%AC%E4%BC%97%E5%8F%B7%E6%94%AF%E4%BB%98%E6%B5%81%E7%A8%8B.png">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2018/05/22/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%B9%B3%E5%8F%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>微信公众平台 | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2018/05/22/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%B9%B3%E5%8F%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          微信公众平台
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-05-22 09:55:40" itemprop="dateCreated datePublished" datetime="2018-05-22T09:55:40+08:00">2018-05-22</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p><a href="https://mp.weixin.qq.com/" target="_blank" rel="noopener">微信公众平台</a>是运营者通过公众号为微信用户提供资讯和服务的平台 。公众号是以微信用户的一个联系人形式存在的。</p>
+<p>微信公众平台开发是指为微信公众号进行业务开发。而为移动应用、PC端网站、公众号第三方平台的开发，请前往<a href="https://open.weixin.qq.com/" target="_blank" rel="noopener">微信开放平台</a>接入。</p>
+<p>微信公众号类型：</p>
+<ul>
+<li>订阅号：为用户提供信息订阅，类似报纸杂志。</li>
+<li>服务号：为用户提供服务交互。</li>
+<li>企业号：用公司内部办公（OA）。</li>
+</ul>
+<p>为了识别用户，每个用户针对每个公众号会产生一个安全的OpenID（用户微信号加密后的结果 ），如果需要在多公众号、移动应用之间做用户共通，则需前往微信开放平台，将这些公众号和应用绑定到一个开放平台账号下。绑定后，一个用户虽然对多个公众号和应用有多个不同的OpenID，但他对所有这些同一开放平台账号下的公众号和应用，只有一个UnionID。可通过获取用户基本信息中的UnionID来区分用户的唯一性。</p>
+<a id="more"></a>
+
+<h1 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h1><ol>
+<li>申请一个域名（需要ICP备案）；</li>
+<li>申请SSL证书。</li>
+</ol>
+<h1 id="微信开发"><a href="#微信开发" class="headerlink" title="微信开发"></a>微信开发</h1><h2 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h2><h3 id="测试号"><a href="#测试号" class="headerlink" title="测试号"></a>测试号</h3><p>在申请到认证公众号之前，你可以先通过<a href="https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login" target="_blank" rel="noopener">申请测试号</a>来直接体验和测试公众平台所有高级接口。</p>
+<h3 id="Web开发工具"><a href="#Web开发工具" class="headerlink" title="Web开发工具"></a>Web开发工具</h3><p>在微信公众平台的“开发者工具”中有一个Web开发工具，可在PC或Mac上模拟访问微信内网页，帮助开发者更方便地进行开发和调试。</p>
+<h3 id="在线接口调试工具"><a href="#在线接口调试工具" class="headerlink" title="在线接口调试工具"></a>在线接口调试工具</h3><p><a href="https://mp.weixin.qq.com/debug/" target="_blank" rel="noopener">在线接口调试工具</a>可以帮助开发者检测微信公众平台开发者API的请求参数和响应结果。</p>
+<h3 id="内网穿透工具"><a href="#内网穿透工具" class="headerlink" title="内网穿透工具"></a>内网穿透工具</h3><p><a href="https://natapp.cn/" target="_blank" rel="noopener">natapp</a></p>
+<h2 id="文档"><a href="#文档" class="headerlink" title="文档"></a>文档</h2><p><a href="https://mp.weixin.qq.com/wiki" target="_blank" rel="noopener">微信公众平台文档</a></p>
+<p><a href="https://pay.weixin.qq.com/wiki/doc/api/index.html" target="_blank" rel="noopener">微信商户平台文档（微信支付）</a></p>
+<p><a href="https://open.weixin.qq.com" target="_blank" rel="noopener">微信开发平台</a></p>
+<p><a href="https://developers.weixin.qq.com" target="_blank" rel="noopener">微信公众平台开发者社区</a></p>
+<h2 id="框架"><a href="#框架" class="headerlink" title="框架"></a>框架</h2><p><a href="https://github.com/Wechat-Group/WxJava" target="_blank" rel="noopener">WxJava</a>：微信Java开发工具包，支持包括微信支付、开放平台、小程序、企业号和公众号等的开发。</p>
+<h1 id="申请公众号"><a href="#申请公众号" class="headerlink" title="申请公众号"></a>申请公众号</h1><p>申请地址：<a href="https://mp.weixin.qq.com" target="_blank" rel="noopener">https://mp.weixin.qq.com</a></p>
+<blockquote>
+<p>通过“支付验证注册”的公众号是未认证的账号，只有通过“微信认证”的账号才是认证账户。微信认证费是300元。</p>
+</blockquote>
+<h1 id="内容管理"><a href="#内容管理" class="headerlink" title="内容管理"></a>内容管理</h1><h2 id="内容管理模式"><a href="#内容管理模式" class="headerlink" title="内容管理模式"></a>内容管理模式</h2><p>公众平台编辑模式和开发者模式可以随时互相切换，切换后原保存内容不会丢失。</p>
+<h3 id="编辑模式"><a href="#编辑模式" class="headerlink" title="编辑模式"></a>编辑模式</h3><p>成功注册公众号后，公众平台的内容管理默认是编辑模式。这时，可以使用微信公众平台官方提供的功能管理内容。并且微信推送给公众号的消息或事件，也是推送给微信公众平台官方的内容管理平台。</p>
+<h3 id="开发者模式"><a href="#开发者模式" class="headerlink" title="开发者模式"></a>开发者模式</h3><p>为了在自己的服务器上接收微信推送的消息或事件，必需启用开发者模式。</p>
+<p>启用开发者模式后，微信公众平台官方提供的内容管理功能将不可用。但原通过官方内容管理做的设置（例如增加的自定义菜单等）仍然是有效的。</p>
+<h4 id="开启开发者模式"><a href="#开启开发者模式" class="headerlink" title="开启开发者模式"></a>开启开发者模式</h4><p>登录微信公众平台官网后，在公众平台官网的<code>开发-基本设置</code>页面，勾选协议成为开发者，点击“修改配置”按钮，填写服务器地址（URL）、Token和EncodingAESKey，其中URL是开发者用来接收微信消息和事件的接口URL。Token可由开发者可以任意填写，用作生成签名（该Token会和接口URL中包含的Token进行比对，从而验证安全性）。EncodingAESKey由开发者手动填写或随机生成，将用作消息体加解密密钥。</p>
+<p>同时，开发者可选择消息加解密方式：明文模式、兼容模式和安全模式。</p>
+<h4 id="接入微信公众平台"><a href="#接入微信公众平台" class="headerlink" title="接入微信公众平台"></a>接入微信公众平台</h4><p>开发者提交信息后，微信服务器将发送<code>GET</code>请求到填写的服务器地址URL上。开发者通过检验<code>signature</code>对请求进行校验（下面有校验方式）。若确认此次GET请求来自微信服务器，请原样返回<code>echostr</code>参数内容，则接入生效，成为开发者；否则接入失败。 </p>
+<p>在没有接入微信公众平台时，微信公众平台推送的消息和事件（例如用户向<strong>关注的</strong>公众号上发送的消息）是直接转发到公众平台官方的内容管理平台中。接入微信公众平台后，微信公众平台推送的消息和事件就会转发（<code>POST</code>请求）给第三方服务器。第三方开发者可以接收、处理和回复微信发送的消息。</p>
+<h4 id="接收微信推送消息"><a href="#接收微信推送消息" class="headerlink" title="接收微信推送消息"></a>接收微信推送消息</h4><p>参见“消息管理”。</p>
+<p>在将你的服务器接入到微信平台的时候，以及每次微信推送消息给你的服务器的时候，你都应该按照微信的要求对推送过来的消息进行校验，确保这些消息是从微信平台发送过来的。 </p>
+<p>微信服务器在五秒内收不到响应会断掉连接，并且重新发起请求，总共重试三次。假如服务器无法保证在五秒内处理并回复，可以直接回复空串，微信服务器不会对此作任何处理，并且不会发起重试。</p>
+<h2 id="公众平台接口调用"><a href="#公众平台接口调用" class="headerlink" title="公众平台接口调用"></a>公众平台接口调用</h2><p>既可以在开发者模式下调用公众平台接口，也可以在编辑模式下调用。</p>
+<p>微信公众号接口必须以<code>http://</code>或<code>https://</code>开头，分别支持80端口和443端口。</p>
+<h3 id="获取接口调用凭证——access-token"><a href="#获取接口调用凭证——access-token" class="headerlink" title="获取接口调用凭证——access_token"></a>获取接口调用凭证——access_token</h3><p>公众平台以access_token为接口调用凭据，来调用接口，所有接口的调用需要先获取access_token，access_token在2小时内有效，过期需要重新获取，但1天内获取次数有限，开发者需自行存储。<br><a href="https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&amp;appid=APPID&amp;secret=APPSECRET" target="_blank" rel="noopener">https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&amp;appid=APPID&amp;secret=APPSECRET</a></p>
+<h3 id="调用公众平台接口"><a href="#调用公众平台接口" class="headerlink" title="调用公众平台接口"></a>调用公众平台接口</h3><p>每个接口都有每日接口调用频次限制。</p>
+<h2 id="菜单管理"><a href="#菜单管理" class="headerlink" title="菜单管理"></a>菜单管理</h2><h3 id="自定义菜单"><a href="#自定义菜单" class="headerlink" title="自定义菜单"></a>自定义菜单</h3><p>自定义菜单最多包括3个一级菜单，每个一级菜单最多包含5个二级菜单。</p>
+<p>一级菜单最多4个汉字（16个字节）；二级菜单最多7个汉字，多出来的部分将会以“…”代替，不超过60个字节。</p>
+<h3 id="自定义菜单类型"><a href="#自定义菜单类型" class="headerlink" title="自定义菜单类型"></a>自定义菜单类型</h3><ol>
+<li>click：点击推事件用户点击click类型按钮后，微信服务器会通过消息接口推送消息类型为event的结构给开发者（参考消息接口指南），并且带上按钮中开发者填写的key值，开发者可以通过自定义的key值与用户进行交互；</li>
+<li>view：跳转URL用户点击view类型按钮后，微信客户端将会打开开发者在按钮中填写的网页URL，可与网页授权获取用户基本信息接口结合，获得用户基本信息。</li>
+<li>scancode_push：扫码推事件用户点击按钮后，微信客户端将调起扫一扫工具，完成扫码操作后显示扫描结果（如果是URL，将进入URL），且会将扫码的结果传给开发者，开发者可以下发消息。</li>
+<li>scancode_waitmsg：扫码推事件且弹出“消息接收中”提示框用户点击按钮后，微信客户端将调起扫一扫工具，完成扫码操作后，将扫码的结果传给开发者，同时收起扫一扫工具，然后弹出“消息接收中”提示框，随后可能会收到开发者下发的消息。</li>
+<li>pic_sysphoto：弹出系统拍照发图用户点击按钮后，微信客户端将调起系统相机，完成拍照操作后，会将拍摄的相片发送给开发者，并推送事件给开发者，同时收起系统相机，随后可能会收到开发者下发的消息。</li>
+<li>pic_photo_or_album：弹出拍照或者相册发图用户点击按钮后，微信客户端将弹出选择器供用户选择“拍照”或者“从手机相册选择”。用户选择后即走其他两种流程。</li>
+<li>pic_weixin：弹出微信相册发图器用户点击按钮后，微信客户端将调起微信相册，完成选择操作后，将选择的相片发送给开发者的服务器，并推送事件给开发者，同时收起相册，随后可能会收到开发者下发的消息。</li>
+<li>location_select：弹出地理位置选择器用户点击按钮后，微信客户端将调起地理位置选择工具，完成选择操作后，将选择的地理位置发送给开发者的服务器，同时收起位置选择工具，随后可能会收到开发者下发的消息。</li>
+<li>media_id：下发消息（除文本消息）用户点击media_id类型按钮后，微信服务器会将开发者填写的永久素材id对应的素材下发给用户，永久素材类型可以是图片、音频、视频、图文消息。请注意：永久素材id必须是在“素材管理/新增永久素材”接口上传后获得的合法id。</li>
+<li>view_limited：跳转图文消息URL用户点击view_limited类型按钮后，微信客户端将打开开发者在按钮中填写的永久素材id对应的图文消息URL，永久素材类型只支持图文消息。请注意：永久素材id必须是在“素材管理/新增永久素材”接口上传后获得的合法id。</li>
+</ol>
+<h4 id="创建菜单"><a href="#创建菜单" class="headerlink" title="创建菜单"></a>创建菜单</h4><p>POST  <a href="https://api.weixin.qq.com/cgi-bin/menu/create?access_token=ACCESS_TOKEN" target="_blank" rel="noopener">https://api.weixin.qq.com/cgi-bin/menu/create?access_token=ACCESS_TOKEN</a> </p>
+<p>创建自定义菜单后，菜单的刷新策略是，在用户进入公众号会话页或公众号profile页时，如果发现上一次拉取菜单的请求在5分钟以前，就会拉取一下菜单，如果菜单有更新，就会刷新客户端的菜单。测试时可以尝试取消关注公众账号后再次关注，则可以看到创建后的效果。</p>
+<h4 id="查询菜单"><a href="#查询菜单" class="headerlink" title="查询菜单"></a>查询菜单</h4><p>GET <a href="https://api.weixin.qq.com/cgi-bin/menu/get?access_token=ACCESS_TOKEN" target="_blank" rel="noopener">https://api.weixin.qq.com/cgi-bin/menu/get?access_token=ACCESS_TOKEN</a></p>
+<h4 id="删除菜单"><a href="#删除菜单" class="headerlink" title="删除菜单"></a>删除菜单</h4><p>GET <a href="https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=ACCESS_TOKEN" target="_blank" rel="noopener">https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=ACCESS_TOKEN</a></p>
+<h3 id="个性化菜单"><a href="#个性化菜单" class="headerlink" title="个性化菜单"></a>个性化菜单</h3><p>微信公众平台新增了个性化菜单接口，开发者可以通过该接口，让公众号的不同用户群体看到不一样的自定义菜单。该接口开放给已认证订阅号和已认证服务号。</p>
+<h4 id="创建个性化菜单"><a href="#创建个性化菜单" class="headerlink" title="创建个性化菜单"></a>创建个性化菜单</h4><p>POST <a href="https://api.weixin.qq.com/cgi-bin/menu/addconditional?access_token=ACCESS_TOKEN" target="_blank" rel="noopener">https://api.weixin.qq.com/cgi-bin/menu/addconditional?access_token=ACCESS_TOKEN</a></p>
+<h2 id="消息管理"><a href="#消息管理" class="headerlink" title="消息管理"></a>消息管理</h2><h3 id="消息服务类型"><a href="#消息服务类型" class="headerlink" title="消息服务类型"></a>消息服务类型</h3><ul>
+<li>群发消息：公众号可以以一定频次（订阅号为每天1次，服务号为每月4次），向用户群发消息，包括文字消息、图文消息、图片、视频、语音等。</li>
+<li>被动回复消息：在用户给公众号发消息后，微信服务器会将消息发到开发者预先在开发者中心设置的服务器地址（开发者需要进行消息真实性验证），公众号可以在5秒内做出回复，可以回复一个消息，也可以回复命令告诉微信服务器这条消息暂不回复（假如服务器无法保证在五秒内处理回复，则必须回复“success”或者“”（空串），否则微信后台会发起三次重试。）。被动回复消息可以设置加密（在公众平台官网的开发者中心处设置，设置后，按照消息加解密文档来进行处理。其他3种消息的调用因为是API调用而不是对请求的返回，所以不需要加解密）。</li>
+<li>客服消息：在用户给公众号发消息后的48小时内，公众号可以给用户发送不限数量的消息，主要用于客服场景。用户的行为会触发事件推送，某些事件推送是支持公众号据此发送客服消息的，详见微信推送消息与事件说明文档。</li>
+<li>模板消息：在需要对用户发送服务通知（如刷卡提醒、服务预约成功通知等）时，公众号可以用特定内容模板，主动向用户发送消息。</li>
+</ul>
+<h3 id="接收普通消息"><a href="#接收普通消息" class="headerlink" title="接收普通消息"></a>接收普通消息</h3><h3 id="接收事件推送"><a href="#接收事件推送" class="headerlink" title="接收事件推送"></a>接收事件推送</h3><h3 id="被动回复消息"><a href="#被动回复消息" class="headerlink" title="被动回复消息"></a>被动回复消息</h3><p>被动回复消息不是一个独立接口，它实际上是对接收到的消息的响应。</p>
+<h3 id="消息加解密"><a href="#消息加解密" class="headerlink" title="消息加解密"></a>消息加解密</h3><h3 id="客服消息"><a href="#客服消息" class="headerlink" title="客服消息"></a>客服消息</h3><p>当用户和公众号产生特定动作的交互时，微信将会把消息数据推送给开发者，开发者可以在一段时间内（目前修改为48小时）调用客服接口，通过<code>POST</code>一个JSON数据包来发送消息给普通用户。 </p>
+<h4 id="客服账号管理"><a href="#客服账号管理" class="headerlink" title="客服账号管理"></a>客服账号管理</h4><blockquote>
+<p>请注意，必须先在公众平台官网为公众号设置微信号后才能使用该能力。 </p>
+</blockquote>
+<h4 id="发客服消息"><a href="#发客服消息" class="headerlink" title="发客服消息"></a>发客服消息</h4><p>POST <a href="https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=ACCESS_TOKEN" target="_blank" rel="noopener">https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=ACCESS_TOKEN</a></p>
+<h4 id="客服输入状态"><a href="#客服输入状态" class="headerlink" title="客服输入状态"></a>客服输入状态</h4><p>开发者可通过调用“客服输入状态”接口，返回客服当前输入状态给用户：</p>
+<p>POST <a href="https://api.weixin.qq.com/cgi-bin/message/custom/typing?access_token=ACCESS_TOKEN" target="_blank" rel="noopener">https://api.weixin.qq.com/cgi-bin/message/custom/typing?access_token=ACCESS_TOKEN</a></p>
+<h3 id="群发消息"><a href="#群发消息" class="headerlink" title="群发消息"></a>群发消息</h3><p>在公众平台上，为订阅号提供了每天一条的群发权限，为服务号提供每月（自然月）4条的群发权限。 </p>
+<h3 id="模板消息"><a href="#模板消息" class="headerlink" title="模板消息"></a>模板消息</h3><p>模板消息仅用于公众号向用户发送重要的服务通知，只能用于符合其要求的服务场景中，如信用卡刷卡通知，商品购买成功通知等。不支持广告等营销类消息以及其它所有可能对用户造成骚扰的消息。 </p>
+<h2 id="素材管理"><a href="#素材管理" class="headerlink" title="素材管理"></a>素材管理</h2><h2 id="留言管理"><a href="#留言管理" class="headerlink" title="留言管理"></a>留言管理</h2><h2 id="用户管理"><a href="#用户管理" class="headerlink" title="用户管理"></a>用户管理</h2><h1 id="微信网页开发"><a href="#微信网页开发" class="headerlink" title="微信网页开发"></a>微信网页开发</h1><h2 id="配置网页授权回调域名"><a href="#配置网页授权回调域名" class="headerlink" title="配置网页授权回调域名"></a>配置网页授权回调域名</h2><p>在微信公众号请求用户网页授权之前，开发者需要先到公众平台官网中的“开发 - 接口权限 - 网页服务 - 网页帐号 - 网页授权获取用户基本信息”的配置选项中，修改授权回调域名。请注意，这里填写的是域名（是一个字符串），而不是URL，因此请勿加 <code>http://</code> 等协议头。</p>
+<p>授权回调域名配置规范为全域名，比如需要网页授权的域名为：<a href="http://www.qq.com，配置以后此域名下面的页面" target="_blank" rel="noopener">www.qq.com，配置以后此域名下面的页面</a><a href="http://www.qq.com/music.html" target="_blank" rel="noopener">http://www.qq.com/music.html</a> 、 <a href="http://www.qq.com/login.html" target="_blank" rel="noopener">http://www.qq.com/login.html</a> 都可以进行OAuth2.0鉴权。但<a href="http://pay.qq.com/" target="_blank" rel="noopener">http://pay.qq.com</a> 、 <a href="http://music.qq.com/" target="_blank" rel="noopener">http://music.qq.com</a> 、 <a href="http://qq.xn--comoauth2-735sh62dwk9eysua.xn--0-k76bu98j/" target="_blank" rel="noopener">http://qq.com无法进行OAuth2.0鉴权</a>。</p>
+<h2 id="微信网页授权"><a href="#微信网页授权" class="headerlink" title="微信网页授权"></a>微信网页授权</h2><p>如果用户在微信客户端中访问第三方网页或服务时，通过微信网页授权机制，第三方可以获得用户的基本信息，进而实现业务逻辑（例如，通过获取用户的openid来实现自动注册或登录功能）。</p>
+<p>如果第三方不需要获取微信用户信息，则不需要经过微信网页授权。这时，可完全由第三方自己管理登录、注册等功能。</p>
+<ol>
+<li><p>引导用户（例如通过菜单）进入第三方开发的授权页面。如果URL中有<code>openid</code>查询参数，则将它设置进cookie。如果cookie中没有<code>openid</code>，则继续。</p>
+</li>
+<li><p>重定向到后端服务，后端请求微信授权，以获取code：<a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=APPID&amp;redirect_uri=REDIRECT_URI&amp;response_type=code&amp;scope=SCOPE&amp;state=STATE#wechat_redirect" target="_blank" rel="noopener">https://open.weixin.qq.com/connect/oauth2/authorize?appid=APPID&amp;redirect_uri=REDIRECT_URI&amp;response_type=code&amp;scope=SCOPE&amp;state=STATE#wechat_redirect</a></p>
+<p>当<code>scope</code>是<code>snsapi_userinfo</code>时，还会弹出授权页，让用户授权。而<code>scope</code>是<code>snsapi_base</code>时，不会弹出授权页面，直接跳转，只能获取用户openid。</p>
+</li>
+<li><p>重定向到另一个后端服务<code>REDIRECT_URI/?code=CODE&amp;state=STATE</code></p>
+</li>
+<li><p>后端通过code换取网页授权access_token（专用于网页授权，与公众平台接口调用凭证的access_token不同）：<a href="https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&amp;secret=SECRET&amp;code=CODE&amp;grant_type=authorization_code" target="_blank" rel="noopener">https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&amp;secret=SECRET&amp;code=CODE&amp;grant_type=authorization_code</a><br>得到access_token、refresh_token和用户的openid。</p>
+</li>
+<li><p>如果数据库中没有这个openid的用户记录，则获取用户信息（包含unionid，可选）：<a href="https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&amp;openid=OPENID&amp;lang=zh_CN" target="_blank" rel="noopener">https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&amp;openid=OPENID&amp;lang=zh_CN</a><br>并保存进数据库。</p>
+<blockquote>
+<p>获取用户的OpenID是无需用户同意的，获取用户的基本信息则需用户同意。因此，要获取用户基本信息，则<code>scope</code>必须是<code>snsapi_userinfo</code>。</p>
+</blockquote>
+</li>
+<li><p>重定向回<strong>1</strong>中的网页（带<code>openid</code>查询参数）。</p>
+</li>
+</ol>
+<p>由于access_token拥有较短的有效期（通常是2小时），当access_token超时后，可以使用refresh_token进行刷新，refresh_token有效期为30天，当refresh_token失效之后，需要用户重新授权。 刷新access_token：</p>
+<p>GET <a href="https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=APPID&amp;grant_type=refresh_token&amp;refresh_token=REFRESH_TOKEN" target="_blank" rel="noopener">https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=APPID&amp;grant_type=refresh_token&amp;refresh_token=REFRESH_TOKEN</a></p>
+<h2 id="微信JS-SDK"><a href="#微信JS-SDK" class="headerlink" title="微信JS-SDK"></a>微信JS-SDK</h2><p>微信JS-SDK是开发者在网页上通过JavaScript代码使用微信原生功能的工具包，开发者可以使用它在网页上录制和播放微信语音、监听微信分享、上传手机本地图片、拍照、位置等许多能力。同时可以直接使用微信分享、扫一扫、卡券、支付等微信特有的能力。</p>
+<h3 id="应用步骤"><a href="#应用步骤" class="headerlink" title="应用步骤"></a>应用步骤</h3><h4 id="步骤一：绑定域名"><a href="#步骤一：绑定域名" class="headerlink" title="步骤一：绑定域名"></a>步骤一：绑定域名</h4><p>先登录微信公众平台进入“公众号设置”的“功能设置”里填写“JS接口安全域名”。</p>
+<h4 id="步骤二：引入JS文件"><a href="#步骤二：引入JS文件" class="headerlink" title="步骤二：引入JS文件"></a>步骤二：引入JS文件</h4><p>在需要调用JS接口的页面引入如下JS文件，（支持https）：<a href="http://res.wx.qq.com/open/js/jweixin-1.2.0.js" target="_blank" rel="noopener">http://res.wx.qq.com/open/js/jweixin-1.2.0.js</a></p>
+<p>备注：支持使用 AMD/CMD 标准模块加载方法加载。</p>
+<h4 id="步骤三：通过config接口注入权限验证配置"><a href="#步骤三：通过config接口注入权限验证配置" class="headerlink" title="步骤三：通过config接口注入权限验证配置"></a>步骤三：通过config接口注入权限验证配置</h4><p>所有需要使用JS-SDK的页面必须先注入配置信息，否则将无法调用（同一个url仅需调用一次，对于变化url的SPA的web app可在每次url变化时进行调用,目前Android微信客户端不支持pushState的H5新特性，所以使用pushState来实现web app的页面会导致签名失败，此问题会在Android6.2中修复）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">wx.config(&#123;</span><br><span class="line">    debug: true, &#x2F;&#x2F; 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。</span><br><span class="line">    appId: &#39;&#39;, &#x2F;&#x2F; 必填，公众号的唯一标识</span><br><span class="line">    timestamp: , &#x2F;&#x2F; 必填，生成签名的时间戳</span><br><span class="line">    nonceStr: &#39;&#39;, &#x2F;&#x2F; 必填，生成签名的随机串</span><br><span class="line">    signature: &#39;&#39;,&#x2F;&#x2F; 必填，签名</span><br><span class="line">    jsApiList: [] &#x2F;&#x2F; 必填，需要使用的JS接口列表</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>参与生成签名（signature）的字段包括noncestr（随机字符串）、有效的jsapi_ticket、timestamp（时间戳）、url（当前网页的URL、不包含<code>#</code>及其后面部分） 。</p>
+<p>示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">noncestr&#x3D;Wm3WZYTPz0wzccnW</span><br><span class="line">jsapi_ticket&#x3D;sM4AOVdWfPE4DxkXGEs8VMCPGGVi4C3VM0P37wVUCFvkVAy_90u5h9nbSlYy3-Sl-HhTdfl2fzFy1AOcHKP7qg</span><br><span class="line">timestamp&#x3D;1414587457</span><br><span class="line">url&#x3D;http:&#x2F;&#x2F;mp.weixin.qq.com?params&#x3D;value</span><br></pre></td></tr></table></figure>
+
+<p>jsapi_ticket是公众号用于调用微信JS接口的临时票据。正常情况下，jsapi_ticket的有效期为7200秒，通过access_token来获取。由于获取jsapi_ticket的api调用次数非常有限，频繁刷新jsapi_ticket会导致api调用受限，影响自身业务，开发者必须在自己的服务全局缓存jsapi_ticket 。 采用http GET方式请求获得jsapi_ticket：</p>
+<p>GET <a href="https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=ACCESS_TOKEN&amp;type=jsapi" target="_blank" rel="noopener">https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=ACCESS_TOKEN&amp;type=jsapi</a> </p>
+<p>成功返回如下JSON：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">&quot;errcode&quot;:0,</span><br><span class="line">&quot;errmsg&quot;:&quot;ok&quot;,</span><br><span class="line">&quot;ticket&quot;:&quot;sM4AOVdWfPE4DxkXGEs8VMCPGGVi4C3VM0P37wVUCFvkVAy_90u5h9nbSlYy3-Sl-HhTdfl2fzFy1AOcHKP7qg&quot;,</span><br><span class="line">&quot;expires_in&quot;:7200</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对所有待签名参数按照字段名的ASCII 码从小到大排序（字典序）后，使用URL键值对的格式（即key1=value1&amp;key2=value2…）拼接成字符串string1。这里需要注意的是所有参数名均为小写字符。字段名和字段值都采用原始值，不进行URL 转义。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jsapi_ticket&#x3D;sM4AOVdWfPE4DxkXGEs8VMCPGGVi4C3VM0P37wVUCFvkVAy_90u5h9nbSlYy3-Sl-HhTdfl2fzFy1AOcHKP7qg&amp;noncestr&#x3D;Wm3WZYTPz0wzccnW×tamp&#x3D;1414587457&amp;url&#x3D;http:&#x2F;&#x2F;mp.weixin.qq.com?params&#x3D;value</span><br></pre></td></tr></table></figure>
+
+<p>对string1作sha1加密，得到signature： </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0f9de62fce790f9a083d5c99e95740ceb90c27ed</span><br></pre></td></tr></table></figure>
+
+<p>注意事项</p>
+<ol>
+<li>签名用的noncestr和timestamp必须与wx.config中的nonceStr和timestamp相同。</li>
+<li>签名用的url必须是调用JS接口页面的完整URL。</li>
+<li>出于安全考虑，开发者必须在服务器端实现签名的逻辑。</li>
+</ol>
+<p>JS接口列表（版本1.0.0）：</p>
+<ul>
+<li>onMenuShareTimeline</li>
+<li>onMenuShareAppMessage</li>
+<li>onMenuShareQQ</li>
+<li>onMenuShareWeibo</li>
+<li>onMenuShareQZone</li>
+<li>startRecord</li>
+<li>stopRecord</li>
+<li>onVoiceRecordEnd</li>
+<li>playVoice</li>
+<li>pauseVoice</li>
+<li>stopVoice</li>
+<li>onVoicePlayEnd</li>
+<li>uploadVoice</li>
+<li>downloadVoice</li>
+<li>chooseImage</li>
+<li>previewImage</li>
+<li>uploadImage</li>
+<li>downloadImage</li>
+<li>translateVoice</li>
+<li>getNetworkType</li>
+<li>openLocation</li>
+<li>getLocation</li>
+<li>hideOptionMenu</li>
+<li>showOptionMenu</li>
+<li>hideMenuItems</li>
+<li>showMenuItems</li>
+<li>hideAllNonBaseMenuItem</li>
+<li>showAllNonBaseMenuItem</li>
+<li>closeWindow</li>
+<li>scanQRCode</li>
+<li>chooseWXPay</li>
+<li>openProductSpecificView</li>
+<li>addCard</li>
+<li>chooseCard</li>
+<li>openCard</li>
+</ul>
+<h4 id="步骤四：通过ready接口处理成功验证"><a href="#步骤四：通过ready接口处理成功验证" class="headerlink" title="步骤四：通过ready接口处理成功验证"></a>步骤四：通过ready接口处理成功验证</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wx.ready(function()&#123;</span><br><span class="line">    &#x2F;&#x2F; config信息验证后会执行ready方法，所有接口调用都必须在config接口获得结果之后，config是一个客户端的异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中。</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h4 id="步骤五：通过error接口处理失败验证"><a href="#步骤五：通过error接口处理失败验证" class="headerlink" title="步骤五：通过error接口处理失败验证"></a>步骤五：通过error接口处理失败验证</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wx.error(function(res)&#123;</span><br><span class="line">    &#x2F;&#x2F; config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="接口调用说明"><a href="#接口调用说明" class="headerlink" title="接口调用说明"></a>接口调用说明</h3><p>所有接口通过wx对象(也可使用jWeixin对象)来调用，参数是一个对象，除了每个接口本身需要传的参数之外，还有以下通用参数：</p>
+<ol>
+<li>success：接口调用成功时执行的回调函数。</li>
+<li>fail：接口调用失败时执行的回调函数。</li>
+<li>complete：接口调用完成时执行的回调函数，无论成功或失败都会执行。</li>
+<li>cancel：用户点击取消时的回调函数，仅部分有用户取消操作的api才会用到。</li>
+<li>trigger: 监听Menu中的按钮点击时触发的方法，该方法仅支持Menu中的相关接口。</li>
+</ol>
+<p>备注：不要尝试在trigger中使用ajax异步请求修改本次分享的内容，因为客户端分享操作是一个同步操作，这时候使用ajax的回包会还没有返回。</p>
+<p>以上几个函数都带有一个参数，类型为对象，其中除了每个接口本身返回的数据之外，还有一个通用属性errMsg，其值格式如下：</p>
+<ul>
+<li>调用成功时：”xxx:ok” ，其中xxx为调用的接口名。</li>
+<li>用户取消时：”xxx:cancel”，其中xxx为调用的接口名。</li>
+<li>调用失败时：其值为具体错误信息。</li>
+</ul>
+<h3 id="基础接口"><a href="#基础接口" class="headerlink" title="基础接口"></a>基础接口</h3><p>判断当前客户端版本是否支持指定JS接口。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">wx.checkJsApi(&#123;</span><br><span class="line">    jsApiList: [&#39;chooseImage&#39;], &#x2F;&#x2F; 需要检测的JS接口列表，所有JS接口列表见附录2,</span><br><span class="line">    success: function(res) &#123;</span><br><span class="line">    &#x2F;&#x2F; 以键值对的形式返回，可用的api值true，不可用为false</span><br><span class="line">    &#x2F;&#x2F; 如：&#123;&quot;checkResult&quot;:&#123;&quot;chooseImage&quot;:true&#125;,&quot;errMsg&quot;:&quot;checkJsApi:ok&quot;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>备注：checkJsApi接口是客户端6.0.2新引入的一个预留接口，第一期开放的接口均可不使用checkJsApi来检测。</p>
+<h3 id="分享接口"><a href="#分享接口" class="headerlink" title="分享接口"></a>分享接口</h3><h3 id="图像接口"><a href="#图像接口" class="headerlink" title="图像接口"></a>图像接口</h3><h3 id="音频接口"><a href="#音频接口" class="headerlink" title="音频接口"></a>音频接口</h3><h3 id="智能接口"><a href="#智能接口" class="headerlink" title="智能接口"></a>智能接口</h3><h3 id="设备信息接口"><a href="#设备信息接口" class="headerlink" title="设备信息接口"></a>设备信息接口</h3><h3 id="地理位置接口"><a href="#地理位置接口" class="headerlink" title="地理位置接口"></a>地理位置接口</h3><h3 id="摇一摇周边接口"><a href="#摇一摇周边接口" class="headerlink" title="摇一摇周边接口"></a>摇一摇周边接口</h3><h3 id="界面操作接口"><a href="#界面操作接口" class="headerlink" title="界面操作接口"></a>界面操作接口</h3><h3 id="扫一扫接口"><a href="#扫一扫接口" class="headerlink" title="扫一扫接口"></a>扫一扫接口</h3><h3 id="微信小店接口"><a href="#微信小店接口" class="headerlink" title="微信小店接口"></a>微信小店接口</h3><h3 id="微信卡券接口"><a href="#微信卡券接口" class="headerlink" title="微信卡券接口"></a>微信卡券接口</h3><h3 id="微信支付接口"><a href="#微信支付接口" class="headerlink" title="微信支付接口"></a>微信支付接口</h3><p>发起一个微信支付请求：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">wx.chooseWXPay(&#123;</span><br><span class="line">  timestamp: <span class="number">0</span>, <span class="comment">// 支付签名时间戳，注意微信jssdk中的所有使用timestamp字段均为小写。但最新版的支付后台生成签名使用的timeStamp字段名需大写其中的S字符</span></span><br><span class="line">  nonceStr: <span class="string">''</span>, <span class="comment">// 支付签名随机串，不长于 32 位</span></span><br><span class="line">  package: <span class="string">''</span>, <span class="comment">// 统一支付接口返回的prepay_id参数值，提交格式如：prepay_id=\*\*\*）</span></span><br><span class="line">  signType: <span class="string">''</span>, <span class="comment">// 签名方式，默认为'SHA1'，使用新版支付需传入'MD5'</span></span><br><span class="line">  paySign: <span class="string">''</span>, <span class="comment">// 支付签名</span></span><br><span class="line">  success: <span class="function"><span class="keyword">function</span> (<span class="params">res</span>) </span>&#123;</span><br><span class="line">  	<span class="comment">// 支付成功后的回调函数</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>备注：prepay_id 通过微信支付统一下单接口拿到，paySign 采用统一的微信支付 Sign 签名生成方法，注意这里 appId 也要参与签名，appId 与 config 中传入的 appId 一致，即最后参与签名的参数有appId、timeStamp、nonceStr、package、signType。</p>
+<h3 id="共享收货地址接口"><a href="#共享收货地址接口" class="headerlink" title="共享收货地址接口"></a>共享收货地址接口</h3><h1 id="微信支付"><a href="#微信支付" class="headerlink" title="微信支付"></a>微信支付</h1><h2 id="支付模式"><a href="#支付模式" class="headerlink" title="支付模式"></a>支付模式</h2><p>公众号支付：公众号支付是用户在微信中打开商户的H5页面，商户在H5页面通过调用微信支付提供的JSAPI接口调起微信支付模块完成支付。 应用场景有：</p>
+<ul>
+<li>用户在微信公众账号内进入商家公众号，打开某个主页面，完成支付</li>
+<li>用户的好友在朋友圈、聊天窗口等分享商家页面连接，用户点击链接打开商家页面，完成支付</li>
+<li>将商户页面转换成二维码，用户扫描二维码后在微信浏览器中打开页面后完成支付</li>
+</ul>
+<p>APP支付：APP支付又称移动端支付，是商户通过在移动端应用APP中集成开放SDK调起微信支付模块完成支付的模式。 </p>
+<p>扫码支付：扫码支付是商户系统按微信支付协议生成支付二维码，用户再用微信“扫一扫”完成支付的模式。该模式适用于PC网站支付、实体店单品或订单支付、媒体广告支付等场景。一个二维码只能对应一个金额。</p>
+<p>刷卡支付：刷卡支付是用户展示微信钱包内的“刷卡条码/二维码”给商户系统扫描后直接完成支付的模式。主要应用线下面对面收银的场景。 （用户无需输入金额）</p>
+<p>微信买单：无需开发。分为收款码收款（用户扫商户二维码，用户需输入金额）和扫码收款（商户扫用户二维码，商户需输入金额）。</p>
+<p>H5支付：用户在微信以外的手机浏览器请求微信支付。</p>
+<p>小程序支付</p>
+<h2 id="接入流程"><a href="#接入流程" class="headerlink" title="接入流程"></a>接入流程</h2><p>第一步：注册公众号（类型须为：服务号、政府或媒体订阅号、企业号）</p>
+<p>请根据营业执照类型选择以下主体注册：<a href="http://kf.qq.com/faq/120911VrYVrA151009JB3i2Q.html" target="_blank" rel="noopener">个体工商户</a>| <a href="http://kf.qq.com/faq/120911VrYVrA151013MfYvYV.html" target="_blank" rel="noopener">企业/公司</a>| <a href="http://kf.qq.com/faq/120911VrYVrA15100973ABZz.html" target="_blank" rel="noopener">政府</a>| <a href="http://kf.qq.com/faq/120911VrYVrA151013aMNfeQ.html" target="_blank" rel="noopener">媒体</a>| <a href="http://kf.qq.com/faq/120911VrYVrA151013nYFZ7Z.html" target="_blank" rel="noopener">其他类型</a>。</p>
+<p>第二步：认证公众号</p>
+<p>公众号认证后才可申请微信支付，认证费：300元/次，<a href="http://kf.qq.com/product/weixinmp.html#hid=97" target="_blank" rel="noopener">查看认证流程</a>。</p>
+<p>第三步：提交资料申请微信支付</p>
+<p>登录公众平台，点击左侧菜单【微信支付】，开始填写资料等待审核，审核时间为48小时内。</p>
+<p>第四步：开户成功，进行账户验证</p>
+<p>资料审核通过后，开户信息会通过邮件、公众号发送给联系人，请按照指引填写财付通备付金汇入的随机金额，完成账户验证。（<a href="http://kf.qq.com/faq/180424beENJZ180424qUzuuI.html" target="_blank" rel="noopener">查看验证方法</a>）</p>
+<p>第五步：在线签署协议</p>
+<p>本协议为线上电子协议，签署后方可进行交易及资金结算，签署完立即生效。<a href="https://pay.weixin.qq.com/index.php/public/apply_sign/protocol" target="_blank" rel="noopener">点此提前预览协议</a>内容。</p>
+<p>第六步：启动设计和开发</p>
+<p>支付接口已获得，可根据<a href="https://pay.weixin.qq.com/wiki/doc/api/index.html" target="_blank" rel="noopener">开发文档</a>进行开发。</p>
+<h2 id="公众号支付"><a href="#公众号支付" class="headerlink" title="公众号支付"></a>公众号支付</h2><h3 id="设置支付目录"><a href="#设置支付目录" class="headerlink" title="设置支付目录"></a>设置支付目录</h3><p>在<a href="https://pay.weixin.qq.com" target="_blank" rel="noopener">微信商户平台</a>设置您的公众号支付支付目录，设置路径：商户平台–&gt;产品中心–&gt;开发配置。公众号支付在请求支付的时候会校验请求来源是否有在商户平台做了配置，所以必须确保支付目录已经正确的被配置，否则将验证失败，请求支付不成功。</p>
+<h3 id="支付流程"><a href="#支付流程" class="headerlink" title="支付流程"></a>支付流程</h3><p><img src="%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%B9%B3%E5%8F%B0/%E5%85%AC%E4%BC%97%E5%8F%B7%E6%94%AF%E4%BB%98%E6%B5%81%E7%A8%8B.png" alt="公众号支付流程"></p>
+<h1 id="微信门店"><a href="#微信门店" class="headerlink" title="微信门店"></a>微信门店</h1><h1 id="微信卡券"><a href="#微信卡券" class="headerlink" title="微信卡券"></a>微信卡券</h1><h2 id="开通卡券功能"><a href="#开通卡券功能" class="headerlink" title="开通卡券功能"></a>开通卡券功能</h2><h2 id="创建卡券"><a href="#创建卡券" class="headerlink" title="创建卡券"></a>创建卡券</h2><table>
+<thead>
+<tr>
+<th>参数名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>card_id</td>
+<td>卡券ID。一个卡券ID对应一类卡券，包含了相应库存数量的Code码。</td>
+</tr>
+<tr>
+<td>code</td>
+<td>卡券Code码。一张卡券的唯一标识，核销卡券时使用此串码。</td>
+</tr>
+</tbody></table>
+<h3 id="上传卡券logo"><a href="#上传卡券logo" class="headerlink" title="上传卡券logo"></a>上传卡券logo</h3><p>请求地址：</p>
+<p>POST/FROM  <a href="https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=ACCESS_TOKEN&amp;type=image" target="_blank" rel="noopener">https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=ACCESS_TOKEN&amp;type=image</a> </p>
+<p>请求参数：</p>
+<ul>
+<li>buffer：必需，文件流。</li>
+</ul>
+<p>正确响应：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"url"</span>:<span class="string">"http://mmbiz.qpic.cn/mmbiz/iaL1LJM1mF9aRKPZJkmG8xXhiaHqkKSVMMWeN3hLut7X7hicFNjakmxibMLGWpXrEXB33367o7zHN0CwngnQY7zb7g/0"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>错误响应：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="attr">"errcode"</span>:<span class="number">40009</span>, <span class="attr">"errmsg"</span>:<span class="string">"invalid image size"</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建卡券-1"><a href="#创建卡券-1" class="headerlink" title="创建卡券"></a>创建卡券</h3><p>请求地址：</p>
+<p>POST  <a href="https://api.weixin.qq.com/card/create?access_token=ACCESS_TOKEN" target="_blank" rel="noopener">https://api.weixin.qq.com/card/create?access_token=ACCESS_TOKEN</a></p>
+<p>请求体数据：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"card"</span>: &#123;</span><br><span class="line">    <span class="attr">"card_type"</span>: <span class="string">"GROUPON"</span>,</span><br><span class="line">    <span class="attr">"groupon"</span>: &#123;</span><br><span class="line">      <span class="attr">"base_info"</span>: &#123;</span><br><span class="line">        <span class="attr">"logo_url"</span>: <span class="string">"http://mmbiz.qpic.cn/mmbiz/iaL1LJM1mF9aRKPZJkmG8xXhiaHqkKSVMMWeN3hLut7X7hicFNjakmxibMLGWpXrEXB33367o7zHN0CwngnQY7zb7g/0"</span>,</span><br><span class="line">        <span class="attr">"brand_name"</span>: <span class="string">"微信餐厅"</span>,</span><br><span class="line">        <span class="attr">"code_type"</span>: <span class="string">"CODE_TYPE_TEXT"</span>,</span><br><span class="line">        <span class="attr">"title"</span>: <span class="string">"132元双人火锅套餐"</span>,</span><br><span class="line">        <span class="attr">"color"</span>: <span class="string">"Color010"</span>,</span><br><span class="line">        <span class="attr">"notice"</span>: <span class="string">"使用时向服务员出示此券"</span>,</span><br><span class="line">        <span class="attr">"service_phone"</span>: <span class="string">"020-88888888"</span>,</span><br><span class="line">        <span class="attr">"description"</span>: <span class="string">"不可与其他优惠同享\n如需团购券发票，请在消费时向商户提出\n店内均可使用，仅限堂食"</span>,</span><br><span class="line">        <span class="attr">"date_info"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"DATE_TYPE_FIX_TIME_RANGE"</span>,</span><br><span class="line">          <span class="attr">"begin_timestamp"</span>: <span class="number">1397577600</span>,</span><br><span class="line">          <span class="attr">"end_timestamp"</span>: <span class="number">1472724261</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"sku"</span>: &#123;</span><br><span class="line">          <span class="attr">"quantity"</span>: <span class="number">500000</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"use_limit"</span>:<span class="number">100</span>,</span><br><span class="line">        <span class="attr">"get_limit"</span>: <span class="number">3</span>,</span><br><span class="line">        <span class="attr">"use_custom_code"</span>: <span class="literal">false</span>,</span><br><span class="line">        <span class="attr">"bind_openid"</span>: <span class="literal">false</span>,</span><br><span class="line">        <span class="attr">"can_share"</span>: <span class="literal">true</span>,</span><br><span class="line">        <span class="attr">"can_give_friend"</span>: <span class="literal">true</span>,</span><br><span class="line">        <span class="attr">"location_id_list"</span>: [</span><br><span class="line">          <span class="number">123</span>,</span><br><span class="line">          <span class="number">12321</span>,</span><br><span class="line">          <span class="number">345345</span></span><br><span class="line">        ],</span><br><span class="line">        <span class="attr">"center_title"</span>: <span class="string">"顶部居中按钮"</span>,</span><br><span class="line">        <span class="attr">"center_sub_title"</span>: <span class="string">"按钮下方的wording"</span>,</span><br><span class="line">        <span class="attr">"center_url"</span>: <span class="string">"www.qq.com"</span>,</span><br><span class="line">        <span class="attr">"custom_url_name"</span>: <span class="string">"立即使用"</span>,</span><br><span class="line">        <span class="attr">"custom_url"</span>: <span class="string">"http://www.qq.com"</span>,</span><br><span class="line">        <span class="attr">"custom_url_sub_title"</span>: <span class="string">"6个汉字tips"</span>,</span><br><span class="line">        <span class="attr">"promotion_url_name"</span>: <span class="string">"更多优惠"</span>,</span><br><span class="line">        <span class="attr">"promotion_url"</span>: <span class="string">"http://www.qq.com"</span>,</span><br><span class="line">        <span class="attr">"source"</span>: <span class="string">"大众点评"</span></span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">"advanced_info"</span>: &#123;</span><br><span class="line">        <span class="attr">"use_condition"</span>: &#123;</span><br><span class="line">          <span class="attr">"accept_category"</span>: <span class="string">"鞋类"</span>,</span><br><span class="line">          <span class="attr">"reject_category"</span>: <span class="string">"阿迪达斯"</span>,</span><br><span class="line">          <span class="attr">"can_use_with_other_discount"</span>: <span class="literal">true</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"abstract"</span>: &#123;</span><br><span class="line">          <span class="attr">"abstract"</span>: <span class="string">"微信餐厅推出多种新季菜品，期待您的光临"</span>,</span><br><span class="line">          <span class="attr">"icon_url_list"</span>: [</span><br><span class="line">            <span class="string">"http://mmbiz.qpic.cn/mmbiz/p98FjXy8LacgHxp3sJ3vn97bGLz0ib0Sfz1bjiaoOYA027iasqSG0sj</span></span><br><span class="line"><span class="string">            piby4vce3AtaPu6cIhBHkt6IjlkY9YnDsfw/0"</span></span><br><span class="line">          ]</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"text_image_list"</span>: [</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="attr">"image_url"</span>: <span class="string">"http://mmbiz.qpic.cn/mmbiz/p98FjXy8LacgHxp3sJ3vn97bGLz0ib0Sfz1bjiaoOYA027iasqSG0sjpiby4vce3AtaPu6cIhBHkt6IjlkY9YnDsfw/0"</span>,</span><br><span class="line">            <span class="attr">"text"</span>: <span class="string">"此菜品精选食材，以独特的烹饪方法，最大程度地刺激食 客的味蕾"</span></span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="attr">"image_url"</span>: <span class="string">"http://mmbiz.qpic.cn/mmbiz/p98FjXy8LacgHxp3sJ3vn97bGLz0ib0Sfz1bjiaoOYA027iasqSG0sj piby4vce3AtaPu6cIhBHkt6IjlkY9YnDsfw/0"</span>,</span><br><span class="line">            <span class="attr">"text"</span>: <span class="string">"此菜品迎合大众口味，老少皆宜，营养均衡"</span></span><br><span class="line">          &#125;</span><br><span class="line">        ],</span><br><span class="line">        <span class="attr">"time_limit"</span>: [</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="attr">"type"</span>: <span class="string">"MONDAY"</span>,</span><br><span class="line">            <span class="attr">"begin_hour"</span>:<span class="number">0</span>,</span><br><span class="line">            <span class="attr">"end_hour"</span>:<span class="number">10</span>,</span><br><span class="line">            <span class="attr">"begin_minute"</span>:<span class="number">10</span>,</span><br><span class="line">            <span class="attr">"end_minute"</span>:<span class="number">59</span></span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="attr">"type"</span>: <span class="string">"HOLIDAY"</span></span><br><span class="line">          &#125;</span><br><span class="line">        ],</span><br><span class="line">        <span class="attr">"business_service"</span>: [</span><br><span class="line">          <span class="string">"BIZ_SERVICE_FREE_WIFI"</span>,</span><br><span class="line">          <span class="string">"BIZ_SERVICE_WITH_PET"</span>,</span><br><span class="line">          <span class="string">"BIZ_SERVICE_FREE_PARK"</span>,</span><br><span class="line">          <span class="string">"BIZ_SERVICE_DELIVER"</span></span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">"deal_detail"</span>: <span class="string">"以下锅底2选1（有菌王锅、麻辣锅、大骨锅、番茄锅、清补 凉锅、酸菜鱼锅可选）：\n大锅1份 12元\n小锅2份 16元 "</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>字段示图：</p>
+<p><img src="%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%B9%B3%E5%8F%B0/%E5%8D%A1%E5%88%B8%E7%A4%BA%E5%9B%BE.jpg" alt="卡券示图"></p>
+<h2 id="投放卡券"><a href="#投放卡券" class="headerlink" title="投放卡券"></a>投放卡券</h2><h3 id="创建二维码"><a href="#创建二维码" class="headerlink" title="创建二维码"></a>创建二维码</h3><h2 id="核销卡券"><a href="#核销卡券" class="headerlink" title="核销卡券"></a>核销卡券</h2><h2 id="管理卡券"><a href="#管理卡券" class="headerlink" title="管理卡券"></a>管理卡券</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/05/08/%E6%8A%80%E6%9C%AF%E6%A0%88/" rel="prev" title="技术栈">
+      <i class="fa fa-chevron-left"></i> 技术栈
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/06/01/SpringCore/" rel="next" title="SpringCore">
+      SpringCore <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#准备"><span class="nav-number">2.</span> <span class="nav-text">准备</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#微信开发"><span class="nav-number">3.</span> <span class="nav-text">微信开发</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#工具"><span class="nav-number">3.1.</span> <span class="nav-text">工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#测试号"><span class="nav-number">3.1.1.</span> <span class="nav-text">测试号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Web开发工具"><span class="nav-number">3.1.2.</span> <span class="nav-text">Web开发工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在线接口调试工具"><span class="nav-number">3.1.3.</span> <span class="nav-text">在线接口调试工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内网穿透工具"><span class="nav-number">3.1.4.</span> <span class="nav-text">内网穿透工具</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文档"><span class="nav-number">3.2.</span> <span class="nav-text">文档</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#框架"><span class="nav-number">3.3.</span> <span class="nav-text">框架</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#申请公众号"><span class="nav-number">4.</span> <span class="nav-text">申请公众号</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内容管理"><span class="nav-number">5.</span> <span class="nav-text">内容管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#内容管理模式"><span class="nav-number">5.1.</span> <span class="nav-text">内容管理模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#编辑模式"><span class="nav-number">5.1.1.</span> <span class="nav-text">编辑模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#开发者模式"><span class="nav-number">5.1.2.</span> <span class="nav-text">开发者模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#开启开发者模式"><span class="nav-number">5.1.2.1.</span> <span class="nav-text">开启开发者模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#接入微信公众平台"><span class="nav-number">5.1.2.2.</span> <span class="nav-text">接入微信公众平台</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#接收微信推送消息"><span class="nav-number">5.1.2.3.</span> <span class="nav-text">接收微信推送消息</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#公众平台接口调用"><span class="nav-number">5.2.</span> <span class="nav-text">公众平台接口调用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#获取接口调用凭证——access-token"><span class="nav-number">5.2.1.</span> <span class="nav-text">获取接口调用凭证——access_token</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#调用公众平台接口"><span class="nav-number">5.2.2.</span> <span class="nav-text">调用公众平台接口</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#菜单管理"><span class="nav-number">5.3.</span> <span class="nav-text">菜单管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义菜单"><span class="nav-number">5.3.1.</span> <span class="nav-text">自定义菜单</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义菜单类型"><span class="nav-number">5.3.2.</span> <span class="nav-text">自定义菜单类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#创建菜单"><span class="nav-number">5.3.2.1.</span> <span class="nav-text">创建菜单</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查询菜单"><span class="nav-number">5.3.2.2.</span> <span class="nav-text">查询菜单</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#删除菜单"><span class="nav-number">5.3.2.3.</span> <span class="nav-text">删除菜单</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#个性化菜单"><span class="nav-number">5.3.3.</span> <span class="nav-text">个性化菜单</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#创建个性化菜单"><span class="nav-number">5.3.3.1.</span> <span class="nav-text">创建个性化菜单</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息管理"><span class="nav-number">5.4.</span> <span class="nav-text">消息管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#消息服务类型"><span class="nav-number">5.4.1.</span> <span class="nav-text">消息服务类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接收普通消息"><span class="nav-number">5.4.2.</span> <span class="nav-text">接收普通消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接收事件推送"><span class="nav-number">5.4.3.</span> <span class="nav-text">接收事件推送</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#被动回复消息"><span class="nav-number">5.4.4.</span> <span class="nav-text">被动回复消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#消息加解密"><span class="nav-number">5.4.5.</span> <span class="nav-text">消息加解密</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客服消息"><span class="nav-number">5.4.6.</span> <span class="nav-text">客服消息</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#客服账号管理"><span class="nav-number">5.4.6.1.</span> <span class="nav-text">客服账号管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#发客服消息"><span class="nav-number">5.4.6.2.</span> <span class="nav-text">发客服消息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#客服输入状态"><span class="nav-number">5.4.6.3.</span> <span class="nav-text">客服输入状态</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#群发消息"><span class="nav-number">5.4.7.</span> <span class="nav-text">群发消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#模板消息"><span class="nav-number">5.4.8.</span> <span class="nav-text">模板消息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#素材管理"><span class="nav-number">5.5.</span> <span class="nav-text">素材管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#留言管理"><span class="nav-number">5.6.</span> <span class="nav-text">留言管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用户管理"><span class="nav-number">5.7.</span> <span class="nav-text">用户管理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#微信网页开发"><span class="nav-number">6.</span> <span class="nav-text">微信网页开发</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#配置网页授权回调域名"><span class="nav-number">6.1.</span> <span class="nav-text">配置网页授权回调域名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#微信网页授权"><span class="nav-number">6.2.</span> <span class="nav-text">微信网页授权</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#微信JS-SDK"><span class="nav-number">6.3.</span> <span class="nav-text">微信JS-SDK</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#应用步骤"><span class="nav-number">6.3.1.</span> <span class="nav-text">应用步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#步骤一：绑定域名"><span class="nav-number">6.3.1.1.</span> <span class="nav-text">步骤一：绑定域名</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#步骤二：引入JS文件"><span class="nav-number">6.3.1.2.</span> <span class="nav-text">步骤二：引入JS文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#步骤三：通过config接口注入权限验证配置"><span class="nav-number">6.3.1.3.</span> <span class="nav-text">步骤三：通过config接口注入权限验证配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#步骤四：通过ready接口处理成功验证"><span class="nav-number">6.3.1.4.</span> <span class="nav-text">步骤四：通过ready接口处理成功验证</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#步骤五：通过error接口处理失败验证"><span class="nav-number">6.3.1.5.</span> <span class="nav-text">步骤五：通过error接口处理失败验证</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接口调用说明"><span class="nav-number">6.3.2.</span> <span class="nav-text">接口调用说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基础接口"><span class="nav-number">6.3.3.</span> <span class="nav-text">基础接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分享接口"><span class="nav-number">6.3.4.</span> <span class="nav-text">分享接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#图像接口"><span class="nav-number">6.3.5.</span> <span class="nav-text">图像接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#音频接口"><span class="nav-number">6.3.6.</span> <span class="nav-text">音频接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#智能接口"><span class="nav-number">6.3.7.</span> <span class="nav-text">智能接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设备信息接口"><span class="nav-number">6.3.8.</span> <span class="nav-text">设备信息接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#地理位置接口"><span class="nav-number">6.3.9.</span> <span class="nav-text">地理位置接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#摇一摇周边接口"><span class="nav-number">6.3.10.</span> <span class="nav-text">摇一摇周边接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#界面操作接口"><span class="nav-number">6.3.11.</span> <span class="nav-text">界面操作接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#扫一扫接口"><span class="nav-number">6.3.12.</span> <span class="nav-text">扫一扫接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#微信小店接口"><span class="nav-number">6.3.13.</span> <span class="nav-text">微信小店接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#微信卡券接口"><span class="nav-number">6.3.14.</span> <span class="nav-text">微信卡券接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#微信支付接口"><span class="nav-number">6.3.15.</span> <span class="nav-text">微信支付接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#共享收货地址接口"><span class="nav-number">6.3.16.</span> <span class="nav-text">共享收货地址接口</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#微信支付"><span class="nav-number">7.</span> <span class="nav-text">微信支付</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#支付模式"><span class="nav-number">7.1.</span> <span class="nav-text">支付模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接入流程"><span class="nav-number">7.2.</span> <span class="nav-text">接入流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#公众号支付"><span class="nav-number">7.3.</span> <span class="nav-text">公众号支付</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#设置支付目录"><span class="nav-number">7.3.1.</span> <span class="nav-text">设置支付目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#支付流程"><span class="nav-number">7.3.2.</span> <span class="nav-text">支付流程</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#微信门店"><span class="nav-number">8.</span> <span class="nav-text">微信门店</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#微信卡券"><span class="nav-number">9.</span> <span class="nav-text">微信卡券</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#开通卡券功能"><span class="nav-number">9.1.</span> <span class="nav-text">开通卡券功能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建卡券"><span class="nav-number">9.2.</span> <span class="nav-text">创建卡券</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#上传卡券logo"><span class="nav-number">9.2.1.</span> <span class="nav-text">上传卡券logo</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建卡券-1"><span class="nav-number">9.2.2.</span> <span class="nav-text">创建卡券</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#投放卡券"><span class="nav-number">9.3.</span> <span class="nav-text">投放卡券</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建二维码"><span class="nav-number">9.3.1.</span> <span class="nav-text">创建二维码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#核销卡券"><span class="nav-number">9.4.</span> <span class="nav-text">核销卡券</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#管理卡券"><span class="nav-number">9.5.</span> <span class="nav-text">管理卡券</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

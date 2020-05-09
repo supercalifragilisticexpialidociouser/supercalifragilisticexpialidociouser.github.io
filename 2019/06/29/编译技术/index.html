@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="语言处理器编译器：  上图中目标程序不一定是可执行目标程序。如果要创建一个可执行的目标程序，除了需要编译器外，通常还需要一些其他程序：  解释器：  混合编译器：  编译器结构编译器是将一种语言翻译为另一种语言的计算机程序。  详图：  语言处理器的主要数据结构记号（token） 语法树（syntax tree） 符号表（symbol table） 字面量表（literal table） 中间代码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="编译技术">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2019/06/29/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="语言处理器编译器：  上图中目标程序不一定是可执行目标程序。如果要创建一个可执行的目标程序，除了需要编译器外，通常还需要一些其他程序：  解释器：  混合编译器：  编译器结构编译器是将一种语言翻译为另一种语言的计算机程序。  详图：  语言处理器的主要数据结构记号（token） 语法树（syntax tree） 符号表（symbol table） 字面量表（literal table） 中间代码">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2019/06/29/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E5%99%A8.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2019/06/29/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E7%B3%BB%E7%BB%9F.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2019/06/29/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E8%A7%A3%E9%87%8A%E5%99%A8.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2019/06/29/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E6%B7%B7%E5%90%88%E7%BC%96%E8%AF%91%E5%99%A8.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2019/06/29/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E5%99%A8%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2019/06/29/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E5%99%A8%E7%BB%93%E6%9E%84%E8%AF%A6%E5%9B%BE.png">
+<meta property="article:published_time" content="2019-06-29T09:52:21.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:50.036Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="programming">
+<meta property="article:tag" content="学习">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="开发">
+<meta property="article:tag" content="IT">
+<meta property="article:tag" content="技术">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.supercalifragilisticexpialidociouser.com/2019/06/29/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E5%99%A8.png">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2019/06/29/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>编译技术 | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2019/06/29/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          编译技术
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-06-29 17:52:21" itemprop="dateCreated datePublished" datetime="2019-06-29T17:52:21+08:00">2019-06-29</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="语言处理器"><a href="#语言处理器" class="headerlink" title="语言处理器"></a>语言处理器</h1><p>编译器：</p>
+<p><img src="%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E5%99%A8.png" alt="编译器"></p>
+<p>上图中目标程序不一定是可执行目标程序。如果要创建一个可执行的目标程序，除了需要编译器外，通常还需要一些其他程序：</p>
+<p><img src="%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E7%B3%BB%E7%BB%9F.png" alt="语言处理系统"></p>
+<p>解释器：</p>
+<p><img src="%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E8%A7%A3%E9%87%8A%E5%99%A8.png" alt="解释器"></p>
+<p>混合编译器：</p>
+<p><img src="%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E6%B7%B7%E5%90%88%E7%BC%96%E8%AF%91%E5%99%A8.png" alt="混合编译器"></p>
+<h2 id="编译器结构"><a href="#编译器结构" class="headerlink" title="编译器结构"></a>编译器结构</h2><p>编译器是将一种语言翻译为另一种语言的计算机程序。</p>
+<p><img src="%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E5%99%A8%E7%BB%93%E6%9E%84.png" alt="编译器结构"></p>
+<p>详图：</p>
+<p><img src="%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/%E7%BC%96%E8%AF%91%E5%99%A8%E7%BB%93%E6%9E%84%E8%AF%A6%E5%9B%BE.png" alt="编译器结构详图"></p>
+<h2 id="语言处理器的主要数据结构"><a href="#语言处理器的主要数据结构" class="headerlink" title="语言处理器的主要数据结构"></a>语言处理器的主要数据结构</h2><p>记号（token）</p>
+<p>语法树（syntax tree）</p>
+<p>符号表（symbol table）</p>
+<p>字面量表（literal table）</p>
+<p>中间代码（intermediate code）</p>
+<p>临时文件（temporary file）</p>
+<h2 id="自举和移植"><a href="#自举和移植" class="headerlink" title="自举和移植"></a>自举和移植</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/02/28/Manjaro-i3/" rel="prev" title="Manjaro-i3">
+      <i class="fa fa-chevron-left"></i> Manjaro-i3
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/08/21/re2c/" rel="next" title="re2c">
+      re2c <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#语言处理器"><span class="nav-number">1.</span> <span class="nav-text">语言处理器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#编译器结构"><span class="nav-number">1.1.</span> <span class="nav-text">编译器结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#语言处理器的主要数据结构"><span class="nav-number">1.2.</span> <span class="nav-text">语言处理器的主要数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自举和移植"><span class="nav-number">1.3.</span> <span class="nav-text">自举和移植</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

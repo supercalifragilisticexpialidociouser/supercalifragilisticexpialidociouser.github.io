@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="配置源1$ sudo pacman-mirrors -c China  添加archlinuxcn源编辑&#x2F;etc&#x2F;pacman.conf，添加 123[archlinuxcn]SigLevel &#x3D; Optional TrustedOnlyServer &#x3D; https:&#x2F;&#x2F;mirrors.ustc.edu.cn&#x2F;archlinuxcn&#x2F;$a">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Manjaro-i3">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2019/02/28/Manjaro-i3/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="配置源1$ sudo pacman-mirrors -c China  添加archlinuxcn源编辑&#x2F;etc&#x2F;pacman.conf，添加 123[archlinuxcn]SigLevel &#x3D; Optional TrustedOnlyServer &#x3D; https:&#x2F;&#x2F;mirrors.ustc.edu.cn&#x2F;archlinuxcn&#x2F;$a">
+<meta property="article:published_time" content="2019-02-28T05:53:25.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:50.003Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="programming">
+<meta property="article:tag" content="学习">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="开发">
+<meta property="article:tag" content="IT">
+<meta property="article:tag" content="技术">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2019/02/28/Manjaro-i3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Manjaro-i3 | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2019/02/28/Manjaro-i3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Manjaro-i3
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-02-28 13:53:25" itemprop="dateCreated datePublished" datetime="2019-02-28T13:53:25+08:00">2019-02-28</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="配置源"><a href="#配置源" class="headerlink" title="配置源"></a>配置源</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo pacman-mirrors -c China</span><br></pre></td></tr></table></figure>
+
+<h1 id="添加archlinuxcn源"><a href="#添加archlinuxcn源" class="headerlink" title="添加archlinuxcn源"></a>添加archlinuxcn源</h1><p>编辑<code>/etc/pacman.conf</code>，添加</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[archlinuxcn]</span><br><span class="line">SigLevel &#x3D; Optional TrustedOnly</span><br><span class="line">Server &#x3D; https:&#x2F;&#x2F;mirrors.ustc.edu.cn&#x2F;archlinuxcn&#x2F;$arch</span><br></pre></td></tr></table></figure>
+
+<h1 id="更新系统"><a href="#更新系统" class="headerlink" title="更新系统"></a>更新系统</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo pacman -Syyu</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>如果有大量软件包要更新，建议使用命令行。GUI更新工具比较慢，而且容易崩溃。</p>
+</blockquote>
+<h1 id="导入GPG-Key"><a href="#导入GPG-Key" class="headerlink" title="导入GPG Key"></a>导入GPG Key</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo pacman -S archlinuxcn-keyring</span><br></pre></td></tr></table></figure>
+
+<p>重启系统。</p>
+<h1 id="设置时钟"><a href="#设置时钟" class="headerlink" title="设置时钟"></a>设置时钟</h1><p>方法一：通过GUI配置界面</p>
+<p>方法二：命令行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo hwclock --systohc</span><br><span class="line">同步时间：</span><br><span class="line">$ ntpdate -u ntp.api.bz</span><br></pre></td></tr></table></figure>
+
+<p>让Windows和Linux时间显示一致：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ timedatectl <span class="built_in">set</span>-local-rtc 1 --adjust-system-clock</span><br></pre></td></tr></table></figure>
+
+<p>上面命令让Linux将本机的存储时间解释为当地时间，Linux将不再将时区调整应用于存储在主板上的时间，从而与Windows保持一致。 </p>
+<h1 id="更换浏览器"><a href="#更换浏览器" class="headerlink" title="更换浏览器"></a>更换浏览器</h1><p>首先，卸载原装的Pale Moon浏览器。</p>
+<p>然后，安装Chromium浏览器：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo pacman -S google-chrome</span><br></pre></td></tr></table></figure>
+
+<p>将<code>Mod-F2</code>快捷键配置成打开Chromium，这通过修改<code>~/.i3/config</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">bindsym $mod+F2 exec --no-startup-id chromium（通过GUI安装器安装的，选择这个）</span><br><span class="line">或</span><br><span class="line">bindsym $mod+F2 exec --no-startup-id google-chrome-stable</span><br></pre></td></tr></table></figure>
+
+<p>代理：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ google-chrome-stable --proxy-server=<span class="string">"socks5://localhost:1080"</span></span><br></pre></td></tr></table></figure>
+
+<p>登录<code>chrome.google.com</code>下载<code>SwitchyOmega</code>，导入配置。</p>
+<h1 id="安装搜狗输入法"><a href="#安装搜狗输入法" class="headerlink" title="安装搜狗输入法"></a>安装搜狗输入法</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo pacman -S fcitx-im <span class="comment">#默认全部安装</span></span><br><span class="line">$ sudo pacman -S fcitx-configtool</span><br><span class="line">$ sudo pacman -S fcitx-sogoupinyin</span><br></pre></td></tr></table></figure>
+
+<p>安装完成后，编辑<code>~/.xprofile</code>，添加如下配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export GTK_IM_MODULE&#x3D;fcitx</span><br><span class="line">export QT_IM_MODULE&#x3D;fcitx</span><br><span class="line">export XMODIFIERS&#x3D;&quot;@im&#x3D;fcitx&quot;</span><br></pre></td></tr></table></figure>
+
+<p>然后，可以通过GUI工具<code>fcitx-configtool</code>调节输入法设置。</p>
+<p>重启系统后，按mod-D，然后输入<code>fcitx</code>回车，状态栏上就会出现输入法。右击“Configure”进入配置界面，点击添加输入法。在出现的对话框中，去掉“Only Show Current Language”勾选项，选择 WubiPinyin。</p>
+<h1 id="配置显卡驱动"><a href="#配置显卡驱动" class="headerlink" title="配置显卡驱动"></a>配置显卡驱动</h1><h2 id="测试显卡性能"><a href="#测试显卡性能" class="headerlink" title="测试显卡性能"></a>测试显卡性能</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ glxgears</span><br></pre></td></tr></table></figure>
+
+<h2 id="安装显卡驱动"><a href="#安装显卡驱动" class="headerlink" title="安装显卡驱动"></a>安装显卡驱动</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo mhwd -a pci nonfree 0300</span><br></pre></td></tr></table></figure>
+
+<h2 id="多显示器配置"><a href="#多显示器配置" class="headerlink" title="多显示器配置"></a>多显示器配置</h2><p>使用xrandr配置</p>
+<h1 id="安装字体"><a href="#安装字体" class="headerlink" title="安装字体"></a>安装字体</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pacman -S adobe-source-code-pro-fonts wqy-bitmapfont wqy-microhei wqy-zenhei wjy-microhei-lite</span><br></pre></td></tr></table></figure>
+
+<p>可以使用<code>fc-list</code>显示系统已安字体的位置及字体名：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">fc</span>-list | grep Source</span><br></pre></td></tr></table></figure>
+
+<h1 id="配置URxvt"><a href="#配置URxvt" class="headerlink" title="配置URxvt"></a>配置URxvt</h1><p>Manjaro默认终端是URxvt。</p>
+<h2 id="更改URxvt的字体"><a href="#更改URxvt的字体" class="headerlink" title="更改URxvt的字体"></a>更改URxvt的字体</h2><p>编辑<code>~/.Xresources</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">xft.dpi:125  #设置dpi，对4k高分屏需要设置，设置成默认值的2倍试试。</span><br><span class="line">URxvt.font: xft:Source Code Pro:style&#x3D;Regular:antialias&#x3D;True:pixelsize&#x3D;18,xft:WenQuanYi Zen Hei:antialias&#x3D;True:pixelsize&#x3D;18</span><br><span class="line">URxvt.boldfont: xft:Source Code Pro:style&#x3D;Bold:antialias&#x3D;True:pixelsize&#x3D;18,xft:WenQuanYi Zen Hei:antialias&#x3D;True:pixelsize&#x3D;18</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用Chromium打开链接"><a href="#使用Chromium打开链接" class="headerlink" title="使用Chromium打开链接"></a>使用Chromium打开链接</h2><p>编辑<code>~/.Xresources</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">URxvt*url-launcher:     chromium</span><br></pre></td></tr></table></figure>
+
+<h1 id="配置Shell"><a href="#配置Shell" class="headerlink" title="配置Shell"></a>配置Shell</h1><h2 id="切换到zsh"><a href="#切换到zsh" class="headerlink" title="切换到zsh"></a>切换到zsh</h2><p>查看系统已经安装有哪些Shell：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ cat /etc/shells</span><br><span class="line">或者</span><br><span class="line">$ chsh -l</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Manjaro默认已经安装了zsh。</p>
+</blockquote>
+<p>查看当前使用的Shell：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="variable">$0</span></span><br><span class="line">或者</span><br><span class="line">$ <span class="built_in">echo</span> <span class="variable">$SHELL</span></span><br></pre></td></tr></table></figure>
+
+<p>切换到zsh：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ chsh -s /bin/zsh</span><br></pre></td></tr></table></figure>
+
+<p>需要重启一下系统。</p>
+<p>也可以直接修改<code>/etc/passwd</code>中某个用户默认的Shell。</p>
+<h2 id="安装oh-my-zsh"><a href="#安装oh-my-zsh" class="headerlink" title="安装oh-my-zsh"></a>安装oh-my-zsh</h2><p>安装：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sh -c <span class="string">"<span class="variable">$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)</span>"</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>不要加<code>sudo</code>，否则会安装到<code>root</code>用户下，而不是当前用户。</p>
+</blockquote>
+<p>安装完成后，重启系统。</p>
+<p>修改主题（默认是<code>robbyrussell</code>）：编辑<code>~/.zshrc</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZSH_THEME&#x3D;&quot;agnoster&quot;</span><br></pre></td></tr></table></figure>
+
+<p>官方主题位于：<code>.oh-my-zsh/themes/</code>下，第三方主题位于：<code>.oh-my-zsh/custom/themes/</code>下。</p>
+<h3 id="Bullet-Train主题"><a href="#Bullet-Train主题" class="headerlink" title="Bullet Train主题"></a>Bullet Train主题</h3><p>安装步骤：</p>
+<ol>
+<li>将<a href="http://raw.github.com/caiogondim/bullet-train-oh-my-zsh-theme/master/bullet-train.zsh-theme" target="_blank" rel="noopener">bullet-train.zsh-theme</a>下载到<code>.oh-my-zsh/custom/themes/</code>。</li>
+<li>配置<code>~/.zshrc</code>：<code>ZSH_THEME=&quot;bullet-train&quot;</code>。</li>
+</ol>
+<h3 id="Powerlevel9k主题"><a href="#Powerlevel9k主题" class="headerlink" title="Powerlevel9k主题"></a>Powerlevel9k主题</h3><p>安装步骤：</p>
+<ol>
+<li><p>下载主题到指定目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> https://github.com/Powerlevel9k/powerlevel9k.git ~/.oh-my-zsh/custom/themes/powerlevel9k</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在 <code>~/.zshrc</code> 首行添加：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export TERM&#x3D;&quot;xterm-256color&quot;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>编辑 <code>~/.zshrc</code> 来启用主题：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZSH_THEME&#x3D;&quot;powerlevel9k&#x2F;powerlevel9k&quot;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>安装<a href="https://github.com/ryanoasis/nerd-fonts" target="_blank" rel="noopener">Nerd Fonts</a>字体：</p>
+<p>安装nerd-fonts-complete包。</p>
+<p>然后，在<code>~/.zshrc</code>的指定powerlevel9k主题（即<code>ZSH_THEME=&quot;powerlevel9k/powerlevel9k&quot;</code>）之前，添加：<code>POWERLEVEL9K_MODE=&#39;nerdfont-complete&#39;</code>。</p>
+<p>最后，修改<code>~/.Xresources</code>为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">URxvt.font: xft:SauceCodePro Nerd Font Mono:style&#x3D;Regular:antialias&#x3D;True:pixelsize&#x3D;18,xft:WenQuanYi Zen Hei:antialias&#x3D;True:pixelsize&#x3D;18</span><br><span class="line">URxvt.boldfont: xft:SauceCodePro Nerd Font Mono:style&#x3D;Bold:antialias&#x3D;True:pixelsize&#x3D;18,xft:WenQuanYi Zen Hei:antialias&#x3D;True:pixelsize&#x3D;18</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：这里一定要用等宽字体（即这里的带“Mono”后缀），否则，有些双宽度图标字符显示不出来。</p>
+</blockquote>
+</li>
+<li><p>常用Powerlevel9k配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># 左侧栏目显示的要素</span><br><span class="line">POWERLEVEL9K_LEFT_PROMPT_ELEMENTS&#x3D;(os_icon context dir vcs)</span><br><span class="line"># 新起一行显示命令</span><br><span class="line">POWERLEVEL9K_PROMPT_ON_NEWLINE&#x3D;true</span><br><span class="line"># 默认的上下行连线不好看，下面是比较美观的设置</span><br><span class="line"># POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX&#x3D;&quot;↱&quot;</span><br><span class="line"># POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX&#x3D;&quot;↳ &quot;</span><br><span class="line"># POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX&#x3D;&quot;&quot;</span><br><span class="line"># POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX&#x3D;&quot;▶ &quot;</span><br><span class="line">POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX&#x3D;&quot;%&#123;%F&#123;249&#125;%&#125;\u250f&quot;</span><br><span class="line">POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX&#x3D;&quot;%&#123;%F&#123;249&#125;%&#125;\u2517%&#123;%F&#123;default&#125;%&#125;▶ &quot;</span><br><span class="line"># 新的命令与上面的命令隔开一行</span><br><span class="line">POWERLEVEL9K_PROMPT_ADD_NEWLINE&#x3D;true</span><br><span class="line"># 设置分隔符</span><br><span class="line"># POWERLEVEL9K_LEFT_SEGMENT_SEPARATOR&#x3D;&#39;\UE0BC&#39;</span><br><span class="line">POWERLEVEL9K_RIGHT_SEGMENT_SEPARATOR&#x3D;&#39;\UE0BA&#39;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>重启一下系统。</p>
+</li>
+</ol>
+<h2 id="更新oh-my-zsh"><a href="#更新oh-my-zsh" class="headerlink" title="更新oh-my-zsh"></a>更新oh-my-zsh</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ upgrade_oh_my_zsh</span><br></pre></td></tr></table></figure>
+
+<h2 id="卸载oh-my-zsh"><a href="#卸载oh-my-zsh" class="headerlink" title="卸载oh-my-zsh"></a>卸载oh-my-zsh</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ uninstall_oh_my_zsh</span><br></pre></td></tr></table></figure>
+
+<h1 id="配置dmenu"><a href="#配置dmenu" class="headerlink" title="配置dmenu"></a>配置dmenu</h1><p>编辑文件<code>~/.dmenurc</code>。</p>
+<h1 id="配置i3"><a href="#配置i3" class="headerlink" title="配置i3"></a>配置i3</h1><p>编辑文件<code>~/.i3/config</code>。</p>
+<h1 id="配置状态栏"><a href="#配置状态栏" class="headerlink" title="配置状态栏"></a>配置状态栏</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir ~/.config/i3status</span><br><span class="line">$ cp /etc/i3status.conf ~/.config/i3status/config</span><br><span class="line">$ vim ~/.config/i3status/config</span><br></pre></td></tr></table></figure>
+
+<p>修改时间格式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tztime local &#123;</span><br><span class="line">	format &#x3D; &quot; %Y-%m-%d %H:%M:%S &quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>查看i3status的帮助：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ man i3status</span><br></pre></td></tr></table></figure>
+
+<h1 id="配置conky"><a href="#配置conky" class="headerlink" title="配置conky"></a>配置conky</h1><p>桌面右侧的状态栏：<code>/usr/share/conky/conky_maia</code>。</p>
+<p>桌面左侧的快捷键显示栏：<code>/usr/share/conky/conky1.10_shortcuts_maia</code>。</p>
+<p>修改conky_maia支持中文：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">font &#x3D; &#39;WenQuanYi Micro Hei:size&#x3D;8&#39;,</span><br><span class="line">或者</span><br><span class="line">font &#x3D; &#39;WenQuanYi Zen Hei:size&#x3D;8&#39;,</span><br></pre></td></tr></table></figure>
+
+<h1 id="安装JDK"><a href="#安装JDK" class="headerlink" title="安装JDK"></a>安装JDK</h1><p>安装最新版Open JDK：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo pacman -S jdk-openjdk</span><br></pre></td></tr></table></figure>
+
+<p>安装指定版本Open JDK（例如JDK 11）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo pacman -S jdk11-openjdk</span><br></pre></td></tr></table></figure>
+
+<p>设置<code>JAVA_HOME</code>环境变量：修改<code>~/.zshrc</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME&#x3D;&quot;&#x2F;usr&#x2F;lib&#x2F;jvm&#x2F;default&quot;</span><br></pre></td></tr></table></figure>
+
+<p>查看所有己安装的JDK：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ archlinux-java status</span><br></pre></td></tr></table></figure>
+
+<p>切换版本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo archlinux-java <span class="built_in">set</span> java-11-openjdk</span><br></pre></td></tr></table></figure>
+
+
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/01/30/TypeScript/" rel="prev" title="TypeScript">
+      <i class="fa fa-chevron-left"></i> TypeScript
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/06/29/%E7%BC%96%E8%AF%91%E6%8A%80%E6%9C%AF/" rel="next" title="编译技术">
+      编译技术 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#配置源"><span class="nav-number">1.</span> <span class="nav-text">配置源</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#添加archlinuxcn源"><span class="nav-number">2.</span> <span class="nav-text">添加archlinuxcn源</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#更新系统"><span class="nav-number">3.</span> <span class="nav-text">更新系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#导入GPG-Key"><span class="nav-number">4.</span> <span class="nav-text">导入GPG Key</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#设置时钟"><span class="nav-number">5.</span> <span class="nav-text">设置时钟</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#更换浏览器"><span class="nav-number">6.</span> <span class="nav-text">更换浏览器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装搜狗输入法"><span class="nav-number">7.</span> <span class="nav-text">安装搜狗输入法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置显卡驱动"><span class="nav-number">8.</span> <span class="nav-text">配置显卡驱动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#测试显卡性能"><span class="nav-number">8.1.</span> <span class="nav-text">测试显卡性能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装显卡驱动"><span class="nav-number">8.2.</span> <span class="nav-text">安装显卡驱动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多显示器配置"><span class="nav-number">8.3.</span> <span class="nav-text">多显示器配置</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装字体"><span class="nav-number">9.</span> <span class="nav-text">安装字体</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置URxvt"><span class="nav-number">10.</span> <span class="nav-text">配置URxvt</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#更改URxvt的字体"><span class="nav-number">10.1.</span> <span class="nav-text">更改URxvt的字体</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Chromium打开链接"><span class="nav-number">10.2.</span> <span class="nav-text">使用Chromium打开链接</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置Shell"><span class="nav-number">11.</span> <span class="nav-text">配置Shell</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#切换到zsh"><span class="nav-number">11.1.</span> <span class="nav-text">切换到zsh</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装oh-my-zsh"><span class="nav-number">11.2.</span> <span class="nav-text">安装oh-my-zsh</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Bullet-Train主题"><span class="nav-number">11.2.1.</span> <span class="nav-text">Bullet Train主题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Powerlevel9k主题"><span class="nav-number">11.2.2.</span> <span class="nav-text">Powerlevel9k主题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更新oh-my-zsh"><span class="nav-number">11.3.</span> <span class="nav-text">更新oh-my-zsh</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#卸载oh-my-zsh"><span class="nav-number">11.4.</span> <span class="nav-text">卸载oh-my-zsh</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置dmenu"><span class="nav-number">12.</span> <span class="nav-text">配置dmenu</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置i3"><span class="nav-number">13.</span> <span class="nav-text">配置i3</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置状态栏"><span class="nav-number">14.</span> <span class="nav-text">配置状态栏</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置conky"><span class="nav-number">15.</span> <span class="nav-text">配置conky</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装JDK"><span class="nav-number">16.</span> <span class="nav-text">安装JDK</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

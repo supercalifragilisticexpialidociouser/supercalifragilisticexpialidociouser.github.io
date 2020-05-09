@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="计算机科学计算机系统编程人机交互Web端客户端MVVM：Angular 或 React +Flux&#x2F;Redux 服务器MVC：Spring MVC +  Thymeleaf 模板引擎 响应式Web设计：Twitter Bootstrap  Layoutit：在线快速搭建Bootstrap响应式布局。 Jetstrap：在线Bootstrap可视化制作工具，会自动适配PC、手机、Pad。 Bootp">
+<meta property="og:type" content="article">
+<meta property="og:title" content="技术栈">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2018/05/08/%E6%8A%80%E6%9C%AF%E6%A0%88/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="计算机科学计算机系统编程人机交互Web端客户端MVVM：Angular 或 React +Flux&#x2F;Redux 服务器MVC：Spring MVC +  Thymeleaf 模板引擎 响应式Web设计：Twitter Bootstrap  Layoutit：在线快速搭建Bootstrap响应式布局。 Jetstrap：在线Bootstrap可视化制作工具，会自动适配PC、手机、Pad。 Bootp">
+<meta property="article:published_time" content="2018-05-08T01:42:55.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:50.036Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="programming">
+<meta property="article:tag" content="学习">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="开发">
+<meta property="article:tag" content="IT">
+<meta property="article:tag" content="技术">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2018/05/08/%E6%8A%80%E6%9C%AF%E6%A0%88/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>技术栈 | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2018/05/08/%E6%8A%80%E6%9C%AF%E6%A0%88/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          技术栈
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-05-08 09:42:55" itemprop="dateCreated datePublished" datetime="2018-05-08T09:42:55+08:00">2018-05-08</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="计算机科学"><a href="#计算机科学" class="headerlink" title="计算机科学"></a>计算机科学</h1><h1 id="计算机系统"><a href="#计算机系统" class="headerlink" title="计算机系统"></a>计算机系统</h1><h1 id="编程"><a href="#编程" class="headerlink" title="编程"></a>编程</h1><h1 id="人机交互"><a href="#人机交互" class="headerlink" title="人机交互"></a>人机交互</h1><h2 id="Web端"><a href="#Web端" class="headerlink" title="Web端"></a>Web端</h2><p>客户端MVVM：<a href="https://angular.io/" target="_blank" rel="noopener">Angular</a> 或 <a href="https://reactjs.org/" target="_blank" rel="noopener">React</a> +Flux/Redux</p>
+<p>服务器MVC：Spring MVC +  <a href="http://www.thymeleaf.org/" target="_blank" rel="noopener">Thymeleaf</a> 模板引擎</p>
+<p>响应式Web设计：<a href="https://getbootstrap.com/" target="_blank" rel="noopener">Twitter Bootstrap</a> </p>
+<p><a href="www.layoutit.com">Layoutit</a>：在线快速搭建Bootstrap响应式布局。</p>
+<p><a href="https://jetstrap.com" target="_blank" rel="noopener">Jetstrap</a>：在线Bootstrap可视化制作工具，会自动适配PC、手机、Pad。</p>
+<p>Bootply：bootply.com</p>
+<p>HTML5模板：<a href="http://html5boilerplate.com/" target="_blank" rel="noopener">HTML5 Boilerplate</a></p>
+<p>CSS开发：<a href="https://www.npmjs.com/package/node-sass" target="_blank" rel="noopener">Scss</a></p>
+<p>构建工具：<a href="https://webpack.js.org/" target="_blank" rel="noopener">Webpack</a> + ng（Angular）</p>
+<p>Headless Chrome：<a href="https://github.com/GoogleChrome/puppeteer" target="_blank" rel="noopener">Puppeteer</a> </p>
+<p>HTML5图表：Highcharts、ECharts、ichartjs、Chart.js、jQplot（JQuery的绘画插件）、FusionCharts（业内最全面的图表库）、dygraphs（时间序列图）、Google Chart Tools、dc.js（基于D3，拥有本地crossfilter支持）、xcharts（基于D3）。</p>
+<p>流程图：<a href="http://flowchart.js.org/" target="_blank" rel="noopener">flowchart.js</a>、<a href="http://asciiflow.com/" target="_blank" rel="noopener">asciiflow</a> （纯文本的流程图）</p>
+<p>顺序图：<a href="https://bramp.github.io/js-sequence-diagrams/" target="_blank" rel="noopener">js-sequence-diagrams</a> 、<a href="https://mermaidjs.github.io/" target="_blank" rel="noopener">mermaid</a></p>
+<p>UML：yUML、nomnoml、plantUML/Codeuml、JointJs+Dagre </p>
+<p>全屏背景视频：<a href="https://rishabhp.github.io/bideo.js/?ref=webdesignernews.com" target="_blank" rel="noopener">https://rishabhp.github.io/bideo.js/?ref=webdesignernews.com</a> </p>
+<p>Video.js、Clappr：HTML5视频播放器</p>
+<p>地图：leaflet（轻量级JS地图库）、DataMaps</p>
+<p>数据可视化：Epoch、D3.js</p>
+<p>HTML5 Maker：HTML5动画</p>
+<p>CountUp.js：是一个独立的、轻量级的JavaScript类库，可用于快速创建一个有意思的显示数值数据的动画。从字面上看，CountUp还能根据你传递的startVal和dendVal参数计数两者中的任意方向。官方网站：<a href="http://inorganik.github.io/countUp.js/" target="_blank" rel="noopener">http://inorganik.github.io/countUp.js/</a></p>
+<p><a href="https://github.com/jakubfiala/atrament.js" target="_blank" rel="noopener">https://github.com/jakubfiala/atrament.js</a> ：可以直接在网页上作画,你可以橡皮工具,改变厚度,颜色,和画笔的不透明度,可以进行撤销和平滑模式等等。</p>
+<p>Angular Material2</p>
+<p>Meterialize：基于Material Design Language设计的一套CSS/HTML库</p>
+<p><a href="https://github.com/almasaeed2010/AdminLTE" target="_blank" rel="noopener">Admin LTE</a>：基于Bootstrap的后台管理模板</p>
+<p>Metronic：基于Bootstrap的后台管理模板</p>
+<p><a href="https://github.com/twitter/typeahead.js" target="_blank" rel="noopener">typeahead.js</a></p>
+<p>HTML5 Boilerplate：web项目模板</p>
+<p>GoAngular：轻松使用 AngularJS 和 GoInstant 构建实时、多用户的应用程序。</p>
+<p>angular-translate： 是一个 AngularJS 的模块，用于简化 i18n 和 l10n 应用的便携，实现了延迟加载和多元化。</p>
+<p>Express.js 运行在中间层，用来控制数据重定向。</p>
+<p>RequireJS：库加载管理，及模块化支持。可以按需及并行加载js库，可以把我们的代码以模块化的方式组织。</p>
+<p>Meteor、Hood.ie：一栈式框架。</p>
+<p>hapi：基于Node.js的Web应用框架。</p>
+<p><a href="http://wicky.nillia.ms/headroom.js/" target="_blank" rel="noopener">Headroom.js</a>：是一个轻量级的，高性能的JS部件（无依赖性！），可以允许你应对用户的滚动要求。向下滚动的时候上面的头部渐渐滑出我们的视线，而向上滚动的时候又会回来。 Headroom.js允许你设置元素出现的适当时间，其他时候则将焦点放在内容上。使用headroom.js也非常简单。它有一个纯JS的API，以及可选的兼容性的jQuery/Zepto和AngularJS插件。</p>
+<p><a href="http://chancejs.com/" target="_blank" rel="noopener">Chance.js</a>：是一种最简单的随机字符串、数字等的生成程序，特别有助于减少编写自动化测试或者其他任何需要随机数据时千篇一律的单调性。Chance是一款开源软件，基于MIT开源协议。并且Chance是装载在网站上的，这样你只需要打开浏览器上面的控制台就可以了！</p>
+<p>Reveal.js：Reveal.js 可以看做是HTML5版本的PowerPoint。可以在web页面上以PPT的方式动态呈现信息，如果你的网站想华丽丽地讲故事，那么Reveal能给你最酷的效果。</p>
+<p><a href="http://kushagragour.in/lab/superplaceholderjs/" target="_blank" rel="noopener">http://kushagragour.in/lab/superplaceholderjs/</a> ：利用文本框的 placeholder 属性，以打字形式展示出自定义的文字。</p>
+<p>jquery parallax：视差滚动</p>
+<p>jquery smooth-scroll：平滑滚动</p>
+<p><a href="http://antimatter15.github.io/ocrad.js/demo.html" target="_blank" rel="noopener">Ocrad.js</a>：是一个简单的OCR程序，可以将图像转化成文字</p>
+<h3 id="人机识别"><a href="#人机识别" class="headerlink" title="人机识别"></a>人机识别</h3><p>reCaptchas：谷歌推出的全新网络机器人识别工具API，可替代验证码。</p>
+<p>visualCaptcha：visualcaptcha.net，可以作为纯javascript或angular指令使用。</p>
+<h3 id="文件上传"><a href="#文件上传" class="headerlink" title="文件上传"></a>文件上传</h3><p>plupload：多文件上传</p>
+<p><a href="http://mailru.github.io/FileAPI/" target="_blank" rel="noopener">FileAPI</a>：是一组庞大的JavaScript工具，几乎任何相关文件都可以处理。它提供了文件上传（单一/多个）的功能并支持拖放操作、图像裁剪、调整大小、套用筛选、获取文件信息等等。该工具是独立的，并配有PHP类可处理服务器端的操作。此外，如果浏览器不支持JavaScript文件上传和摄像头，它将自动退回到Flash模式，并且详细地记录下来。</p>
+<h3 id="CMS"><a href="#CMS" class="headerlink" title="CMS"></a>CMS</h3><p>Drupal</p>
+<p>Joomla</p>
+<p>Wordpress：博客类</p>
+<p>Plone：企业CMS，python</p>
+<p>KeystoneJS</p>
+<h4 id="静态网页引擎"><a href="#静态网页引擎" class="headerlink" title="静态网页引擎"></a>静态网页引擎</h4><p>Jekyll</p>
+<p>hexo</p>
+<p>Docusaurus</p>
+<h3 id="在线编辑器"><a href="#在线编辑器" class="headerlink" title="在线编辑器"></a>在线编辑器</h3><p>Froala</p>
+<p>Quill</p>
+<p>CKEditor</p>
+<p>TinyMCE</p>
+<h2 id="移动端"><a href="#移动端" class="headerlink" title="移动端"></a>移动端</h2><p>Flutter：Google推出的使用Dart语言开发安卓和iOS应用。</p>
+<p>nativescript</p>
+<p>react native</p>
+<p>weex</p>
+<p>Ionic+Cordova</p>
+<p>JQuery Mobile</p>
+<p>MPAndroidChart：一款强大的 Android 图表库, 支持各种各样图表显示, 能想到的图表样式这里几乎都有, 图表还支持选择, 拖放和缩放动画效果。 </p>
+<p>Android图片缓存：Glide（Google）、Fresco（Facebook）、Picasso </p>
+<h2 id="桌面端"><a href="#桌面端" class="headerlink" title="桌面端"></a>桌面端</h2><p>HTML5桌面应用：NW.js（Node-Webkit）、有道heX、腾讯AlloyDesktop、Electron</p>
+<h1 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h1><h1 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h1><p>微服务开发框架：<a href="https://projects.spring.io/spring-boot/" target="_blank" rel="noopener">Spring Boot</a> </p>
+<p>微服务架构：Spring Cloud、Service Mesh（<a href="https://istio.io/" target="_blank" rel="noopener">Istio</a>）</p>
+<p>REST服务：<a href="https://spring.io/guides/gs/rest-service/" target="_blank" rel="noopener">Spring MVC REST</a> + <a href="https://github.com/FasterXML/jackson" target="_blank" rel="noopener">Jackson</a></p>
+<p>Akka+squbs</p>
+<p>Apache Camel：集成框架</p>
+<p>服务端负载均衡：Traefik（特别适合微服务）、haproxy、LVS、nginx</p>
+<p>硬件负载均衡：F5、Array</p>
+<p>客户端负载均衡：Ribbon</p>
+<p>断路器：Hystrix（停止更新）、Resilience4J</p>
+<p>服务发现：Eureka（停止更新）、Consul</p>
+<p>服务网关：Zuul、Spring Cloud Gateway</p>
+<p>服务网络：<strong>Istio</strong></p>
+<p>容器：Docker</p>
+<p><a href="https://www.packer.io" target="_blank" rel="noopener">Packer</a>：是一个开源工具，用于从单一源配置为多个平台创建相同的机器镜像。 </p>
+<p>容器编排：<strong>Kubernetes</strong></p>
+<p>Serverless：<strong>Knative</strong></p>
+<p><a href="http://fabric8.io/" target="_blank" rel="noopener">Fabric8</a>：一个开源集成开发平台，为基于Kubernetes和Jenkins的微服务提供持续发布。</p>
+<p>PaaS：OpenDaylight（软件网络定义框架）、OpenShift、Cloud Foundry</p>
+<p>SaaS：<a href="https://www.heroku.com/" target="_blank" rel="noopener">Heroku</a> （免费云应用平台）、<a href="https://mlab.com/" target="_blank" rel="noopener">MongoLab</a> （免费云MongoDB）、<a href="https://cloudinary.com/" target="_blank" rel="noopener">Cloudinary</a>（免费云图片/视频服务）、<a href="https://mailchimp.com/" target="_blank" rel="noopener">MailChimp</a>（免费邮件发送器）、Firebase/Clouda（百度，RapidJS）/End.js（数据同步的云服务。可以替代服务端开发）、ownCloud（可用来集成Dropbox、Google Drive等）</p>
+<h2 id="通信"><a href="#通信" class="headerlink" title="通信"></a>通信</h2><h3 id="远程方法调用"><a href="#远程方法调用" class="headerlink" title="远程方法调用"></a>远程方法调用</h3><p>RPC：<strong>rpcx</strong>、Dubbo、gRPC、Thrift</p>
+<h3 id="消息代理"><a href="#消息代理" class="headerlink" title="消息代理"></a>消息代理</h3><p>Kafka：分布式的消息系统。非常高吞吐量，大数据量传输，不遵循JMS规范</p>
+<p>RabbitMQ：基于AMQP协议，使用Erlang</p>
+<p>ActiveMQ/Apollo：使用Java</p>
+<p>ZeroMQ：</p>
+<h3 id="长连接"><a href="#长连接" class="headerlink" title="长连接"></a>长连接</h3><p>WebSocket：Spring Websocket</p>
+<h1 id="软件工程"><a href="#软件工程" class="headerlink" title="软件工程"></a>软件工程</h1><h2 id="构建"><a href="#构建" class="headerlink" title="构建"></a>构建</h2><p><a href="https://maven.apache.org/" target="_blank" rel="noopener">Maven</a>  ：Java项目构建</p>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>JavaScript单元测试：Mocha+chai、<a href="https://jasmine.github.io/" target="_blank" rel="noopener">Jasmine</a></p>
+<p>JavaScript测试执行器：<a href="https://karma-runner.github.io/" target="_blank" rel="noopener">Karma</a></p>
+<p>Angular端到端（集成）测试：<a href="http://www.protractortest.org/" target="_blank" rel="noopener">Protractor</a> </p>
+<p>JavaScript测试框架：Jest（集成了Mocha、chai、jsdom、sinon等功能）</p>
+<p>Java单元测试：<a href="https://junit.org" target="_blank" rel="noopener">Junit</a></p>
+<p>性能（压力）测试：<a href="https://gatling.io/" target="_blank" rel="noopener">Gatling</a>、JMeter、LoadRunner （过于重量）</p>
+<p>行为测试：<a href="https://cucumber.io/" target="_blank" rel="noopener">Cucumber</a></p>
+<p>WinRunner：功能测试 </p>
+<p>Selenium：自动化Web浏览测试 </p>
+<h3 id="Mock"><a href="#Mock" class="headerlink" title="Mock"></a>Mock</h3><p>Mockito+PowerMock</p>
+<h2 id="版本管理"><a href="#版本管理" class="headerlink" title="版本管理"></a>版本管理</h2><p>版本控制：<a href="https://git-scm.com/" target="_blank" rel="noopener">Git</a></p>
+<h2 id="配置管理"><a href="#配置管理" class="headerlink" title="配置管理"></a>配置管理</h2><p><a href="https://www.terraform.io/" target="_blank" rel="noopener">Terraform</a>：编排工具，go，声明式</p>
+<p><a href="https://www.ansible.com" target="_blank" rel="noopener">Ansible</a>：配置管理工具，Python，编程式</p>
+<p><a href="https://saltstack.com" target="_blank" rel="noopener">Saltstack</a>：配置管理工具，Python，声明式</p>
+<p><a href="https://www.chef.io" target="_blank" rel="noopener">Chef</a>：配置管理工具，Ruby，编程式</p>
+<p><a href="https://puppet.com" target="_blank" rel="noopener">Puppet</a>：配置管理工具，Ruby，声明式</p>
+<h1 id="信息安全"><a href="#信息安全" class="headerlink" title="信息安全"></a>信息安全</h1><p>身份管理平台：<a href="https://www.okta.com" target="_blank" rel="noopener">Okta</a> 或 <a href="https://www.keycloak.org/" target="_blank" rel="noopener">Keycloak</a></p>
+<p><a href="https://github.com/yaph/domxssscanner" target="_blank" rel="noopener">domxssscanner</a>：DOM based XSS 扫描工具。</p>
+<p><a href="https://github.com/dpnishant/jsprime" target="_blank" rel="noopener">jsprime</a>：检测js代码的安全性的工具。</p>
+<p>Satellizer：是一个端到端的基于 token 的AngularJS认证模块，Satellizer支持Google、Facebook、LinkedIn 和 Twitter 认证体系，并且也提供邮箱和密码的登录方式，另外Satellizer支持 OAuth 1.0 和 2.0 规范，所以你可以更加灵活地扩展认证方法。</p>
+<p>Passport.js：身份验证</p>
+<h1 id="信息管理"><a href="#信息管理" class="headerlink" title="信息管理"></a>信息管理</h1><p>关系数据库变更工具：<a href="http://www.liquibase.org/" target="_blank" rel="noopener">Liquibase</a></p>
+<p>Mongo数据库变更工具：<a href="https://github.com/mongobee/mongobee" target="_blank" rel="noopener">Mongobee</a></p>
+<p>日志：slf4j、log4j2、logback </p>
+<p>文件服务：SeaweedFS、GridFS、Ceph</p>
+<h1 id="图形学和多媒体"><a href="#图形学和多媒体" class="headerlink" title="图形学和多媒体"></a>图形学和多媒体</h1><h1 id="游戏开发"><a href="#游戏开发" class="headerlink" title="游戏开发"></a>游戏开发</h1><h1 id="人工智能"><a href="#人工智能" class="headerlink" title="人工智能"></a>人工智能</h1><p>机器学习框架：TensorFlow</p>
+<p>神经网络框架：PyTorch</p>
+<h1 id="仿真模拟"><a href="#仿真模拟" class="headerlink" title="仿真模拟"></a>仿真模拟</h1>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/04/26/Angular/" rel="prev" title="Angular">
+      <i class="fa fa-chevron-left"></i> Angular
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/05/22/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%B9%B3%E5%8F%B0/" rel="next" title="微信公众平台">
+      微信公众平台 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#计算机科学"><span class="nav-number">1.</span> <span class="nav-text">计算机科学</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#计算机系统"><span class="nav-number">2.</span> <span class="nav-text">计算机系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#编程"><span class="nav-number">3.</span> <span class="nav-text">编程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#人机交互"><span class="nav-number">4.</span> <span class="nav-text">人机交互</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Web端"><span class="nav-number">4.1.</span> <span class="nav-text">Web端</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#人机识别"><span class="nav-number">4.1.1.</span> <span class="nav-text">人机识别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件上传"><span class="nav-number">4.1.2.</span> <span class="nav-text">文件上传</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CMS"><span class="nav-number">4.1.3.</span> <span class="nav-text">CMS</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#静态网页引擎"><span class="nav-number">4.1.3.1.</span> <span class="nav-text">静态网页引擎</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在线编辑器"><span class="nav-number">4.1.4.</span> <span class="nav-text">在线编辑器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#移动端"><span class="nav-number">4.2.</span> <span class="nav-text">移动端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#桌面端"><span class="nav-number">4.3.</span> <span class="nav-text">桌面端</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#网络"><span class="nav-number">5.</span> <span class="nav-text">网络</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#架构"><span class="nav-number">6.</span> <span class="nav-text">架构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#通信"><span class="nav-number">6.1.</span> <span class="nav-text">通信</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#远程方法调用"><span class="nav-number">6.1.1.</span> <span class="nav-text">远程方法调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#消息代理"><span class="nav-number">6.1.2.</span> <span class="nav-text">消息代理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#长连接"><span class="nav-number">6.1.3.</span> <span class="nav-text">长连接</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#软件工程"><span class="nav-number">7.</span> <span class="nav-text">软件工程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#构建"><span class="nav-number">7.1.</span> <span class="nav-text">构建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试"><span class="nav-number">7.2.</span> <span class="nav-text">测试</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Mock"><span class="nav-number">7.2.1.</span> <span class="nav-text">Mock</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#版本管理"><span class="nav-number">7.3.</span> <span class="nav-text">版本管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置管理"><span class="nav-number">7.4.</span> <span class="nav-text">配置管理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#信息安全"><span class="nav-number">8.</span> <span class="nav-text">信息安全</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#信息管理"><span class="nav-number">9.</span> <span class="nav-text">信息管理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#图形学和多媒体"><span class="nav-number">10.</span> <span class="nav-text">图形学和多媒体</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#游戏开发"><span class="nav-number">11.</span> <span class="nav-text">游戏开发</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#人工智能"><span class="nav-number">12.</span> <span class="nav-text">人工智能</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#仿真模拟"><span class="nav-number">13.</span> <span class="nav-text">仿真模拟</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

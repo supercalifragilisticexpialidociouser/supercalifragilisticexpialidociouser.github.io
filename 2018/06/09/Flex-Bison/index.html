@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="FlexFlex是一个词法分析生成器，用于生成词法分析器。 入门编写Flex程序Flex程序的扩展名通常为.l或.lex。 wc.l： 12345678910111213141516171819202122&#x2F;* 定义部分 *&#x2F;%&amp;#123;int chars &#x3D; 0;int words &#x3D; 0;int lines &#x3D; 0;%&amp;#125;%%&amp;#x2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Flex-Bison">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2018/06/09/Flex-Bison/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="FlexFlex是一个词法分析生成器，用于生成词法分析器。 入门编写Flex程序Flex程序的扩展名通常为.l或.lex。 wc.l： 12345678910111213141516171819202122&#x2F;* 定义部分 *&#x2F;%&amp;#123;int chars &#x3D; 0;int words &#x3D; 0;int lines &#x3D; 0;%&amp;#125;%%&amp;#x2">
+<meta property="article:published_time" content="2018-06-09T08:26:12.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:49.936Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="programming">
+<meta property="article:tag" content="学习">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="开发">
+<meta property="article:tag" content="IT">
+<meta property="article:tag" content="技术">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2018/06/09/Flex-Bison/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Flex-Bison | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2018/06/09/Flex-Bison/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Flex-Bison
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-06-09 16:26:12" itemprop="dateCreated datePublished" datetime="2018-06-09T16:26:12+08:00">2018-06-09</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Flex"><a href="#Flex" class="headerlink" title="Flex"></a>Flex</h1><p>Flex是一个词法分析生成器，用于生成词法分析器。</p>
+<h2 id="入门"><a href="#入门" class="headerlink" title="入门"></a>入门</h2><h3 id="编写Flex程序"><a href="#编写Flex程序" class="headerlink" title="编写Flex程序"></a>编写Flex程序</h3><p>Flex程序的扩展名通常为<code>.l</code>或<code>.lex</code>。</p>
+<p>wc.l：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;* 定义部分 *&#x2F;</span><br><span class="line">%&#123;</span><br><span class="line">int chars &#x3D; 0;</span><br><span class="line">int words &#x3D; 0;</span><br><span class="line">int lines &#x3D; 0;</span><br><span class="line">%&#125;</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line"></span><br><span class="line">&#x2F;* 规则部分 *&#x2F;</span><br><span class="line">[a-zA-Z]+	&#123; words++; chars +&#x3D; strlen(yytext); &#125;</span><br><span class="line">\n		&#123; chars++; lines++; &#125;</span><br><span class="line">.		&#123; chars++; &#125;</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line"></span><br><span class="line">&#x2F;* 用户子例程 *&#x2F;</span><br><span class="line">main()</span><br><span class="line">&#123;</span><br><span class="line">  yylex();</span><br><span class="line">  printf(&quot;%8d%8d%8d\n&quot;, lines, words, chars);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用<code>yylex()</code>，会开始读取输入，直到动作代码识别出一个记号（token），并返回这个记号（通常是返回记号编号，本次记号值保存在自定义的全局变量中，本次匹配的输入文本保存在全局变量<code>yytext</code>中）。每次<code>ylex</code> 返回时，它会记住当前处理的位置。当程序再次调用<code>yylex()</code>时，词法分析器会从这个位置开始继续分析输入。如果动作代码没有返回，则词法分析将会立即继续分析输入。例如，匹配空白字符的模式并不返回，所以词法分析器会继续分析接下来的输入。</p>
+<h3 id="生成词法分析器"><a href="#生成词法分析器" class="headerlink" title="生成词法分析器"></a>生成词法分析器</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ flex wc.l</span><br></pre></td></tr></table></figure>
+
+<p>这将生成<code>lex.yy.c</code>。</p>
+<h3 id="构建程序"><a href="#构建程序" class="headerlink" title="构建程序"></a>构建程序</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cc -o wc -lfl lex.yy.c</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>-lfl</code>表示链接一个叫<code>fl</code>的Flex库，该库提供了一些辅助例程，例如自带的<code>main</code> 程序可以帮助快速编程和调试。如果不需要这些工具，则该库是可选的。</p>
+</blockquote>
+<p>这将生成<code>wc</code>可执行程序。</p>
+<h3 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ wc</span><br><span class="line">The boy stood on the burning deck</span><br><span class="line">shelling peanuts by the peck</span><br><span class="line">^D</span><br><span class="line"></span><br><span class="line">2 12 63</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>wc从控制台读取输入。</p>
+</blockquote>
+<h2 id="Flex程序结构"><a href="#Flex程序结构" class="headerlink" title="Flex程序结构"></a>Flex程序结构</h2><p>Flex程序由三个部分构成：定义部分、规则部分和用户子例程（subroutine）。三个部分通过<code>%%</code>行分隔。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">...定义部分...</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line"></span><br><span class="line">...规则部分...</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line"></span><br><span class="line">...用户子例程...</span><br></pre></td></tr></table></figure>
+
+<p>“定义部分”和“规则部分”是必需部分，而“用户子例程”和它前面的<code>%%</code>是可选的。</p>
+<h3 id="定义部分"><a href="#定义部分" class="headerlink" title="定义部分"></a>定义部分</h3><p>定义部分包括选项、文字块、定义、开始条件和转换。</p>
+<p>以空白字符开始的行将被原样复制到C文件中。</p>
+<h3 id="规则部分"><a href="#规则部分" class="headerlink" title="规则部分"></a>规则部分</h3><p>规则部分包括模式行和C代码。</p>
+<p>规则部分包含的C代码是指以空白字符开始的行，或者是处于<code>%{</code> 和 <code>%}</code>之间的内容，它们会被原封不动地复制到<code>yylex</code> 函数中。</p>
+<p>模式行包含一个模式和动作（模式匹配输入时所执行的C代码），两者之间使用若干空白字符分隔。如果C代码超过一条语句或跨越多行，则必须用<code>{</code> 和 <code>}</code> （或者<code>%{</code> 和 <code>%}</code>）括起来。</p>
+<p>当Flex词法分析器运行时，它将输入依次与模式行的模式进行匹配。每当它发现一个匹配，它就执行与这个模式关联的C代码。</p>
+<p>如果模式后面紧跟一个竖线（<code>|</code>）而不是C代码，则表示该模式与下一模式共用相同的C代码。</p>
+<p>当输入无法匹配任何模式时，则执行<code>ECHO</code>宏（将所有没有被匹配的输入，原样输出到<code>yyout</code>。它等价于<code>fprintf(yyout, &quot;%s&quot;, yytext);</code>）。也可以通过<code>%option nodefault</code> 、命令行参数<code>-s</code>或者命令行参数<code>--nodefault</code>来禁用这个默认行为。</p>
+<h3 id="用户子例程"><a href="#用户子例程" class="headerlink" title="用户子例程"></a>用户子例程</h3><p>用户子例程中的内容将被Flex原样复制到C文件。</p>
+<p>这个部分通常包括规则中需要调用的例程，在大型程序里，这些支撑代码通常会放在另外一个单独的源文件中。</p>
+<h2 id="模式"><a href="#模式" class="headerlink" title="模式"></a>模式</h2><h3 id="正则表达式"><a href="#正则表达式" class="headerlink" title="正则表达式"></a>正则表达式</h3><ul>
+<li><code>.</code>：匹配除换行符（<code>\n</code>）以外的任意单一字符。</li>
+<li><code>[]</code>：字符类，可以匹配方括号中的任意一个字符。<br>字符类中第一个字符是<code>^</code>时，表示匹配除了方括号内字符以外的任意一个字符。<br>字符类中的<code>-</code>表示字符范围，例如：<code>[a-z]</code> 表示任意小写字母。<br>字符类中可以识别转义序列。<br>字符<code>-</code>和<code>]</code>如果是方括号内第一个字符，则表示普通字符。</li>
+<li><code>{-}</code>：匹配左侧字符类减去右侧字符类的结果中的任一字符。</li>
+<li><code>{+}</code>：匹配左侧字符类加上右侧字符类的结果中的任一字符。</li>
+<li><code>*</code>：匹配零个或多个紧接在前面的模式。</li>
+<li><code>+</code>：匹配一个或多个紧接在前面的模式。</li>
+<li><code>?</code>：匹配零个或一个紧接在前面的模式。</li>
+<li><code>{N}</code>：匹配N个紧接在前面的模式。</li>
+<li><code>{N, M}</code>：匹配N至M个（包含N和M个）紧接在前面的模式。<code>M</code>可以省略，即<code>{N,}</code>表示匹配至少N个紧接在前面的模式。<code>{1,}</code>与<code>+</code>意义相同，<code>{0,}</code>与<code>*</code>意义相同。</li>
+<li><code>{模式名}</code>：引用这个名字的模式。</li>
+<li><code>\</code>：表示元字符自身或C语言转义序列。</li>
+<li><code>()</code>：把一系列的正则表达式组合在一起。</li>
+<li><code>|</code>：匹配左侧模式或右侧模式。</li>
+<li><code>“…”</code>：所有引号中的字符将基于字面意义被解释。</li>
+<li><code>/</code>：尾部上下文（trailing context），匹配斜线前的模式，但是要求其后紧跟着斜线后的模式。斜线后匹配的内容不会被“消耗掉”，它们会返还给输入，以便于后续匹配。每个模式行只允许一个尾部上下文操作符，而且一个模式行不能既有斜线又有尾部<code>$</code>。</li>
+<li><code>^</code>：当它是模式的第一个字符时，匹配一行的开始。它出现在方括号中第一个字符表示补集。其他情况下，它没有特殊含义。</li>
+<li><code>$</code>：当它是模式的最后一个字符时，匹配一行的结束（相当于<code>/\n</code>），否则没有特殊含义。</li>
+<li><code>&lt;起始状态名或起始状态名列表&gt;</code>：只出现在模式的开头，表示该模式仅在给定的起始状态下被应用。</li>
+<li><code>&lt;&lt;EOF&gt;&gt;</code>：匹配文件末尾。这个伪模式通常用来进行清理工作、切换到其他文件等等。</li>
+</ul>
+<h3 id="处理二义性模式"><a href="#处理二义性模式" class="headerlink" title="处理二义性模式"></a>处理二义性模式</h3><p>Flex通过两个简单规则来解决模式的二义性：</p>
+<ul>
+<li>匹配输入时匹配尽可能多的字符串；</li>
+<li>如果两个模式都可以匹配的话，匹配在程序中更早出现的模式。</li>
+</ul>
+<h2 id="上下文相关性"><a href="#上下文相关性" class="headerlink" title="上下文相关性"></a>上下文相关性</h2><p>Flex提供了多种方式来做到模式的左上下文相关和右上下文相关，也就是与记号的上文和下文相关。</p>
+<h3 id="左上下文相关"><a href="#左上下文相关" class="headerlink" title="左上下文相关"></a>左上下文相关</h3><p>有三种方法可以做到左上下文相关：</p>
+<ul>
+<li>特殊的行首模式字符（模式开关的<code>^</code>）；</li>
+<li>起始状态；</li>
+<li>显式代码。</li>
+</ul>
+<p>显式代码例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">%&#123;</span><br><span class="line">int flag &#x3D; 0;</span><br><span class="line">%&#125;</span><br><span class="line">%%</span><br><span class="line">a &#123;flag &#x3D; 1;&#125;</span><br><span class="line">b &#123;flag &#x3D; 2;&#125;</span><br><span class="line">zzz &#123;</span><br><span class="line">  switch(flag) &#123;</span><br><span class="line">    case 1: a_zzz_token(); break;</span><br><span class="line">    case 2: b_zzz_token(); break;</span><br><span class="line">    default: plain_zzz_token(); break;</span><br><span class="line">  &#125;</span><br><span class="line">  flag &#x3D; 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="右上下文相关"><a href="#右上下文相关" class="headerlink" title="右上下文相关"></a>右上下文相关</h3><p>也有三种方法可以做到右上下文相关：</p>
+<ul>
+<li>特殊的行尾模式字符（模式结尾的<code>$</code>，等价于<code>/\n</code>）；</li>
+<li>斜线操作符<code>/</code>；</li>
+<li><code>yyless()</code>。</li>
+</ul>
+<p><code>yyless()</code>让词法分析器推回刚刚读取到的字符，它的参数表明需要保留的字符个数。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">abcde &#123;yyless(3);&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个例子与<code>abc/de</code>模式的效果基本一致，因为<code>yyless(3)</code>保留三个字符<code>abc</code>，并推回剩下的二个字符<code>de</code>。唯一的差别是在这个例子里，<code>yytext</code>包含所有5个字符，而且<code>yyleng</code>的值是5而不是3。</p>
+<h2 id="定义（替换）"><a href="#定义（替换）" class="headerlink" title="定义（替换）"></a>定义（替换）</h2><p>定义（或替换）用于为正则表达式命名，然后在规则部分通过<code>{名字}</code>来引用它们。这个名字所代表的正则表达式将被代入到模式中，并且该正则表达式会被认为已经用圆括号括起。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">DIG [0-9]</span><br><span class="line">%%</span><br><span class="line">&#123;DIG&#125;+  process_integer();</span><br><span class="line">&#123;DIG&#125;+\.&#123;DIG&#125;*  |</span><br><span class="line">\.&#123;DIG&#125;+  process_real();</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="输入管理"><a href="#输入管理" class="headerlink" title="输入管理"></a>输入管理</h2><p>除非你另做安排，否则词法分析器总是通过名为<code>yyin</code>读取输入。<code>yyin</code>默认是标准输入<code>stdin</code>。</p>
+<h3 id="从文件读取输入"><a href="#从文件读取输入" class="headerlink" title="从文件读取输入"></a>从文件读取输入</h3><p>为让它从文件中读取输入，只需在第一次调用<code>yylex</code>之前，把任何打开的文件赋予<code>yyin</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">%&#123;</span><br><span class="line"><span class="keyword">int</span> chars = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">int</span> words = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">int</span> lines = <span class="number">0</span>;</span><br><span class="line">%&#125;</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line"></span><br><span class="line">[a-zA-Z]+	&#123; words++; chars += <span class="built_in">strlen</span>(yytext); &#125;</span><br><span class="line">\n		&#123; chars++; lines++; &#125;</span><br><span class="line">.		&#123; chars++; &#125;</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line"></span><br><span class="line">main(argc, argv)</span><br><span class="line"><span class="keyword">int</span> argc;</span><br><span class="line"><span class="keyword">char</span> **argv;</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span>(argc &gt; <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span>(!(yyin = fopen(argv[<span class="number">1</span>], <span class="string">"r"</span>))) &#123;</span><br><span class="line">      perror(argv[<span class="number">1</span>]);</span><br><span class="line">      <span class="keyword">return</span> (<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  yylex();</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"%8d%8d%8d\n"</span>, lines, words, chars);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">yywrap() &#123; <span class="keyword">return</span> <span class="number">1</span>; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>词法分析器到达<code>yyin</code>（是<code>FILE *</code>类型）的结束位置时，它将调用<code>yywrap()</code>。这样做的目的是，当有另一个输入文件时，<code>yywrap</code> 可以调整<code>yyin</code> 的值并且通过返回0来重新开始词法分析。如果要结束词法分析，则返回1，同时词法分析器会返回一个零记号来表明文件结束。</p>
+<p><code>fl</code>库中包含一个默认的<code>yywrap()</code>，它总是返回1。如果你的词法分析器不使用<code>yywrap()</code> 来切换文件，可以使用选项<code>%option noyywrap</code>来移除对<code>yywrap()</code>的调用。特殊记号<code>&lt;&lt;EOF&gt;&gt;</code>通常是更好的处理文件结束情况的方式。</p>
+<h3 id="读取多个文件"><a href="#读取多个文件" class="headerlink" title="读取多个文件"></a>读取多个文件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">%option noyywrap</span><br><span class="line"></span><br><span class="line">%&#123;</span><br><span class="line">int chars &#x3D; 0;</span><br><span class="line">int words &#x3D; 0;</span><br><span class="line">int lines &#x3D; 0;</span><br><span class="line"></span><br><span class="line">int totchars &#x3D; 0;</span><br><span class="line">int totwords &#x3D; 0;</span><br><span class="line">int totlines &#x3D; 0;</span><br><span class="line">%&#125;</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line"></span><br><span class="line">[a-zA-Z]+	&#123; words++; chars +&#x3D; strlen(yytext); &#125;</span><br><span class="line">\n		&#123; chars++; lines++; &#125;</span><br><span class="line">.		&#123; chars++; &#125;</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line"></span><br><span class="line">main(int argc, char **argv)</span><br><span class="line">&#123;</span><br><span class="line">  int i;</span><br><span class="line"></span><br><span class="line">  if(argc &lt; 2) &#123; &#x2F;* just read stdin *&#x2F;</span><br><span class="line">    yylex();</span><br><span class="line">    printf(&quot;%8d%8d%8d\n&quot;, lines, words, chars);</span><br><span class="line">    return 0;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  for(i &#x3D; 1; i &lt; argc; i++) &#123;</span><br><span class="line">    FILE *f &#x3D; fopen(argv[i], &quot;r&quot;);</span><br><span class="line">  </span><br><span class="line">    if(!f) &#123;</span><br><span class="line">      perror(argv[1]);</span><br><span class="line">      return (1);</span><br><span class="line">    &#125;</span><br><span class="line">    yyrestart(f);</span><br><span class="line">    yylex();</span><br><span class="line">    fclose(f);</span><br><span class="line">    printf(&quot;%8d%8d%8d %s\n&quot;, lines, words, chars, argv[i]);</span><br><span class="line">    totchars +&#x3D; chars; chars &#x3D; 0;</span><br><span class="line">    totwords +&#x3D; words; words &#x3D; 0;</span><br><span class="line">    totlines +&#x3D; lines; lines &#x3D; 0;</span><br><span class="line">  &#125;</span><br><span class="line">  if(argc &gt; 1)</span><br><span class="line">    printf(&quot;%8d%8d%8d total\n&quot;, totlines, totwords, totchars);</span><br><span class="line">  return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当需要顺序读取多个文件时，我们每打开一个文件就调用一次<code>yyrestart(fp)</code>，把词法分析器的输入切换到新的标准输入输出文件<code>fp</code>。宏<code>YY_NEW_FILE</code> 等同于<code>yyrestart(yyin)</code>。</p>
+<h3 id="输入缓冲区"><a href="#输入缓冲区" class="headerlink" title="输入缓冲区"></a>输入缓冲区</h3><p>词法分析器实际上并不是直接读取输入来分析，而是先将输入读取到缓冲区，再从缓冲区中读取字符进行分析。</p>
+<p>Flex使用宏<code>YY_BUFFER_STATE</code> 来表示输入缓冲区。</p>
+<p>我们可以使用<code>yy_create_buffer</code>来为标准输入输出文件中创建缓冲区，使用<code>yy_scan_string</code> 为字符串（以空字符结尾）创建缓冲区，使用<code>yy_scan_buffer</code>为长度确定的数据流创建缓冲区。</p>
+<p>使用<code>yy_switch_to_buffer</code>切换到新的缓冲区。</p>
+<h3 id="读取输入"><a href="#读取输入" class="headerlink" title="读取输入"></a>读取输入</h3><p>每当输入缓冲区为空时，词法分析器就会调用宏<code>YY_INPUT</code>来读取输入到当前缓冲区。</p>
+<p>出于最大的灵活性的考虑，你可以重新定义宏<code>YY_INPUT</code>。</p>
+<p>另外，Flex还提供了两个在动作代码中比较有用的宏：<code>input()</code>和<code>unput()</code>。每次调用<code>input()</code> 将返回输入流的下一个字符，它可以帮助我们读取一小段输入而不用定义相应的模式。每次对<code>unput(c)</code> 的调用将把字符<code>c</code>推回到输入流。</p>
+<h2 id="记号"><a href="#记号" class="headerlink" title="记号"></a>记号</h2><p>记号实际上有两个组成部分：记号编号和记号值。</p>
+<p>记号编号是一个整数，通常从258开始（这样可以避免与文字字符记号产生冲突，bison就是自动从258开始指派每个记号的编号）。</p>
+<p>记号值用于区分一组相似的记号。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">%&#123;</span><br><span class="line">   enum yytokentype &#123;</span><br><span class="line">     NUMBER &#x3D; 258,</span><br><span class="line">     ADD &#x3D; 259,</span><br><span class="line">     SUB &#x3D; 260,</span><br><span class="line">     MUL &#x3D; 261,</span><br><span class="line">     DIV &#x3D; 262,</span><br><span class="line">     ABS &#x3D; 263,</span><br><span class="line">     EOL &#x3D; 264 &#x2F;* end of line *&#x2F;</span><br><span class="line">   &#125;;</span><br><span class="line"></span><br><span class="line">   int yylval;</span><br><span class="line">%&#125;</span><br><span class="line"></span><br><span class="line">%%</span><br><span class="line">&quot;+&quot;	&#123; return ADD; &#125;</span><br><span class="line">&quot;-&quot;	&#123; return SUB; &#125;</span><br><span class="line">&quot;*&quot;	&#123; return MUL; &#125;</span><br><span class="line">&quot;&#x2F;&quot;	&#123; return DIV; &#125;</span><br><span class="line">&quot;|&quot;     &#123; return ABS; &#125;</span><br><span class="line">[0-9]+	&#123; yylval &#x3D; atoi(yytext); return NUMBER; &#125;</span><br><span class="line">\n      &#123; return EOL; &#125;</span><br><span class="line">[ \t]   &#123; &#x2F;* ignore white space *&#x2F; &#125;</span><br><span class="line">.	&#123; printf(&quot;Mystery character %c\n&quot;, *yytext); &#125;</span><br><span class="line">%%</span><br><span class="line">main()</span><br><span class="line">&#123;</span><br><span class="line">  int tok;</span><br><span class="line"></span><br><span class="line">  while(tok &#x3D; yylex()) &#123;</span><br><span class="line">    printf(&quot;%d&quot;, tok);</span><br><span class="line">    if(tok &#x3D;&#x3D; NUMBER) printf(&quot; &#x3D; %d\n&quot;, yylval);</span><br><span class="line">    else printf(&quot;\n&quot;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="选项"><a href="#选项" class="headerlink" title="选项"></a>选项</h2><h2 id="文字块"><a href="#文字块" class="headerlink" title="文字块"></a>文字块</h2><h2 id="起始状态"><a href="#起始状态" class="headerlink" title="起始状态"></a>起始状态</h2><p>Flex有一个强大的特性——起始状态（start state，也称为起始条件、起始规则），它允许我们指定在特定时刻哪些模式可以被用来匹配。</p>
+<p>词法分析器从状态0（也可用<code>INITIAL</code>）开始，它是默认的起始状态。其他所有状态必须在定义部分通过<code>%s</code>或<code>%x</code>来声明。</p>
+<p>要从一个起始状态切换到另一个起始状态，要使用宏<code>BEGIN</code>，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">%x MYSTATE</span><br><span class="line">%%</span><br><span class="line">… &#123;BEGIN MYSTATE;&#125;</span><br><span class="line">…</span><br><span class="line">&lt;MYSTATE&gt;…  &#123;BEGIN INITIAL;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Bison"><a href="#Bison" class="headerlink" title="Bison"></a>Bison</h1><p>Bison是一个语法分析生成器，用于生成语法分析器。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/06/01/SpringCloud/" rel="prev" title="SpringCloud">
+      <i class="fa fa-chevron-left"></i> SpringCloud
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/06/26/C/" rel="next" title="C">
+      C <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Flex"><span class="nav-number">1.</span> <span class="nav-text">Flex</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#入门"><span class="nav-number">1.1.</span> <span class="nav-text">入门</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#编写Flex程序"><span class="nav-number">1.1.1.</span> <span class="nav-text">编写Flex程序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#生成词法分析器"><span class="nav-number">1.1.2.</span> <span class="nav-text">生成词法分析器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构建程序"><span class="nav-number">1.1.3.</span> <span class="nav-text">构建程序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行"><span class="nav-number">1.1.4.</span> <span class="nav-text">运行</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flex程序结构"><span class="nav-number">1.2.</span> <span class="nav-text">Flex程序结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#定义部分"><span class="nav-number">1.2.1.</span> <span class="nav-text">定义部分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#规则部分"><span class="nav-number">1.2.2.</span> <span class="nav-text">规则部分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户子例程"><span class="nav-number">1.2.3.</span> <span class="nav-text">用户子例程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模式"><span class="nav-number">1.3.</span> <span class="nav-text">模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#正则表达式"><span class="nav-number">1.3.1.</span> <span class="nav-text">正则表达式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#处理二义性模式"><span class="nav-number">1.3.2.</span> <span class="nav-text">处理二义性模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#上下文相关性"><span class="nav-number">1.4.</span> <span class="nav-text">上下文相关性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#左上下文相关"><span class="nav-number">1.4.1.</span> <span class="nav-text">左上下文相关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#右上下文相关"><span class="nav-number">1.4.2.</span> <span class="nav-text">右上下文相关</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定义（替换）"><span class="nav-number">1.5.</span> <span class="nav-text">定义（替换）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#输入管理"><span class="nav-number">1.6.</span> <span class="nav-text">输入管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#从文件读取输入"><span class="nav-number">1.6.1.</span> <span class="nav-text">从文件读取输入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#读取多个文件"><span class="nav-number">1.6.2.</span> <span class="nav-text">读取多个文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#输入缓冲区"><span class="nav-number">1.6.3.</span> <span class="nav-text">输入缓冲区</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#读取输入"><span class="nav-number">1.6.4.</span> <span class="nav-text">读取输入</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#记号"><span class="nav-number">1.7.</span> <span class="nav-text">记号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#选项"><span class="nav-number">1.8.</span> <span class="nav-text">选项</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文字块"><span class="nav-number">1.9.</span> <span class="nav-text">文字块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#起始状态"><span class="nav-number">1.10.</span> <span class="nav-text">起始状态</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Bison"><span class="nav-number">2.</span> <span class="nav-text">Bison</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

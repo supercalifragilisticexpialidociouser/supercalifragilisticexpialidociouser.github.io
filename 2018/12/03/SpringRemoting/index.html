@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="远程调用模型Spring通过多种远程调用技术支持RPC：    RPC模型 适用场景    远程方法调用（RMI） 不考虑网络限制（例如防火墙），访问&#x2F;发布基于Java的服务。   Hessian或Burlap 考虑网络限制，通过HTTP访问&#x2F;发布基于Java的服务。Hessian是二进制协议，而Burlap是基于XML的。   HTTP invoker 考虑网络限制，并希望使用基于XML或专有的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringRemoting">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/03/SpringRemoting/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="远程调用模型Spring通过多种远程调用技术支持RPC：    RPC模型 适用场景    远程方法调用（RMI） 不考虑网络限制（例如防火墙），访问&#x2F;发布基于Java的服务。   Hessian或Burlap 考虑网络限制，通过HTTP访问&#x2F;发布基于Java的服务。Hessian是二进制协议，而Burlap是基于XML的。   HTTP invoker 考虑网络限制，并希望使用基于XML或专有的">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/03/SpringRemoting/SpringRemoting/remote-services.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/03/SpringRemoting/SpringRemoting/remote-exporter.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/03/SpringRemoting/SpringRemoting/RmiServiceExporter.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/03/SpringRemoting/SpringRemoting/RmiProxyFactoryBean.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/03/SpringRemoting/SpringRemoting/HessianServiceExporter.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/03/SpringRemoting/SpringRemoting/HessianProxyFactoryBean.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/03/SpringRemoting/SpringRemoting/HttpInvokerServiceExporter.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/03/SpringRemoting/SpringRemoting/HttpInvokerProxyFactoryBean.png">
+<meta property="og:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/03/SpringRemoting/SpringRemoting/JaxWsProxyFactoryBean.png">
+<meta property="article:published_time" content="2018-12-03T08:58:59.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:50.026Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="programming">
+<meta property="article:tag" content="学习">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="开发">
+<meta property="article:tag" content="IT">
+<meta property="article:tag" content="技术">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.supercalifragilisticexpialidociouser.com/2018/12/03/SpringRemoting/SpringRemoting/remote-services.png">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2018/12/03/SpringRemoting/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>SpringRemoting | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2018/12/03/SpringRemoting/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SpringRemoting
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-12-03 16:58:59" itemprop="dateCreated datePublished" datetime="2018-12-03T16:58:59+08:00">2018-12-03</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="远程调用模型"><a href="#远程调用模型" class="headerlink" title="远程调用模型"></a>远程调用模型</h1><p>Spring通过多种远程调用技术支持RPC：</p>
+<table>
+<thead>
+<tr>
+<th>RPC模型</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>远程方法调用（RMI）</td>
+<td>不考虑网络限制（例如防火墙），访问/发布基于Java的服务。</td>
+</tr>
+<tr>
+<td>Hessian或Burlap</td>
+<td>考虑网络限制，通过HTTP访问/发布基于Java的服务。Hessian是二进制协议，而Burlap是基于XML的。</td>
+</tr>
+<tr>
+<td>HTTP invoker</td>
+<td>考虑网络限制，并希望使用基于XML或专有的序列化机制实现Java序列化时，访问/发布基于Spring的服务。</td>
+</tr>
+<tr>
+<td>JAX-RPC和JAX-WS</td>
+<td>访问/发布平台独立的、基于SOAP的Web服务。</td>
+</tr>
+</tbody></table>
+<p>在Spring中，远程服务被代理，所以它们能够像其他Spring Bean一样被装配到客户端代码中。代理代表客户端与远程服务进行通信，由它负责处理连接的细节并向远程服务发起调用。</p>
+<p><img src="SpringRemoting/remote-services.png" alt="远程服务"></p>
+<p>在服务端，Spring通过远程导出器（remote exporter）将Bean发布为远程服务。</p>
+<p><img src="SpringRemoting/remote-exporter.png" alt="远程导出器"></p>
+<p>任何传递给远程调用的Bean或从远程调用返回的Bean需要实现<code>java.io.Serializable</code>接口。</p>
+<h1 id="RMI"><a href="#RMI" class="headerlink" title="RMI"></a>RMI</h1><h2 id="导出RMI服务"><a href="#导出RMI服务" class="headerlink" title="导出RMI服务"></a>导出RMI服务</h2><p>通常创建一个RMI服务需要涉及好多步骤：</p>
+<ol>
+<li>编写一个服务实现类，类中的方法必须抛出<code>java.rmi.RemoteException</code>异常；</li>
+<li>创建一个继承于<code>java.rmi.Remote</code>的服务接口；</li>
+<li>运行RMI编译器（rmic），创建客户端stub类和服务端skeleton类；</li>
+<li>启动一个RMI注册表，以便持有这些服务；</li>
+<li>在RMI注册表中注册服务。</li>
+</ol>
+<p>幸运的是，Spring提供了更简单的方式来发布RMI服务，不用再编写那些需要抛出<code>RemoteException</code>异常的特定RMI类，只需要简单地编写实现服务功能的POJO就可以了，Spring会处理剩余的其他事项。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">SpitterService</span> </span>&#123;</span><br><span class="line">  <span class="function">List&lt;Spittle&gt; <span class="title">getRecentSpittles</span><span class="params">(<span class="keyword">int</span> count)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">saveSpittle</span><span class="params">(Spittle spittle)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">saveSpitter</span><span class="params">(Spitter spitter)</span></span>;</span><br><span class="line">  <span class="function">Spitter <span class="title">getSpitter</span><span class="params">(<span class="keyword">long</span> id)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">startFollowing</span><span class="params">(Spitter follower, Spitter followee)</span></span>;</span><br><span class="line">  <span class="function">List&lt;Spittle&gt; <span class="title">getSpittlesForSpitter</span><span class="params">(Spitter spitter)</span></span>;</span><br><span class="line">  <span class="function">List&lt;Spittle&gt; <span class="title">getSpittlesForSpitter</span><span class="params">(String username)</span></span>;</span><br><span class="line">  <span class="function">Spitter <span class="title">getSpitter</span><span class="params">(String username)</span></span>;</span><br><span class="line">  <span class="function">Spittle <span class="title">getSpittleById</span><span class="params">(<span class="keyword">long</span> id)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">deleteSpittle</span><span class="params">(<span class="keyword">long</span> id)</span></span>;</span><br><span class="line">  <span class="function">List&lt;Spitter&gt; <span class="title">getAllSpitters</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果我们使用传统的RMI来发布此服务，<code>SpitterService</code>和<code>SpitterServiceImpl</code>中的所有方法都需要抛出<code>java.rmi.RemoteException</code>。但是如果我们使用Spring的<code>RmiServiceExporter</code>把该类转变为RMI服务，那现有的实现不需要做任何改变。</p>
+<p><code>RmiServiceExporter</code>可以把任意Spring的Bean发布为RMI服务：</p>
+<p><img src="SpringRemoting/RmiServiceExporter.png" alt="RmiServiceExporter"></p>
+<p>使用<code>RmiServiceExporter</code>将<code>SpitterServiceImpl</code>发布为RMI服务是在Spring中使用如下的<code>@Bean</code>方法进行配置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>默认情况下，<code>RmiServiceExporter</code>会尝试绑定到本地机器1099端口上的RMI注册表。如果在这个端口上没有发现RMI注册表，则会启动一个。也可以想上面例子一样，自己指定RMI注册表所在的主机和端口。</p>
+<h2 id="装配RMI服务"><a href="#装配RMI服务" class="headerlink" title="装配RMI服务"></a>装配RMI服务</h2><p>传统的RMI客户端必须使用RMI API的<code>Naming</code>类从RMI注册表中查找服务。例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  String serviceUrl = <span class="string">"rmi:/spitter/SpitterService"</span>;</span><br><span class="line">  SpitterService spitterService = (SpitterService) Naming.lookup(serviceUrl);</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">catch</span> (RemoteException e) &#123; ... &#125;</span><br><span class="line"><span class="keyword">catch</span> (NotBoundException e) &#123; ... &#125;</span><br><span class="line"><span class="keyword">catch</span> (MalformedURLException e) &#123; ... &#125;</span><br></pre></td></tr></table></figure>
+
+<p>Spring的<code>RmiProxyFactoryBean</code>可以为RMI服务创建代理，从而可以将RMI服务注入其他Bean中，而不需要Bean自己去RMI注册表查找服务。</p>
+<p><img src="SpringRemoting/RmiProxyFactoryBean.png" alt="RmiProxyFactoryBean"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> RmiProxyFactoryBean <span class="title">spitterService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  RmiProxyFactoryBean rmiProxy = <span class="keyword">new</span> RmiProxyFactoryBean();</span><br><span class="line">  rmiProxy.setServiceUrl(<span class="string">"rmi://localhost/SpitterService"</span>);</span><br><span class="line">  rmiProxy.setServiceInterface(SpitterService<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">  <span class="keyword">return</span> rmiProxy;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>现在已经把RMI服务注册为Spring Bean，我们就可以把它作为依赖装配进另一个Bean中，就像任意非远程的Bean那样。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line">SpitterService spitterService;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> List&lt;Spittle&gt; <span class="title">getSpittles</span><span class="params">(String userName)</span> </span>&#123;</span><br><span class="line">	Spitter spitter = spitterService.getSpitter(userName);</span><br><span class="line">  <span class="keyword">return</span> spitterService.getSpittlesForSpitter(spitter);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以这种方式访问RMI服务，客户端代码甚至不需要知道所处理的是一个RMI服务。此外，代理捕获了这个RMI服务所有可能抛出的<code>RemoteException</code>异常，并把它包装为运行期异常重新抛出。</p>
+<p>尽管客户端代码不需要关心<code>SpitterService</code>是否是一个远程服务，但在设计时要注意远程调用都会受网络延迟的影响，进而会影响到客户端的性能。</p>
+<h2 id="RMI的局限"><a href="#RMI的局限" class="headerlink" title="RMI的局限"></a>RMI的局限</h2><p>RMI很难穿越防火墙，这是因为RMI使用任意端口来交互——这是防火墙通常不允许的。</p>
+<p>RMI是基于Java的，这意味着客户端和服务端必须都是用Java开发的，它使用了Java的序列化机制，因此通过网络传输的对象类型必须要保证在调用两端的Java运行时中是完全相同的版本。</p>
+<h1 id="Hessian和Burlap"><a href="#Hessian和Burlap" class="headerlink" title="Hessian和Burlap"></a>Hessian和Burlap</h1><p>Hessian和Burlap是Caucho提供的两种基于HTTP的轻量级远程服务解决方案。</p>
+<p>Hessian像RMI一样，使用二进制消息进行客户端和服务端的交互。但它的二进制消息可以移植到其他非Java语言中。</p>
+<p>Burlap是一种基于XML的远程调用技术，这使得它可以很自然地移植到任何能够解析XML的语言上。但是它与其他基于XML的远程技术（例如SOAP或XML-RPC）不同，Burlap的消息结构尽可能简单，不需要额外的外部定义语言（例如WSDL或IDL）。</p>
+<p>Hessian在带宽上更具优势，而Bulap则可读性更高。</p>
+<h2 id="配置Hessian"><a href="#配置Hessian" class="headerlink" title="配置Hessian"></a>配置Hessian</h2><h3 id="导出Hessian服务"><a href="#导出Hessian服务" class="headerlink" title="导出Hessian服务"></a>导出Hessian服务</h3><p>即使没有Spring，编写一个Hessian服务也是相当容易的，只需要编写一个继承<code>com.caucho.hessian.server.HessianServlet</code>的类，并确保所有的服务方法是<code>public</code>的（在Hessian里，所有<code>public</code>方法被视为服务方法）。</p>
+<p>Spring并没有做更多简化Hessian模型的工作，不过，为了把Spring Bean发布为Hessian服务，我们需要注册一个<code>HessianServiceExporter</code> Bean：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> HessianServiceExporter <span class="title">hessianExportedSpitterService</span><span class="params">(SpitterService service)</span> </span>&#123;</span><br><span class="line">  HessianServiceExporter exporter = <span class="keyword">new</span> HessianServiceExporter();</span><br><span class="line">  exporter.setService(service);</span><br><span class="line">  exporter.setServiceInterface(SpitterService<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">  <span class="keyword">return</span> exporter;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> SpitterService <span class="title">spitterService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> SpitterServiceImpl();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>与<code>RmiServiceExporter</code>不同，我们不需要设置<code>serviceName</code>属性。在RMI中，<code>serviceName</code>属性用来在RMI注册表中注册一个服务。而Hessian没有注册表，因此也就没有必要为Hessian服务进行命名。</p>
+<p><img src="SpringRemoting/HessianServiceExporter.png" alt="HessianServiceExporter"></p>
+<h3 id="配置Hessian控制器"><a href="#配置Hessian控制器" class="headerlink" title="配置Hessian控制器"></a>配置Hessian控制器</h3><p>Hessian是基于HTTP的，所以<code>HessianServiceExporter</code>实现为一个Spring MVC控制器。这意味着为了使用导出的Hessian服务，我们需要执行两个额外的配置步骤：</p>
+<ul>
+<li>配置<code>DispatcherServlet</code>，并把我们的应用部署为Web应用；</li>
+<li>在Spring的配置文件中配置一个URL处理器，把Hessian服务的URL分发给对应的Hessian服务Bean。</li>
+</ul>
+<h4 id="配置DispatcherServlet"><a href="#配置DispatcherServlet" class="headerlink" title="配置DispatcherServlet"></a>配置DispatcherServlet</h4><p>在web.xml中配置：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">servlet</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>spitter<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">servlet-class</span>&gt;</span>org.springframework.web.servlet.DispatcherServlet<span class="tag">&lt;/<span class="name">servlet-class</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">load-on-startup</span>&gt;</span>1<span class="tag">&lt;/<span class="name">load-on-startup</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">servlet</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>spitter<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>*.service<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">servlet-mapping</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>或者，通过<code>WebApplicationInitializer</code>来配置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ServletRegistration.Dynamic dispatcher = container.addServlet(</span><br><span class="line">  <span class="string">"appServlet"</span>, <span class="keyword">new</span> DispatcherServlet(dispatcherServletContext));</span><br><span class="line">dispatcher.setLoadOnStartup(<span class="number">1</span>);</span><br><span class="line">dispatcher.addMapping(<span class="string">"/"</span>);</span><br><span class="line">dispatcher.addMapping(<span class="string">"*.service"</span>);</span><br></pre></td></tr></table></figure>
+
+<p>如果通过<code>AbstractAnnotationConfigDispatcherServletInitializer</code>配置，则在重写<code>getServletMappings</code>方法时，需要包含该映射：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> String[] getServletMappings() &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> String[] &#123; <span class="string">"/"</span>, <span class="string">"*.service"</span> &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="配置URL处理器映射"><a href="#配置URL处理器映射" class="headerlink" title="配置URL处理器映射"></a>配置URL处理器映射</h4><p>我们需要配置一个URL处理器映射来确保<code>DispatcherServlet</code>把请求转发给<code>hessianExportedSpitterService</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> HandlerMapping <span class="title">hessianMapping</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  SimpleUrlHandlerMapping mapping = <span class="keyword">new</span> SimpleUrlHandlerMapping();</span><br><span class="line">  Properties mappings = <span class="keyword">new</span> Properties();</span><br><span class="line">  mappings.setProperty(<span class="string">"/spitter.service"</span>,</span><br><span class="line">                       <span class="string">"hessianExportedSpitterService"</span>);</span><br><span class="line">  mapping.setMappings(mappings);</span><br><span class="line">  <span class="keyword">return</span> mapping;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="配置Burlap"><a href="#配置Burlap" class="headerlink" title="配置Burlap"></a>配置Burlap</h2><h3 id="导出Burlap服务"><a href="#导出Burlap服务" class="headerlink" title="导出Burlap服务"></a>导出Burlap服务</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> BurlapServiceExporter <span class="title">burlapExportedSpitterService</span><span class="params">(SpitterService service)</span> </span>&#123;</span><br><span class="line">  BurlapServiceExporter exporter = <span class="keyword">new</span> BurlapServiceExporter();</span><br><span class="line">  exporter.setService(service);</span><br><span class="line">  exporter.setServiceInterface(SpitterService<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">  <span class="keyword">return</span> exporter;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置Burlap控制器"><a href="#配置Burlap控制器" class="headerlink" title="配置Burlap控制器"></a>配置Burlap控制器</h3><p>与配置Hessian控制器类似，也需要配置一个<code>DispatcherServlet</code>和URL处理器映射。</p>
+<h2 id="装配Hessian-Burlap服务"><a href="#装配Hessian-Burlap服务" class="headerlink" title="装配Hessian/Burlap服务"></a>装配Hessian/Burlap服务</h2><p>装配Hessian/Burlap服务与装配RMI服务的唯一差别，就是使用的代理工厂Bean不同。</p>
+<p>Hessian使用<code>HessianProxyFactoryBean</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> HessianProxyFactoryBean <span class="title">spitterService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  HessianProxyFactoryBean proxy = <span class="keyword">new</span> HessianProxyFactoryBean();</span><br><span class="line">  proxy.setServiceUrl(<span class="string">"http://localhost:8080/Spitter/spitter.service"</span>);</span><br><span class="line">  proxy.setServiceInterface(SpitterService<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">  <span class="keyword">return</span> proxy;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="SpringRemoting/HessianProxyFactoryBean.png" alt="HessianProxyFactoryBean"></p>
+<p>Burlap使用<code>BurlapProxyFactoryBean</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> BurlapProxyFactoryBean <span class="title">spitterService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  BurlapProxyFactoryBean proxy = <span class="keyword">new</span> BurlapProxyFactoryBean();</span><br><span class="line">  proxy.setServiceUrl(<span class="string">"http://localhost:8080/Spitter/spitter.service"</span>);</span><br><span class="line">  proxy.setServiceInterface(SpitterService<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">  <span class="keyword">return</span> proxy;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Spring的HttpInvoker"><a href="#Spring的HttpInvoker" class="headerlink" title="Spring的HttpInvoker"></a>Spring的HttpInvoker</h1><p>RMI使用Java标准的对象序列化机制，但很难穿透防火墙；而Hessian和Burlap能很好穿透防火墙，但是使用私有的对象序列化机制。</p>
+<p>Spring的HTTP invoker是一个新的远程调用模型，它基于HTTP（让防火墙不为难），并使用Java的序列化机制。</p>
+<h2 id="导出HTTP-invoker服务"><a href="#导出HTTP-invoker服务" class="headerlink" title="导出HTTP invoker服务"></a>导出HTTP invoker服务</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> HttpInvokerServiceExporter <span class="title">httpExportedSpitterService</span><span class="params">(SpitterService service)</span> </span>&#123;</span><br><span class="line">  HttpInvokerServiceExporter exporter = <span class="keyword">new</span> HttpInvokerServiceExporter();</span><br><span class="line">  exporter.setService(service);</span><br><span class="line">  exporter.setServiceInterface(SpitterService<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">  <span class="keyword">return</span> exporter;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="SpringRemoting/HttpInvokerServiceExporter.png" alt="HttpInvokerServiceExporter"></p>
+<h2 id="配置DispatcherServlet-1"><a href="#配置DispatcherServlet-1" class="headerlink" title="配置DispatcherServlet"></a>配置DispatcherServlet</h2><h2 id="配置URL处理器映射-1"><a href="#配置URL处理器映射-1" class="headerlink" title="配置URL处理器映射"></a>配置URL处理器映射</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> HandlerMapping <span class="title">httpInvokerMapping</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  SimpleUrlHandlerMapping mapping = <span class="keyword">new</span> SimpleUrlHandlerMapping();</span><br><span class="line">  Properties mappings = <span class="keyword">new</span> Properties();</span><br><span class="line">  mappings.setProperty(<span class="string">"/spitter.service"</span>,</span><br><span class="line">                       <span class="string">"httpExportedSpitterService"</span>);</span><br><span class="line">  mapping.setMappings(mappings);</span><br><span class="line">  <span class="keyword">return</span> mapping;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="装配HTTP-invoker服务"><a href="#装配HTTP-invoker服务" class="headerlink" title="装配HTTP invoker服务"></a>装配HTTP invoker服务</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> HttpInvokerProxyFactoryBean <span class="title">spitterService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  HttpInvokerProxyFactoryBean proxy = <span class="keyword">new</span> HttpInvokerProxyFactoryBean();</span><br><span class="line">  proxy.setServiceUrl(<span class="string">"http://localhost:8080/Spitter/spitter.service"</span>);</span><br><span class="line">  proxy.setServiceInterface(SpitterService<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">  <span class="keyword">return</span> proxy;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="SpringRemoting/HttpInvokerProxyFactoryBean.png" alt="HttpInvokerProxyFactoryBean"></p>
+<h2 id="HTTP-invoker的限制"><a href="#HTTP-invoker的限制" class="headerlink" title="HTTP invoker的限制"></a>HTTP invoker的限制</h2><p>它只是一个Spring框架所提供的远程调用解决方案，这意味客户端和服务端必须都是Spring应用。并且，它们必须是基于Java。另外，因为使用了Java的序列化机制，客户端和服务端必须使用相同版本的类。</p>
+<h1 id="Web服务"><a href="#Web服务" class="headerlink" title="Web服务"></a>Web服务</h1><h2 id="创建基于Spring的JAX-WS端点"><a href="#创建基于Spring的JAX-WS端点" class="headerlink" title="创建基于Spring的JAX-WS端点"></a>创建基于Spring的JAX-WS端点</h2><h3 id="发布基于Servlet的JAX-WS端点"><a href="#发布基于Servlet的JAX-WS端点" class="headerlink" title="发布基于Servlet的JAX-WS端点"></a>发布基于Servlet的JAX-WS端点</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@WebService</span>(serviceName=<span class="string">"SpitterService"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpitterServiceEndpoint</span> <span class="keyword">extends</span> <span class="title">SpringBeanAutowiringSupport</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  SpitterService spitterService;</span><br><span class="line">  <span class="meta">@WebMethod</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addSpittle</span><span class="params">(Spittle spittle)</span> </span>&#123;</span><br><span class="line">    spitterService.saveSpittle(spittle);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="meta">@WebMethod</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deleteSpittle</span><span class="params">(<span class="keyword">long</span> spittleId)</span> </span>&#123;</span><br><span class="line">    spitterService.deleteSpittle(spittleId);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="meta">@WebMethod</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> List&lt;Spittle&gt; <span class="title">getRecentSpittles</span><span class="params">(<span class="keyword">int</span> spittleCount)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> spitterService.getRecentSpittles(spittleCount);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="meta">@WebMethod</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> List&lt;Spittle&gt; <span class="title">getSpittlesForSpitter</span><span class="params">(Spitter spitter)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> spitterService.getSpittlesForSpitter(spitter);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>JAX-WS使用<code>@WebService</code>标注的类被认为Web服务的端点，而使用<code>@WebMethod</code>标注的方法被认为是操作。</p>
+<p>另外，通过继承<code>SpringBeanAutowiringSupport</code>，我们可以使用<code>@Autowired</code>来标注端点的属性，依赖就会自动注入。</p>
+<p>这种方式端点的生命周期由JAX-WS运行时来管理，而不是Spring。</p>
+<h3 id="发布独立的JAX-WS端点"><a href="#发布独立的JAX-WS端点" class="headerlink" title="发布独立的JAX-WS端点"></a>发布独立的JAX-WS端点</h3><p>Spring提供了一个<code>SimpleJaxWsServiceExporter</code>，它可以将使用JAX-WS标注的所有Bean发布为JAX-WS服务。</p>
+<p>首先，注册一个<code>SimpleJaxWsServiceExporter</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> SimpleJaxWsServiceExporter <span class="title">jaxWsExporter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  SimpleJaxWsServiceExporter exporter = <span class="keyword">new</span> SimpleJaxWsServiceExporter();</span><br><span class="line">  exporter.setBaseAddress(<span class="string">"http://localhost:8888/services/"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>如果没有显式设置<code>setBaseAddress</code>，则默认为<code>http://localhost:8080/</code>。</p>
+<p>注意：<code>SimpleJaxWsServiceExporter</code>不需要为它指定一个被导出Bean的引用，它会搜索Spring应用上下文中所有使用<code>@WebService</code>标注的Bean，并将这些Bean发布为JAX-WS端点。</p>
+</blockquote>
+<p>然后，创建一个普通Spring Bean作为JAX-WS端点：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@WebService</span>(serviceName=<span class="string">"SpitterService"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpitterServiceEndpoint</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  SpitterService spitterService;</span><br><span class="line">  <span class="meta">@WebMethod</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addSpittle</span><span class="params">(Spittle spittle)</span> </span>&#123;</span><br><span class="line">    spitterService.saveSpittle(spittle);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="meta">@WebMethod</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deleteSpittle</span><span class="params">(<span class="keyword">long</span> spittleId)</span> </span>&#123;</span><br><span class="line">    spitterService.deleteSpittle(spittleId);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="meta">@WebMethod</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> List&lt;Spittle&gt; <span class="title">getRecentSpittles</span><span class="params">(<span class="keyword">int</span> spittleCount)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> spitterService.getRecentSpittles(spittleCount);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="meta">@WebMethod</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> List&lt;Spittle&gt; <span class="title">getSpittlesForSpitter</span><span class="params">(Spitter spitter)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> spitterService.getSpittlesForSpitter(spitter);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里<code>SpitterServiceEndpoint</code>不再需要继承<code>SpringBeanAutowiringSupport</code>就可以实现自动装配，它完全就是一个Spring Bean（带有<code>@Component</code>标注）。</p>
+<p>需要注意：只有在支持将端点发布到指定地址的JAX-WS运行时（例如JDK自带的JAX-WS运行时）中，才能使用这种方案。否则（例如JAX-WS 2.1的参考实现），不能使用<code>SimpleJaxWsServiceExporter</code>。</p>
+<h2 id="通过代理访问JAX-WS服务"><a href="#通过代理访问JAX-WS服务" class="headerlink" title="通过代理访问JAX-WS服务"></a>通过代理访问JAX-WS服务</h2><p>借助Spring使用Web服务所涉及的客户端代理的工作方式与基于Spring的客户端使用其他远程调用技术是相同的。</p>
+<p>使用<code>JaxWsProxyFactoryBean</code>，我们可以在Spring中装配Spitter Web服务。</p>
+<p><img src="SpringRemoting/JaxWsProxyFactoryBean.png" alt="JaxWsProxyFactoryBean"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> JaxWsPortProxyFactoryBean <span class="title">spitterService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  JaxWsPortProxyFactoryBean proxy = <span class="keyword">new</span> JaxWsPortProxyFactoryBean();</span><br><span class="line">  proxy.setWsdlDocument(<span class="string">"http://localhost:8080/services/SpitterService?wsdl"</span>);</span><br><span class="line">  proxy.setServiceName(<span class="string">"spitterService"</span>);</span><br><span class="line">  proxy.setPortName(<span class="string">"spitterServiceHttpPort"</span>);</span><br><span class="line">  proxy.setServiceInterface(SpitterService<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">  proxy.setNamespaceUri(<span class="string">"http://spitter.com"</span>);</span><br><span class="line">  <span class="keyword">return</span> proxy;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>setWsdlDocument</code>用于指定远程Web服务定义文件的位置。</p>
+<p>WSDL文件：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">wsdl:definitions</span> <span class="attr">targetNamespace</span>=<span class="string">"http://spitter.com"</span>&gt;</span></span><br><span class="line">  ...</span><br><span class="line">  <span class="tag">&lt;<span class="name">wsdl:service</span> <span class="attr">name</span>=<span class="string">"spitterService"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">wsdl:port</span> <span class="attr">name</span>=<span class="string">"spitterServiceHttpPort"</span></span></span><br><span class="line"><span class="tag">               <span class="attr">binding</span>=<span class="string">"tns:spitterServiceHttpBinding"</span>&gt;</span></span><br><span class="line">      ...</span><br><span class="line">    <span class="tag">&lt;/<span class="name">wsdl:port</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">wsdl:service</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">wsdl:definitions</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="Spring-Web服务（Spring-WS）"><a href="#Spring-Web服务（Spring-WS）" class="headerlink" title="Spring Web服务（Spring-WS）"></a>Spring Web服务（Spring-WS）</h1>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/11/26/SpringCache/" rel="prev" title="SpringCache">
+      <i class="fa fa-chevron-left"></i> SpringCache
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/12/12/SpringMessage/" rel="next" title="SpringMessage">
+      SpringMessage <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#远程调用模型"><span class="nav-number">1.</span> <span class="nav-text">远程调用模型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RMI"><span class="nav-number">2.</span> <span class="nav-text">RMI</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#导出RMI服务"><span class="nav-number">2.1.</span> <span class="nav-text">导出RMI服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#装配RMI服务"><span class="nav-number">2.2.</span> <span class="nav-text">装配RMI服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RMI的局限"><span class="nav-number">2.3.</span> <span class="nav-text">RMI的局限</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hessian和Burlap"><span class="nav-number">3.</span> <span class="nav-text">Hessian和Burlap</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#配置Hessian"><span class="nav-number">3.1.</span> <span class="nav-text">配置Hessian</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#导出Hessian服务"><span class="nav-number">3.1.1.</span> <span class="nav-text">导出Hessian服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置Hessian控制器"><span class="nav-number">3.1.2.</span> <span class="nav-text">配置Hessian控制器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#配置DispatcherServlet"><span class="nav-number">3.1.2.1.</span> <span class="nav-text">配置DispatcherServlet</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置URL处理器映射"><span class="nav-number">3.1.2.2.</span> <span class="nav-text">配置URL处理器映射</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置Burlap"><span class="nav-number">3.2.</span> <span class="nav-text">配置Burlap</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#导出Burlap服务"><span class="nav-number">3.2.1.</span> <span class="nav-text">导出Burlap服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置Burlap控制器"><span class="nav-number">3.2.2.</span> <span class="nav-text">配置Burlap控制器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#装配Hessian-Burlap服务"><span class="nav-number">3.3.</span> <span class="nav-text">装配Hessian&#x2F;Burlap服务</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring的HttpInvoker"><span class="nav-number">4.</span> <span class="nav-text">Spring的HttpInvoker</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#导出HTTP-invoker服务"><span class="nav-number">4.1.</span> <span class="nav-text">导出HTTP invoker服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置DispatcherServlet-1"><span class="nav-number">4.2.</span> <span class="nav-text">配置DispatcherServlet</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置URL处理器映射-1"><span class="nav-number">4.3.</span> <span class="nav-text">配置URL处理器映射</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#装配HTTP-invoker服务"><span class="nav-number">4.4.</span> <span class="nav-text">装配HTTP invoker服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HTTP-invoker的限制"><span class="nav-number">4.5.</span> <span class="nav-text">HTTP invoker的限制</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Web服务"><span class="nav-number">5.</span> <span class="nav-text">Web服务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#创建基于Spring的JAX-WS端点"><span class="nav-number">5.1.</span> <span class="nav-text">创建基于Spring的JAX-WS端点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#发布基于Servlet的JAX-WS端点"><span class="nav-number">5.1.1.</span> <span class="nav-text">发布基于Servlet的JAX-WS端点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#发布独立的JAX-WS端点"><span class="nav-number">5.1.2.</span> <span class="nav-text">发布独立的JAX-WS端点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#通过代理访问JAX-WS服务"><span class="nav-number">5.2.</span> <span class="nav-text">通过代理访问JAX-WS服务</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-Web服务（Spring-WS）"><span class="nav-number">6.</span> <span class="nav-text">Spring Web服务（Spring-WS）</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

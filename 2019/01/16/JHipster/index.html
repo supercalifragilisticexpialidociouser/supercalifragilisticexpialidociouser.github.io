@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="JHipster是一个开发平台，用于生成、开发和部署Spring Boot + Angular &#x2F; React的Web应用程序和Spring微服务。 技术栈前端 Angular 或 React 或 Vue 响应式网页设计：Twitter Bootstrap HTML5 Boilerplate 兼容现代浏览器（Chrome、FireFox、Microsoft Edge ……） 全面的国际化支持 Sa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JHipster">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2019/01/16/JHipster/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="JHipster是一个开发平台，用于生成、开发和部署Spring Boot + Angular &#x2F; React的Web应用程序和Spring微服务。 技术栈前端 Angular 或 React 或 Vue 响应式网页设计：Twitter Bootstrap HTML5 Boilerplate 兼容现代浏览器（Chrome、FireFox、Microsoft Edge ……） 全面的国际化支持 Sa">
+<meta property="article:published_time" content="2019-01-16T06:34:09.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:49.936Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="6.0.1">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2019/01/16/JHipster/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>JHipster | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2019/01/16/JHipster/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JHipster
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-01-16 14:34:09" itemprop="dateCreated datePublished" datetime="2019-01-16T14:34:09+08:00">2019-01-16</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>JHipster是一个开发平台，用于生成、开发和部署Spring Boot + Angular / React的Web应用程序和Spring微服务。</p>
+<h1 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h1><h2 id="前端"><a href="#前端" class="headerlink" title="前端"></a>前端</h2><ul>
+<li><a href="https://angular.io/" target="_blank" rel="noopener">Angular</a> 或 <a href="https://reactjs.org/" target="_blank" rel="noopener">React</a> 或 Vue</li>
+<li>响应式网页设计：<a href="https://getbootstrap.com/" target="_blank" rel="noopener">Twitter Bootstrap</a></li>
+<li><a href="http://html5boilerplate.com/" target="_blank" rel="noopener">HTML5 Boilerplate</a></li>
+<li>兼容现代浏览器（Chrome、FireFox、Microsoft Edge ……）</li>
+<li>全面的国际化支持</li>
+<li><a href="https://www.npmjs.com/package/node-sass" target="_blank" rel="noopener">Sass</a></li>
+<li>Spring Websocket</li>
+<li><a href="http://www.thymeleaf.org/" target="_blank" rel="noopener">Thymeleaf</a>模板引擎</li>
+<li><a href="https://www.npmjs.com/get-npm" target="_blank" rel="noopener">NPM</a></li>
+<li><a href="https://webpack.js.org/" target="_blank" rel="noopener">Webpack</a></li>
+<li>测试： <a href="https://facebook.github.io/jest/" target="_blank" rel="noopener">Jest</a> 和 <a href="http://www.protractortest.org/" target="_blank" rel="noopener">Protractor</a></li>
+</ul>
+<h2 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h2><ul>
+<li><a href="https://projects.spring.io/spring-boot/" target="_blank" rel="noopener">Spring Boot</a></li>
+<li>构建工具：<a href="https://maven.apache.org/" target="_blank" rel="noopener">Maven</a> 或 <a href="http://www.gradle.org/" target="_blank" rel="noopener">Gradle</a></li>
+<li><a href="https://docs.spring.io/spring-security/site/index.html" target="_blank" rel="noopener">Spring Security</a></li>
+<li>“development”和“production” profiles</li>
+<li><a href="https://spring.io/guides/gs/rest-service/" target="_blank" rel="noopener">Spring MVC REST</a> + <a href="https://github.com/FasterXML/jackson" target="_blank" rel="noopener">Jackson</a></li>
+<li>Spring Websocket</li>
+<li><a href="https://projects.spring.io/spring-data-jpa/" target="_blank" rel="noopener">Spring Data JPA</a> + Bean Validation</li>
+<li>数据库更新：<a href="http://www.liquibase.org/" target="_blank" rel="noopener">Liquibase</a></li>
+<li><a href="https://github.com/elastic/elasticsearch" target="_blank" rel="noopener">Elasticsearch</a></li>
+<li><a href="https://www.mongodb.org/" target="_blank" rel="noopener">MongoDB</a> 和 <a href="https://www.couchbase.com/" target="_blank" rel="noopener">Couchbase</a></li>
+<li><a href="https://cassandra.apache.org/" target="_blank" rel="noopener">Cassandra</a></li>
+<li><a href="https://kafka.apache.org/" target="_blank" rel="noopener">Kafka</a></li>
+<li>监控：<a href="http://metrics.dropwizard.io/" target="_blank" rel="noopener">Metrics</a> 和 <a href="https://www.elastic.co/products" target="_blank" rel="noopener">the ELK Stack</a></li>
+<li>缓存：<a href="http://ehcache.org/" target="_blank" rel="noopener">ehcache</a>（本地缓存）, <a href="http://www.hazelcast.com/" target="_blank" rel="noopener">hazelcast</a> 或 <a href="http://infinispan.org/" target="_blank" rel="noopener">Infinispan</a></li>
+<li>优化的静态资源（gzip过滤器，HTTP缓存头）</li>
+<li>日志管理：<a href="http://logback.qos.ch/" target="_blank" rel="noopener">Logback</a></li>
+<li>连接池：<a href="https://github.com/brettwooldridge/HikariCP" target="_blank" rel="noopener">HikariCP</a></li>
+<li>构建标准WAR文件或可执行JAR文件</li>
+<li>完整的Docker和Docker Compose支持</li>
+<li>支持所有主要云提供商：AWS，Cloud Foundry，Heroku，Kubernetes，OpenShift，Azure，Docker ……</li>
+</ul>
+<h2 id="微服务"><a href="#微服务" class="headerlink" title="微服务"></a>微服务</h2><ul>
+<li>HTTP路由<a href="https://github.com/Netflix/zuul" target="_blank" rel="noopener">Netflix Zuul</a> 或 <a href="https://traefik.io/" target="_blank" rel="noopener">Traefik</a></li>
+<li>服务发现<a href="https://github.com/Netflix/eureka" target="_blank" rel="noopener">Netflix Eureka</a> 或 <a href="https://www.consul.io/" target="_blank" rel="noopener">HashiCorp Consul</a></li>
+</ul>
+<h1 id="开发环境"><a href="#开发环境" class="headerlink" title="开发环境"></a>开发环境</h1><h2 id="JHipster-Online"><a href="#JHipster-Online" class="headerlink" title="JHipster Online"></a>JHipster Online</h2><p><a href="https://start.jhipster.tech/" target="_blank" rel="noopener">JHipster Online</a>允许您轻松生成JHipster应用程序，而无需安装JHipster。</p>
+<h2 id="安装JHipster"><a href="#安装JHipster" class="headerlink" title="安装JHipster"></a>安装JHipster</h2><ol>
+<li>安装Java 11（实际上还是需要Java 8才能构建成功）</li>
+<li>安装Node.js，并将NPM更新到最新版本：<code>npm install -g npm</code></li>
+<li>安装JHipster：<code>npm install -g generator-jhipster</code></li>
+<li>如果要使用JHipster Marketplace，还要安装Yeoman：<code>npm install -g yo</code></li>
+<li>如果要使用<a href="https://www.jhipster.tech/upgrading-an-application/" target="_blank" rel="noopener">JHipster upgrade sub-generator</a>，还要安装<a href="https://git-scm.com/" target="_blank" rel="noopener">Git</a>。也推荐安装可视化的Git客户端<a href="https://www.sourcetreeapp.com/" target="_blank" rel="noopener">SourceTree</a></li>
+</ol>
+<p>注意：构建工具Maven或Gradle可以不用手工安装，当执行<code>./mvnw</code>或<code>./gradlew</code>命令时，会自动安装。</p>
+<h2 id="IDE准备"><a href="#IDE准备" class="headerlink" title="IDE准备"></a>IDE准备</h2><p>推荐使用Visual Studio Code。然后安装如下插件：</p>
+<ul>
+<li>Java Extension Pack</li>
+<li>Spring Initializr Java Support</li>
+<li>Spring Boot Tools</li>
+</ul>
+<blockquote>
+<p>另外，也可以安装<code>Java IDE Pack</code>插件，它除了包含了上面所有插件外，还包含一些额外插件。</p>
+</blockquote>
+<h2 id="安装Docker及相关工具"><a href="#安装Docker及相关工具" class="headerlink" title="安装Docker及相关工具"></a>安装Docker及相关工具</h2><p>主要安装：</p>
+<ul>
+<li><a href="https://docs.docker.com/installation/#installation" target="_blank" rel="noopener">Docker</a></li>
+<li><a href="https://docs.docker.com/compose/install" target="_blank" rel="noopener">Docker Compose</a></li>
+</ul>
+<p>如果是在Windows或Mac OS下，建议安装<a href="https://www.docker.com/products/docker-desktop" target="_blank" rel="noopener">Docker Desktop</a>，它包括上述工具。</p>
+<h1 id="生成应用"><a href="#生成应用" class="headerlink" title="生成应用"></a>生成应用</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir myapplication</span><br><span class="line">$ <span class="built_in">cd</span> myapplication/</span><br><span class="line">$ jhipster</span><br></pre></td></tr></table></figure>
+
+<p>然后，按照提示一步步操作。</p>
+<h1 id="开发应用"><a href="#开发应用" class="headerlink" title="开发应用"></a>开发应用</h1><h2 id="CORS跨域"><a href="#CORS跨域" class="headerlink" title="CORS跨域"></a>CORS跨域</h2><p>在JHipster中要启用跨域支持，需要：</p>
+<ol>
+<li><p>在<code>application-*.yml</code>或<code>application.yml</code>中添加如下配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">jhipster:</span></span><br><span class="line">  <span class="string">…</span></span><br><span class="line">  <span class="attr">cors:</span></span><br><span class="line">    <span class="attr">allowed-origins:</span> <span class="string">"*"</span></span><br><span class="line">    <span class="attr">allowed-methods:</span> <span class="string">'*'</span></span><br><span class="line">    <span class="attr">allowed-headers:</span> <span class="string">"*"</span></span><br><span class="line">    <span class="attr">exposed-headers:</span> <span class="string">'Authorization,Link,X-Total-Count'</span></span><br><span class="line">    <span class="attr">allow-credentials:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">max-age:</span> <span class="number">1800</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在<code>WebConfigurer.java</code>的<code>corsFilter()</code>方法中注册需要跨域的路径，默认已经注册了<code>/api/**</code>、<code>/management/**</code>和<code>/v2/api-docs</code>路径。</p>
+</li>
+</ol>
+<h1 id="构建应用"><a href="#构建应用" class="headerlink" title="构建应用"></a>构建应用</h1><p>可通过如下命令打包应用，并使用<a href="https://github.com/GoogleContainerTools/jib" target="_blank" rel="noopener">Jib</a>生成一个Docker镜像：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ./mvnw clean package -Pprod verify jib:dockerBuild</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ./gradlew -Pprod bootWar jibDockerBuild</span><br></pre></td></tr></table></figure>
+
+<p>这会生成一个Docker镜像，镜像名在Linux上是应用名（例如<code>myapp</code>），而在Windows上是<code>jhipster</code>。</p>
+<h1 id="部署应用"><a href="#部署应用" class="headerlink" title="部署应用"></a>部署应用</h1><h2 id="直接运行应用（用于调试）"><a href="#直接运行应用（用于调试）" class="headerlink" title="直接运行应用（用于调试）"></a>直接运行应用（用于调试）</h2><p>在项目根目录下运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ./mvnw</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ./gradlew</span><br></pre></td></tr></table></figure>
+
+<p>应用启动完成后，在浏览器中打开：<a href="http://localhost:8081" target="_blank" rel="noopener">http://localhost:8081</a>。</p>
+<p>注意：在执行上述命令之前，应该先启动应用依赖的第三方服务，例如数据库等。</p>
+<h2 id="使用Docker-Compose部署单个应用（本地部署）"><a href="#使用Docker-Compose部署单个应用（本地部署）" class="headerlink" title="使用Docker Compose部署单个应用（本地部署）"></a>使用Docker Compose部署单个应用（本地部署）</h2><p>JHipster生成项目时，也同时生成如下文件（位于文件夹<code>src/main/docker/</code>中）：</p>
+<ul>
+<li>用于构建Docker镜像并在容器内运行应用程序的Dockerfile；</li>
+<li>多个Docker Compose配置以帮助您使用第三方服务（例如数据库）运行应用程序。</li>
+</ul>
+<p>通过执行如下Docker Compose命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker-compose -f src/main/docker/app.yml up -d</span><br></pre></td></tr></table></figure>
+
+<p>将启动您的应用程序及其依赖的服务（数据库、搜索引擎、JHipster Registry …）。</p>
+<p><code>-d</code>表示在后台运行。</p>
+<p>要停止并移除所有容器，可以运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker-compose -f src/main/docker/app.yml down</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用Docker-Compose部署多个应用"><a href="#使用Docker-Compose部署多个应用" class="headerlink" title="使用Docker Compose部署多个应用"></a>使用Docker Compose部署多个应用</h2><p>首先，你所有应用必须位于同一个目录下（例如：<code>~/jee/</code>）。</p>
+<p>然后：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ~/jee</span><br><span class="line">$ mkdir docker-compose   （目录可随意）</span><br><span class="line">$ <span class="built_in">cd</span> docker-compose</span><br><span class="line">$ jhipster docker-compose</span><br></pre></td></tr></table></figure>
+
+<p>子生成器将询问您希望在架构中使用哪些应用程序，以及是否要使用ELK或Prometheus设置监视。然后，就将生成全局Docker Compose配置。</p>
+<p>你只需要运行：<code>docker-compose up</code>命令，就可以启动所有应用。</p>
+<p>要停止并移除所有容器，可以运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker-compose down</span><br></pre></td></tr></table></figure>
+
+<h1 id="升级应用"><a href="#升级应用" class="headerlink" title="升级应用"></a>升级应用</h1><h1 id="JDL"><a href="#JDL" class="headerlink" title="JDL"></a>JDL</h1><p>前面都是通过命令行来管理应用，JHipster还提供了一个JDL领域特定语言来简化应用管理。</p>
+<p>JDL文件是一个文本文件，它的扩展名可以是<code>.jdl</code>或<code>.jh</code>。</p>
+<p>可以使用在线的<a href="https://start.jhipster.tech/jdl-studio/" target="_blank" rel="noopener">JDL-Studio</a> 工具或使用VSCode的JHipster JDL插件来编写JDL文件。JDL文件名可随意取。</p>
+<h2 id="创建应用"><a href="#创建应用" class="headerlink" title="创建应用"></a>创建应用</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ jhipster import-jdl my_file.jdl</span><br></pre></td></tr></table></figure>
+
+<p>这会根据JDL文件中的<code>baseName</code>值，在当前目录下创建一个同名目录作为项目根目录，在它面生成项目。</p>
+<h2 id="更新实体"><a href="#更新实体" class="headerlink" title="更新实体"></a>更新实体</h2><p>如果只是想更新发生改变的实体，则需要在项目根目录（假设为<code>foo</code>）下执行下面命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> foo</span><br><span class="line">$ jhipster import-jdl my_file.jdl</span><br></pre></td></tr></table></figure>
+
+<p>完成导入后，会自动提交代码。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/6-0-1/" rel="tag"># 6.0.1</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/01/03/SpringTask/" rel="prev" title="SpringTask">
+      <i class="fa fa-chevron-left"></i> SpringTask
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/01/30/TypeScript/" rel="next" title="TypeScript">
+      TypeScript <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#技术栈"><span class="nav-number">1.</span> <span class="nav-text">技术栈</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#前端"><span class="nav-number">1.1.</span> <span class="nav-text">前端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#服务端"><span class="nav-number">1.2.</span> <span class="nav-text">服务端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#微服务"><span class="nav-number">1.3.</span> <span class="nav-text">微服务</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#开发环境"><span class="nav-number">2.</span> <span class="nav-text">开发环境</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#JHipster-Online"><span class="nav-number">2.1.</span> <span class="nav-text">JHipster Online</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装JHipster"><span class="nav-number">2.2.</span> <span class="nav-text">安装JHipster</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IDE准备"><span class="nav-number">2.3.</span> <span class="nav-text">IDE准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Docker及相关工具"><span class="nav-number">2.4.</span> <span class="nav-text">安装Docker及相关工具</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#生成应用"><span class="nav-number">3.</span> <span class="nav-text">生成应用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#开发应用"><span class="nav-number">4.</span> <span class="nav-text">开发应用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#CORS跨域"><span class="nav-number">4.1.</span> <span class="nav-text">CORS跨域</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#构建应用"><span class="nav-number">5.</span> <span class="nav-text">构建应用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#部署应用"><span class="nav-number">6.</span> <span class="nav-text">部署应用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#直接运行应用（用于调试）"><span class="nav-number">6.1.</span> <span class="nav-text">直接运行应用（用于调试）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Docker-Compose部署单个应用（本地部署）"><span class="nav-number">6.2.</span> <span class="nav-text">使用Docker Compose部署单个应用（本地部署）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Docker-Compose部署多个应用"><span class="nav-number">6.3.</span> <span class="nav-text">使用Docker Compose部署多个应用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#升级应用"><span class="nav-number">7.</span> <span class="nav-text">升级应用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JDL"><span class="nav-number">8.</span> <span class="nav-text">JDL</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#创建应用"><span class="nav-number">8.1.</span> <span class="nav-text">创建应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更新实体"><span class="nav-number">8.2.</span> <span class="nav-text">更新实体</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

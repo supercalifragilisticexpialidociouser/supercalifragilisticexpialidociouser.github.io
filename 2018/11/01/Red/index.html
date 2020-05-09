@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="简介Red是一个全栈的编程语言，它是Rebol的开源替代方案。 Red程序可解释执行，也可以编译并生成单个可执行文件。 Red是跨平台的，有一个原生的、跨平台的GUI系统，并有UI方言和绘图方言。 Red技术栈由两个层次组成：Red语言（高级）、Red&#x2F;System（低级DSL，用于系统编程）。 Red社区：https:&#x2F;&#x2F;gitter.im&#x2F;red&#x2F;red">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Red">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2018/11/01/Red/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="简介Red是一个全栈的编程语言，它是Rebol的开源替代方案。 Red程序可解释执行，也可以编译并生成单个可执行文件。 Red是跨平台的，有一个原生的、跨平台的GUI系统，并有UI方言和绘图方言。 Red技术栈由两个层次组成：Red语言（高级）、Red&#x2F;System（低级DSL，用于系统编程）。 Red社区：https:&#x2F;&#x2F;gitter.im&#x2F;red&#x2F;red">
+<meta property="article:published_time" content="2018-11-01T01:32:24.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:50.006Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="0.6.4">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2018/11/01/Red/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Red | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2018/11/01/Red/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Red
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-11-01 09:32:24" itemprop="dateCreated datePublished" datetime="2018-11-01T09:32:24+08:00">2018-11-01</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p><a href="https://www.red-lang.org/" target="_blank" rel="noopener">Red</a>是一个全栈的编程语言，它是<a href="http://rebol.com/" target="_blank" rel="noopener">Rebol</a>的开源替代方案。</p>
+<p>Red程序可解释执行，也可以编译并生成单个可执行文件。</p>
+<p>Red是跨平台的，有一个原生的、跨平台的GUI系统，并有UI方言和绘图方言。</p>
+<p>Red技术栈由两个层次组成：Red语言（高级）、Red/System（低级DSL，用于系统编程）。</p>
+<p>Red社区：<a href="https://gitter.im/red/red" target="_blank" rel="noopener">https://gitter.im/red/red</a></p>
+<a id="more"></a>
+
+<h1 id="开发环境"><a href="#开发环境" class="headerlink" title="开发环境"></a>开发环境</h1><h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p><a href="https://www.red-lang.org/p/download.html" target="_blank" rel="noopener">下载Red可执行程序</a>，不需要安装。</p>
+<p>在Linux下：（以Ubuntu为例，其他参见官网）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ chmod u+x red-xxx</span><br><span class="line">$ dpkg --add-architecture i386</span><br><span class="line">$ apt update</span><br><span class="line">$ apt install libc6:i386 libcurl3:i386</span><br></pre></td></tr></table></figure>
+
+<h3 id="从源码构建"><a href="#从源码构建" class="headerlink" title="从源码构建"></a>从源码构建</h3><ol>
+<li><p>下载Red源码并解压；</p>
+</li>
+<li><p>下载Rebol解释器，并放到Red源码根目录中；</p>
+</li>
+<li><p>打开Rebol解释器，并运行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">do&#x2F;args %red.r &#123;%yourscript.red&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这将生成<code>yourscript.exe</code>。</p>
+</li>
+</ol>
+<h2 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h2><p>解释的编程语言一次执行一行代码。解释语言的程序称为“脚本”（Script）。 Red并没有真正被解释，因为它在运行之前进行了一些编译（排序），但它的程序通常被称为脚本。</p>
+<h3 id="第一个脚本"><a href="#第一个脚本" class="headerlink" title="第一个脚本"></a>第一个脚本</h3><p>hello.red：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Red []</span><br><span class="line"></span><br><span class="line">print &quot;Hello world!&quot;</span><br></pre></td></tr></table></figure>
+
+<p>每个Red脚本必须以<code>Red</code>（这里区分大小写）开头，之后跟一个包含有关您的程序信息的块（在Red中，方括号内的任何内容都称为“块”）。</p>
+<p>Red是不区分大小写的，除了极少数特殊情况外。</p>
+<h4 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h4><p>行注释：<code>; 从分号开始一直到行尾</code>或者<code>comment &quot;行注释&quot;</code>。</p>
+<p>块注释：<code>comment {块注释}</code>、<code>{块注释}</code>或者<code>comment [块注释]</code>。</p>
+<p>此外，<code>Red […]</code>之前的内容都将被解释器忽略，因此，也可将<code>Red […]</code>之前的内容视为注释。</p>
+<h3 id="加载脚本"><a href="#加载脚本" class="headerlink" title="加载脚本"></a>加载脚本</h3><p>可以使用<code>load</code>函数来加载一个脚本：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: load %myprogram.txt</span><br></pre></td></tr></table></figure>
+
+<h3 id="运行脚本"><a href="#运行脚本" class="headerlink" title="运行脚本"></a>运行脚本</h3><p>可以使用<code>do</code>函数直接运行脚本、块、函数或任何值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; do a</span><br><span class="line"></span><br><span class="line">&gt;&gt; do %myprogram.txt</span><br><span class="line"></span><br><span class="line">&gt;&gt; do load %myfunction.txt</span><br><span class="line"></span><br><span class="line">&gt;&gt; do [loop 3 [print &quot;hello&quot;]]</span><br><span class="line">hello</span><br><span class="line">hello</span><br><span class="line">hello</span><br></pre></td></tr></table></figure>
+
+<h3 id="退出脚本"><a href="#退出脚本" class="headerlink" title="退出脚本"></a>退出脚本</h3><p><code>quit</code>或<code>q</code>也可用于非交互式环境，用于退出脚本。</p>
+<p><code>quit/return</code>函数和<code>quit-return</code>例程都可以退出脚本，并将参数返回给操作系统：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">quit&#x2F;return 3</span><br></pre></td></tr></table></figure>
+
+<p>在Windows上，当执行完包含上述代码的程序后，可以通过在命令行中输入如下命令来获取返回给操作系统的状态：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; echo ％errorlevel％</span><br></pre></td></tr></table></figure>
+
+<p>另外，<code>halt</code>函数会挂起脚本的执行，并返回1。</p>
+<p>在GUI程序中，你可以使用VID事件<code>on-close</code>来监听关闭程序事件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ed [needs: view]</span><br><span class="line"></span><br><span class="line">view [</span><br><span class="line">       on-close [print &quot;bye!&quot;]        </span><br><span class="line">       button [print &quot;click&quot;]</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<h2 id="交互式"><a href="#交互式" class="headerlink" title="交互式"></a>交互式</h2><p>在Windows下，直接双击下载的<code>Red-xxx.exe</code>，首次将自动创建Red GUI控制台（在<code>C:\ProgramData\Red\</code>中。如果升级了Red，则最好要删除该目录下的文件，否则可能仍然使用旧版本GUI控制台）。下次运行该文件时，将自动打开GUI控制台。</p>
+<p>如果要在命令提示符（cmd或PowerShell）下打开Red交互式环境，则需要加上<code>--cli</code>选项，否则是打开GUI控制台。（Linux下，加不加<code>--cli</code>都一样）</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PS C:\Users\Jo&gt; red -<span class="literal">-cli</span></span><br></pre></td></tr></table></figure>
+
+<p>在Linux下，在终端上：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ red-xxx</span><br><span class="line">&gt;&gt; <span class="built_in">print</span> <span class="string">"Hello"</span></span><br><span class="line">Hello</span><br></pre></td></tr></table></figure>
+
+<p>在退出交互式环境，除了使用函数<code>quit</code>或<code>q</code>外，也可以按下<code>Ctrl-C</code>（不适用于GUI控制台）。</p>
+<h2 id="编译式"><a href="#编译式" class="headerlink" title="编译式"></a>编译式</h2><h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><p>开发模式编译会生成多个文件，但只有可执行文件和<code>libRedRT.so</code>（或<code>libRedRT.dll</code>）是运行程序必须的：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ red -c hello.red</span><br></pre></td></tr></table></figure>
+
+<p>发布模式编译只会生成一个可执行文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ red -r hello.red</span><br></pre></td></tr></table></figure>
+
+<p>交叉编译：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ red -r -t Windows hello.red</span><br></pre></td></tr></table></figure>
+
+<p><code>-t</code>选项指定目标平台，合法的值有：</p>
+<ul>
+<li><code>MSDOS</code>：Windows下的默认。Windows控制台应用（运行时，总是会打开命令行提示符）。</li>
+<li><code>Windows</code>：Windows GUI应用。</li>
+<li><code>WindowsXP</code>：Windows GUI应用，但不支持触摸API。</li>
+<li><code>Linux</code>：Linux下的默认。</li>
+<li><code>Linux-ARM</code></li>
+<li><code>RPi</code></li>
+<li><code>Darwin</code>：macOS的控制台或GUI应用。</li>
+<li><code>macOS</code>：macOS的GUI应用。</li>
+<li><code>Syllable</code></li>
+<li><code>FreeBSD</code></li>
+<li><code>Android</code></li>
+<li><code>Android-x86</code></li>
+</ul>
+<p>另外，可以通过<code>-o</code>选项，自定义生成的可执行文件名，默认与被编译的脚本文件名相同。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ red -c -o ~/hi hello.red</span><br></pre></td></tr></table></figure>
+
+<h3 id="直接运行"><a href="#直接运行" class="headerlink" title="直接运行"></a>直接运行</h3><p>直接运行模式也称调试模式编译，它直接运行脚本，而不生成可执行程序。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ red -d hello.red</span><br><span class="line">或者</span><br><span class="line">$ red hello.red</span><br></pre></td></tr></table></figure>
+
+<h3 id="给Red脚本传递参数"><a href="#给Red脚本传递参数" class="headerlink" title="给Red脚本传递参数"></a>给Red脚本传递参数</h3><p>在命令行上，脚本文件名后面的所有内容都作为参数传递给脚本。这些参数作为块存储在<code>system/options/args</code>中。</p>
+<p>arguments.red：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Red []</span><br><span class="line"></span><br><span class="line">probe system&#x2F;options&#x2F;args</span><br></pre></td></tr></table></figure>
+
+<p>执行脚本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ red arguments.red foo bar</span><br><span class="line">[<span class="string">"foo"</span> <span class="string">"bar"</span>]</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="IDE"><a href="#IDE" class="headerlink" title="IDE"></a>IDE</h2><p>建议使用<a href="https://code.visualstudio.com/" target="_blank" rel="noopener">Visual Studio Code</a>  + <a href="https://marketplace.visualstudio.com/items?itemName=red-auto.red" target="_blank" rel="noopener">Red extension</a>。</p>
+<h2 id="帮助"><a href="#帮助" class="headerlink" title="帮助"></a>帮助</h2><h3 id="help和"><a href="#help和" class="headerlink" title="help和?"></a><code>help</code>和<code>?</code></h3><p>函数<code>help</code>或<code>?</code>可以获取目标的帮助信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; ? print</span><br><span class="line">USAGE:</span><br><span class="line">     PRINT value</span><br><span class="line"></span><br><span class="line">DESCRIPTION: </span><br><span class="line">     Outputs a value followed by a newline. </span><br><span class="line">     PRINT is a native! value.</span><br><span class="line"></span><br><span class="line">ARGUMENTS:</span><br><span class="line">     value        [any-type!]</span><br><span class="line">     </span><br><span class="line">&gt;&gt; a: [1 2 3]</span><br><span class="line">&#x3D;&#x3D; [1 2 3]</span><br><span class="line">&gt;&gt; help a</span><br><span class="line">A is a block! value: [1 2 3]</span><br></pre></td></tr></table></figure>
+
+<p>如果你不确切地知道你在找什么，<code>?</code>将为您搜索：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; ? -to</span><br><span class="line">     hex-to-rgb      function!     Converts a color in hex format to a tuple...</span><br><span class="line">     link-sub-to-parent function!     [face [object!] type [word!] old new &#x2F;loc...</span><br><span class="line">     link-tabs-to-parent function!     [face [object!] &#x2F;init &#x2F;local faces visible?]</span><br></pre></td></tr></table></figure>
+
+<p>对数据类型使用<code>?</code>，将列出声明为该类型的所有变量：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; ? tuple!</span><br></pre></td></tr></table></figure>
+
+<h3 id="列出所有全局函数"><a href="#列出所有全局函数" class="headerlink" title="列出所有全局函数"></a>列出所有全局函数</h3><p><code>what</code>函数会列出所有全局函数。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; what</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看源码"><a href="#查看源码" class="headerlink" title="查看源码"></a>查看源码</h3><p><code>source</code>函数可以查看指定的mezzanine函数或自定义函数的源码：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; <span class="built_in">source</span> replace</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Red解释器本身包含两种函数：原生函数（可能由其他编程语言编写）和mezzanine函数（由Red编写）。</p>
+</blockquote>
+<h3 id="查看解释器信息"><a href="#查看解释器信息" class="headerlink" title="查看解释器信息"></a>查看解释器信息</h3><p><code>about</code>函数可以查看Red解释器的版本号和构建时间等信息。</p>
+<h1 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h1><h2 id="基本类型"><a href="#基本类型" class="headerlink" title="基本类型"></a>基本类型</h2><h3 id="none"><a href="#none" class="headerlink" title="none!"></a>none!</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: [1 2 3 4 5] </span><br><span class="line">&#x3D;&#x3D; [1 2 3 4 5] </span><br><span class="line">&gt;&gt; pick a 7 </span><br><span class="line">&#x3D;&#x3D; none</span><br></pre></td></tr></table></figure>
+
+<p><code>none</code>相当于其他编程语言中的<code>null</code>。</p>
+<h3 id="logic"><a href="#logic" class="headerlink" title="logic!"></a>logic!</h3><p><code>logic!</code>类型可以取：<code>true</code>和<code>false</code>，或者<code>on</code>和<code>off</code>，或者<code>yes</code>和<code>no</code>。</p>
+<p>其实，任何不是<code>false</code>、<code>off</code>或<code>on</code>的值都看作是<code>true</code>。</p>
+<h3 id="string"><a href="#string" class="headerlink" title="string!"></a>string!</h3><p>字符串是字符的序列（series），它使用双引号（单行）或花括号（可跨行）包围。</p>
+<blockquote>
+<p>单引号不能用于字符串，因为以单引号开头的是符号。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: &quot;my string&quot; </span><br><span class="line">&#x3D;&#x3D; &quot;my string&quot;</span><br><span class="line"></span><br><span class="line">&gt;&gt; a: &#123;my </span><br><span class="line">&#123; string&#125;        ;the first &quot;&#123;&quot; is not a typo, is how the console shows it. Try! </span><br><span class="line">&#x3D;&#x3D; &quot;my^&#x2F;string&quot; </span><br><span class="line">&gt;&gt; print a </span><br><span class="line">my </span><br><span class="line">string</span><br></pre></td></tr></table></figure>
+
+<h3 id="char"><a href="#char" class="headerlink" title="char!"></a>char!</h3><p>Red的字符是一个Unicode码点（范围从0到10FFFF），它也可以当作整数来使用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: &quot;my string&quot; </span><br><span class="line">&#x3D;&#x3D; &quot;my string&quot; </span><br><span class="line">&gt;&gt; pick a 2 </span><br><span class="line">&#x3D;&#x3D; #&quot;y&quot; </span><br><span class="line"></span><br><span class="line">&gt;&gt; a: #&quot;b&quot; </span><br><span class="line">&#x3D;&#x3D; #&quot;b&quot; </span><br><span class="line">&gt;&gt; a: a + 1 </span><br><span class="line">&#x3D;&#x3D; #&quot;c&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="integer"><a href="#integer" class="headerlink" title="integer!"></a>integer!</h3><p><code>integer!</code>表示32位整数。</p>
+<p>两个整数相除，表示取整：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; 7 &#x2F; 2 </span><br><span class="line">&#x3D;&#x3D; 3</span><br></pre></td></tr></table></figure>
+
+<h3 id="float"><a href="#float" class="headerlink" title="float!"></a>float!</h3><p><code>float!</code>表示64位浮点类型。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; 7.0 &#x2F; 2 </span><br><span class="line">&#x3D;&#x3D; 3.5</span><br><span class="line">&gt;&gt; 3e2 </span><br><span class="line">&#x3D;&#x3D; 300.0</span><br></pre></td></tr></table></figure>
+
+<h3 id="file"><a href="#file" class="headerlink" title="file!"></a>file!</h3><p><code>file!</code>表示 文件类型。</p>
+<p>文件字面量是要以<code>%</code>开头：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; write %myfirstfile.txt &quot;This is my first file&quot;</span><br></pre></td></tr></table></figure>
+
+<p><code>%myfirstfile.txt</code>表示当前路径下的<code>myfirstfile.txt</code>文件。</p>
+<p>如果文件不在当前路径下，则需要在双引号中写出完整路径：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; write %&quot;C:\Users\André\Documents\RED\mysecondfile.txt&quot; &quot;This is my second file&quot;</span><br></pre></td></tr></table></figure>
+
+<p>文件分隔符可以使用<code>/</code>或者<code>\</code>。</p>
+<h3 id="path"><a href="#path" class="headerlink" title="path!"></a>path!</h3><p><code>/</code>用于访问较大结构内的项目，例如：访问对象成员或函数的refinements。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: [23 45 89] </span><br><span class="line">&#x3D;&#x3D; [23 45 89] </span><br><span class="line">&gt;&gt; print a&#x2F;2 </span><br><span class="line">45</span><br></pre></td></tr></table></figure>
+
+<h3 id="time"><a href="#time" class="headerlink" title="time!"></a>time!</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: now&#x2F;time&#x2F;precise</span><br><span class="line">&#x3D;&#x3D; 14:32:59.333</span><br><span class="line">&gt;&gt; type? a</span><br><span class="line">&#x3D;&#x3D; time!</span><br><span class="line">&gt;&gt; a&#x2F;hour</span><br><span class="line">&#x3D;&#x3D; 14</span><br><span class="line">&gt;&gt; a&#x2F;minute</span><br><span class="line">&#x3D;&#x3D; 32</span><br><span class="line">&gt;&gt; a&#x2F;minute: a&#x2F;minute + 1</span><br><span class="line">&#x3D;&#x3D; 33</span><br><span class="line">&gt;&gt; a</span><br><span class="line">&#x3D;&#x3D; 14:33:59.333</span><br><span class="line">&gt;&gt; a&#x2F;second</span><br><span class="line">&#x3D;&#x3D; 59.33299999999872</span><br></pre></td></tr></table></figure>
+
+<h3 id="date"><a href="#date" class="headerlink" title="date!"></a>date!</h3><h3 id="pair"><a href="#pair" class="headerlink" title="pair!"></a>pair!</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: 12x23 </span><br><span class="line">&#x3D;&#x3D; 12x23 </span><br><span class="line">&gt;&gt; a: 2 * a </span><br><span class="line">&#x3D;&#x3D; 24x46 </span><br><span class="line">&gt;&gt; print a&#x2F;x </span><br><span class="line">24 </span><br><span class="line">&gt;&gt; print a&#x2F;y </span><br><span class="line">46</span><br></pre></td></tr></table></figure>
+
+<h3 id="percent"><a href="#percent" class="headerlink" title="percent!"></a>percent!</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: 100 * 11.2% </span><br><span class="line">&#x3D;&#x3D; 11.2 </span><br><span class="line">&gt;&gt; a: 1000 * 11.3% </span><br><span class="line">&#x3D;&#x3D; 113.0</span><br></pre></td></tr></table></figure>
+
+<h3 id="tuple"><a href="#tuple" class="headerlink" title="tuple!"></a>tuple!</h3><p>一个<code>tuple!</code>是一个由句点分隔的3到12个字节（字节范围从0到255）的列表。请注意，以句点分隔的2个数字是浮点数，不是一个元组！</p>
+<p>元组可用于表示版本号，IP地址和颜色等内容（例如：0.255.0）。 元组不是一个序列（series），所以大多数序列操作在应用时都会出错。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: 1.2.3.4 </span><br><span class="line">&#x3D;&#x3D; 1.2.3.4 </span><br><span class="line">&gt;&gt; a: 2 * a </span><br><span class="line">&#x3D;&#x3D; 2.4.6.8 </span><br><span class="line">&gt;&gt; print pick a 3 </span><br><span class="line">6 </span><br><span class="line">&gt;&gt; a&#x2F;3: random 255 </span><br><span class="line">&#x3D;&#x3D; 41 </span><br><span class="line">&gt;&gt; a </span><br><span class="line">&#x3D;&#x3D; 2.4.41.8</span><br></pre></td></tr></table></figure>
+
+<h3 id="issue"><a href="#issue" class="headerlink" title="issue!"></a>issue!</h3><p>用于对电话号码，型号，序列号和信用卡号等符号或标识符进行排序的字符系列。</p>
+<p>除了斜杠“/”外，可以包含其他任何字符。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: #333-444-555-999 </span><br><span class="line">&#x3D;&#x3D; #333-444-555-999 </span><br><span class="line"></span><br><span class="line">&gt;&gt; a: #34-Ab.77-14 </span><br><span class="line">&#x3D;&#x3D; #34-Ab.77-14</span><br></pre></td></tr></table></figure>
+
+<h3 id="url"><a href="#url" class="headerlink" title="url!"></a>url!</h3><p>格式：<code>&lt;protocol&gt;://&lt;path&gt;</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: read http:&#x2F;&#x2F;www.red-lang.org&#x2F;p&#x2F;about.html </span><br><span class="line">&#x3D;&#x3D; &#123;&lt;!DOCTYPE html&gt;^&#x2F;&lt;html class&#x3D;&#39;v2&#39; dir&#x3D;&#39;ltr&#39; x</span><br></pre></td></tr></table></figure>
+
+<h3 id="email"><a href="#email" class="headerlink" title="email!"></a>email!</h3><p>只能包含一个<code>@</code>字符。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: myname@mysite.org </span><br><span class="line">&#x3D;&#x3D; myname@mysite.org</span><br></pre></td></tr></table></figure>
+
+<h3 id="image"><a href="#image" class="headerlink" title="image!"></a>image!</h3><p>支持的外部图像格式是GIF，JPEG，PNG和BMP。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: make image! [30x40 #&#123; ; here goes the data... </span><br><span class="line">;You can change or get information from your image using the actions that apply to series: </span><br><span class="line">&gt;&gt; a: load %heart.bmp </span><br><span class="line">&#x3D;&#x3D; make image! [30x20 #&#123; </span><br><span class="line">       00A2E800A2E800A2E800A </span><br><span class="line"></span><br><span class="line">&gt;&gt; print a&#x2F;size </span><br><span class="line">30x20 </span><br><span class="line"></span><br><span class="line">&gt;&gt; print pick a 1                ; getting the RGBA data of pixel 1 </span><br><span class="line">0.162.232.0 </span><br><span class="line"></span><br><span class="line">&gt;&gt; poke a 1 255.255.255.0        ; changing the RGBA data of pixel 1 </span><br><span class="line">&#x3D;&#x3D; 255.255.255.0</span><br></pre></td></tr></table></figure>
+
+<h3 id="refinement"><a href="#refinement" class="headerlink" title="refinement!"></a>refinement!</h3><h3 id="action"><a href="#action" class="headerlink" title="action!"></a>action!</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; action? :take ; Colon is mandatory. </span><br><span class="line">&#x3D;&#x3D; true</span><br></pre></td></tr></table></figure>
+
+<h3 id="op"><a href="#op" class="headerlink" title="op!"></a>op!</h3><p>中缀操作符类型。</p>
+<h3 id="routine"><a href="#routine" class="headerlink" title="routine!"></a>routine!</h3><p>用于链接外部代码。</p>
+<h3 id="datatype"><a href="#datatype" class="headerlink" title="datatype!"></a>datatype!</h3><p>所有数据类型的类型。</p>
+<h3 id="单词的类型"><a href="#单词的类型" class="headerlink" title="单词的类型"></a>单词的类型</h3><table>
+<thead>
+<tr>
+<th>单词</th>
+<th>类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>word</td>
+<td>word!</td>
+</tr>
+<tr>
+<td>word:</td>
+<td>set-word!</td>
+</tr>
+<tr>
+<td>:word</td>
+<td>get-word!</td>
+</tr>
+<tr>
+<td>‘word</td>
+<td>lit-word!</td>
+</tr>
+<tr>
+<td>/word</td>
+<td>refinement!</td>
+</tr>
+</tbody></table>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; to-word &quot;test&quot;</span><br><span class="line">&#x3D;&#x3D; test</span><br><span class="line">&gt;&gt; make set-word! &quot;test&quot;</span><br><span class="line">&#x3D;&#x3D; test:</span><br><span class="line">&gt;&gt; make get-word! &quot;test&quot;</span><br><span class="line">&#x3D;&#x3D; :test</span><br><span class="line">&gt;&gt; make lit-word! &quot;test&quot;</span><br><span class="line">&#x3D;&#x3D; &#39;test</span><br></pre></td></tr></table></figure>
+
+<h3 id="event"><a href="#event" class="headerlink" title="event!"></a>event!</h3><h3 id="function"><a href="#function" class="headerlink" title="function!"></a>function!</h3><h3 id="object"><a href="#object" class="headerlink" title="object!"></a>object!</h3><h3 id="handle"><a href="#handle" class="headerlink" title="handle!"></a>handle!</h3><h3 id="unset"><a href="#unset" class="headerlink" title="unset!"></a>unset!</h3><h3 id="tag"><a href="#tag" class="headerlink" title="tag!"></a>tag!</h3><h3 id="bitset"><a href="#bitset" class="headerlink" title="bitset!"></a>bitset!</h3><h3 id="typeset"><a href="#typeset" class="headerlink" title="typeset!"></a>typeset!</h3><h3 id="error"><a href="#error" class="headerlink" title="error!"></a>error!</h3><h3 id="native"><a href="#native" class="headerlink" title="native!"></a>native!</h3><h2 id="类"><a href="#类" class="headerlink" title="类"></a>类</h2><h3 id="number"><a href="#number" class="headerlink" title="number!"></a>number!</h3><h3 id="scalar"><a href="#scalar" class="headerlink" title="scalar!"></a>scalar!</h3><h2 id="block"><a href="#block" class="headerlink" title="block!"></a>block!</h2><p>包含在方括号中。</p>
+<h2 id="paren"><a href="#paren" class="headerlink" title="paren!"></a>paren!</h2><p>包含在圆括号中。</p>
+<h2 id="binary"><a href="#binary" class="headerlink" title="binary!"></a>binary!</h2><p>字节序列。它是原始存储格式，它可以编码数据，如图像，声音，字符串（格式如UTF等），电影，压缩数据，加密数据等。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#&#123;3A1F5A&#125;  ; base 16</span><br><span class="line"></span><br><span class="line">2#&#123;01000101101010&#125;  ; base 2</span><br><span class="line"></span><br><span class="line">64#&#123;0aGvXmgUkVCu&#125; ; base 64</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="序列"><a href="#序列" class="headerlink" title="序列"></a>序列</h2><h3 id="hash"><a href="#hash" class="headerlink" title="hash!"></a>hash!</h3><p><code>hash!</code>是一个搜索很快的序列。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: make hash! [a 33 b 44 c 52] </span><br><span class="line">&#x3D;&#x3D; make hash! [a 33 b 44 c 52] </span><br><span class="line"></span><br><span class="line">&gt;&gt; select a [c] </span><br><span class="line">&#x3D;&#x3D; 52 </span><br><span class="line"></span><br><span class="line">&gt;&gt; select a &#39;c </span><br><span class="line">&#x3D;&#x3D; 52</span><br><span class="line"></span><br><span class="line">&gt;&gt; a&#x2F;b</span><br><span class="line">&#x3D;&#x3D; 44</span><br></pre></td></tr></table></figure>
+
+<h3 id="vector"><a href="#vector" class="headerlink" title="vector!"></a>vector!</h3><p>向量是一个高性能的<code>integer!</code>、<code>float!</code>、<code>char!</code>或<code>percent!</code>序列。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: make vector! [33 44 52] </span><br><span class="line">&#x3D;&#x3D; make vector! [33 44 52] </span><br><span class="line"></span><br><span class="line">&gt;&gt; print a </span><br><span class="line">33 44 52 </span><br><span class="line"></span><br><span class="line">&gt;&gt; print a * 8 </span><br><span class="line">264 352 416</span><br></pre></td></tr></table></figure>
+
+<h2 id="map"><a href="#map" class="headerlink" title="map!"></a>map!</h2><p><code>map!</code>是一个高性能的字典，它不是序列。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; a: make map! [&quot;mini&quot; 33 &quot;winny&quot; 44 &quot;mo&quot; 55] </span><br><span class="line">&#x3D;&#x3D; #( </span><br><span class="line">       &quot;mini&quot; 33 </span><br><span class="line">       &quot;winny&quot; 44 </span><br><span class="line">       &quot;mo&quot; 55 </span><br><span class="line">... </span><br><span class="line"></span><br><span class="line">&gt;&gt; print a </span><br><span class="line">&quot;mini&quot; 33 </span><br><span class="line">&quot;winny&quot; 44 </span><br><span class="line">&quot;mo&quot; 55 </span><br><span class="line"></span><br><span class="line">&gt;&gt; print select a &quot;winny&quot; </span><br><span class="line">44 </span><br><span class="line"></span><br><span class="line">&gt;&gt; put a &quot;winny&quot; 99 </span><br><span class="line">&#x3D;&#x3D; 99 </span><br><span class="line"></span><br><span class="line">&gt;&gt; print a </span><br><span class="line">&quot;mini&quot; 33 </span><br><span class="line">&quot;winny&quot; 99 </span><br><span class="line">&quot;mo&quot; 55</span><br><span class="line"></span><br><span class="line">&gt;&gt; extend a [&quot;more&quot; 23 &quot;even more&quot; 77]</span><br><span class="line">&gt;&gt; probe a</span><br><span class="line">#(</span><br><span class="line">   &quot;mini&quot; 33</span><br><span class="line">   &quot;winny&quot; 44</span><br><span class="line">   &quot;mo&quot; 55</span><br><span class="line">   &quot;more&quot; 23</span><br><span class="line">   &quot;even more&quot; 77</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="获取值的类型"><a href="#获取值的类型" class="headerlink" title="获取值的类型"></a>获取值的类型</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; type? 33</span><br><span class="line">&#x3D;&#x3D; integer!</span><br></pre></td></tr></table></figure>
+
+<h2 id="类型转换"><a href="#类型转换" class="headerlink" title="类型转换"></a>类型转换</h2><h3 id="to"><a href="#to" class="headerlink" title="to"></a>to</h3><p>是一个<code>action!</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; to integer! 3.4 </span><br><span class="line">&#x3D;&#x3D; 3</span><br></pre></td></tr></table></figure>
+
+<h3 id="to-time"><a href="#to-time" class="headerlink" title="to-time"></a>to-time</h3><p><code>function!</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; to-time [22 55 48]</span><br><span class="line">&#x3D;&#x3D; 22:55:48</span><br><span class="line">&gt;&gt; to-time [22 65 70]</span><br><span class="line">&#x3D;&#x3D; 23:06:10</span><br><span class="line">&gt;&gt; to-time &quot;11:15&quot;</span><br><span class="line">&#x3D;&#x3D; 11:15:00</span><br></pre></td></tr></table></figure>
+
+<h3 id="as-pair"><a href="#as-pair" class="headerlink" title="as-pair"></a>as-pair</h3><p><code>native!</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; as-pair 88 12.7</span><br><span class="line">&#x3D;&#x3D; 88x12</span><br></pre></td></tr></table></figure>
+
+<h3 id="to-binary"><a href="#to-binary" class="headerlink" title="to-binary"></a>to-binary</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; to-binary 33</span><br><span class="line">&#x3D;&#x3D; #&#123;00000021&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h1><p>Red中的变量实际上是没有类型，可以随时赋给不同值。</p>
+<h2 id="赋值"><a href="#赋值" class="headerlink" title="赋值"></a>赋值</h2><p>Red没有专门的声明语法，变量的首次赋值可以看作是声明。</p>
+<p>变量在求值时必须有值。</p>
+<p>有两种方式可以给Red变量赋值。</p>
+<p>第一种：<code>变量:</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; myBirthday: 30&#x2F;07&#x2F;1963</span><br><span class="line">&#x3D;&#x3D; 30-Jul-1963</span><br><span class="line">&gt;&gt; print myBirthday</span><br><span class="line">30-Jul-1963</span><br></pre></td></tr></table></figure>
+
+<p>注意：冒号与它前面的变量之间不能有空白字符。</p>
+<p>第二种：<code>set</code>函数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; set &#39;test 33</span><br><span class="line">&#x3D;&#x3D; 33</span><br></pre></td></tr></table></figure>
+
+<p><code>set</code>函数还可以一次给多个变量赋值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; set [a b c] 10</span><br><span class="line">&#x3D;&#x3D; 10</span><br><span class="line">&gt;&gt; b</span><br><span class="line">&#x3D;&#x3D; 10</span><br></pre></td></tr></table></figure>
+
+<h3 id="反赋值"><a href="#反赋值" class="headerlink" title="反赋值"></a>反赋值</h3><p>可以使用<code>unset</code>函数取消变量的赋值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; set &#39;test &quot;hello&quot;</span><br><span class="line">&#x3D;&#x3D; &quot;hello&quot;</span><br><span class="line">&gt;&gt; print test</span><br><span class="line">hello</span><br><span class="line">&gt;&gt; unset &#39;test</span><br><span class="line">&gt;&gt; print test</span><br><span class="line">*** Script Error: test has no value</span><br></pre></td></tr></table></figure>
+
+<h2 id="原样返回"><a href="#原样返回" class="headerlink" title="原样返回"></a>原样返回</h2><p>在变量之前加一个冒号（它们之间不能出现空白字符），则表示不对变量关联的内容进行求值，原样返回变量的内容。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; imprimire: :print</span><br><span class="line">&#x3D;&#x3D; make native! [[</span><br><span class="line">   &quot;Outputs a value followed by a newline&quot; </span><br><span class="line">   ...</span><br><span class="line">&gt;&gt; imprimire &quot;hello&quot;</span><br><span class="line">hello</span><br></pre></td></tr></table></figure>
+
+<p>上面代码中，<code>imprimire</code>现在具有与<code>print</code>相同的功能。</p>
+<h1 id="符号"><a href="#符号" class="headerlink" title="符号"></a>符号</h1><p>以单引号开头的标识符是符号，它的值就是它本身。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; print something</span><br><span class="line">*** Script Error: something has no value</span><br><span class="line">*** Where: print</span><br><span class="line">*** Stack:  </span><br><span class="line"></span><br><span class="line">&gt;&gt; print &#39;something</span><br><span class="line">something</span><br><span class="line"></span><br><span class="line">&gt;&gt; type? :print</span><br><span class="line">&#x3D;&#x3D; native!</span><br><span class="line">&gt;&gt; type? &#39;print</span><br><span class="line">&#x3D;&#x3D; word!</span><br></pre></td></tr></table></figure>
+
+<h1 id="表达式"><a href="#表达式" class="headerlink" title="表达式"></a>表达式</h1><h2 id="求值"><a href="#求值" class="headerlink" title="求值"></a>求值</h2><p>对字面量进行求值，结果为它本身。</p>
+<h3 id="块求值"><a href="#块求值" class="headerlink" title="块求值"></a>块求值</h3><p>块默认是不求值的，它被当作数据看待。如果需要对块求值，则需要使用原生的<code>do</code>函数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; [1 + 2]</span><br><span class="line">&#x3D;&#x3D; [1 + 2]</span><br><span class="line"></span><br><span class="line">&gt;&gt; do [1 + 2]</span><br><span class="line">&#x3D;&#x3D; 3</span><br></pre></td></tr></table></figure>
+
+<p>如果块中包含多个表达式，每个表达式都会被求值，但仅返回最后一个表达式的结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; do [</span><br><span class="line">[        1 + 2</span><br><span class="line">[        3 + 4</span><br><span class="line">[    ]</span><br><span class="line">&#x3D;&#x3D; 7</span><br></pre></td></tr></table></figure>
+
+<p>如果希望返回块中每个表达式的值，则需要使用<code>reduce</code>函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; reduce [</span><br><span class="line">[        1 + 2</span><br><span class="line">[        3 + 4</span><br><span class="line">[    ]</span><br><span class="line">&#x3D;&#x3D; [</span><br><span class="line">    3 </span><br><span class="line">    7</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>当<code>do</code>函数的参数是一个文件时，它将加载这个文件，并将文件当作块来执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">do %script.red</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Red中文件名称前要加上<code>%</code>。</p>
+</blockquote>
+<p><code>do</code>函数还可以执行字符串中包含的表达式，它首先将该字符串转换成一个块，再执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; do &quot;1 + 2&quot;</span><br><span class="line">&#x3D;&#x3D; 3</span><br></pre></td></tr></table></figure>
+
+<h3 id="求值顺序"><a href="#求值顺序" class="headerlink" title="求值顺序"></a>求值顺序</h3><p>Red总是从左到右求值，运算符之间没有优先级。</p>
+<p>运算符优先于函数应用，唯一的例外是如果运算符的第二个操作数是函数，则先对该函数应用进行求值。</p>
+<p>括号中的表达式优先级最高。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; 2 + 3 * 5 </span><br><span class="line">&#x3D;&#x3D; 25    ; not 17!</span><br><span class="line"></span><br><span class="line">&gt;&gt; a: [ square-root 16 8 + 2 8 &#x2F; 2 77]</span><br><span class="line">&#x3D;&#x3D; [square-root 16 8 + 2 8 &#x2F; 2 77]</span><br><span class="line">&gt;&gt; reduce a </span><br><span class="line">&#x3D;&#x3D; [4.0 10 4 77]</span><br><span class="line"></span><br><span class="line">&gt;&gt; (square-root 16) + square-root 16 </span><br><span class="line">&#x3D;&#x3D; 8.0</span><br><span class="line"></span><br><span class="line">&gt;&gt; reduce [add 8 + 2 * 3 8 &#x2F; 2 divide 16 &#x2F; 2 2 * 2] </span><br><span class="line">&#x3D;&#x3D; [34 2]</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="控制结构"><a href="#控制结构" class="headerlink" title="控制结构"></a>控制结构</h1><h1 id="子程序"><a href="#子程序" class="headerlink" title="子程序"></a>子程序</h1><h2 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h2><h3 id="Refinements"><a href="#Refinements" class="headerlink" title="Refinements"></a>Refinements</h3><h2 id="运算符"><a href="#运算符" class="headerlink" title="运算符"></a>运算符</h2><h1 id="作用域"><a href="#作用域" class="headerlink" title="作用域"></a>作用域</h1><h1 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h1><h1 id="输入和输出"><a href="#输入和输出" class="headerlink" title="输入和输出"></a>输入和输出</h1><h2 id="标准输入输出"><a href="#标准输入输出" class="headerlink" title="标准输入输出"></a>标准输入输出</h2><h3 id="print"><a href="#print" class="headerlink" title="print"></a>print</h3><p><code>print</code>将数据发送到控制台，并会在结尾自动添加换行符。它在打印之前对参数求值，也就是说，它在打印之前对参数应用<code>reduce</code>。</p>
+<p><code>print</code>是原生函数。</p>
+<h3 id="prin"><a href="#prin" class="headerlink" title="prin"></a>prin</h3><p><code>prin</code>也将数据发送到控制台，但它自动添加换行符。它在打印之前对其参数求值。</p>
+<p><code>prin</code>是原生函数。</p>
+<h3 id="probe"><a href="#probe" class="headerlink" title="probe"></a>probe</h3><p><code>probe</code>函数将它的参数原样发送到控制台，而不对参数进行求值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; probe [3 + 2]</span><br><span class="line">[3 + 2]</span><br><span class="line">&#x3D;&#x3D; [3 + 2]</span><br><span class="line"></span><br><span class="line">&gt;&gt; print [3 + 2]</span><br><span class="line">5</span><br></pre></td></tr></table></figure>
+
+<h3 id="input"><a href="#input" class="headerlink" title="input"></a>input</h3><p><code>input</code>函数从控制台读取一个字符串输入，并且移除换行符。</p>
+<blockquote>
+<p> 注意，在控制台上键入的任何数字都将转换为string。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Red []</span><br><span class="line"></span><br><span class="line">prin &quot;Enter a name: &quot;</span><br><span class="line">name: input</span><br><span class="line">print [name &quot;is&quot; length? name &quot;characters long&quot;]</span><br></pre></td></tr></table></figure>
+
+<p>执行上面脚本，将提示输入名字，并输出它的长度：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">John</span><br><span class="line">John is 4 characters long</span><br></pre></td></tr></table></figure>
+
+<h3 id="ask"><a href="#ask" class="headerlink" title="ask"></a>ask</h3><p><code>ask</code>例程会先将参数输出到控制台，然后再从控制台读取一个字符串输入，并且移除换行符。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Red []</span><br><span class="line"></span><br><span class="line">name: ask &quot;What is your name: &quot;</span><br><span class="line">prin &quot;Your name is &quot;</span><br><span class="line">print name</span><br></pre></td></tr></table></figure>
+
+<p>执行上述脚本：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">What is your name: John</span><br><span class="line">Your name is John</span><br></pre></td></tr></table></figure>
+
+<h2 id="文件"><a href="#文件" class="headerlink" title="文件"></a>文件</h2><h1 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h1><h1 id="断言"><a href="#断言" class="headerlink" title="断言"></a>断言</h1>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/0-6-4/" rel="tag"># 0.6.4</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/10/08/SpringTesting/" rel="prev" title="SpringTesting">
+      <i class="fa fa-chevron-left"></i> SpringTesting
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/11/12/SpringSecurity/" rel="next" title="SpringSecurity">
+      SpringSecurity <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#开发环境"><span class="nav-number">2.</span> <span class="nav-text">开发环境</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装"><span class="nav-number">2.1.</span> <span class="nav-text">安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#从源码构建"><span class="nav-number">2.1.1.</span> <span class="nav-text">从源码构建</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#脚本"><span class="nav-number">2.2.</span> <span class="nav-text">脚本</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#第一个脚本"><span class="nav-number">2.2.1.</span> <span class="nav-text">第一个脚本</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#注释"><span class="nav-number">2.2.1.1.</span> <span class="nav-text">注释</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#加载脚本"><span class="nav-number">2.2.2.</span> <span class="nav-text">加载脚本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行脚本"><span class="nav-number">2.2.3.</span> <span class="nav-text">运行脚本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#退出脚本"><span class="nav-number">2.2.4.</span> <span class="nav-text">退出脚本</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#交互式"><span class="nav-number">2.3.</span> <span class="nav-text">交互式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编译式"><span class="nav-number">2.4.</span> <span class="nav-text">编译式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#编译"><span class="nav-number">2.4.1.</span> <span class="nav-text">编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#直接运行"><span class="nav-number">2.4.2.</span> <span class="nav-text">直接运行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#给Red脚本传递参数"><span class="nav-number">2.4.3.</span> <span class="nav-text">给Red脚本传递参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IDE"><span class="nav-number">2.5.</span> <span class="nav-text">IDE</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#帮助"><span class="nav-number">2.6.</span> <span class="nav-text">帮助</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#help和"><span class="nav-number">2.6.1.</span> <span class="nav-text">help和?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#列出所有全局函数"><span class="nav-number">2.6.2.</span> <span class="nav-text">列出所有全局函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看源码"><span class="nav-number">2.6.3.</span> <span class="nav-text">查看源码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看解释器信息"><span class="nav-number">2.6.4.</span> <span class="nav-text">查看解释器信息</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据类型"><span class="nav-number">3.</span> <span class="nav-text">数据类型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本类型"><span class="nav-number">3.1.</span> <span class="nav-text">基本类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#none"><span class="nav-number">3.1.1.</span> <span class="nav-text">none!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#logic"><span class="nav-number">3.1.2.</span> <span class="nav-text">logic!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#string"><span class="nav-number">3.1.3.</span> <span class="nav-text">string!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#char"><span class="nav-number">3.1.4.</span> <span class="nav-text">char!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#integer"><span class="nav-number">3.1.5.</span> <span class="nav-text">integer!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#float"><span class="nav-number">3.1.6.</span> <span class="nav-text">float!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#file"><span class="nav-number">3.1.7.</span> <span class="nav-text">file!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#path"><span class="nav-number">3.1.8.</span> <span class="nav-text">path!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#time"><span class="nav-number">3.1.9.</span> <span class="nav-text">time!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#date"><span class="nav-number">3.1.10.</span> <span class="nav-text">date!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pair"><span class="nav-number">3.1.11.</span> <span class="nav-text">pair!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#percent"><span class="nav-number">3.1.12.</span> <span class="nav-text">percent!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tuple"><span class="nav-number">3.1.13.</span> <span class="nav-text">tuple!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#issue"><span class="nav-number">3.1.14.</span> <span class="nav-text">issue!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#url"><span class="nav-number">3.1.15.</span> <span class="nav-text">url!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#email"><span class="nav-number">3.1.16.</span> <span class="nav-text">email!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#image"><span class="nav-number">3.1.17.</span> <span class="nav-text">image!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#refinement"><span class="nav-number">3.1.18.</span> <span class="nav-text">refinement!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#action"><span class="nav-number">3.1.19.</span> <span class="nav-text">action!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#op"><span class="nav-number">3.1.20.</span> <span class="nav-text">op!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#routine"><span class="nav-number">3.1.21.</span> <span class="nav-text">routine!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#datatype"><span class="nav-number">3.1.22.</span> <span class="nav-text">datatype!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#单词的类型"><span class="nav-number">3.1.23.</span> <span class="nav-text">单词的类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#event"><span class="nav-number">3.1.24.</span> <span class="nav-text">event!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#function"><span class="nav-number">3.1.25.</span> <span class="nav-text">function!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#object"><span class="nav-number">3.1.26.</span> <span class="nav-text">object!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#handle"><span class="nav-number">3.1.27.</span> <span class="nav-text">handle!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#unset"><span class="nav-number">3.1.28.</span> <span class="nav-text">unset!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tag"><span class="nav-number">3.1.29.</span> <span class="nav-text">tag!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bitset"><span class="nav-number">3.1.30.</span> <span class="nav-text">bitset!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#typeset"><span class="nav-number">3.1.31.</span> <span class="nav-text">typeset!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#error"><span class="nav-number">3.1.32.</span> <span class="nav-text">error!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#native"><span class="nav-number">3.1.33.</span> <span class="nav-text">native!</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类"><span class="nav-number">3.2.</span> <span class="nav-text">类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#number"><span class="nav-number">3.2.1.</span> <span class="nav-text">number!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#scalar"><span class="nav-number">3.2.2.</span> <span class="nav-text">scalar!</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#block"><span class="nav-number">3.3.</span> <span class="nav-text">block!</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#paren"><span class="nav-number">3.4.</span> <span class="nav-text">paren!</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#binary"><span class="nav-number">3.5.</span> <span class="nav-text">binary!</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#序列"><span class="nav-number">3.6.</span> <span class="nav-text">序列</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#hash"><span class="nav-number">3.6.1.</span> <span class="nav-text">hash!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vector"><span class="nav-number">3.6.2.</span> <span class="nav-text">vector!</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#map"><span class="nav-number">3.7.</span> <span class="nav-text">map!</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#获取值的类型"><span class="nav-number">3.8.</span> <span class="nav-text">获取值的类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类型转换"><span class="nav-number">3.9.</span> <span class="nav-text">类型转换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#to"><span class="nav-number">3.9.1.</span> <span class="nav-text">to</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#to-time"><span class="nav-number">3.9.2.</span> <span class="nav-text">to-time</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#as-pair"><span class="nav-number">3.9.3.</span> <span class="nav-text">as-pair</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#to-binary"><span class="nav-number">3.9.4.</span> <span class="nav-text">to-binary</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#变量"><span class="nav-number">4.</span> <span class="nav-text">变量</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#赋值"><span class="nav-number">4.1.</span> <span class="nav-text">赋值</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#反赋值"><span class="nav-number">4.1.1.</span> <span class="nav-text">反赋值</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原样返回"><span class="nav-number">4.2.</span> <span class="nav-text">原样返回</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#符号"><span class="nav-number">5.</span> <span class="nav-text">符号</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#表达式"><span class="nav-number">6.</span> <span class="nav-text">表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#求值"><span class="nav-number">6.1.</span> <span class="nav-text">求值</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#块求值"><span class="nav-number">6.1.1.</span> <span class="nav-text">块求值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#求值顺序"><span class="nav-number">6.1.2.</span> <span class="nav-text">求值顺序</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#控制结构"><span class="nav-number">7.</span> <span class="nav-text">控制结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#子程序"><span class="nav-number">8.</span> <span class="nav-text">子程序</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#函数"><span class="nav-number">8.1.</span> <span class="nav-text">函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Refinements"><span class="nav-number">8.1.1.</span> <span class="nav-text">Refinements</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运算符"><span class="nav-number">8.2.</span> <span class="nav-text">运算符</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#作用域"><span class="nav-number">9.</span> <span class="nav-text">作用域</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据结构"><span class="nav-number">10.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#输入和输出"><span class="nav-number">11.</span> <span class="nav-text">输入和输出</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#标准输入输出"><span class="nav-number">11.1.</span> <span class="nav-text">标准输入输出</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#print"><span class="nav-number">11.1.1.</span> <span class="nav-text">print</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#prin"><span class="nav-number">11.1.2.</span> <span class="nav-text">prin</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#probe"><span class="nav-number">11.1.3.</span> <span class="nav-text">probe</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#input"><span class="nav-number">11.1.4.</span> <span class="nav-text">input</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ask"><span class="nav-number">11.1.5.</span> <span class="nav-text">ask</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件"><span class="nav-number">11.2.</span> <span class="nav-text">文件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#异常"><span class="nav-number">12.</span> <span class="nav-text">异常</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#断言"><span class="nav-number">13.</span> <span class="nav-text">断言</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

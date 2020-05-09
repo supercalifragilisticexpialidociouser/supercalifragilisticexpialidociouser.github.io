@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://blog.supercalifragilisticexpialidociouser.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="尽管Spring自身并没有实现缓存解决方案，但是它对缓存功能提供了声明式的支持，能够与多种流行的缓存实现进行集成。 Spring对缓存的支持有两种方式：  注解驱动的缓存； XML声明的缓存。  启用缓存12345@Configuration@EnableCachingpublic class CachingConfig &amp;#123;  …&amp;#125;  或者： 123456789101112&amp;l">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringCache">
+<meta property="og:url" content="https://blog.supercalifragilisticexpialidociouser.com/2018/11/26/SpringCache/index.html">
+<meta property="og:site_name" content="人见人爱，花见花开，车见爆胎">
+<meta property="og:description" content="尽管Spring自身并没有实现缓存解决方案，但是它对缓存功能提供了声明式的支持，能够与多种流行的缓存实现进行集成。 Spring对缓存的支持有两种方式：  注解驱动的缓存； XML声明的缓存。  启用缓存12345@Configuration@EnableCachingpublic class CachingConfig &amp;#123;  …&amp;#125;  或者： 123456789101112&amp;l">
+<meta property="article:published_time" content="2018-11-26T06:06:52.000Z">
+<meta property="article:modified_time" content="2020-05-09T15:25:50.009Z">
+<meta property="article:author" content="周千涵">
+<meta property="article:tag" content="5.1.2">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.supercalifragilisticexpialidociouser.com/2018/11/26/SpringCache/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>SpringCache | 人见人爱，花见花开，车见爆胎</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">人见人爱，花见花开，车见爆胎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个程序猿的笔记</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.supercalifragilisticexpialidociouser.com/2018/11/26/SpringCache/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="周千涵">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人见人爱，花见花开，车见爆胎">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SpringCache
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-11-26 14:06:52" itemprop="dateCreated datePublished" datetime="2018-11-26T14:06:52+08:00">2018-11-26</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>尽管Spring自身并没有实现缓存解决方案，但是它对缓存功能提供了声明式的支持，能够与多种流行的缓存实现进行集成。</p>
+<p>Spring对缓存的支持有两种方式：</p>
+<ul>
+<li>注解驱动的缓存；</li>
+<li>XML声明的缓存。</li>
+</ul>
+<h1 id="启用缓存"><a href="#启用缓存" class="headerlink" title="启用缓存"></a>启用缓存</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableCaching</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CachingConfig</span> </span>&#123;</span><br><span class="line">  …</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:cache</span>=<span class="string">"http://www.springframework.org/schema/cache"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">"</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/beans/spring-beans.xsd</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/cache</span></span></span><br><span class="line"><span class="tag"><span class="string">                           http://www.springframework.org/schema/cache/spring-cache.xsd"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">cache:annotation-driven</span> /&gt;</span></span><br><span class="line">  …</span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="配置缓存管理器"><a href="#配置缓存管理器" class="headerlink" title="配置缓存管理器"></a>配置缓存管理器</h1><p>Spring内置了许多缓存管理器实现：</p>
+<ul>
+<li>SimpleCacheManager</li>
+<li>NoOpCacheManager</li>
+<li>ConcurrentMapCacheManager</li>
+<li>CompositeCacheManager</li>
+<li>EhCacheCacheManager</li>
+<li>JCacheCacheManager：基于JCache（JSR-107）</li>
+<li>RedisCacheManager：来自于Spring Data Redis</li>
+<li>GemfireCacheManager：来自于Spring Data GemFire</li>
+<li>CaffeineCacheManager</li>
+</ul>
+<h2 id="配置EhCache缓存"><a href="#配置EhCache缓存" class="headerlink" title="配置EhCache缓存"></a>配置EhCache缓存</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> net.sf.ehcache.CacheManager;</span><br><span class="line">…</span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableCaching</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CachingConfig</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> EhCacheCacheManager <span class="title">cacheManager</span><span class="params">(CacheManager cm)</span> </span>&#123;</span><br><span class="line">  	<span class="keyword">return</span> <span class="keyword">new</span> EhCacheCacheManager(cm);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> EhCacheManagerFactoryBean <span class="title">ehcache</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  EhCacheManagerFactoryBean ehCacheFactoryBean =   <span class="keyword">new</span> EhCacheManagerFactoryBean();</span><br><span class="line">  ehCacheFactoryBean.setConfigLocation(<span class="keyword">new</span> ClassPathResource(<span class="string">"com/habuma/spittr/cache/ehcache.xml"</span>));</span><br><span class="line">  <span class="keyword">return</span> ehCacheFactoryBean;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意：Spring和EhCache都定义有<code>CacheManager</code>类型。这里，将EhCache的<code>CacheManager</code>注入到Spring的<code>EhCacheCacheManager</code>（Spring的<code>CacheManager</code>实现）之中。</p>
+<p>Spring提供了<code>EhCacheManagerFactoryBean</code>来生成EhCache的<code>CacheManager</code>，因此，也要把它注册成一个Bean。</p>
+<p>EhCache自身的配置定义在一个XML文件中，这里是<code>ehcache.xml</code>：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">ehcache</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">cache</span> <span class="attr">name</span>=<span class="string">"spittleCache"</span></span></span><br><span class="line"><span class="tag">         <span class="attr">maxBytesLocalHeap</span>=<span class="string">"50m"</span></span></span><br><span class="line"><span class="tag">         <span class="attr">timeToLiveSeconds</span>=<span class="string">"100"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">cache</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">ehcache</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="配置Redis缓存"><a href="#配置Redis缓存" class="headerlink" title="配置Redis缓存"></a>配置Redis缓存</h2><p>Spring Data Redis提供了<code>RedisCacheManager</code>，它会与一个Redis服务器协作，并通过<code>RedisTemplate</code>将缓存条目存储到Redis中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableCaching</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CachingConfig</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> CacheManager <span class="title">cacheManager</span><span class="params">(RedisTemplate redisTemplate)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> RedisCacheManager(redisTemplate);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> JedisConnectionFactory <span class="title">redisConnectionFactory</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    JedisConnectionFactory jedisConnectionFactory =</span><br><span class="line">      <span class="keyword">new</span> JedisConnectionFactory();</span><br><span class="line">    jedisConnectionFactory.afterPropertiesSet();</span><br><span class="line">    <span class="keyword">return</span> jedisConnectionFactory;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> RedisTemplate&lt;String, String&gt; <span class="title">redisTemplate</span><span class="params">(RedisConnectionFactory redisCF)</span> </span>&#123;</span><br><span class="line">    RedisTemplate&lt;String, String&gt; redisTemplate = <span class="keyword">new</span> RedisTemplate&lt;String, String&gt;();</span><br><span class="line">    redisTemplate.setConnectionFactory(redisCF);</span><br><span class="line">    redisTemplate.afterPropertiesSet();</span><br><span class="line">    <span class="keyword">return</span> redisTemplate;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="配置多个缓存管理器"><a href="#配置多个缓存管理器" class="headerlink" title="配置多个缓存管理器"></a>配置多个缓存管理器</h2><p>可以使用<code>CompositeCacheManager</code>来配置多个缓存管理器，它会迭代这些缓存管理器，以查找之前所缓存的值。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> CacheManager <span class="title">cacheManager</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    net.sf.ehcache.CacheManager cm,</span></span></span><br><span class="line"><span class="function"><span class="params">    javax.cache.CacheManager jcm)</span> </span>&#123;</span><br><span class="line">  CompositeCacheManager cacheManager = <span class="keyword">new</span> CompositeCacheManager();</span><br><span class="line">  List&lt;CacheManager&gt; managers = <span class="keyword">new</span> ArrayList&lt;CacheManager&gt;();</span><br><span class="line">  managers.add(<span class="keyword">new</span> JCacheCacheManager(jcm));</span><br><span class="line">  managers.add(<span class="keyword">new</span> EhCacheCacheManager(cm));</span><br><span class="line">  managers.add(<span class="keyword">new</span> RedisCacheManager(redisTemplate()));</span><br><span class="line">  cacheManager.setCacheManagers(managers);</span><br><span class="line">  <span class="keyword">return</span> cacheManager;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="为方法添加标注以支持缓存"><a href="#为方法添加标注以支持缓存" class="headerlink" title="为方法添加标注以支持缓存"></a>为方法添加标注以支持缓存</h1><p>Spring提供的缓存标注：</p>
+<table>
+<thead>
+<tr>
+<th>标注</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>@Cacheable</td>
+<td>表明Spring在调用方法之前，首先应该在缓存中查找方法的返回值。如果这个值能够找到，就会返回缓存的值。否则，这个方法就会被调用，返回值会放到缓存之中。</td>
+</tr>
+<tr>
+<td>@CachePut</td>
+<td>表示Spring应该将方法的返回值放到缓存中。在方法的调用前并不会检查缓存，方法始终都会被调用。</td>
+</tr>
+<tr>
+<td>@CacheEvict</td>
+<td>表示Spring应该在缓存中清除一个或多个条目。</td>
+</tr>
+<tr>
+<td>@Caching</td>
+<td>这是一个分组标注，能够同时应用多个其他的缓存标注。</td>
+</tr>
+</tbody></table>
+<h2 id="填充缓存"><a href="#填充缓存" class="headerlink" title="填充缓存"></a>填充缓存</h2><p><code>@Cacheable</code>和<code>@CachePut</code>都可填充缓存。它们的一些共有属性：</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>value</td>
+<td>String[]</td>
+<td>要使用的缓存名称。</td>
+</tr>
+<tr>
+<td>condition</td>
+<td>String</td>
+<td>SpEL表达式，如果得到的值是<code>false</code>，就不会将缓存应用到方法调用上。</td>
+</tr>
+<tr>
+<td>key</td>
+<td>String</td>
+<td>SpEL表达式，用来计算自定义的缓存key。</td>
+</tr>
+<tr>
+<td>unless</td>
+<td>String</td>
+<td>SpEL表达式，如果得到的值是<code>true</code>，返回值不会放到缓存之中。</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Cacheable</span>(<span class="string">"spittleCache"</span>)  <span class="comment">//缓存名称是spittleCache</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Spittle <span class="title">findOne</span><span class="params">(<span class="keyword">long</span> id)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> jdbcTemplate.queryForObject(</span><br><span class="line">      SELECT_SPITTLE_BY_ID,</span><br><span class="line">      <span class="keyword">new</span> SpittleRowMapper(),</span><br><span class="line">      id);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (EmptyResultDataAccessException e) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的程序，将<code>@Cacheable</code>放在实现类的方法上，这样，只有该实现类的方法才应用缓存。如果将<code>@Cacheable</code>放在接口的方法声明上，则所有实现该接口的类的重写方法都会应用缓存。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Cacheable</span>(<span class="string">"spittleCache"</span>)</span><br><span class="line"><span class="function">Spittle <span class="title">findOne</span><span class="params">(<span class="keyword">long</span> id)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="自定义缓存key"><a href="#自定义缓存key" class="headerlink" title="自定义缓存key"></a>自定义缓存key</h3><p>默认的缓存key是基于方法的参数来确定的。上面程序中，缓存的key是传递到<code>findOne</code>方法的<code>id</code>参数。</p>
+<p>可以使用<code>@Cacheable</code>和<code>@CachePut</code>标注的<code>key</code>属性来自定义缓存key：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@CachePut</span>(value=<span class="string">"spittleCache"</span>, key=<span class="string">"#result.id"</span>)</span><br><span class="line"><span class="function">Spittle <span class="title">save</span><span class="params">(Spittle spittle)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>Spring提供了多个用来定义缓存规则的SpEL扩展：</p>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>#root.args</code></td>
+<td>传递给缓存方法的参数，形式为数组。</td>
+</tr>
+<tr>
+<td><code>#root.caches</code></td>
+<td>该方法执行时所对应的缓存，形式为数组。</td>
+</tr>
+<tr>
+<td><code>#root.target</code></td>
+<td>目标对象。</td>
+</tr>
+<tr>
+<td><code>#root.targetClass</code></td>
+<td>目标对象的类，是<code>#root.target.class</code>的简写形式。</td>
+</tr>
+<tr>
+<td><code>#root.method</code></td>
+<td>缓存方法。</td>
+</tr>
+<tr>
+<td><code>#root.methodName</code></td>
+<td>缓存方法的名称，是<code>#root.method.name</code>的简写形式。</td>
+</tr>
+<tr>
+<td><code>#result</code></td>
+<td>方法调用的返回值（不能用在<code>@Cacheable</code>标注上）。</td>
+</tr>
+<tr>
+<td><code>#参数名或索引</code></td>
+<td>任意的方法参数名（如<code>#argName</code>）或参数索引（如<code>#a0</code>或<code>#p0</code>）。</td>
+</tr>
+</tbody></table>
+<h3 id="条件化缓存"><a href="#条件化缓存" class="headerlink" title="条件化缓存"></a>条件化缓存</h3><p><code>@Cacheable</code>和<code>@CachePut</code>提供了两个属性用以实现条件化缓存：<code>unless</code>和<code>condition</code>。</p>
+<p><code>unless</code>属性只能阻止将对象放进缓存，但是在这个方法调用的时候，依然会去缓存中进行查找，如果找到匹配的值，就会返回找到的值。</p>
+<p><code>condition</code>的表达式计算结果为<code>false</code>，则在这个方法调用的过程中，缓存是被禁用的。就是说，不会去缓存进行查找，同时返回值也不会放进缓存中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Cacheable</span>(value=<span class="string">"spittleCache"</span></span><br><span class="line">           unless=<span class="string">"#result.message.contains('NoCache')"</span></span><br><span class="line">           condition=<span class="string">"#id &gt;= 10"</span>)</span><br><span class="line"><span class="function">Spittle <span class="title">findOne</span><span class="params">(<span class="keyword">long</span> id)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>另外，<code>unless</code>属性只有在缓存方法有返回值时才开始发挥作用。而<code>condition</code>肩负着在方法上禁用缓存的任务，因此它不能等到方法返回时再确定是否该关闭缓存。这意味着它的表达式必须要在进入方法时进行计算，所以我们不能通过<code>#result</code>引用返回值。</p>
+<h2 id="移除缓存条目"><a href="#移除缓存条目" class="headerlink" title="移除缓存条目"></a>移除缓存条目</h2><p><code>@CacheEvict</code>并不会往缓存中添加任何东西。相反，如果带有<code>@CacheEvict</code>标注的方法被调用的话，那么会有一个或更多的条目会在缓存中移除。</p>
+<blockquote>
+<p>注意：<code>@CacheEvict</code>可以应用在返回值为<code>void</code>的方法上，而<code>@Cacheable</code>和<code>@CachePut</code>只能用在返回值不是<code>void</code>的方法上。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@CacheEvict</span>(<span class="string">"spittleCache"</span>)</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">remove</span><span class="params">(<span class="keyword">long</span> spittleId)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>被删除条目的key与传递进来的<code>spittleId</code>参数的值相同。</p>
+<p><code>@CacheEvict</code>的属性：</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>value</td>
+<td>String[]</td>
+<td>要使用的缓存名称。</td>
+</tr>
+<tr>
+<td>key</td>
+<td>String</td>
+<td>SpEL表达式，用来计算自定义的缓存key。</td>
+</tr>
+<tr>
+<td>condition</td>
+<td>String</td>
+<td>SpEL表达式，如果得到的值是<code>false</code>，则缓存不会应用到方法调用上。</td>
+</tr>
+<tr>
+<td>allEntries</td>
+<td>boolean</td>
+<td>如果为<code>true</code>，特定缓存的所有条目都会被移除掉。</td>
+</tr>
+<tr>
+<td>beforeInvocation</td>
+<td>boolean</td>
+<td>如果为<code>true</code>，则在方法调用之前移除条目。如果为<code>false</code>（默认值），则在方法成功调用之后再移除条目。</td>
+</tr>
+</tbody></table>
+<h1 id="使用XML声明缓存"><a href="#使用XML声明缓存" class="headerlink" title="使用XML声明缓存"></a>使用XML声明缓存</h1><p>如果你不希望在自己的源码中添加Spring的标注，或者你需要在没有源码的Bean上应用缓存功能。这时就需要使用XML的方式来声明缓存。</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;cache:annotation-driven&gt;</code></td>
+<td>启用标注驱动的缓存。等同于Java配置中的<code>@EnableCaching</code>。</td>
+</tr>
+<tr>
+<td><code>&lt;cache:advice&gt;</code></td>
+<td>定义缓存通知（advice）。结合<code>&lt;aop:advisor&gt;</code>，将通知应用到切点上。</td>
+</tr>
+<tr>
+<td><code>&lt;cache:caching&gt;</code></td>
+<td>在缓存通知中，定义一组特定的缓存规则。</td>
+</tr>
+<tr>
+<td><code>&lt;cache:cacheable&gt;</code></td>
+<td>指明某个方法要进行缓存。等同于<code>@Cacheable</code>。</td>
+</tr>
+<tr>
+<td><code>&lt;cache:cache-put&gt;</code></td>
+<td>指明某个方法要填充缓存，但不会考虑缓存中是否已有配置的值。等同于<code>@CachePut</code>。</td>
+</tr>
+<tr>
+<td><code>&lt;cache:cache-evict&gt;</code></td>
+<td>指明某个方法要从缓存中移除一个或多个条目。等同于<code>@CacheEvict</code>。</td>
+</tr>
+</tbody></table>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=<span class="string">"1.0"</span> encoding=<span class="string">"UTF-8"</span>?&gt;</span><br><span class="line">&lt;beans xmlns=<span class="string">"http://www.springframework.org/schema/beans"</span></span><br><span class="line">    xmlns:xsi=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></span><br><span class="line">    xmlns:cache=<span class="string">"http://www.springframework.org/schema/cache"</span></span><br><span class="line">    xmlns:aop=<span class="string">"http://www.springframework.org/schema/aop"</span></span><br><span class="line">    xsi:schemaLocation=<span class="string">"http://www.springframework.org/schema/aop</span></span><br><span class="line"><span class="string">      http://www.springframework.org/schema/aop/spring-aop.xsd</span></span><br><span class="line"><span class="string">      http://www.springframework.org/schema/beans</span></span><br><span class="line"><span class="string">      http://www.springframework.org/schema/beans/spring-beans.xsd</span></span><br><span class="line"><span class="string">      http://www.springframework.org/schema/cache</span></span><br><span class="line"><span class="string">      http://www.springframework.org/schema/cache/spring-cache.xsd"</span>&gt;</span><br><span class="line">  &lt;aop:config&gt;</span><br><span class="line">  &lt;aop:advisor advice-ref=<span class="string">"cacheAdvice"</span></span><br><span class="line">    pointcut=<span class="string">"execution(* com.habuma.spittr.db.SpittleRepository.*(..))"</span>/&gt;</span><br><span class="line">  &lt;/aop:config&gt;</span><br><span class="line">  &lt;cache:advice id=<span class="string">"cacheAdvice"</span>&gt;</span><br><span class="line">    &lt;cache:caching&gt;</span><br><span class="line">      &lt;cache:cacheable cache=<span class="string">"spittleCache"</span> method=<span class="string">"findRecent"</span> /&gt;</span><br><span class="line">      &lt;cache:cacheable cache=<span class="string">"spittleCache"</span> method=<span class="string">"findOne"</span> /&gt;</span><br><span class="line">      &lt;cache:cacheable cache=<span class="string">"spittleCache"</span> method=<span class="string">"findBySpitterId"</span> /&gt;</span><br><span class="line">      &lt;cache:cache-put cache=<span class="string">"spittleCache"</span> method=<span class="string">"save"</span> key=<span class="string">"#result.id"</span> /&gt;</span><br><span class="line">      &lt;cache:cache-evict cache=<span class="string">"spittleCache"</span> method=<span class="string">"remove"</span> /&gt;</span><br><span class="line">    &lt;/cache:caching&gt;</span><br><span class="line">  &lt;/cache:advice&gt;</span><br><span class="line">  &lt;bean id=<span class="string">"cacheManager"</span></span><br><span class="line">        <span class="class"><span class="keyword">class</span></span>=<span class="string">"org.springframework.cache.concurrent.ConcurrentMapCacheManager"</span> /&gt;</span><br><span class="line">&lt;/beans&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>&lt;cache:advice&gt;</code>中可包含任意数量的<code>&lt;cache:caching&gt;</code>元素。</p>
+<p>另外，如果缓存管理器的ID不是<code>cacheManager</code>的话，则还要在<code>&lt;cache:advice&gt;</code>中通过<code>cache-manager</code>属性显式指定。</p>
+<p>如果<code>&lt;cache:caching&gt;</code>下的所有<code>&lt;cache:cacheable&gt;</code>、<code>&lt;cache:cache-put&gt;</code>、<code>&lt;cache:cache-evict&gt;</code>元素的<code>cache</code>、<code>condition</code>、<code>key</code>或<code>method</code>属性都引用相同的名字，则可以在<code>&lt;cache:caching&gt;</code>元素的对应属性上统一指定：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">cache:advice</span> <span class="attr">id</span>=<span class="string">"cacheAdvice"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">cache:caching</span> <span class="attr">cache</span>=<span class="string">"spittleCache"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">cache:cacheable</span> <span class="attr">method</span>=<span class="string">"findRecent"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">cache:cacheable</span> <span class="attr">method</span>=<span class="string">"findOne"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">cache:cacheable</span> <span class="attr">method</span>=<span class="string">"findBySpitterId"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">cache:cache-put</span> <span class="attr">method</span>=<span class="string">"save"</span> <span class="attr">key</span>=<span class="string">"#result.id"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">cache:cache-evict</span> <span class="attr">method</span>=<span class="string">"remove"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">cache:caching</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">cache:advice</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>此外，<code>&lt;cache:cacheable&gt;</code>、<code>&lt;cache:cache-put&gt;</code>也有<code>unless</code>属性。<code>&lt;cache:cache-evict&gt;</code>有<code>all-entries</code>和<code>before-invocation</code>属性。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/5-1-2/" rel="tag"># 5.1.2</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/11/16/SpringDA/" rel="prev" title="SpringDA">
+      <i class="fa fa-chevron-left"></i> SpringDA
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/12/03/SpringRemoting/" rel="next" title="SpringRemoting">
+      SpringRemoting <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#启用缓存"><span class="nav-number">1.</span> <span class="nav-text">启用缓存</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置缓存管理器"><span class="nav-number">2.</span> <span class="nav-text">配置缓存管理器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#配置EhCache缓存"><span class="nav-number">2.1.</span> <span class="nav-text">配置EhCache缓存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置Redis缓存"><span class="nav-number">2.2.</span> <span class="nav-text">配置Redis缓存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置多个缓存管理器"><span class="nav-number">2.3.</span> <span class="nav-text">配置多个缓存管理器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#为方法添加标注以支持缓存"><span class="nav-number">3.</span> <span class="nav-text">为方法添加标注以支持缓存</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#填充缓存"><span class="nav-number">3.1.</span> <span class="nav-text">填充缓存</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义缓存key"><span class="nav-number">3.1.1.</span> <span class="nav-text">自定义缓存key</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#条件化缓存"><span class="nav-number">3.1.2.</span> <span class="nav-text">条件化缓存</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#移除缓存条目"><span class="nav-number">3.2.</span> <span class="nav-text">移除缓存条目</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用XML声明缓存"><span class="nav-number">4.</span> <span class="nav-text">使用XML声明缓存</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">周千涵</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" title="E-Mail → mailto:supremeadministrator@supercalifragilisticexpialidociouser.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">周千涵</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
