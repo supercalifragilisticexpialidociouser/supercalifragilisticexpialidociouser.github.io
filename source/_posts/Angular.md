@@ -502,7 +502,7 @@ export class AppRoutingModule { }
 
 > `forRoot()` 包含的注入器配置是全局性的，比如对路由器的配置。`forChild()` 中没有注入器配置，只有像 `RouterOutlet` 和 `RouterLink` 这样的指令。
 
-注意：**惰性加载的模块不需要导入任何其他模块中**，它们是在路由时动态加载的。
+注意：**惰性加载的模块不需要导入到任何其他模块中**，它们是在路由时动态加载的。
 
 # 组件
 
@@ -5571,3 +5571,47 @@ Angular有一种生产模式，可以禁用在开发过程中执行的一些有�
 5. 按照提示选择你为托管它而创建的 `Firebase` 项目。
 6. 用 `firebase deploy` 命令部署你的应用，这是因为 StackBlitz 已经创建好了一个 firebase.json，它会告诉 Firebase 如何用你的应用提供服务。
 7. 部署之后，访问 [https://your-firebase-project-name.firebaseapp.com](https://your-firebase-project-name.firebaseapp.com/) 进行实时查看！
+
+## 创建Docker镜像
+
+Docker镜像可以分成多个阶段构建：
+
+```dockerfile
+### 第一阶段：构建Angular应用 ###
+
+# 这个阶段主要需要node镜像。另外，通过“as”给这一阶段起个别名——builder，以便于在第二阶段引用第一阶段的成果
+FROM node:9-alpine as builder
+
+COPY package.json package-lock.json ./
+
+RUN npm set progress=false && npm config set depth 0 && npm cache clean --force
+
+## 把node_modules保存在单独的一层以避免以后每次构建时都重复做npm install
+RUN npm config set registry https://registry.npm.taobao.org && npm i && mkdir /ng-app && cp -R ./node_modules ./ng-app
+
+## 指定工作目录
+WORKDIR /ng-app
+
+COPY . .
+
+## Build the angular app in production mode and store the artifacts in dist folder
+RUN $(npm bin)/ng build --prod
+
+
+### 第二阶段：设置Nginx服务器 ###
+
+FROM nginx:1.13.8-alpine
+
+## Copy our default nginx config
+COPY nginx/default.conf /etc/nginx/conf.d/
+
+## Remove default nginx website
+RUN rm -rf /usr/share/nginx/html/*
+
+## 从“builder”阶段将编译后的文件复制到Nginx默认的站点目录
+COPY --from=builder /ng-app/dist /usr/share/nginx/html
+
+## 执行命令启动Nginx
+CMD ["nginx", "-g", "daemon off;"]
+```
+

@@ -6572,11 +6572,85 @@ Files.delete(path)
 boolean deleted = Files.deleteIfExists(path);
 ```
 
-
-
 ### 访问目录内容
 
+`Files.list`方法可以目录中的内容，但它不会访问子目录中的内容：
+
+```java
+try (Stream<Path> entries = Files.list(pathToDirectory)) {
+  …
+}
+```
+
+要遍历目录及其所有子目录的内容，可以使用`Files.walk`方法：
+
+```java
+Files.walk(source).forEach(p -> {
+  try {
+    Path q = target.resolve(source.relativize(p));
+    if (Files.isDirectory(p))
+      Files.createDirectory(q);
+    else
+      Files.copy(p, q);
+  } catch (IOException ex) {
+    throw new UncheckedIOException(ex);
+  }
+});
+```
+
+`walk`方法默认采用深度优先次序，可以使用`walk(pathToRoot, depth)`来限定访问的递归深度。
+
+如果希望在遍历时，能够得到通知的时机，则要使用`walkFileTree`方法，它授受一个`FileVisitor`接口的实例：删除一个可能非空的目录
+
+```java
+Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
+  public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+    Files.delete(file);
+    return FileVisitResult.CONTINUE;
+  }
+  public FileVisitResult postVisitDirectory(Path dir, IOException ex) throws IOException {
+    if (ex != null) throw ex;
+    Files.delete(dir);
+    return FileVisitResult.CONTINUE;
+  }
+});
+```
+
+如果要对返回的目录进行过滤，那么要使用`find`方法。
+
 ### ZIP文件系统
+
+`Paths`类只处理默认文件系统中的路径——即在用户本地磁盘上的文件。如果要访问其他文件系统的内容，例如ZIP文件系统，则可以这么调用：
+
+```java
+FileSystem zipfs = FileSystems.newFileSystem(Paths.get(zipname), null);
+```
+
+复制压缩包中的文件：
+
+```java
+Files. copy(zipfs.getPath(sourceName), targetPath);
+```
+
+列出ZIP包中的所有文件：
+
+```java
+Files.walk(zipfs.getPath("/")).forEach(p -> {
+  …
+})
+```
+
+创建一个新的ZIP包：
+
+```java
+Path zipPath = Paths.get("myfile.zip");
+URI uri = new URI("jar", zipPath.toUri().toString(), null);
+// 构造一个URI jar:file://myfile.zip
+try (FileSystem zipfs = FileSystems.newFileSystem(uri, Collections.singletonMap("create", "true"))) {
+  // 添加文件，复制到ZIP文件系统
+  Files.copy(sourcePath, zipfs.getPath("/").resolve(targetPath));
+}
+```
 
 ### 文件锁
 
