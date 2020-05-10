@@ -30,6 +30,8 @@ $ npm install vue
 
 ## 使用Vue CLI工具
 
+<!--more-->
+
 # 入门
 
 ```html

@@ -36,6 +36,8 @@ $ sudo pacman -S archlinuxcn-keyring
 
 重启系统。
 
+<!--more-->
+
 # 设置时钟
 
 方法一：通过GUI配置界面

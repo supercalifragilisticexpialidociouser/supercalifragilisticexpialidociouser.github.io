@@ -4823,12 +4823,6 @@ export class HeroFormComponent {
 
 另外，还有一个 `ng-pending` CSS类。
 
-```html
-<input type="text" class="form-control" id="name" required
-       [(ngModel)]="model.name" name="name" #spy>
-<br>TODO: remove this: {{spy.className}}
-```
-
 ## 测试表单
 
 测试响应式表单和模板驱动表单的差别之一在于它们是否需要渲染 UI 才能基于表单控件和表单字段变化来执行断言。
