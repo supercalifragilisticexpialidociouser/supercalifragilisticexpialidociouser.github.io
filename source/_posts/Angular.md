@@ -1,7 +1,7 @@
 ---
 title: Angular
 date: 2018-04-26 10:34:40
-tags: [8.1.1]
+tags: [9.1.9]
 ---
 
 Angular 是一个开发平台。它能帮你更轻松的构建 Web 应用。Angular 集声明式模板、依赖注入、端到端工具和一些最佳实践于一身，为你解决开发方面的各种挑战。Angular 为开发者提升构建 Web、手机或桌面应用的能力。
@@ -30,7 +30,7 @@ $ npm install -g @angular/cli
 
 ### 升级angular-cli
 
-全局包升级：
+1. 全局包升级：
 
 ```bash
 $ npm uninstall -g @angular/cli
@@ -39,7 +39,7 @@ $ npm cache verify
 $ npm install -g @angular/cli@latest
 ```
 
-本地项目升级：
+2. 本地项目升级：
 
 ```bash
 $ rm -rf node_modules dist # use rmdir /S/Q node_modules dist in Windows Command Prompt; use rm -r -fo node_modules,dist in Windows PowerShell
@@ -54,8 +54,7 @@ $ ng update --all --force
 
 安装如下VSCode扩展：
 
-- Angular Language Service
-- Angular 8 Snippets - TypeScript, Html, Angular Material, ngRx, RxJS & Flex Layout
+- Angular Essentials (Version 9)
 
 ## 选择浏览器
 
@@ -366,7 +365,7 @@ export class AppModule { }
 
 `declarations`属性指定了该模块包含哪些组件、指令和管道（统称可声明对象），即哪些可声明对象属于这个模块。每个可声明对象都必须声明在（且只能声明在）一个 [NgModule](https://angular.cn/guide/ngmodules) 中。
 
-`bootstrap`属性指定了当该模块引导时需要进行引导的组件（根组件）。列在这里的所有组件都会自动添加到 `entryComponents` 属性中。只有根模块才能设置`bootstrap`属性。一个主页可以有多个根组件。
+在 Angular 中，应用的根模块（`AppModule`）有一个 `bootstrap` 属性，用于指出该应用的的根[组件](https://angular.cn/guide/glossary#component)。 在引导期间，Angular 会创建这些组件，并插入到宿主页面 `index.html` 中。 你可以在同一个 `index.html` 中引导多个应用，每个应用都有一些自己的组件。列在`bootstrap` 属性中的所有组件都会自动添加到 `entryComponents` 属性中。只有根模块才能设置`bootstrap`属性。
 
 `import`属性导入其他Angular模块的可声明对象，使得它们在当前Angular模块的**模板**中可用。
 
@@ -388,13 +387,13 @@ $ ng g module home
 Angular开发中使用了两种类型的模块：
 
 - JavaScript模块：一个.js文件就是一个模块。通过`export`导出变量为公共的，通过`import`导入公共变量。
-- Angular模块：用于描述应用或一组相关功能。每个应用都有一个根模块（Root module），它为Angular提供启动应用所需的信息。Angular模块通过`@NgModule`装饰器来声明。Angular模块的目的是通过`@NgModule`装饰器定义的属性来提供配置信息。
+- Angular模块：它是Angular 的基本构造块，用于描述应用或一组相关功能，它通过`@NgModule`装饰器来声明。Angular模块的目的是通过`@NgModule`装饰器定义的属性来提供配置信息。
 
 ## Angular模块
 
 Angular模块有两种类型：
 
-- 根模块（root module）：用于向Angular描述应用程序，主要包括：运行应用程序所需的功能模块、应该加载哪些自定义功能以及根组件的名称。根模块在引导文件中加载。
+- 根模块（root module）：每个应用都有一个根模块（Root module），用于向Angular描述应用程序，主要包括：运行应用程序所需的功能模块、应该加载哪些自定义功能以及根组件的名称。根模块在引导文件中加载。
 - 功能模块（feature module）：用于把相关的应用程序功能归集起来，使应用程序更易于管理。
 
 > Angular功能模块很适合于共享指令、管道和组件，把它们放在一个模块中，然后在应用中其它需要这些的地方导入该模块。但是，Angular功能模块不适合用于共享服务，因为导入带有服务的模块意味着你会拥有那个服务的一个**新实例**，这通常不会是你想要的结果（你通常会想取到现存的服务）。获取共享服务的最常见方式是通过 Angular 的依赖注入系统，而不是模块系统。
@@ -5515,6 +5514,23 @@ b = 2;
 在赋值b=2之后，a的值也随即更新为3。
 
 # 异步HTTP请求
+
+## 启用HTTP服务
+
+把`HttpClientModule`模块添加到根模块 `AppModule` 中：
+
+```typescript
+import { HttpClientModule }    from '@angular/common/http';
+
+@NgModule({
+  imports: [
+    HttpClientModule,
+  ],
+})
+export class AppModule { }
+```
+
+
 
 # 状态管理
 
