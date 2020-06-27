@@ -12,6 +12,8 @@ tags: [3.7.0]
 
 ## 安装
 
+Python有两个主流的发行版本：一个是官方的发行版本，另一个是Anaconda发行版本。后者在科学计算和数据科学中很受欢迎。任选一个发行版本安装即可。
+
 ### IDE
 
 [PyCharm](http://www.jetbrains.com/pycharm/)
@@ -38,6 +40,14 @@ $ python
 ```
 
 > 提示：按下 `q` 退出帮助。
+
+### dir函数
+
+`dir`函数不带参数时，可以列出当前作用域中的所有名字。
+
+如果`dir`函数接收的一个对象，且它提供了`__dir__`方法，则返回该方法的返回值。否则，如果`dir`函数接收一个模块对象，则返回该模块的成员名列表；如果`dir`函数接收一个类对象，则返回该类及其祖先类的成员名列表；如果`dir`函数接收一个实例对象，则返回该实例对象的成员，及其所属类及祖先类的成员名列表 。
+
+`dir`函数的返回值是字符串列表。
 
 ## 解释模式
 
@@ -2640,6 +2650,8 @@ class ArithmeticSequence:
 
 ### globals函数
 
+以字典类型返回当前位置的全部**全局变量**及其值。
+
 ```python
 >>> def combine(parameter):
 ...   print(parameter + globals()['parameter'])
@@ -2651,7 +2663,11 @@ Shrubberry
 
 ### locals函数
 
+以字典类型返回当前位置的全部**局部变量**及其值。
+
 ### vars函数
+
+不带参数时，等价于`locals()`；带参数时，等价于参数的`__dict__`值。
 
 ```python
 >>> x = 1
@@ -2706,6 +2722,27 @@ I_wish_to_register_a_complaint
 x = input("x: ")  #input函数的返回值是一个字符串
 ```
 
+## 重定向
+
+```bash
+$ python foo.py arg1 arg2 < infile > outfile
+$ python foo.py arg1 arg2 < infile >> outfile
+```
+
+上例中，将foo.py中所有`input`或`sys.stdin`的操作都 定向为`infile`，将所有`print`或`sys.stdout`的操作都 定向为`outfile`。
+
+`>`表示覆盖，`>>`表示追加到末尾。
+
+## 管道
+
+管道可以将一条命令的输出作为另一条命令的输入：
+
+```bash
+$ python replace.py 0 zero < infile | python replace.py 1 one > outfile
+```
+
+
+
 # 系统环境
 
 ## 命令行参数
@@ -2713,6 +2750,8 @@ x = input("x: ")  #input函数的返回值是一个字符串
 Python中，可以通过`sys`模块的`argv`变量来获取命令行参数。
 
 示例参见：“直接运行脚本”、“直接运行代码”和“把模块当作脚本执行”章节。
+
+另外，可以使用`argparse`模块来解析参数。
 
 ## 退出当前程序
 
