@@ -36,6 +36,8 @@ $ sudo pacman -S archlinuxcn-keyring
 
 重启系统。
 
+<!--more-->
+
 # 设置时钟
 
 方法一：通过GUI配置界面
@@ -250,7 +252,7 @@ ZSH_THEME="agnoster"
 
    > 注意：这里一定要用等宽字体（即这里的带“Mono”后缀），否则，有些双宽度图标字符显示不出来。
 
-5. 常用Powerlevel9k配置
+5. 常用Powerlevel9k配置（Linux终端上粘贴快捷键是：Shift-Ctrl-V）
 
    ```
    # 左侧栏目显示的要素

@@ -26,6 +26,14 @@ OS X：Xcode
 
 其他：Eclipse CDT、CLion、Code::Blocks、KDevelop
 
+在配置IDE时，很重要的是配置includePath。可以使用下面命令来查看gcc的includePath：
+
+```bash
+$ echo | gcc -v -x c -E -
+```
+
+上面是查看C语言的includePath，如果要查看C++，则只需要将上面的“c”改成“c++”。
+
 ## 交互模式
 
 无 
