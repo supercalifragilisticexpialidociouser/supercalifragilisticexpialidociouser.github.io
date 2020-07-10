@@ -4934,9 +4934,9 @@ it('should update the favorite color on the input field', fakeAsync(() => {
 
 告诉Angular每个URL映射到组件的映射称为URL路由，简称路由。
 
-## `<base href>` 元素
+## 路由的基URL
 
-Angular路由功能要求HTML文档（`index.html`）中有一个`<base>`元素，由其提供路由的基本URL。
+Angular路由功能要求HTML文档（`index.html`）中有一个`<base>`元素，由其提供路由的基URL。
 
 ## 定义路由
 
@@ -4997,13 +4997,42 @@ const routes: Routes = [
 export class AppRoutingModule {}
 ```
 
+### 初始路由
 
+```typescript
+{ path: '',   redirectTo: '/first-component', pathMatch: 'full' }
+```
 
-## `<router-outlet>`元素
+这里的 `path: ''` 表示使用初始的相对 URL（ `''` ）。
 
-当使用路由功能时，Angular会查找`<router-outlet>`元素，它相当于一个占位符，它指定了应该在什么位置显示当前URL对应的组件。
+### 通配符路由
 
-## 应用程序导航
+当所请求的 URL 与任何路由器路径都不匹配时，Angular 路由器就会选择这个通配符路由。
+
+```typescript
+{ path: '**', component: PageNotFoundComponent }
+```
+
+### 路由顺序
+
+路由的顺序很重要，因为 `Router` 在匹配路由时使用“**先到先得**”策略，所以应该在不那么具体的路由前面放置更具体的路由。首先列出静态路径的路由，然后是一个与默认路由匹配的空路径路由。[通配符路由](https://angular.cn/guide/router#setting-up-wildcard-routes)是最后一个，因为它匹配每一个 URL，只有当其它路由都没有匹配时，`Router` 才会选择它。
+
+### 重定向
+
+```typescript
+const routes: Routes = [
+  { path: 'first-component', component: FirstComponent },
+  { path: '',   redirectTo: '/first-component', pathMatch: 'full' }, // redirect to `first-component`
+];
+```
+
+### 嵌套路由
+
+## 路由入口
+
+当使用路由功能时，Angular会在根组件（如果是子路由则会在子路由所在的组件）中查找`<router-outlet>`元素，它相当于一个占位符，它指定了应该在什么位置显示当前URL对应的组件。
+
+## 导航
 
 URL路由功能依赖浏览器提供的JavaScript API，因此用户无法简单地将目标URL输入到浏览器地址栏中进行导航。相反，导航必须由应用程序执行，具体的实现方法是在组件或其他构造块中编写JavaScript代码，或者向模板中的HTML元素添加属性。
 
@@ -5041,6 +5070,23 @@ import {RouterModule} from "@angular/router";
 ```
 
 路由器会根据你应用中的导航规则和数据状态来拦截 URL。 当用户点击按钮、选择下拉框或收到其它任何来源的输入时，你可以导航到一个新视图。 路由器会在浏览器的历史日志中记录这个动作，所以前进和后退按钮也能正常工作。
+
+### 相对路径
+
+## 获取路由信息
+
+要获取当前路由的信息（例如查询参数等），可以注入 `ActivatedRoute`接口。
+
+```typescript
+constructor(private route: ActivatedRoute) {}
+ngOnInit() {
+  this.route.queryParams.subscribe(params => {
+    this.name = params['name'];
+  });
+}
+```
+
+
 
 ## 守卫路由
 
@@ -5286,15 +5332,28 @@ export class HeroService {
 }
 ```
 
-如果上面的命令不是在项目根目录下执行，例如在`my-app/src/app/service/`下执行，则会在该目录下生成上述两个文件。
+如果希望在指定的目录下生成，例如`my-app/src/app/service/`，则：
+
+```bash
+$ cd my-app
+$ ng generate service service/hero
+```
+
+上面命令生成：
+
+- `my-app/src/app/service/hero.service.ts`
+- `my-app/src/app/service/hero.service.spec.ts`
 
 如果希望在单独的目录中生成上述两个文件，则可以加上`--flat=false`选项：
 
 ```bash
-$ ng g service hero --flat=false
+$ ng g service service/hero --flat=false
 ```
 
-如果在项目根目录下执行上面命令，则会在`my-app/src/app/hero/`目录下生成源文件；如果上面的命令不是在项目根目录下执行，例如在`my-app/src/app/service/`下执行，则会在`my-app/src/app/service/hero/`目录下生成源文件。
+上面命令生成：
+
+- `my-app/src/app/service/hero/hero.service.ts`
+- `my-app/src/app/service/hero/hero.service.spec.ts`
 
 ## 将服务注册为提供者
 
@@ -5555,6 +5614,14 @@ $ ng lint
 # 构建
 
 Angular有一种生产模式，可以禁用在开发过程中执行的一些有用的检查。启用生产模式意味着提高性能，通过调用`enableProdMode`函数启用生产模式。
+
+生产构建可以使用下面命令：
+
+```bash
+$ ng build --prod --aot
+```
+
+构建后，会将目标文件生成到`dist`目录下。并将应用中所有样式合并到一个`styles.9d2c6284dda829f2dba8.css`中，然后自动插入到`index.html`文件中。而应用中所有脚本则会分成四个文件：`runtime.*.js`、`polyfills.*.js`、`scripts.*.js`（在`angular.json`的`scripts`中添加的）和`main.*.js`，并按这个顺序自动插入到`index.html`中。
 
 # 部署
 
