@@ -1,7 +1,7 @@
 ---
 title: Angular
 date: 2018-04-26 10:34:40
-tags: [9.1.9]
+tags: [10.0.8]
 ---
 
 Angular 是一个开发平台。它能帮你更轻松的构建 Web 应用。Angular 集声明式模板、依赖注入、端到端工具和一些最佳实践于一身，为你解决开发方面的各种挑战。Angular 为开发者提升构建 Web、手机或桌面应用的能力。
@@ -21,6 +21,8 @@ angular-cli是一个命令行工具，可用于创建和管理Angular项目。
 ```bash
 $ npm install -g @angular/cli
 ```
+
+> 注：如果使用npx来执行ng命令，也可以不需要全局安装angular-cli。参见“创建工作空间和应用”。
 
 查看版本：`ng version`。
 
@@ -104,6 +106,20 @@ $ ng new my-app
 ```bash
 $ ng new my-app --style=scss --routing
 ```
+
+如果没有全局安装angular-cli，则可以使用npx工具来执行ng命令：
+
+```bash
+$ npx -p @angular/cli ng new my-app
+```
+
+`npx`会临时安装`@angular/cli`，然后执行`ng new my-app`命令。命令执行完成后，会自动删除`@angular/cli`。这非常适合很少使用的全局命令，它还可以指定临时安装的版本模块，并且不会影响已经安装的其他版本模块：
+
+```bash
+$ npx -p @angular/cli@10.0.2 ng new my-app
+```
+
+
 
 ## 启动开发服务器
 
@@ -5648,6 +5664,30 @@ $ ng build --prod --aot
 5. 按照提示选择你为托管它而创建的 `Firebase` 项目。
 6. 用 `firebase deploy` 命令部署你的应用，这是因为 StackBlitz 已经创建好了一个 firebase.json，它会告诉 Firebase 如何用你的应用提供服务。
 7. 部署之后，访问 [https://your-firebase-project-name.firebaseapp.com](https://your-firebase-project-name.firebaseapp.com/) 进行实时查看！
+
+## 部署到Github Pages
+
+使用angular-cli-ghpages可以将angular项目部署到Github Pages：
+
+1. 首先新建一个Github空项目，比如angular-deploy
+
+2. 然后使用angular-cli工具生成一个新项目
+
+3. 安装angular-cli-ghpages包
+   `npm install angular-cli-ghpages -g`
+
+4. 打包项目代码，并设置项目链接地址
+   `ng build --prod --base-href "https://justforuse.github.io/angular-deploy/"`
+
+5. 初始化git
+
+   ```
+   git init
+   git remote add origin https://github.com/justforuse/angular-deploy.git12
+   ```
+
+6. 发布（默认push到gh-pages分支上）
+   `ngh`
 
 ## 创建Docker镜像
 
