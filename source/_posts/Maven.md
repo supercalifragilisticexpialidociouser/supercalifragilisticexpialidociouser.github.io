@@ -3183,7 +3183,7 @@ mvn deploy:deploy-file -DgroupId=<group-id> \
   </project>
   ```
 
-  ​
+  
 
 # 资源
 
@@ -4670,7 +4670,7 @@ Maven实际上是通过`maven-surefire-plugin`插件（默认绑定到`test`阶�
 
 ## 跳过测试
 
-只跳过测试运行：
+只跳过测试运行，但仍会编译测试代码：
 
 ```bash
 $ mvn package -DskipTests

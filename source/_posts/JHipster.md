@@ -117,6 +117,16 @@ $ jhipster
 
 2. 在`WebConfigurer.java`的`corsFilter()`方法中注册需要跨域的路径，默认已经注册了`/api/**`、`/management/**`和`/v2/api-docs`路径。
 
+## 使用JPA审计
+
+JHipster已经在`DatabaseConfiguration`中启用了JPA审计功能（`@EnableJpaAuditing`），并且提供了`AuditorAware`的一个实现`SpringSecurityAuditorAware`，它负责获取当前用户信息。
+
+另外，JHipster也提供了一个公共抽象实体类`AbstractAuditingEntity`，并配置由Spring的实体监听器`AuditingEntityListener`来自动填充`createdBy`、`createdDate`、`lastModifiedBy`、`lastModifiedDate`四个字段。
+
+因此，我们自己写的实体类只要扩展了`AbstractAuditingEntity`，就会自动填充上述的四个字段，而不需要我们自己处理这些字段的值。
+
+> 注意：不管前端是否显式传递了上述四个字段的值，Spring总是使用自动填充的值覆盖实体原来的属性值。
+
 # 构建应用
 
 可通过如下命令打包应用，并使用[Jib](https://github.com/GoogleContainerTools/jib)生成一个Docker镜像：
