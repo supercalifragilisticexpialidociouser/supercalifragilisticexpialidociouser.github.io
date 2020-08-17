@@ -16,6 +16,28 @@ Docker只能运行在与底层宿主机相同或相似的操作系统上（例�
 
 如果在使用Docker Desktop时出现连接超时，则右击系统托盘，Settings -> Network，将DNS Server由默认的Automatic改成Fixed（8.8.8.8）。
 
+## 配置
+
+### 使用国内镜像
+
+方法一：
+
+```bash
+# vim /etc/docker/daemon.json
+{
+	"registry-mirrors": ["https://registry.docker-cn.com"]
+}
+# systemctl restart docker
+```
+
+方法二：
+
+```bash
+# dockerd --registry-mirrors=https://registry.docker-cn.com
+```
+
+
+
 # 入门
 
 
