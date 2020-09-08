@@ -24,7 +24,7 @@ Windows：Visual Studio
 
 OS X：Xcode
 
-其他：Eclipse CDT、CLion、Code::Blocks、KDevelop
+跨平台：**Visual Studio Code**、Eclipse CDT、CLion、Code::Blocks
 
 在配置IDE时，很重要的是配置includePath。可以使用下面命令来查看gcc的includePath：
 
@@ -182,8 +182,6 @@ $ gcc -g -c -Wa,-a=hello.list,-L hello.c
 $ objdump -d hello.o
 ```
 
-
-
 ### 链接
 
 链接器把多个二进制目标文件链接成一个单独的可执行文件。
@@ -254,7 +252,7 @@ $ gcc -o hello hello.c -lncurses
 
 有三种方式可以链接在GCC默认搜索路径以外的链接库。
 
-方式一是把链接库作为普通的目标文件：
+方式一：把链接库作为普通的目标文件：
 
 ```bash
 $ gcc -o hello hello.c /usr/local/lib/libncurses.a
@@ -262,7 +260,7 @@ $ gcc -o hello hello.c /usr/local/lib/libncurses.a
 
 > 采用这种方式，不需要使用`-l`选项指定链接库。
 
-方式二是使用`-L`选项来为GCC增加一个搜索链接库的目录：
+方式二：使用`-L`选项来为GCC增加一个搜索链接库的目录：
 
 ```bash
 $ gcc -o hello -L/usr/local/lib/ -lncurses hello.c
@@ -270,7 +268,7 @@ $ gcc -o hello -L/usr/local/lib/ -lncurses hello.c
 
 在同一命令中，`-L`选项可以有多个，或者在一个`-L`选项内使用冒号分割的路径列表。
 
-方式三是把所需链接库的目录加到环境变量`LIBRARYPATH`中，目录列表使用逗号分隔。环境变量`LIBRARYPATH`添加的搜索路径的优先级小于`-L`添加的搜索路径。
+方式三：把所需（静态）链接库的目录加到环境变量`LIBRARYPATH`中，目录列表使用逗号分隔。环境变量`LIBRARYPATH`添加的搜索路径的优先级小于`-L`添加的搜索路径。
 
 > 环境变量`LD_LIBRARY_PATH` （OS X中是`DYLD_LIBRARY_PATH`）提供了共享链接库文件的搜索位置，搜索目录之间使用逗号分隔。注意，该环境变量不是由GCC所读取，而是由可执行文件读取，并动态链接到共享链接库。
 
@@ -311,9 +309,9 @@ $ gcc -lncurses -v -Wl,-Map,hello.map hello.c
 
 上面指定库搜索路径的方式都是为链接器服务的，而如果要为可执行程序在运行时提供共享链接库的搜索路径，则有两种方法：
 
-方法一、在环境变量`LD_LIBRARY_PATH`（Linux、Cygwin）或`DYLD_LIBRARY_PATH`（OS X）中定义运行时链接的库搜索路径。
+方法一：在环境变量`LD_LIBRARY_PATH`（Linux、Cygwin）或`DYLD_LIBRARY_PATH`（OS X）中定义运行时链接的库搜索路径。
 
-方法二、通过`-Wl,R`选项将库搜索路径显式标注到可执行文件中：
+方法二：通过`-Wl,R`选项将库搜索路径显式标注到可执行文件中：
 
 ```makefile
 LDADD = -Llibpath -Wl,Rlibpath
@@ -824,6 +822,13 @@ C11标准中，对复数的支持是可选的。如果定义了宏`__STDC_NO_COM
 - `long double imaginary`
 
 头文件complex.h定义了宏`complex`和`I`。宏`complex`是关键字`_Complex`的同义词。宏`I`代表虚数单位i，且其类型是`const float _Complex`。
+
+```c
+#include <complex.h>
+
+double complex z = 1.0 + 2.0 * I;
+z *= I;
+```
 
 C11中提供了宏`CMPLX`、`CMPLXF`和`CMPLXL`，分别用于构造`double _Complex`、`float _Complex`和`long double _Complex`复数。例如：`CMPLX(1.0, 2.0)`。
 
