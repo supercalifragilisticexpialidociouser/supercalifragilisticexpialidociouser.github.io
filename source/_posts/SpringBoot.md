@@ -256,6 +256,12 @@ $ java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=8000,suspend=n \
        -jar target/demo-0.0.1-SNAPSHOT.jar
 ```
 
+> 如果是使用Maven来启动应用，则可以设置如下环境变量（例如在.zshrc中设置）：
+>
+> ```
+> export MAVEN_OPTS="-Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=8000,suspend=n"
+> ```
+
 然后，在Eclipse中新建`Remote Java Application`，`Host`处输入远程服务器的IP，`Port`处输入上面的`8000`。
 
 最后，象正常那样设置断点，点`Debug`按钮进行调试。
