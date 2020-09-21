@@ -208,12 +208,15 @@ ZSH_THEME="agnoster"
 
 官方主题位于：`.oh-my-zsh/themes/`下，第三方主题位于：`.oh-my-zsh/custom/themes/`下。
 
-### Bullet Train主题
+### Powerlevel10k主题
 
-安装步骤：
+它是Powerlevel9k的升级版，速度更快。参见：https://github.com/romkatv/powerlevel10k
 
-1. 将[bullet-train.zsh-theme](http://raw.github.com/caiogondim/bullet-train-oh-my-zsh-theme/master/bullet-train.zsh-theme)下载到`.oh-my-zsh/custom/themes/`。
-2. 配置`~/.zshrc`：`ZSH_THEME="bullet-train"`。
+### Pure主题
+
+可独立于oh-my-zsh。
+
+参见：https://github.com/sindresorhus/pure
 
 ### Powerlevel9k主题
 
