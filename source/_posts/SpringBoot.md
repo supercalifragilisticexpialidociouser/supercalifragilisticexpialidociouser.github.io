@@ -441,6 +441,8 @@ Spring Boot偏爱基于Java的配置，而不是基于XML的配置。
 
 ## 自动配置
 
+不管是使用Java还是使用XML的显式配置，只有当Spring不能进行自动配置的时候才是必要的。
+
 将`@EnableAutoConfiguration`标注在配置类上，允许Spring Boot根据依赖关系，自动配置Spring应用。例如，如果hsqldb的JAR在你的类路径上，则Spring Boot会自动配置这个JAR与Spring集成。
 
 自动配置是非侵入的，在任何时候，你都可以用自己的配置覆盖自动配置。
