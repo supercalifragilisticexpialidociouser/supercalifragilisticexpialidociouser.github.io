@@ -229,7 +229,7 @@ public class DemoApplication {
 
 - `@EnableAutoConfiguration`：基于依赖关系，自动配置Spring；
 
-- `@ComponentScan`：告诉Spring去哪里自动扫描其他组件、配置和服务，并将它们自动注册为Spring Beans。在默认情况下，这个标注将会扫描当前包以及其下任意深度的子包。如果没有使得这个标注，则必须使用`@Import`标注显式列出要扫描的组件：
+- `@ComponentScan`：告诉Spring去哪里自动扫描其他组件、配置和服务，并将它们自动注册为Spring Beans。在默认情况下，这个标注将会扫描当前包以及其下任意深度的子包。如果没有使用这个标注，则必须使用`@Import`标注显式列出要扫描的组件：
 
   ```java
   @Configuration
@@ -268,6 +268,12 @@ $ java -jar target/demo-0.0.1-SNAPSHOT.jar
 可以按`Ctrl-C` 停止应用。
 
 > 有时运行一个Web应用两次会出现端口占用情况，如果使得STS，可以使用它的`Relaunch`按钮来运行应用，而不是使用`Run`按钮来运行。`Relaunch`可以确保在运行应用之前，任何已经运行的实例被关闭。
+
+## 开发
+
+### DevTools
+
+
 
 ## 调试
 
@@ -312,3 +318,5 @@ $ mvn clean package
 Spring Initializr默认将应用打包成一个可执行的jar包，并且内嵌了Tomcat、Jetty和Undertow支持。因此，不再需要单独下载这些Servlet容器。这主要是为了更方便云部署。
 
 当然，也可以将Spring Boot打包成传统的war包，部署到独立的Servlet容器中。只需在pom.xml中加上`<packaging>war</packaging>`，并且要包含一个Web初始化类。另外，这个war既可部署到支持Servlet 3.0的容器中，也可以直接使用`java -jar`命令来运行。
+
+## 部署
