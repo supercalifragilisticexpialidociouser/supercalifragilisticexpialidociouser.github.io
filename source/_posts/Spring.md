@@ -273,7 +273,39 @@ $ java -jar target/demo-0.0.1-SNAPSHOT.jar
 
 ### DevTools
 
+要使得Spring Boot DevTools，只需要在pom.xml加入如下依赖：
 
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-devtools</artifactId>
+  <optional>true</optional><!--避免传递依赖到其他模块 -->
+</dependency>
+```
+
+DevTools仅仅用于开发，在生产环境中会自动被禁用。
+
+#### 应用自动重启
+
+当DevTools运行时，应用程序会被加载到Java虚拟机的两个独立的类加载器中。其中一个类加载器加载你的Java代码和属性文件以及项目中“src/main”路径下几乎所有的内容。另一个类加载器会加载依赖的库。
+
+当DevTools监测到项目中的Java代码、属性文件发生了修改，它会重新加载包含项目代码的那个类加载器，并重启Spring上下文，在这个过程中另外一个类加载器保持不变。
+
+因此，当使用DevTools时，Java代码或属性文件的变更会自动生效，而依赖的变更需要手动重启应用后才能生效。
+
+> 如果需要更强大的自动生效方式，可以使用 [JRebel](https://zeroturnaround.com/software/jrebel/)。
+
+#### 自动刷新浏览器
+
+DevTools运行时，会自动启动一个LiveReload服务器，它会在模板、图片、样式表、JavaScript等面向浏览器的资源发生变化时，通知LiveReload浏览器插件自动刷新浏览器。
+
+#### 自动禁用模板缓存
+
+DevTools会禁用所有模板的缓存，避免刷新浏览器时无法看到模板变更的效果。
+
+#### 内置H2控制台
+
+如果你使用H2数据库，则DevTools将会自动启用H2控制台，你可以在浏览器上通过<http://localhost:8080/h2-console>来访问H2控制台。
 
 ## 调试
 
