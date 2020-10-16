@@ -194,6 +194,8 @@ Spring Boot提供了大量的“Starters”，使得添加相关特性到项目�
 
 在使用Spring initializr生成项目时，`spring-boot-starter-test`总是被添加到项目，不需要显式选择它。
 
+另外，如果使用VsCode，则在“pom.xml”上右击，出现“Add Starters...”菜单，可以调整项目依赖的Starters。
+
 #### Spring Boot 插件
 
 `spring-boot-maven-plugin`插件提供了一些重要的功能：
