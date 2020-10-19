@@ -1,7 +1,7 @@
 ---
 title: SpringBoot
 date: 2018-04-16 09:39:49
-tags: [2.0.4]
+tags: [2.3.4]
 ---
 
 # 简介
@@ -1324,10 +1324,6 @@ $ mvn clean package
 Spring Initializr默认将应用打包成一个可执行的jar包，并且内嵌了Tomcat、Jetty和Undertow支持。因此，不再需要单独下载这些Servlet容器。这主要是为了更方便云部署。
 
 当然，也可以将Spring Boot打包成传统的war包，部署到独立的Servlet容器中。只需在pom.xml中加上`<packaging>war</packaging>`，并且要包含一个Web初始化类。另外，这个war既可部署到支持Servlet 3.0的容器中，也可以直接使用`java -jar`命令来运行。
-
-
-
-
 
 # SpringApplication
 
@@ -2934,5 +2930,3 @@ public Future<List<AyUser>> findAsynAll() {
 # 调度器
 
 # Spring集成
-
-# 测试
