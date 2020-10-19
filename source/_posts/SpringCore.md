@@ -6,6 +6,8 @@ tags: [5.1.2]
 
 # Spring架构
 
+应用程序是由许多组件组成的。Spring的核心是提供了一个容器，通常称为Spring应用上下文，它们会创建和管理应用组件。这些组件也可以称为bean，会在Spring应用上下文中装配在一起，从而形成一个完整的应用程序。
+
 ![Spring-framework](SpringCore/Spring-framework.png)
 
 <!--more-->

@@ -6,109 +6,140 @@ tags: [2.0.4]
 
 # 简介
 
-Spring Boot简化了Spring应用的开发，不需要什么配置就可以运行Spring应用。
+Spring Boot是Spring框架的扩展，提供了很多增强生产效率的方法，极大地改善了Spring的开发，不需要什么配置就可以运行Spring应用。
 
 Spring Boot项目可以直接被打包成一个可执行的jar包，并且内嵌了Tomcat、Jetty和Undertow支持。因此，不再需要单独下载这些Servlet容器。当然，也可以将Spring Boot打包成传统的war包，部署到独立的Servlet容器中。
 
-<!--more-->
+<!--more--> 
 
-## 系统要求
-
-Spring Boot 2 要求 Java 8及以上版本。
-
-## 常用工具
-
-[Spring Initializr](https://start.spring.io/)：一个Spring Boot项目的在线生成器。
-
-Spring Boot CLI：是Spring Boot 命令行工具，它可以运行Groovy脚本，通过它也可以很方便地开发Spring Boot项目。
-
-构建工具：Maven、Gradle或Ant。
-
-> 使用[Spring Initializr](https://start.spring.io/)或者STS生成的项目中，已经带有一个[Maven Wrapper](https://github.com/takari/maven-wrapper) （即项目根目录下的`mvnw`和`mvnw.cmd`文件）或 [Gradle Wrapper](http://gradle.org/docs/current/userguide/gradle_wrapper.html) 。Wrapper的用法与原来的Maven或Gradle一样。例如：原来Maven的`mvn clean install`，在Wrapper中则是`./mvnw clean install`。
->
-> Wrapper的主要作用是保证所有构建这个项目的人，都使用同一版本的Maven或Gradle。当执行Wrapper命令时，如果发现当前用户的Maven或Gradle版本和期望的版本不一致，那么就下载期望的版本，然后用期望的版本来执行命令。 
->
-> 在开发Spring Boot项目时，Wrapper不是必需使用的。完全可以使用原来的Maven或Gradle命令。
-
-VSCode + Java Extension Pack + Spring Boot Extension Pack：轻量级开发环境。
-
-Spring Tool Suite（STS）：一个基于Eclipse的IDE，可以很方便地开发Spring Boot项目。
-
-[JHipster](https://www.jhipster.tech/)：是一个生成、开发和部署Spring Boot + Angular/React的Web应用和Spring微服务的开发平台。 
-
-# 入门
+# 起步
 
 ## 创建项目
 
-创建一个普通的Java项目。
+创建Spring Boot项目，最常用的方式是使用Spring initializr。具体方式如下：
 
-> 创建Spring Boot项目更方便的方式是使用STS IDE或者[Spring Initializr](https://start.spring.io/)在线生成项目。
->
-> [Spring Initializr](https://start.spring.io/)除了在线使用外，也可以在命令行，通过`curl https://start.spring.io/...`命令来使用：
->
-> ```bash
-> $ curl https://start.spring.io/starter.zip\?name\=demo\&groupId\=com.example\&artifactId\=deroject+for+Spring+Boot\&packageName\=com.example.demo\&type\=maven-project\&packaging\=jar\&.0.2.RELEASE\&dependencies\=web --output demo.zip
-> ```
->
+- 通过 https://start.spring.io/ 在线生成项目。
 
-### 添加Spring Boot依赖
+- 在命令行中使用`curl`命令，例如：
 
-这里使用Maven来管理项目依赖。
+  ```bash
+  $ curl https://start.spring.io/starter.zip \
+         -d groupId=com.example \
+         -d artifactId=demo \
+         -d name=demo \
+         -d packageName=com.example.demo \
+         -d dependencies=web,data-jpa,devtools \
+         -d javaVersion=11 \
+         -o demo.zip （如果希望生成并解压到my-dir目录，则将这个选项改成 -d baseDir=my-dir | tar -xzvf -）
+  ```
 
-`pom.xml`：
+  参数选项的说明参见：https://github.com/spring-io/initializr/ 或者使用命令`curl https://start.spring.io`获取选项说明和依赖项列表。
+
+  > 注：选项`jvmVersion`与`javaVersion`是等价的。
+
+- 在命令行中使用Spring Boot CLI：是Spring Boot 命令行工具，它可以运行Groovy脚本，通过它也可以很方便地开发Spring Boot项目。
+  使用[sdkman](https://sdkman.io)安装Spring Boot CLI：`sdk install springboot`。
+  使用Spring Boot CLI生成项目：
+
+  ```bash
+  $ spring init --group-id=com.example \
+                --artifact-id=demo \
+                --name=demo \
+                --package-name=com.example.demo \
+                --dependencies=web,data-jpa,devtools \
+                --javaVersion=11 \
+  ```
+
+  可以通过`spring init --list`命令来获取选项列表和依赖项列表。
+
+- 使用 VSCode + Java Extension Pack + Spring Boot Extension Pack：轻量级开发环境。（本文使用的开发环境）
+
+- 使用Spring Tool Suite（STS）：一个基于Eclipse的IDE，可以很方便地开发Spring Boot项目。
+
+- 使用IntelliJ IDEA。
+
+另外，也可以使用下列工具来创建Spring应用：
+
+- [JHipster](https://www.jhipster.tech/)：是一个生成、开发和部署Spring Boot + Angular/React的Web应用和Spring微服务的开发平台。
+- [Grails](https://grails.org)：基于Groovy。
+
+## 项目结构
+
+### Wrapper
+
+使用[Spring Initializr](https://start.spring.io/)生成的项目中，已经带有一个[Maven Wrapper](https://github.com/takari/maven-wrapper) （即项目根目录下的`mvnw`和`mvnw.cmd`文件）或 [Gradle Wrapper](http://gradle.org/docs/current/userguide/gradle_wrapper.html) （即项目根目录下的`gradlew`和`gradlew.bat`）。Wrapper的用法与原来的Maven或Gradle一样。例如：原来Maven的`mvn clean install`，在Wrapper中则是`./mvnw clean install`。
+
+Wrapper的主要作用是保证所有构建这个项目的人，都使用同一版本的Maven或Gradle。当执行Wrapper命令时，如果发现当前用户的Maven或Gradle版本和期望的版本不一致，那么就下载期望的版本，然后用期望的版本来执行命令。 
+
+在开发Spring Boot项目时，Wrapper不是必需使用的。完全可以使用自己安装的Maven或Gradle命令。
+
+### 项目定义
+
+pom.xml：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.3.4.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
 	<groupId>com.example</groupId>
 	<artifactId>demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging><!-- 打包成jar包。如果要打包成war，只需在这里改成“war”即可。而且这个war既可部署到支持Servlet 3.0的容器中，也可以使用“java -jar”命令来直接运行。 -->
-
 	<name>demo</name>
 	<description>Demo project for Spring Boot</description>
 
-	<parent><!-- 继承Spring Boot的parent POM -->
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.0.3.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
-
 	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>1.8</java.version>
+		<java.version>11</java.version>
 	</properties>
 
 	<dependencies>
-		<dependency><!-- Web应用依赖，包括Spring MVC和Spring自己的Restful支持 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-		<dependency><!-- 测试依赖 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.junit.vintage</groupId>
+					<artifactId>junit-vintage-engine</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
-			<plugin><!-- Spring Boot 插件。创建可执行JAR必需 -->
+			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
+
 </project>
 ```
 
-Spring Boot提供了大量的“Starters”，实得添加相关特性到项目变得非常容易。这里我们添加了两个“Starters”，分别用于提供开发Web应用支持和测试支持。
+#### 父POM
 
 `spring-boot-starter-parent`也可以通过导入方式来使用，而不是继承Parent POM方式：
 
@@ -119,7 +150,7 @@ Spring Boot提供了大量的“Starters”，实得添加相关特性到项目�
       <!-- Import dependency management from Spring Boot -->
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-dependencies</artifactId>
-      <version>2.0.3.RELEASE</version>
+      <version>2.3.4.RELEASE</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -133,33 +164,47 @@ Spring Boot提供了大量的“Starters”，实得添加相关特性到项目�
 >
 > ```xml
 > <plugin>
->   <groupId>org.springframework.boot</groupId>
->   <artifactId>spring-boot-maven-plugin</artifactId>
->   <executions>
->     <execution>
->       <goals>
->         <goal>repackage</goal>
->       </goals>
->     </execution>
->   </executions>
->   <configuration>
->     <mainClass>${start-class}</mainClass>
->     <executable>true</executable>
->     <fork>true</fork>
->     <!-- Enable the line below to have remote debugging of your application on port 5005
->     <jvmArguments>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</jvmArguments>
->     -->
->   </configuration>
+> <groupId>org.springframework.boot</groupId>
+> <artifactId>spring-boot-maven-plugin</artifactId>
+> <executions>
+> <execution>
+> <goals>
+>   <goal>repackage</goal>
+> </goals>
+> </execution>
+> </executions>
+> <configuration>
+> <mainClass>${start-class}</mainClass>
+> <executable>true</executable>
+> <fork>true</fork>
+> <!-- Enable the line below to have remote debugging of your application on port 5005
+> <jvmArguments>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</jvmArguments>
+> -->
+> </configuration>
 > </plugin>
 > ```
 
 使用导入方式时，如果要覆盖spring boot中的依赖时，要将该依赖的定义放在`spring-boot-dependencies`之前。
 
-### 启动类
+#### Starter依赖
 
-启动类是使用`@SpringBootApplication`标注的类，并且它有一个`main`方法。
+Spring Boot提供了大量的“Starters”，使得添加相关特性到项目变得非常容易。
 
-启动类使得项目可以打包成可执行的Jar，并使用内嵌的Servlet容器（默认是Tomcat）来作为HTTP运行时。而不是打包成war，部署到外部Servlet容器中。
+在使用Spring initializr生成项目时，`spring-boot-starter-test`总是被添加到项目，不需要显式选择它。
+
+另外，如果使用VsCode，则在“pom.xml”上右击，出现“Add Starters...”菜单，可以调整项目依赖的Starters。
+
+#### Spring Boot 插件
+
+`spring-boot-maven-plugin`插件提供了一些重要的功能：
+
+- 一个用来运行项目的Maven目标：`spring-boot:run`；
+- 确保所有依赖库都会包含在可执行的JAR文件中；
+- 会在JAR文件中生成一个manifest文件，将引导类声明为可执行JAR的主类。
+
+### 引导应用
+
+引导类是使用`@SpringBootApplication`标注的类，并且它有一个`main`方法。它是通过可执行JAR来运行应用所必需的。
 
 ```java
 package com.example.demo;
@@ -169,57 +214,37 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class DemoApplication {
+
 	public static void main(String[] args) {
-		SpringApplication.run(DemoApplication.class, args); //启动应用，并将主组件和命令行参数传给它
+        //启动应用，并将主组件和命令行参数传给它
+		SpringApplication.run(DemoApplication.class, args);
 	}
+
 }
 ```
+
+`@SpringBootApplication`相当于是下列标注的组合：
+
+- `@Configuration`：应用程序配置类，用于替代传统基于XML的配置；
+
+- `@EnableAutoConfiguration`：基于依赖关系，自动配置Spring；
+
+- `@ComponentScan`：告诉Spring去哪里自动扫描其他组件、配置和服务，并将它们自动注册为Spring Beans。在默认情况下，这个标注将会扫描当前包以及其下任意深度的子包。如果没有使用这个标注，则必须使用`@Import`标注显式列出要扫描的组件：
+
+  ```java
+  @Configuration
+  @EnableAutoConfiguration
+  @Import({ MyConfig.class, MyAnotherConfig.class })
+  public class Application {
+  	public static void main(String[] args) {
+      SpringApplication.run(Application.class, args);
+  	}
+  }
+  ```
 
 > 建议将启动类放在项目的最高层次包中（例如本例中的`com.example.demo`），这样Spring Boot默认从启动类开始自动搜索所在包及其下所有层次包中的类。
 >
 > 不建议将启动类放在默认包（即没有显式使用`package`声明）中，这样会导致扫描所有jar的所有类。
->
-> `@SpringBootApplication`相当于是下列标注的组合：
->
-> - `@Configuration`：应用程序配置类，用于替代传统基于XML的配置；
->
-> - `@EnableAutoConfiguration`：基于依赖关系，自动配置Spring；
->
-> - `@ComponentScan`：告诉Spring去哪里自动扫描其他组件、配置和服务，并将它们自动注册为Spring Beans。在默认情况下，这个标注将会扫描当前包以及其下任意深度的子包。如果没有使得这个标注，则必须使用`@Import`标注显式列出要扫描的组件：
->
->   ```java
->   @Configuration
->   @EnableAutoConfiguration
->   @Import({ MyConfig.class, MyAnotherConfig.class })
->   public class Application {
->   	public static void main(String[] args) {
->       SpringApplication.run(Application.class, args);
->   	}
->   }
->   ```
-
-## 编程
-
-这里编写个简单的控制器：
-
-```java
-package com.example.demo.hello;
-
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-@Controller
-public class HelloController {
-	@RequestMapping("/say")
-	@ResponseBody
-	public String say() {
-		return "Hello world!";
-	}
-}
-```
-
-> @ResponseBody 表示此方法返回的是文本而不是视图名称。
 
 ## 运行
 
@@ -228,7 +253,8 @@ public class HelloController {
 也可以使用Spring Boot插件来运行：
 
 ```bash
-$ mvn spring-boot:run
+$ mvn spring-boot:run  （Maven）
+$ gradle bootRun       （Gradle）
 ```
 
 在生产环境中，通常是打包成可执行Jar，然后以`java -jar`方式运行。例如：
@@ -243,193 +269,9 @@ $ java -jar target/demo-0.0.1-SNAPSHOT.jar
 
 > 有时运行一个Web应用两次会出现端口占用情况，如果使得STS，可以使用它的`Relaunch`按钮来运行应用，而不是使用`Run`按钮来运行。`Relaunch`可以确保在运行应用之前，任何已经运行的实例被关闭。
 
-## 调试
+## 开发
 
-与调试普通`Java Application`一样。
-
-### 远程调试
-
-首先，在远程服务器上，以调试模式运行应用。例如：
-
-```bash
-$ java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=8000,suspend=n \
-       -jar target/demo-0.0.1-SNAPSHOT.jar
-```
-
-> 如果是使用Maven来启动应用，则可以设置如下环境变量（例如在.zshrc中设置）：
->
-> ```
-> export MAVEN_OPTS="-Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=8000,suspend=n"
-> ```
-
-然后，在Eclipse中新建`Remote Java Application`，`Host`处输入远程服务器的IP，`Port`处输入上面的`8000`。
-
-最后，象正常那样设置断点，点`Debug`按钮进行调试。
-
-> 远程服务器上的应用应该与Eclipse中的项目基于完全相同的代码。
-
-## 测试
-
-```java
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureMockMvc
-public class HelloControllerTest {
-  @Autowired
-  private MockMvc mockMvc;
-  
-  @Test
-  public void testSay() throws Exception {
-    mockMvc.perform(MockMvcRequestBuilders.get("/say").accept(MediaType.APPLICATION_JSON))
-      .andExpect(status().isOk())
-      .andExpect(content().string(equalTo("Hello World!")));
-  }
-}
-```
-
-## 打包
-
-如果使用Maven，则可以使用下列命令将项目打包成Jar：
-
-```bash
-$ mvn clean package
-```
-
-打包后，会在`target`目录下生成两个文件，例如：`demo-0.0.1-SNAPSHOT.jar`和`demo-0.0.1-SNAPSHOT.jar.original`。前者是可执行的jar，后者是未被Spring Boot重打包的原始JAR。
-
-# 热部署
-
-Spring Boot 提供了 spring-boot-devtools，它能在类路径中的任何文件（例如：类或者配置文件，包括pom.xml）被修改时，自动**热重启**Spring Boot项目，并触发浏览器刷新（即**热加载**，Live Reload）。
-
-要使用热部署只需要在`pom.xml`中添加如下依赖：
-
-```xml
-<dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-devtools</artifactId>
-  <optional>true</optional><!--避免传递依赖到其他模块 -->
-</dependency>
-```
-
-> devtools只适用于通过IDE或通过`mvn spring-boot:run`方式运行的情况。如果是通过`java -jar`方式运行可执行JAR时，则devtools自动被移除。也就是说，在打包生成的可执行JAR中将不会包含devtools。
->
-> devtools依赖于应用上下文的shutdown钩子，如果禁用了shutdown钩子（`SpringApplication.setRegisterShutdownHook(false)`），则devtools将不能正常工作。
->
-> 如果需要热拔插（Hot Swapping），可以使用 [JRebel](https://zeroturnaround.com/software/jrebel/)。当使用JRebel时，热重启将被禁用，然而热加载仍可用。
-
-Spring Boot支持的许多库使用缓存来改善性能。例如，模板引擎。然而，在开发阶段，缓存也会带来麻烦，例如它会阻止我们看到最新的改变。因此，devtools默认禁用缓存（是否应用缓存，通常是在`application.yml`中配置的，但devtools会自动应用一些合理的开发时配置。具体参见 [DevToolsPropertyDefaultsPostProcessor](https://github.com/spring-projects/spring-boot/tree/v2.0.2.RELEASE/spring-boot-project/spring-boot-devtools/src/main/java/org/springframework/boot/devtools/env/DevToolsPropertyDefaultsPostProcessor.java) ）。
-
-## 热重启
-
-Spring Boot使用两个类加载器来实现热重启（Automatic Restart）机制。不会改变的资源（例如第三方库）被加载进基础类加载器，而项目中正在开发的资源被加载到重启类加载器中。当热重启时，只有重启类加载器被抛弃，并重新创建一个新的重启类加载器。而基础类加载器保持不变。
-
-如果需要指定哪些资源要加载到基础类加载器，哪些要加载到重启加载器，则需要创建一个属性文件：`META-INF/spring-devtools.properties` 。在这个属性文件中，以`restart.exclude` 为前缀的属性指定的资源是要被加载到基础类加载器中的，而以`restart.include`为前缀的属性指定的资源是则要被加载到重启类加载器中的：
-
-```properties
-restart.exclude.companycommonlibs=/mycorp-common-[\\w-]+\.jar
-restart.include.projectcommon=/mycorp-myproj-[\\w-]+\.jar
-```
-
-所有类路径上（包括第三方Jar）的`META-INF/spring-devtools.properties` 都会被加载。
-
-### 不需要重启的资源
-
-有些资源，例如静态资源、视图模板等的修改，是不需要重启应用的。默认情况下，在`/META-INF/maven`、 `/META-INF/resources`、 `/resources`、 `/static`、`/public`或 `/templates`中的资源发生改变时，不会触发应用热重启，只会触发一个热加载。
-
-也可以通过 `spring.devtools.restart.exclude` 来定制哪些资源发生改变时不需要热重启。例如，只有 `/static`、`/public`中的资源不需要热重启：
-
-```properties
-spring.devtools.restart.exclude=static/**,public/**
-```
-
-如果你希望保持默认情况，同时添加一些额外的不需要热重启，则需要使用 `spring.devtools.restart.additional-exclude`属性来配置。
-
-### 监听非类路径上的资源
-
-默认情况下，devtools只监听类路径上的资源的修改，并依此做出热重启决定。可以使用`spring.devtools.restart.additional-paths` 属性，来添加一些不在类路径上的路径，从而使得devtools可以监听这些路径上的资源的变化。
-
-### 禁用重启
-
-在`application.properties` 上配置 `spring.devtools.restart.enabled`属性为`false`，只会禁止devtools监听资源，但仍会初始化重启类加载器。
-
-如果要完全禁用热重启功能，则必须在`SpringApplication.run(…)`调用之前，将系统属性`spring.devtools.restart.enabled` 设置为`false`：
-
-```java
-public static void main(String[] args) {
-	System.setProperty("spring.devtools.restart.enabled", "false");
-	SpringApplication.run(MyApp.class, args);
-}
-```
-
-### 使用触发文件
-
-如果使用IDE，会持续编译被修改的文件，你可能想只在特定的时间触发应用热重启。这时，可以使用触发文件。可以使用`spring.devtools.restart.trigger-file` 指定一个文件为触发文件，只有当这个文件发生修改时，才会触发应用热重启。
-
-触发文件可以手工更新，也可以通过IDE插件来自动更新。
-
-> 你可以将`spring.devtools.restart.trigger-file` 配置在全局配置中，这样，所有项目都有相同行为。
-
-## 热加载
-
- `spring-boot-devtools`包含了一个内嵌的热加载服务器，它在监听的资源发生变化时，能触发浏览器进行刷新。
-
-要禁用热加载，可以将`spring.devtools.livereload.enabled`属性设置为`false`。
-
-> 一次只能运行一个热加载服务器。
-
-## devtools的全局配置
-
-devtools的全局配置文件位于：`~/.spring-boot-devtools.properties`。可以在全局配置文件中，配置一些本机上所有项目都适用的配置：
-
-```properties
-spring.devtools.reload.trigger-file=.reloadtrigger
-```
-
-## 远程支持
-
-devtools不仅支持本地应用，也支持远程应用。
-
-devtools远程支持包括两部分：服务端（运行在远程服务器中的应用）和客户端（运行在IDE中的相同应用）。
-
-远程应用通常是采用`java -jar`方式运行的，默认是不包含devtools。为了让devtools支持远程应用，你需要确保devtools被打包到jar包中，这可通过在`pom.xml`中配置`spring-boot-maven-plugin`实现：
-
-```xml
-<build>
-	<plugins>
-		<plugin>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-maven-plugin</artifactId>
-			<configuration>
-				<excludeDevtools>false</excludeDevtools>
-			</configuration>
-		</plugin>
-	</plugins>
-</build>
-```
-
-然后，需要设置一下 `spring.devtools.remote.secret` 属性：
-
-```properties
-spring.devtools.remote.secret=mysecret
-```
-
-这样，将应用部署到远程服务器后，就自动启用了devtools。
-
-在IDE中运行的远程客户端需要将main class指定为`org.springframework.boot.devtools.RemoteSpringApplication` ，并在与运程服务端相同的类路径下用它来启动客户端。
-
-例如，我们有一个应用`my-app`被部署到云上。在本地的Eclipse上可以作如下配置，启动`my-app`的远程客户端：
-
-1. Select `Run Configurations…` from the `Run` menu.
-2. Create a new `Java Application` “launch configuration”.
-3. Browse for the `my-app` project.
-4. Use `org.springframework.boot.devtools.RemoteSpringApplication` as the main class.
-5. Add `https://myapp.cfapps.io` to the `Program arguments` (or whatever your remote URL is).
-
-### 远程更新
-
-
-
-# 配置
+### 配置
 
 Spring Boot偏爱基于Java的配置，而不是基于XML的配置。
 
@@ -439,7 +281,7 @@ Spring Boot偏爱基于Java的配置，而不是基于XML的配置。
 
 如果要导入基于XML的配置文件，则使用`@ImportResource`标注。
 
-## 自动配置
+#### 自动配置
 
 不管是使用Java还是使用XML的显式配置，只有当Spring不能进行自动配置的时候才是必要的。
 
@@ -478,9 +320,9 @@ public class MyConfiguration {
 
 另外，也可以使用 `spring.autoconfigure.exclude`属性来配置禁止自动配置的组件。
 
-## 应用属性
+#### 应用属性
 
-### 应用属性的加载顺序
+##### 应用属性的加载顺序
 
 Spring Boot按下列顺序加载应用属性，顺序靠前的应用属性优先：
 
@@ -551,7 +393,7 @@ Spring Boot按下列顺序加载应用属性，顺序靠前的应用属性优先
 
 > 另外，properties属性文件优先级高于相应的YAML文件。
 
-### 应用属性文件
+##### 应用属性文件
 
 `SpringApplication`默认从下列位置加载应用属性文件（按优先级从高到低）：
 
@@ -589,7 +431,7 @@ $ … --spring.config.additional-location=classpath:/custom-config/,file:./custo
 5. `classpath:/config/`
 6. `classpath:/`
 
-#### @PropertySource
+##### @PropertySource
 
 `@PropertySource`标注可以从自己指定的`.properties`文件中加载的应用属性。
 
@@ -667,7 +509,7 @@ public class BarProperties {
 
 
 
-#### 使用YAML格式的应用属性文件
+##### 使用YAML格式的应用属性文件
 
 应用属性文件既可以是传统的Java属性文件（.properties），也可以是YAML文件（.yml或.yaml），只要类路径中包含[SnakeYAML](http://www.snakeyaml.org/) （已经默认包含在`spring-boot-starter`中）。
 
@@ -715,7 +557,7 @@ my.servers=dev.example.com,another.example.com
 
 YAML应用属性文件的缺点是：不能使用`@PropertySource`标注加载。这种情况只能使用properties文件。
 
-### 在应用属性中使用PlaceHolder
+##### 在应用属性中使用PlaceHolder
 
 ```properties
 app.name=MyApp
@@ -724,7 +566,7 @@ app.description=${app.name} is a Spring Boot application
 
 > 由于`application.properties` 或 `application.yml`配置文件（也包括`application-xxx.properties`和`application-xxx.yml`）支持PlaceHolder方式的插值表达式（${…}），因此Maven filtering的插值表达式被改成使用`@…@`。可以通过`resource.delimiter`属性来自定义Maven插值表达式的定界符。
 
-### 自定义属性
+##### 自定义属性
 
 除了可以设置Spring预定义的应用属性外，也可以定义一些我们的自定义属性：
 
@@ -734,9 +576,9 @@ book.name=SpringCloudInAction
 
 自定义属性与预定义属性一样，也可以使用`@Value`和`@ConfigurationProperties`注入Bean。
 
-### 获取应用属性
+##### 获取应用属性
 
-#### @Value
+###### @Value
 
 可以通过`@Value`将单个应用属性注入你的Bean中。
 
@@ -764,7 +606,7 @@ public class MyBean {
 >
 > ```yaml
 > my:
->   servers:
+> servers:
 >     - dev.example.com
 >     - another.example.com
 > ```
@@ -783,7 +625,7 @@ public class MyBean {
 >
 > 使用`@Value`注入的Bean字段可以不需要定义getters和setters。
 
-#### @ConfigurationProperties
+###### @ConfigurationProperties
 
 可以通过`@ConfigurationProperties`将多个应用属性注入到Bean中。
 
@@ -971,7 +813,7 @@ public class RedisConfig {
 
 `@ConfigurationProperties`可以通过属性`ignoreInvalidFields`来决定是否忽略非法字段（默认为`false`，表示出现非法字段会报错），还可以通过属性`ignoreUnknownFields`来决定是否忽略未知字段（默认为`true`）。
 
-##### 应用属性名与Bean属性名的映射规则
+###### 应用属性名与Bean属性名的映射规则
 
 例如：
 
@@ -1010,7 +852,7 @@ ACME_MYPROJECT_PERSON_FIRSTNAME    #大写风格
 | Environment Variables | Upper case format with underscore as the delimiter. `_` should not be used within a property name | Numeric values surrounded by underscores, such as `MY_ACME_1_OTHER 相当于 my.acme[1].other` |
 | System properties     | Camel case, kebab case, or underscore notation               | Standard list syntax using `[ ]` or comma-separated values   |
 
-##### 校验
+###### 校验
 
 Spring Boot总是会去校验`@ConfigurationProperties`  类，而不管它是否有标注`@Validated`。
 
@@ -1040,7 +882,7 @@ public class AcmeProperties {
 
 还可以自己实现一个`Validator`，并将它注册为名叫`configurationPropertiesValidator`的Bean。注册它的`@Bean`方法应该要声明为`static`。例如，参见： [property validation sample](https://github.com/spring-projects/spring-boot/tree/v2.0.2.RELEASE/spring-boot-samples/spring-boot-sample-property-validation) 。
 
-##### @ConfigurationProperties 与 @Value 的比较
+###### @ConfigurationProperties 与 @Value 的比较
 
 | Feature                                                      | `@ConfigurationProperties` | `@Value` |
 | ------------------------------------------------------------ | -------------------------- | -------- |
@@ -1048,15 +890,15 @@ public class AcmeProperties {
 | [Meta-data support](https://docs.spring.io/spring-boot/docs/2.0.2.RELEASE/reference/htmlsingle/#configuration-metadata) | Yes                        | No       |
 | `SpEL` evaluation                                            | No                         | Yes      |
 
-#### 通过`Environment`获取应用属性
+###### 通过`Environment`获取应用属性
 
 参见“@PropertySource”。
 
-### 属性转换
+##### 属性转换
 
 在将应用属性绑定到Bean中时，Spring Boot会尝试进行合适的类型转换。如果需要，也可以自定义类型转换。
 
-#### 转换时间长度
+###### 转换时间长度
 
 Spring Boot可以将下列形式的应用属性自动转换为Bean的`java.time.Duration`  属性：
 
@@ -1113,13 +955,13 @@ public class AppSystemProperties {
 
 
 
-#### 自定义转换
+###### 自定义转换
 
 自定义转换可以通过提供一个`ConversionService` Bean（Bean名为`conversionService`）或者提供一个自定义的属性编辑器（通过`CustomEditorConfigurer` Bean）或者提供一个自定义的`Converters`（标注上`@ConfigurationPropertiesBinding` ）。
 
-### 常用配置
+#### 常用配置
 
-#### HTTP端口
+##### HTTP端口
 
 Spring Boot应用默认的HTTP端口号是`8080`，可以通过属性`server.port`或环境变量`SERVER_PORT`来自定义HTTP端口号。例如：
 
@@ -1127,7 +969,7 @@ Spring Boot应用默认的HTTP端口号是`8080`，可以通过属性`server.por
 server.port=18080
 ```
 
-#### SSL配置
+##### SSL配置
 
 ```properties
 server.port=8443
@@ -1136,11 +978,11 @@ server.ssl.key-store-password=secret
 server.ssl.key-password=another-secret
 ```
 
-## Profiles
+#### Profiles
 
 Spring Profiles提供了一种方式去将你的应用属性分成多个部分，并且使得它们只在某些环境中可用。
 
-### PROFILE特定的应用属性文件
+##### PROFILE特定的应用属性文件
 
 PROFILE特定的应用属性文件只在该PROFILE被激活时，才会生效。
 
@@ -1150,7 +992,7 @@ PROFILE特定的应用属性文件的命名规则：`application-PROFILE.propert
 
 PROFILE特定的应用属性文件与标准应用属性文件（application.properties或application.yml）加载自相同的位置。
 
-### 单个多Profiles的YAML文档
+##### 单个多Profiles的YAML文档
 
 使用YAML作为应用属性文件时，除了可以像上面那样，为每个Profile分别创建一个独立的YAML文件外，也可以将多个Profiles创建在同一个YAML文件中。使用`---`来分割不同Profiles，并使用`spring.profiles`属性来标识每个Profiles：
 
@@ -1175,7 +1017,7 @@ server:
 	address: 192.168.1.120
 ```
 
-### 未被显式声明的Proflie和默认Profile
+##### 未被显式声明的Proflie和默认Profile
 
 未被显式声明的Profile的优先级比显式声明的Profile低，并且不管激活哪个Profile，未被显式声明的Profile中的应用属性**总会**被设置。这也是未被显式声明Profile与默认Profile不同的地方。
 
@@ -1183,7 +1025,7 @@ server:
 
 Spring profiles designated by using the `spring.profiles` element may optionally be negated by using the `!` character. If both negated and non-negated profiles are specified for a single document, at least one non-negated profile must match, and no negated profiles may match.
 
-### 激活Profiles
+##### 激活Profiles
 
 可以通过`spring.profiles.active`应用属性来激活Profiles。
 
@@ -1211,7 +1053,7 @@ spring.profiles.include:
 
 这样，当设置`--spring.profiles.active=prod`激活`prod` profile时，也会一起激活`proddb`和`prodmy` profiles。
 
-### 复杂类型属性的重写
+##### 复杂类型属性的重写
 
 当复杂类型属性出现在多个profiles中时，重写是以整体替换方式进行。
 
@@ -1271,7 +1113,7 @@ acme:
 
 如果`dev` profile没有被激活，这时`AcmeProperties.list`  只包含一个`name`为`my name`的`MyPojo`实例，`AcmeProperties.map`  包含一个键为`key1`、`name`为`my name 1`的`MyPojo`实例。如果`dev` profile被激活，这时`AcmeProperties.list`  仍只包含一个`name`为`my another name`的`MyPojo`实例，`AcmeProperties.map`  包含两个`MyPojo`实例，一个键为`key1`、`name`为`dev name 1`，另一个键为`key2`、`name`为`dev name 2`。
 
-### @Profile
+##### @Profile
 
 上面的配置profile，要么是通过文件名（例如：`application-PROFILE.yml`），要么是通过属性`spring.profiles`。而`@Profile`提供了通过标注来配置profile的方法。
 
@@ -1294,6 +1136,196 @@ public DataSource devDataSource() {…}
 ```
 
 `@Profile`还可以通过`!`来表示取反。例如：`@Profile("!test") `。
+
+
+
+### DevTools
+
+要使得Spring Boot DevTools，只需要在pom.xml加入如下依赖：
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-devtools</artifactId>
+  <optional>true</optional><!--避免传递依赖到其他模块 -->
+</dependency>
+```
+
+DevTools仅仅用于开发，在生产环境中会自动被禁用。
+
+> 另外，devtools依赖于应用上下文的shutdown钩子，如果禁用了shutdown钩子（`SpringApplication.setRegisterShutdownHook(false)`），则devtools将不能正常工作。
+
+#### 应用自动重启
+
+当DevTools运行时，应用程序会被加载到Java虚拟机的两个独立的类加载器中。其中一个类加载器加载你的Java代码和属性文件以及项目中“src/main”路径下几乎所有的内容。另一个类加载器会加载依赖的库。
+
+当DevTools监测到项目中的Java代码、属性文件发生了修改，它会重新加载包含项目代码的那个类加载器，并重启Spring上下文，在这个过程中另外一个类加载器保持不变。
+
+因此，当使用DevTools时，Java代码或属性文件的变更会自动生效，而依赖的变更需要手动重启应用后才能生效。
+
+> 如果需要更强大的自动生效方式，可以使用 [JRebel](https://zeroturnaround.com/software/jrebel/)。
+
+如果需要指定哪些资源要加载到基础类加载器，哪些要加载到重启加载器，则需要创建一个属性文件：`META-INF/spring-devtools.properties` 。在这个属性文件中，以`restart.exclude` 为前缀的属性指定的资源是要被加载到基础类加载器中的，而以`restart.include`为前缀的属性指定的资源是则要被加载到重启类加载器中的：
+
+```properties
+restart.exclude.companycommonlibs=/mycorp-common-[\\w-]+\.jar
+restart.include.projectcommon=/mycorp-myproj-[\\w-]+\.jar
+```
+
+所有类路径上（包括第三方Jar）的`META-INF/spring-devtools.properties` 都会被加载。
+
+##### 不需要重启的资源
+
+有些资源，例如静态资源、视图模板等的修改，是不需要重启应用的。默认情况下，在`/META-INF/maven`、 `/META-INF/resources`、 `/resources`、 `/static`、`/public`或 `/templates`中的资源发生改变时，不会触发应用热重启，只会触发一个热加载。
+
+也可以通过 `spring.devtools.restart.exclude` 来定制哪些资源发生改变时不需要热重启。例如，只有 `/static`、`/public`中的资源不需要热重启：
+
+```properties
+spring.devtools.restart.exclude=static/**,public/**
+```
+
+如果你希望保持默认情况，同时添加一些额外的不需要热重启，则需要使用 `spring.devtools.restart.additional-exclude`属性来配置。
+
+##### 监听非类路径上的资源
+
+默认情况下，devtools只监听类路径上的资源的修改，并依此做出热重启决定。可以使用`spring.devtools.restart.additional-paths` 属性，来添加一些不在类路径上的路径，从而使得devtools可以监听这些路径上的资源的变化。
+
+##### 禁用重启
+
+在`application.properties` 上配置 `spring.devtools.restart.enabled`属性为`false`，只会禁止devtools监听资源，但仍会初始化重启类加载器。
+
+如果要完全禁用热重启功能，则必须在`SpringApplication.run(…)`调用之前，将系统属性`spring.devtools.restart.enabled` 设置为`false`：
+
+```java
+public static void main(String[] args) {
+	System.setProperty("spring.devtools.restart.enabled", "false");
+	SpringApplication.run(MyApp.class, args);
+}
+```
+
+##### 使用触发文件
+
+如果使用IDE，会持续编译被修改的文件，你可能想只在特定的时间触发应用热重启。这时，可以使用触发文件。可以使用`spring.devtools.restart.trigger-file` 指定一个文件为触发文件，只有当这个文件发生修改时，才会触发应用热重启。
+
+触发文件可以手工更新，也可以通过IDE插件来自动更新。
+
+> 你可以将`spring.devtools.restart.trigger-file` 配置在全局配置中，这样，所有项目都有相同行为。
+
+#### 自动刷新浏览器
+
+DevTools运行时，会自动启动一个LiveReload服务器，它会在模板、图片、样式表、JavaScript等面向浏览器的资源发生变化时，通知LiveReload浏览器插件自动刷新浏览器。
+
+要禁用自动刷新浏览器行为，可以将`spring.devtools.livereload.enabled`属性设置为`false`。
+
+> 一次只能运行一个LiveReload服务器。
+
+#### 自动禁用模板缓存
+
+Spring Boot支持的许多库使用缓存来改善性能。例如，模板引擎。然而，在开发阶段，缓存也会带来麻烦，例如它会阻止我们看到最新的改变。因此，DevTools会禁用所有模板的缓存，避免刷新浏览器时无法看到模板变更的效果。
+
+是否应用缓存，通常是在`application.yml`中配置的，但devtools会自动应用一些合理的开发时配置。具体参见 [DevToolsPropertyDefaultsPostProcessor](https://github.com/spring-projects/spring-boot/tree/v2.0.2.RELEASE/spring-boot-project/spring-boot-devtools/src/main/java/org/springframework/boot/devtools/env/DevToolsPropertyDefaultsPostProcessor.java) 。
+
+#### 内置H2控制台
+
+如果你使用H2数据库，则DevTools将会自动启用H2控制台，你可以在浏览器上通过<http://localhost:8080/h2-console>来访问H2控制台。
+
+#### 全局配置
+
+devtools的全局配置文件位于：`~/.spring-boot-devtools.properties`。可以在全局配置文件中，配置一些本机上所有项目都适用的配置：
+
+```properties
+spring.devtools.reload.trigger-file=.reloadtrigger
+```
+
+#### 远程支持
+
+devtools不仅支持本地应用，也支持远程应用。
+
+devtools远程支持包括两部分：服务端（运行在远程服务器中的应用）和客户端（运行在IDE中的相同应用）。
+
+远程应用通常是采用`java -jar`方式运行的，默认是不包含devtools。为了让devtools支持远程应用，你需要确保devtools被打包到jar包中，这可通过在`pom.xml`中配置`spring-boot-maven-plugin`实现：
+
+```xml
+<build>
+	<plugins>
+		<plugin>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-maven-plugin</artifactId>
+			<configuration>
+				<excludeDevtools>false</excludeDevtools>
+			</configuration>
+		</plugin>
+	</plugins>
+</build>
+```
+
+然后，需要设置一下 `spring.devtools.remote.secret` 属性：
+
+```properties
+spring.devtools.remote.secret=mysecret
+```
+
+这样，将应用部署到远程服务器后，就自动启用了devtools。
+
+在IDE中运行的远程客户端需要将main class指定为`org.springframework.boot.devtools.RemoteSpringApplication` ，并在与运程服务端相同的类路径下用它来启动客户端。
+
+例如，我们有一个应用`my-app`被部署到云上。在本地的Eclipse上可以作如下配置，启动`my-app`的远程客户端：
+
+1. Select `Run Configurations…` from the `Run` menu.
+2. Create a new `Java Application` “launch configuration”.
+3. Browse for the `my-app` project.
+4. Use `org.springframework.boot.devtools.RemoteSpringApplication` as the main class.
+5. Add `https://myapp.cfapps.io` to the `Program arguments` (or whatever your remote URL is).
+
+#### 远程更新
+
+## 调试
+
+### 本地调试
+
+### 远程调试
+
+## 测试
+
+```java
+package com.example.demo;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+class DemoApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
+```
+
+`@RunWith`是JUnit的注解，它会提供一个测试运行器来指导JUnit如何运行测试，以提供自定义的测试行为。`SpringRunner`当前实际上是`SpringJUnit4ClassRunner`的别名，主要为了移除对特定JUnit版本的关联。它会创建测试运行所需要的Spring应用上下文。
+
+`@SpringBootTest`会告诉JUnit在启动测试时要添加上Spring Boot的功能。
+
+## 部署
+
+### 打包
+
+如果使用Maven，则可以使用下列命令将项目打包：
+
+```bash
+$ mvn clean package
+```
+
+打包后，会在`target`目录下生成两个文件，例如：`demo-0.0.1-SNAPSHOT.jar`和`demo-0.0.1-SNAPSHOT.jar.original`。前者是可执行的jar，后者是未被Spring Boot重打包的原始JAR。
+
+Spring Initializr默认将应用打包成一个可执行的jar包，并且内嵌了Tomcat、Jetty和Undertow支持。因此，不再需要单独下载这些Servlet容器。这主要是为了更方便云部署。
+
+当然，也可以将Spring Boot打包成传统的war包，部署到独立的Servlet容器中。只需在pom.xml中加上`<packaging>war</packaging>`，并且要包含一个Web初始化类。另外，这个war既可部署到支持Servlet 3.0的容器中，也可以直接使用`java -jar`命令来运行。
+
+
 
 
 
@@ -1527,8 +1559,6 @@ Spring Boot CLI本身就是启动器，所以不需要创建`Application`启动�
 查看版本：`spring --version`。
 
 Spring Boot CLI在`Bash`和`Zsh` Shell中，可以支持自动补全，只要按`Tab`键。
-
-# 部署
 
 # 日志
 
