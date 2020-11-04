@@ -213,9 +213,11 @@ $ kubectl rollout undo deployments/kubernetes-bootcamp --to-revision=2
 
 Kubernetes用于协调一个高可用的计算机集群，这些计算机连接起来作为一个单元工作。 
 
-![arch](Kubernetes/arch.png)
+![arch](Kubernetes/arch.jpg)
 
 ## Kubernetes集群
+
+![Kubernetes集群](Kubernetes/cluster.png)
 
 Kubernetes集群包含两种类型的资源： 
 
@@ -258,6 +260,12 @@ Node可以包含多个pod，Kubernetes master会自动处理在群集中的节�
 ### 节点组件
 
 节点组件在每个Node上运行，维护运行的 Pod 并提供 Kubernetes 运行时环境。
+
+**Kubelet**：一个在集群中每个节点上运行的代理。它保证容器都运行在 Pod 中。
+
+**kube-proxy**：是集群中每个节点上运行的网络代理,实现 Kubernetes [Service](https://kubernetes.io/zh/docs/concepts/services-networking/service/) 概念的一部分。
+
+**容器运行环境**：是负责运行容器的软件。Kubernetes 支持多个容器运行环境: [docker](https://kubernetes.io/zh/docs/reference/kubectl/docker-cli-to-kubectl/)、 [containerd](https://containerd.io/docs/)、[CRI-O](https://cri-o.io/docs/) 以及任何实现 [Kubernetes CRI (容器运行环境接口)](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-node/container-runtime-interface.md)。
 
 ## Pods
 
