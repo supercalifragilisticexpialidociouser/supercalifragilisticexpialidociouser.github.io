@@ -95,6 +95,14 @@ $ jhipster
 
 然后，按照提示一步步操作。
 
+如果不想安装JHipster，则可以使用下列命令生成应用：
+
+```bash
+$ mkdir myapplication
+$ cd myapplication/
+$ npx -p generator-jhipster jhipster
+```
+
 # 开发应用
 
 ## CORS跨域
