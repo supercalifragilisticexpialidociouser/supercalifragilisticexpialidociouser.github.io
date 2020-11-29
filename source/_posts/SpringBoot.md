@@ -2741,7 +2741,7 @@ mybatis.type-aliases-package=com.example.demo.dao   #指定DAO接口文件所在
 
 ## 初始化数据库
 
-在类路径根下（例如`src/main/resources`）下创建一个名为`schema.sql`的文件，并在里面编写创建数据库表的SQL语句，则当应用启动时，就会自动找到这个文件并进行数据加载。
+在类路径根下（例如`src/main/resources`）下创建名为`schema.sql`和`data.sql`的文件，并在前者编写创建数据库表的SQL语句，后者编写插入或删除数据的SQL语句，则当应用启动时，Spring Boot就会自动找到这个文件并执行其中的SQL语句。
 
 ## 使用JdbcTemplate
 

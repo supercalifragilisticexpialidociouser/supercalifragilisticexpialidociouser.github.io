@@ -493,6 +493,30 @@ public class SpittleController {
 
 注意：`@RequestParam`的`value`和`defaultValue`属性都是`String`类型，但是当绑定到方法的参数时，会自动转换为相应类型。
 
+假设控制器中`names`是一个字符串数组，则：
+
+```
+GET: /foo?names=ab,bc,cd
+结果：names数组的值为 ["ab", "bc", "cd"]
+GET: /foo?names=ab&names=cd
+结果：names数组的值为 ["ab", "cd"]
+GET: /foo?names=ab,bc,cd&names=kk
+结果：names数组的值为 ["ab,bc,cd", "kk"]
+```
+
+假设控制器中`ids`是一个整数数组（其他非字符串数组也类似）：则：
+
+```
+GET: /foo?ids=1,3,4
+结果：ids数组的值为 [1, 3, 4]
+GET: /foo?ids=1&ids=5
+结果：ids数组的值为 [1, 5]
+GET: /foo?ids=1,3,4&ids=6
+结果：报错
+```
+
+
+
 #### 表单参数
 
 控制器代码：
@@ -862,6 +886,8 @@ public interface View {
 ### 视图技术
 
 #### JSP
+
+只有将应用构建为WAR文件并部署到传统的Servlet容器中时，才能选择JSP。
 
 ##### 配置视图解析器
 
