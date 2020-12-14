@@ -347,6 +347,10 @@ Kubernetes默认创建了两个命名空间：
 
 # 安装
 
+## Kind
+
+[Kind](https://kind.sigs.k8s.io)是在本地计算机部署Kubernetes的工具，通常用于本地开发和CI。
+
 ## Minikube
 
 Minikube是一种轻量级Kubernetes实现，可在本地计算机上创建VM并部署仅包含一个节点的简单集群，它适用于开发和测试。 

@@ -1,7 +1,7 @@
 ---
 title: SpringBoot
 date: 2018-04-16 09:39:49
-tags: [2.0.4]
+tags: [2.3.4]
 ---
 
 # 简介
@@ -1324,10 +1324,6 @@ $ mvn clean package
 Spring Initializr默认将应用打包成一个可执行的jar包，并且内嵌了Tomcat、Jetty和Undertow支持。因此，不再需要单独下载这些Servlet容器。这主要是为了更方便云部署。
 
 当然，也可以将Spring Boot打包成传统的war包，部署到独立的Servlet容器中。只需在pom.xml中加上`<packaging>war</packaging>`，并且要包含一个Web初始化类。另外，这个war既可部署到支持Servlet 3.0的容器中，也可以直接使用`java -jar`命令来运行。
-
-
-
-
 
 # SpringApplication
 
@@ -2745,7 +2741,7 @@ mybatis.type-aliases-package=com.example.demo.dao   #指定DAO接口文件所在
 
 ## 初始化数据库
 
-在类路径根下（例如`src/main/resources`）下创建一个名为`schema.sql`的文件，并在里面编写创建数据库表的SQL语句，则当应用启动时，就会自动找到这个文件并进行数据加载。
+在类路径根下（例如`src/main/resources`）下创建名为`schema.sql`和`data.sql`的文件，并在前者编写创建数据库表的SQL语句，后者编写插入或删除数据的SQL语句，则当应用启动时，Spring Boot就会自动找到这个文件并执行其中的SQL语句。
 
 ## 使用JdbcTemplate
 
@@ -2934,5 +2930,3 @@ public Future<List<AyUser>> findAsynAll() {
 # 调度器
 
 # Spring集成
-
-# 测试
