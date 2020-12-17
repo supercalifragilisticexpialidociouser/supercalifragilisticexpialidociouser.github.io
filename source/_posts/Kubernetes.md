@@ -1512,6 +1512,8 @@ Job的`restartPolicy`属性只能设置为`Never`或`OnFailure`。
 
 ## 定时Job
 
+# 安全防护
+
 # 健康检查
 
 ## 默认健康检查机制
