@@ -1,7 +1,7 @@
 ---
 ctitle: Kubernetes
 date: 2018-07-03 08:21:46
-tags: [1.19]
+tags: [1.20]
 ---
 
 # 简介
@@ -17,32 +17,42 @@ Kubernetes是一个容器编排引擎，它是Google Omega（之前叫Borg）的
 ## 创建集群
 
 ```bash
+# 启动集群
 $ minikube start
-```
 
-查看集群信息：
-
-```bash
+# 查看集群信息
 $ kubectl cluster-info
-```
 
-查看集群中节点：
-
-```bash
+# 查看集群中节点
 $ kubectl get nodes
-```
 
-> 注意：当前执行命令的地方并不是集群中的节点，我们是通过Kubernetes的命令行工具kubectl远程管理集群（Kubectl使用Kubernetes API与集群进行交互）。可以使用命令`hostname`查看当前执行命令的主机。
->
-> kubectl命令的通用格式是：`kubectl action resource`。它对指定的资源（如node，container）执行指定的操作（如create，describe）。 
->
-> 可在kubctl后带上`--help`选项，以获取相应帮助。例如，`kubectl get nodes --help`。
-
-要查看Kubernetes集群上部署的所有资源可用：
-
-```bash
+# 查看Kubernetes集群上部署的所有资源
 $ kubectl get all --all-namespaces
+
+# 在浏览器中打开Kubernetes仪表盘
+$ minikube dashboard
 ```
+
+> kubectl命令的通用格式：`kubectl 命令 资源类型 资源名`。
+>
+> 资源类型可以使用单数、复数、简写三种形式，下列命令都是等价的：
+>
+> ```bash
+> $ kubectl get pods
+> $ kubectl get pod
+> $ kubectl get po
+> ```
+>
+> 资源类型和资源名之间可以使用空格或“/”分隔，下列命令都是等价的：
+>
+> ```bash
+> $ kubectl get pods foo
+> $ kubectl get pods/foo
+> $ kubectl get pod foo
+> …
+> ```
+>
+> 
 
 ## 部署应用
 
@@ -54,15 +64,13 @@ $ kubectl get all --all-namespaces
 
 ![deployment](Kubernetes/deployment.svg)
 
-部署一个名为`kubernetes-bootcamp`的应用：
+部署一个名为`hello-node`的应用：
 
 ```bash
-$ kubectl run kubernetes-bootcamp --image=gcr.io/google-samples/kubernetes-bootcamp:v1 --port:8080
+kubectl create deployment hello-node --image=registry.cn-hangzhou.aliyuncs.com/google_containers/echoserver:1.4
 ```
 
 `--image`指定应用的容器镜像。
-
-`--port`指定应用提供服务的端口。
 
 这条命令执行了如下操作：
 
@@ -76,15 +84,29 @@ $ kubectl run kubernetes-bootcamp --image=gcr.io/google-samples/kubernetes-bootc
 $ kubectl get deployments
 ```
 
+查看Pods：
+
+```bash
+$ kubectl get pods -o wide
+```
+
+> 参数`-o wide`会列出pod的IP，及它运行在哪个节点上。
+
+查看集群事件：
+
+```bash
+$ kubectl get events
+```
+
 ## 访问应用
 
 部署到Kubernetes集群的应用，将运行在一个私有、隔离的网络上。它们只能在集群内部可见，要从集群外部访问这些应用，需要将容器的端口映射到节点的端口。
 
 ```bash
-$ kubectl expose deployment/kubernetes-bootcamp --type="NodePort" --port 8080
+$ kubectl expose deployment hello-node --type=LoadBalancer --port 8080
 ```
 
-上面的命令创建了一个service，将容器的8080端口映射到`minikube`节点的随机分配端口（例如，30670）。
+上面的命令创建了一个service，并使用负载均衡器在集群外公开服务。这里的端口是容器暴露的端口，而不是访问服务用的端口。可以通过下面命令来查看访问服务的端口。
 
 可以通过下面命令查看集群中的services：
 
@@ -92,17 +114,29 @@ $ kubectl expose deployment/kubernetes-bootcamp --type="NodePort" --port 8080
 $ kubectl get services
 ```
 
+这里会列出服务的集群IP和外部IP。
+
+> Minikube不支持LoadBalancer类型的服务，因此，上面命令中服务不会有外部IP显示。这时，可以运行`minikube service hello-node`获取可以访问服务的IP和端口。
+>
+> 还可以，在另一个窗口执行`minikube tunnel`，启动tunnel来创建一个可路由的IP。这样，运行`kubectl get services hello-node`，就可以看到外部IP了。
+
 要访问这个服务，只要：
 
 ```bash
-$ curl minikube:30670
+$ minikube service hello-node
+或者
+$ curl 服务的外部IP:端口号
 ```
 
-可以通过下列命令来获取NodePort：
+它将打开一个浏览器，显示服务的响应。
+
+如果不喜欢系统随机映射的端口，也可以使用下列命令来自己指定一个转发端口：
 
 ```bash
-$ export NODE_PORT=$(kubectl get services/kubernetes-bootcamp -o go-template='{{(index .spec.ports 0).nodePort}}')
+> $ kubectl port-forward service/hello-node 7080:8080
 ```
+
+这样，就可以通过`localhost:7080`来访问hello-node服务了。
 
 ## 扩展应用
 
@@ -111,7 +145,7 @@ $ export NODE_PORT=$(kubectl get services/kubernetes-bootcamp -o go-template='{{
 执行下列命令将副本数增加到4个：
 
 ```bash
-$ kubectl scale deployments/kubernetes-bootcamp --replicas=4
+$ kubectl scale deployments hello-node --replicas=4
 ```
 
 扩展前：
@@ -126,14 +160,12 @@ $ kubectl scale deployments/kubernetes-bootcamp --replicas=4
 
 Kubernetes还支持Pod的自动缩放。缩放到零也是可能的，它将终止指定部署的所有Pod。 
 
-通过`curl minikube:30670`访问应用，可以看到每次请求发送到不同的pod。4个副本（pod）轮询处理，这样就实现了负载均衡。
-
 服务集成有负载平衡器，可将网络流量分配到公开部署的所有Pod副本。服务将使用端点连续监视正在运行的Pod，以确保流量仅发送到可用的Pod。 
 
 要缩减服务的副本数到2，只需再次运行scale命令：
 
 ```bash
-$ kubectl scale deployments/kubernetes-bootcamp --replicas=2
+$ kubectl scale deployments hello-node --replicas=2
 ```
 
 可以看到有两个副本被删除。
@@ -273,7 +305,7 @@ Pod模拟一个特定于应用程序的“逻辑主机”，并且可以包含�
 
 > 只有需要直接共享资源的容器才应该放在一个Pod中。而象Tomcat和MySQL，它们是通过JDBC交换数据，而不是直接共享存储，因此不应该放在同一个Pod中。
 
-Pod是Kubernetes的最小调度单位，同一Pod中的容器始终作为一个整体被Master调度到一个Node上运行，并在同一节点的共享上下文中运行。 
+Pod是Kubernetes的最小调度单位，同一Pod中的容器始终作为一个整体被Master调度到一个Node上运行，并在**同一节点**的共享上下文中运行。 也就是说，一个Pod的所有容器都运行在同一个节点上，一个Pod绝不跨越两个节点。
 
 每个Pod都与调度它的节点绑定，并保持在那里直到终止（根据重启策略）或删除。如果节点发生故障，则会在群集中的其他可用节点上安排相同的Pod。 
 
@@ -347,11 +379,66 @@ Kubernetes默认创建了两个命名空间：
 
 Minikube是一种轻量级Kubernetes实现，可在本地计算机上创建VM并部署仅包含一个节点的简单集群，它适用于开发和测试。 
 
+首先，安装Kubernetes命令行客户端[kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)：（通常安装在开发本地机器上，而不是安装在集群上）
+
+```bash
+$ curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+$ chmod +x ./kubectl
+$ sudo mv ./kubectl /usr/local/bin/kubectl
+$ kubectl version --client
+```
+
+> kubectl可以不需要独立安装。例如下面的两种用法是等价的：
+>
+> ```bash
+> # 独立安装kubectl
+> $ kubectl get po -A
+> 
+> # 由Minikube自动下载合适的kubectl，并执行命令
+> $ minikube kubectl -- get po -A
+> ```
+>
+> 
+
+然后，安装VirtualBox、KVM2或Docker。（Minikube需要在VM中运行Kubernetes）
+
+现在，可以安装[Minikube](https://minikube.sigs.k8s.io/docs/start/)：
+
+```bash
+$ curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+$ sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+# 国内如果下载不了，使用阿里云构建的版本
+$ curl -Lo minikube https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/releases/v1.16.0/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+```
+
 显示Minikube版本号：
 
 ```bash
 $ minikube version
 ```
+
+最后，启动集群：
+
+```bash
+$ minikube start
+
+# 可以用下面参数指定使用阿里云镜像
+$ .\minikube start --image-mirror-country cn \
+    --iso-url=https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/iso/minikube-v1.16.0.iso \
+    --registry-mirror=https://huo5y7st.mirror.aliyuncs.com \
+    --vm-driver=virtualbox \
+```
+
+`--image-mirror-country cn`会将`k8s.gcr.io`换成`registry.cn-hangzhou.aliyuncs.com/google_containers`作为安装Kubernetes的容器镜像仓库。
+
+集群启动成功后，可以使用下列命令，打开一个Kubernetes仪表盘：
+
+```bash
+$ minikube dashboard
+```
+
+
 
 ## kubeadm
 
@@ -552,7 +639,29 @@ $ kubectl get networkpolicy
 
 # 集群管理
 
+查看集群信息：`kubectl cluster-info`。
 
+查看集群配置：`kubectl config view`。
+
+## Minikube的集群管理
+
+登录Minikube VM：`minikube ssh …`
+
+暂停Kubernetes而不影响已部署的应用程序：`minikube pause`
+
+停止集群：`minikube stop`
+
+增加默认内存限制（需要重新启动）：`minikube config set memory 16384`
+
+列出Kubernetes插件列表：`minikube addons list`
+
+启用插件：`minikube addons enable metrics-server`
+
+禁用插件：`minikube addons disable metrics-server`
+
+创建另一个运行旧Kubernetes版本的集群：`minikube start -p aged --kubernetes-version=v1.16.1`
+
+删除所有minikube集群：`minikube delete --all`
 
 # 应用部署
 
@@ -561,7 +670,7 @@ $ kubectl get networkpolicy
 - 用kubectl命令直接创建：
 
   ```bash
-  $ kubectl run foo --image=foo:1.0.0 --replicas=2
+  $ kubectl run foo --image=foo:1.0.0 --port=8080 --replicas=2
   ```
 
   在命令行中通过形如`--属性名=属性值`的参数指定资源的属性。
