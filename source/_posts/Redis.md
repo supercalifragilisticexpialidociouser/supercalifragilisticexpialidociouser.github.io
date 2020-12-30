@@ -105,11 +105,50 @@ Redis的列表是双向链表，因此，它插入和删除操作非常快，但
 2) "java"
 3) "golang"
 > ltrim books 1 -1  # 截掉区间外的元素
+OK
 > ltrim books 1 0 # 清空列表
+OK
+> llen books
+(integer) 0
 ```
 
 ## hash（字典）
 
+```bash
+> hset books java "think in java" # 字符串要包含空格，要用引号括起来
+(integer) 1
+> hset books golang "concurrency in go"
+(integer) 1
+> hgetall books # 键和值间隔出现
+1) "java"
+2) "think in java"
+3) "golang"
+4) concurrency in go"
+> hlen books
+(integer) 2
+> hget books java
+"think in java"
+> hset books golang "learning go programming" # 更新操作，返回0
+(integer) 0
+> hmset books java "effective java" python "learning python" # 批量
+OK
+
+> hset user-laoqian age 29
+> hincrby user-laoqian age 1
+(integer) 30
+```
+
 ## set（集合）
+
+Redis的集合相当于Java里的`HashSet`。
+
+```bash
+> sadd books python
+(integer) 1
+> sadd books python
+(integer) 0
+```
+
+
 
 ## zset（有序集合）

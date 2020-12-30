@@ -424,10 +424,10 @@ $ minikube version
 $ minikube start
 
 # 可以用下面参数指定使用阿里云镜像
-$ .\minikube start --image-mirror-country cn \
+$ minikube start --image-mirror-country cn \
     --iso-url=https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/iso/minikube-v1.16.0.iso \
     --registry-mirror=https://huo5y7st.mirror.aliyuncs.com \
-    --vm-driver=virtualbox \
+    --vm-driver=virtualbox
 ```
 
 `--image-mirror-country cn`会将`k8s.gcr.io`换成`registry.cn-hangzhou.aliyuncs.com/google_containers`作为安装Kubernetes的容器镜像仓库。
