@@ -317,6 +317,18 @@ Pod是Kubernetes的最小调度单位，同一Pod中的容器始终作为一个�
 $ export POD_NAME=$(kubectl get pods -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
 ```
 
+Kubernetes集群中的所有Pods都在同一个共享网络地址空间中，这意味着每个Pod都可以通过其他Pod的IP地址来实现相互访问，它们之间没有NAT网关，同时不管实际节点间的网络拓扑结构如何。
+
+容器应该如何分组到Pod中：当决定是将两个容器放入一个Pod还是两个单独的Pod时，我们需要问自己以下问题：
+
+- 它们需要在相同主机上一起运行还是可以在不同的主机上运行？
+- 它们代表的是一个整体还是相互独立的组件？
+- 它们必须一起进行扩缩容还是可以分别进行？
+
+![Pod不应该包含多个并不需要运行在同一主机上的容器](E:\supercalifragilisticexpialidociouser.github.io\source\_posts\Kubernetes\Pod不应该包含多个并不需要运行在同一主机上的容器)
+
+可以通过`kubectl run`命令直接创建Pod。
+
 ## 控制器——运行Pod
 
 Kubernetes通常不会直接创建Pods，而是通过控制器（Controller）来管理Pod。
