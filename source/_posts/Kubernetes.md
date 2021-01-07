@@ -319,6 +319,16 @@ $ export POD_NAME=$(kubectl get pods -o go-template --template '{{range .items}}
 
 Kubernetes集群中的所有Pods都在同一个共享网络地址空间中，这意味着每个Pod都可以通过其他Pod的IP地址来实现相互访问，它们之间没有NAT网关，同时不管实际节点间的网络拓扑结构如何。
 
+在集群外，可以通过创建一个服务来访问Pod。另外，还可以通过将本地网络端口转发到Pod中的端口（这种方式通常用于测试Pod是否有效），这样就可以通过本地端口连接到Pod。
+
+```bash
+# 将本地商品8888转发到Pod的8080
+$ kubectl port-forward kubia-manual 8888:8080
+$ curl localhost:8888
+```
+
+
+
 容器应该如何分组到Pod中：当决定是将两个容器放入一个Pod还是两个单独的Pod时，我们需要问自己以下问题：
 
 - 它们需要在相同主机上一起运行还是可以在不同的主机上运行？
@@ -327,7 +337,26 @@ Kubernetes集群中的所有Pods都在同一个共享网络地址空间中，这
 
 ![Pod不应该包含多个并不需要运行在同一主机上的容器](E:\supercalifragilisticexpialidociouser.github.io\source\_posts\Kubernetes\Pod不应该包含多个并不需要运行在同一主机上的容器)
 
-可以通过`kubectl run`命令直接创建Pod。
+Pod常用命令：
+
+```bash
+# 创建Pod
+$ kubectl run kubia --image=luksa/kubia --port=8080
+# 从YAML创建Pod。（注：kubectl create -f 可用于创建任意资源）
+$ kubectl create -f kubia-manual.yaml
+
+# 查看Pod实例的YAML描述文件
+$ kubectl get po kubia-zxzij -o yaml
+```
+
+要想获得YAML上每个资源的字段说明，除了可以查看官网API外，还可以使用如下命令：
+
+```bash
+$ kubectl explain pods
+$ kubectl explain pods.spec
+```
+
+
 
 ## 控制器——运行Pod
 
@@ -2517,6 +2546,21 @@ K8S从1.8版本开始，CPU、内存等资源的指标信息可以通过 Metrics
 ## Prometheus Operator
 
 # 日志管理
+
+容器化的应用程序通常将日志记录到标准输出和标准错误流，而不是将其写入文件。容器运行时（例如Docker）将这些流重定向到文件，并允许我们运行以下命令来获取容器的日志：
+
+```bash
+# Docker（必须与Docker在同一机器上）
+$ docker logs 容器ID
+
+# 由于kubectl可以安装在用户本地机器上，因此下列命令可以不在集群上运行
+# Kubernetes（Pod只包含单个容器）
+$ kubectl logs kubia-manual
+# Kubernetes（Pod包含多个容器，由-c指定具体容器）
+$ kubectl logs kubia-manual -c kubia
+```
+
+
 
 # Istio
 
