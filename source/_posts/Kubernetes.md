@@ -10,6 +10,188 @@ Kubernetes是一个容器编排引擎，它是Google Omega（之前叫Borg）的
 
 <!--more-->
 
+# 安装
+
+## Kind
+
+[Kind](https://kind.sigs.k8s.io)是在本地计算机部署Kubernetes的工具，通常用于本地开发和CI。
+
+## Minikube
+
+Minikube是一种轻量级Kubernetes实现，可在本地计算机上创建VM并部署仅包含一个节点的简单集群，它适用于开发和测试。 
+
+首先，安装Kubernetes命令行客户端[kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)：（通常安装在开发本地机器上，而不是安装在集群上）
+
+```bash
+$ curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+$ chmod +x ./kubectl
+$ sudo mv ./kubectl /usr/local/bin/kubectl
+$ kubectl version --client
+```
+
+> kubectl可以不需要独立安装。例如下面的两种用法是等价的：
+>
+> ```bash
+> # 独立安装kubectl
+> $ kubectl get po -A
+> 
+> # 由Minikube自动下载合适的kubectl，并执行命令
+> $ minikube kubectl -- get po -A
+> ```
+>
+> 
+
+然后，安装VirtualBox、KVM2或Docker。（Minikube需要在VM中运行Kubernetes）
+
+现在，可以安装[Minikube](https://minikube.sigs.k8s.io/docs/start/)：
+
+```bash
+$ curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+$ sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+# 国内如果下载不了，使用阿里云构建的版本
+$ curl -Lo minikube https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/releases/v1.16.0/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+```
+
+显示Minikube版本号：
+
+```bash
+$ minikube version
+```
+
+最后，启动集群：
+
+```bash
+$ minikube start
+
+# 可以用下面参数指定使用阿里云镜像
+$ minikube start --image-mirror-country cn \
+    --iso-url=https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/iso/minikube-v1.16.0.iso \
+    --registry-mirror=https://huo5y7st.mirror.aliyuncs.com \
+    --vm-driver=virtualbox
+```
+
+`--image-mirror-country cn`会将`k8s.gcr.io`换成`registry.cn-hangzhou.aliyuncs.com/google_containers`作为安装Kubernetes的容器镜像仓库。
+
+集群启动成功后，可以使用下列命令，打开一个Kubernetes仪表盘：
+
+```bash
+$ minikube dashboard
+```
+
+
+
+## kubeadm
+
+参见：[Creating Highly Available Clusters with kubeadm](https://kubernetes.io/docs/setup/independent/high-availability/)
+
+## 定制安装
+
+参见：[follow-me-install-kubernetes-cluster](https://github.com/opsnull/follow-me-install-kubernetes-cluster)
+
+## 使用Photon OS
+
+Photon OS是一个专注于容器的精简Linux操作系统。它的完全安装中已经包含Kubernetes和Mesos。
+
+## 使用kubekit搭建k8s集群
+
+[Kubekit](https://github.com/Orientsoft/kubekit)是一个部署工具包，它为kubernetes提供离线安装解决方案。您可以使用它将Kubernetes部署到OFFLINE生产环境。
+
+Kubekit将安装
+
+- Docker（1.12.6）
+- Kubernetes及其所有组件
+- Kubernetes仪表板，默认节点端口：31234
+
+### 安装操作系统
+
+首先官方支持下面两个操作系统，而且都要是最小化安装支持的
+
+- CentOS release 7.3.1611
+- CentOS release 7.4.1708
+
+安装完成之后关闭防火墙：
+
+```
+systemctl stop firewalld
+systemctl disable firewalld
+```
+
+关闭selinux：
+
+```
+setenforce 0
+vim /etc/selinux/config
+```
+
+修改为：
+
+```
+SELINUX=disabled
+```
+
+最好还可以同步一下时间什么的：
+
+```
+yum install ntpdate
+ntpdate 0.cn.pool.ntp.org
+```
+
+### 下载kubekit
+
+```
+yum install wget
+wget https://kubekit.orientsoft.cn/kubekit-linux64-0.3.tar.gz
+```
+
+解压
+
+```bash
+tar -zxvf kubekit-linux64-0.3.tar.gz
+mv kubekit-release/ kubekit
+```
+
+下载离线包：
+
+```
+wget https://kubekit.orientsoft.cn/package-1.9.2.tar.gz
+tar -zxvf package-1.9.2.tar.gz
+mv package kubekit
+```
+
+给脚本赋予可执行权限
+
+```
+cd kubekit/package/
+chmod +x ./*.sh
+```
+
+### 安装并初始化master节点
+
+```bash
+./kubekit init 192.168.38.166
+```
+
+接着ctrl+c退出来，然后重新启动kubekit的dashboard并且放在后台
+
+```
+./kubekit server &
+```
+
+### 添加一个node
+
+浏览器访问 ip:9000。
+
+创建一个同样安装着centos 1708最小化安装的机器，之后打开修改主机名：
+
+```
+hostnamectl set-hostname kubekit-node1
+```
+
+接着点击web界面上的add node，输入ssh账号密码等信息，最后选中点击start deploy就可以了。
+
+之后你就会在kubernetes的dashboard看到这个节点的详细信息了。
+
 # 起步
 
 [Kubernetes.io](https://kubernetes.io) 上有一个基于Minikube的 [在线交互式教程](https://kubernetes.io/docs/tutorials/kubernetes-basics/) ，可以快速体验Kubernetes的功能和应用场景。
@@ -291,6 +473,19 @@ Node可以包含多个pod，Kubernetes master会自动处理在群集中的节�
 
 节点组件在每个Node上运行，维护运行的 Pod 并提供 Kubernetes 运行时环境。
 
+## 资源
+
+Kubernetes的Pod、控制器、服务、命名空间等都是资源。
+
+```bash
+# 删除当前命名空间下的所有资源
+$ kubectl delete all --all
+```
+
+第一个`all`指定正在删除所有资源类型，而`--all`选项指定将删除所有资源实例。
+
+> 注意：使用`all`关键字删除所有内容并不是真的完全删除所有内容。一些资源，比如Secret，会被保留下来，并且需要被明确指定删除。
+
 ## Pods
 
 当我们在Kubernetes上创建一个Deployment时，Kubernetes会创建一个Pod（包含容器）来托管你的应用程序实例，而不是直接创建容器。 
@@ -344,8 +539,17 @@ Pod常用命令：
 $ kubectl run kubia --image=luksa/kubia --port=8080
 # 从YAML创建Pod。（注：kubectl create -f 可用于创建任意资源）
 $ kubectl create -f kubia-manual.yaml
+# 按名称删除Pod
+$ kubectl delete po pod1 pod2
+# 使用标签选择器删除Pod
+$ kubectl delete po -l rel=canary
+# 通过删除整个命名空间来删除Pod
+$ kubectl delete ns custom-namespace
+# 删除命名空间中的所有Pod，但保留命名空间
+$ kubectl delete po --all
+# 注意：如果Pod是通过ReplicationController创建的，通过上面命令是无法删除的，因此控制器会不断重新创建Pod。这时，只要将该ReplicationController删除，就是自动删除它创建的Pod。
 
-# 查看Pod实例的YAML描述文件
+# 查看Pod的YAML描述文件
 $ kubectl get po kubia-zxzij -o yaml
 ```
 
@@ -360,7 +564,9 @@ $ kubectl explain pods.spec
 
 ## 控制器——运行Pod
 
-Kubernetes通常不会直接创建Pods，而是通过控制器（Controller）来管理Pod。
+通常不会直接创建Pods，而是通过控制器（Controller）来管理Pod。
+
+创建未托管的Pods时，Kubernetes会选择一个集群节点来运行Pod，然后监控这些容器，并在它们失败时自动重启它们。但是如果整个节点失败，那么节点上的未托管Pods会丢失，并且不会被新节点替换，而如果使用控制器来管理Pod，则会将失败节点上的Pod自动调度到新节点上运行。
 
 为了满足不同业务场景，Kubernetes提供了多种控制器：
 
@@ -391,11 +597,65 @@ Kubernetes通常不会直接创建Pods，而是通过控制器（Controller）�
 
 ## 标签
 
-标签是附加到对象的键/值对，它是一个允许对Kubernetes中的对象进行逻辑操作的分组原语。 
+标签是附加到对象的键/值对，它用于组织Kubernetes资源，用以选择具有指定标签的资源（通过标签选择器完成）。 
 
 ![labels](Kubernetes/labels.svg)
 
 标签可以在创建时或稍后附加到对象。它们可以随时修改。 
+
+```bash
+# 查看标签
+$ kubectl get po --show-labels
+# 在单独列中显示指定标签，不会过滤Pod。没有指定标签的Pod显示为<none>
+$ kubectl get po -L app,env
+# 为Pod添加新标签
+$ kubectl label po kubia-manual creation_method=manual
+# 修改Pod的标签值
+$ kubectl label po kubia-manual env=debug --overwrite
+# 列出包含标签键为env的所有Pod
+$ kubectl get po -l env
+# 列出不包含标签键不为env的Pod
+$ kubectl get po -l '!env'
+# 列出标签为env=debug的Pod
+$ kubectl get po -l env=debug
+# 列出标签键为env，但值不为debug的Pod
+$ kubectl get po -l 'env!=debug'
+# 列出标签键为env，且值为prod或dev的Pod
+$ kubectl get po -l 'env in (prod,dev)'
+# 列出标签键为env，且值不是prod或dev的Pod
+$ kubectl get po -l 'env notin (prod,dev)'
+# 可以带多个条件，例如：列出标签为app=pc且rel=beta的Pod
+$ kubectl get po -l app=pc,rel=beta
+```
+
+### 约束Pod调度
+
+可通过yaml中的`nodeSelector`属性来指定将Pod调度到哪类节点。例如，将Pod调度到包含标签`gpu=true`的节点：
+
+```yaml
+…
+spec:
+  nodeSelector:
+    gpu: "true"
+…
+```
+
+由于每个节点都有一个唯一标签，其中键为`kubernetes.io/hostname`，值为该节点的实际主机名，因此我们也可以将Pod调度到某个具体节点。
+
+## 注解
+
+注解也是键值对，但它不是用于对资源分组的，不存在注解选择器这样的东西。另一方面，注解可以容纳更多的信息。
+
+向Kubernetes引入新特性时，通常会在新特性的alpha和beta版本中先使用注解，而不会向API对象引入任何新字段。只有到了正式版本时，才会引入新字段并废弃相关注解。
+
+```bash
+# 添加注解
+$ kubectl annotate pod kubia-manual mycompany.com/someannotation="foo bar"
+# 查看注解
+$ kubectl describe pod kubia-manual
+```
+
+
 
 ## 命名空间
 
@@ -403,194 +663,40 @@ Kubernetes通常不会直接创建Pods，而是通过控制器（Controller）�
 
 Kubernetes默认创建了两个命名空间：
 
-- default：默认命名空间。创建资源时如果不指定命名空间，将被放到default命名空间。
+- default：默认命名空间。创建资源时如果不指定命名空间，将被放到default命名空间。可以通过下列命令设置默认命名空间：
+
+  ```bash
+  $ kubectl config set-context $(kubectl config current-context) --namespace some-namespace
+  ```
+
 - kube-system：Kubernetes自己创建的系统资源将放到这个命名空间。
 
-在使用`kubectl`工具管理kubernetes资源时，可用`-n 命名空间`选项来指定资源的命名空间。没有为资源显式指定命名空间，则属于`default`命名空间。
-
-可用`--all-namespaces`选项表示所有命名空间。
-
-# 安装
-
-## Kind
-
-[Kind](https://kind.sigs.k8s.io)是在本地计算机部署Kubernetes的工具，通常用于本地开发和CI。
-
-## Minikube
-
-Minikube是一种轻量级Kubernetes实现，可在本地计算机上创建VM并部署仅包含一个节点的简单集群，它适用于开发和测试。 
-
-首先，安装Kubernetes命令行客户端[kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)：（通常安装在开发本地机器上，而不是安装在集群上）
-
 ```bash
-$ curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
-$ chmod +x ./kubectl
-$ sudo mv ./kubectl /usr/local/bin/kubectl
-$ kubectl version --client
+# 列出所有命名空间
+$ kubectl get ns
+
+# 创建命名空间
+$ kubectl create namespace custom-namespace
+或者
+$ kubectl create -f custom-namespace.yaml
+
+# 获取指定命名空间的资源，使用-n或--namespace选项。如果没有显式指定命名空间，则默认是default命名空间
+$ kubectl get po -n kube-system
+# 获取所有命名空间资源
+$ kubectl get po --all-namespaces
 ```
 
-> kubectl可以不需要独立安装。例如下面的两种用法是等价的：
->
-> ```bash
-> # 独立安装kubectl
-> $ kubectl get po -A
-> 
-> # 由Minikube自动下载合适的kubectl，并执行命令
-> $ minikube kubectl -- get po -A
-> ```
->
-> 
+如果想在指定命名空间下创建资源，有两种方式：
 
-然后，安装VirtualBox、KVM2或Docker。（Minikube需要在VM中运行Kubernetes）
+- 在资源的YAML文件中的`metadata`字段中添加`namespace: custom-namespace`属性。
 
-现在，可以安装[Minikube](https://minikube.sigs.k8s.io/docs/start/)：
+- 在命令行中，通过`-n`选项指定：
 
-```bash
-$ curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-$ sudo install minikube-linux-amd64 /usr/local/bin/minikube
+  ```bash
+  $ kubectl create -f kubia-manual.yaml -n custom-namespace
+  ```
 
-# 国内如果下载不了，使用阿里云构建的版本
-$ curl -Lo minikube https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/releases/v1.16.0/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
-```
-
-显示Minikube版本号：
-
-```bash
-$ minikube version
-```
-
-最后，启动集群：
-
-```bash
-$ minikube start
-
-# 可以用下面参数指定使用阿里云镜像
-$ minikube start --image-mirror-country cn \
-    --iso-url=https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/iso/minikube-v1.16.0.iso \
-    --registry-mirror=https://huo5y7st.mirror.aliyuncs.com \
-    --vm-driver=virtualbox
-```
-
-`--image-mirror-country cn`会将`k8s.gcr.io`换成`registry.cn-hangzhou.aliyuncs.com/google_containers`作为安装Kubernetes的容器镜像仓库。
-
-集群启动成功后，可以使用下列命令，打开一个Kubernetes仪表盘：
-
-```bash
-$ minikube dashboard
-```
-
-
-
-## kubeadm
-
-参见：[Creating Highly Available Clusters with kubeadm](https://kubernetes.io/docs/setup/independent/high-availability/)
-
-## 定制安装
-
-参见：[follow-me-install-kubernetes-cluster](https://github.com/opsnull/follow-me-install-kubernetes-cluster)
-
-## 使用Photon OS
-
-Photon OS是一个专注于容器的精简Linux操作系统。它的完全安装中已经包含Kubernetes和Mesos。
-
-## 使用kubekit搭建k8s集群
-
-[Kubekit](https://github.com/Orientsoft/kubekit)是一个部署工具包，它为kubernetes提供离线安装解决方案。您可以使用它将Kubernetes部署到OFFLINE生产环境。
-
-Kubekit将安装
-
-- Docker（1.12.6）
-- Kubernetes及其所有组件
-- Kubernetes仪表板，默认节点端口：31234
-
-### 安装操作系统
-
-首先官方支持下面两个操作系统，而且都要是最小化安装支持的
-
-- CentOS release 7.3.1611
-- CentOS release 7.4.1708
-
-安装完成之后关闭防火墙：
-
-```
-systemctl stop firewalld
-systemctl disable firewalld
-```
-
-关闭selinux：
-
-```
-setenforce 0
-vim /etc/selinux/config
-```
-
-修改为：
-
-```
-SELINUX=disabled
-```
-
-最好还可以同步一下时间什么的：
-
-```
-yum install ntpdate
-ntpdate 0.cn.pool.ntp.org
-```
-
-### 下载kubekit
-
-```
-yum install wget
-wget https://kubekit.orientsoft.cn/kubekit-linux64-0.3.tar.gz
-```
-
-解压
-
-```bash
-tar -zxvf kubekit-linux64-0.3.tar.gz
-mv kubekit-release/ kubekit
-```
-
-下载离线包：
-
-```
-wget https://kubekit.orientsoft.cn/package-1.9.2.tar.gz
-tar -zxvf package-1.9.2.tar.gz
-mv package kubekit
-```
-
-给脚本赋予可执行权限
-
-```
-cd kubekit/package/
-chmod +x ./*.sh
-```
-
-### 安装并初始化master节点
-
-```bash
-./kubekit init 192.168.38.166
-```
-
-接着ctrl+c退出来，然后重新启动kubekit的dashboard并且放在后台
-
-```
-./kubekit server &
-```
-
-### 添加一个node
-
-浏览器访问 ip:9000。
-
-创建一个同样安装着centos 1708最小化安装的机器，之后打开修改主机名：
-
-```
-hostnamectl set-hostname kubekit-node1
-```
-
-接着点击web界面上的add node，输入ssh账号密码等信息，最后选中点击start deploy就可以了。
-
-之后你就会在kubernetes的dashboard看到这个节点的详细信息了。
+注意：命名空间之间是否提供网络隔离取决于Kubernetes所使用的网络解决方案。当该解决方案不提供命名空间间的网络隔离时，如果命名空间foo中的某个Pod知道命名空间bar中Pod的IP地址，那它就可以将流量发送到另一命名空间的Pod。
 
 # 网络管理
 
