@@ -478,6 +478,9 @@ Node可以包含多个pod，Kubernetes master会自动处理在群集中的节�
 Kubernetes的Pod、控制器、服务、命名空间等都是资源。
 
 ```bash
+# 获取所有命名空间下的所有资源
+$ kubectl get all -A
+
 # 删除当前命名空间下的所有资源
 $ kubectl delete all --all
 ```
@@ -566,7 +569,7 @@ $ kubectl explain pods.spec
 
 通常不会直接创建Pods，而是通过控制器（Controller）来管理Pod。
 
-创建未托管的Pods时，Kubernetes会选择一个集群节点来运行Pod，然后监控这些容器，并在它们失败时自动重启它们。但是如果整个节点失败，那么节点上的未托管Pods会丢失，并且不会被新节点替换，而如果使用控制器来管理Pod，则会将失败节点上的Pod自动调度到新节点上运行。
+创建未托管的Pods时，Kubernetes会选择一个集群节点来运行Pod，然后监控该Pod的容器，并在它们失败时自动重启它们。但是如果整个节点失败，那么节点上的未托管Pods会丢失，并且不会被新节点替换，而如果使用控制器来管理Pod，则会将失败节点上的Pod自动调度到新节点上运行。
 
 为了满足不同业务场景，Kubernetes提供了多种控制器：
 
@@ -682,8 +685,8 @@ $ kubectl create -f custom-namespace.yaml
 
 # 获取指定命名空间的资源，使用-n或--namespace选项。如果没有显式指定命名空间，则默认是default命名空间
 $ kubectl get po -n kube-system
-# 获取所有命名空间资源
-$ kubectl get po --all-namespaces
+# 获取所有命名空间资源，使用-A或--all-namespaces
+$ kubectl get po -A
 ```
 
 如果想在指定命名空间下创建资源，有两种方式：
@@ -1780,7 +1783,13 @@ Kubernetes默认健康检查机制：当容器进程（由Dockerfile的CMD或ENT
 
 Liveness探测让用户可以自定义判断容器是否健康的条件。如果探测失败，Kubernetes就会根据`restartPolicy` 设置重启容器。
 
+可以为Pod中的每个容器单独设定存活探针。
+
 Liveness探测是在YAML定义文件中由`livenessProbe`设置的。
+
+### 基于HTTP的存活探针
+
+HTTP GET探针对容器的IP地址（你指定的端口和路径）执行HTTP GET请求。如果探针收到响应，并且响应状态码不代表错误（即响应状态码为2xx或3xx），则认为探测成功。如果服务器返回错误响应状态码或者根本没有响应，则探测失败，容器将被重启。
 
 ```yaml
 apiVersion: v1
@@ -1814,6 +1823,14 @@ spec:
 `periodSeconds 5`表示第5秒执行一次Liveness探测。Kubernetes如果连续执行3次Liveness探测均失败，则会杀掉容器，重建并重启容器。
 
 详细使用方式，参见：https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+
+### 基于TCP套接字的存活探针
+
+TCP套接字探针尝试与容器指定端口建立TCP连接。如果连接成功建立，则探测成功。否则，容器重启。
+
+### Exec探针
+
+Exec探针在容器内执行任意命令，并检查命令的退出状态码。如果状态码是0，则探测成功。所有其他状态码都被 认为失败。
 
 ## Readiness探测
 
