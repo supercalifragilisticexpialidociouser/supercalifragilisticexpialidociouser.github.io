@@ -563,7 +563,7 @@ $ kubectl explain pods
 $ kubectl explain pods.spec
 ```
 
-
+注意：如果容器被强行终止，则会创建一个全新的容器，而不是重启原来的容器。
 
 ## 控制器——运行Pod
 
@@ -1787,6 +1787,12 @@ Liveness探测让用户可以自定义判断容器是否健康的条件。如果
 
 Liveness探测是在YAML定义文件中由`livenessProbe`设置的。
 
+存活探针的最佳实践：
+
+1. 存活探针只应该对容器内部运行的所有重要组件执行状态检查，并且要排除外部因素的影响。例如，当服务器无法连接到数据库服务器时，前端Web服务器的存活探针不应该返回失败。因为问题如果出在数据库，重启Web服务器容器是不会解决问题。
+2. 保持探针轻量。
+3. 无须在探针中实现重试循环，Kubernetes已经有这种机制。
+
 ### 基于HTTP的存活探针
 
 HTTP GET探针对容器的IP地址（你指定的端口和路径）执行HTTP GET请求。如果探针收到响应，并且响应状态码不代表错误（即响应状态码为2xx或3xx），则认为探测成功。如果服务器返回错误响应状态码或者根本没有响应，则探测失败，容器将被重启。
@@ -1812,15 +1818,15 @@ spec:
         httpHeaders:
         - name: X-Custom-Header
           value: Awesome
-      initialDelaySeconds: 3
-      periodSeconds: 3
+      initialDelaySeconds: 10
+      periodSeconds: 5
 ```
 
 为了执行探测，kubelet向Container中运行的服务器发送HTTP GET请求并侦听端口8080。如果服务器的`/healthz`路径的处理程序返回成功代码（任何大于或等于200且小于400的代码表示成功，任何其他代码表示失败），则kubelet认为Container是活动的并且健康。如果处理程序返回失败代码，则kubelet会终止Container并重新启动它。 
 
 `initialDelaySeconds 10`表示在开始执行第一次Liveness探测之前等待10秒，通常根据应用的启动时间来设置。
 
-`periodSeconds 5`表示第5秒执行一次Liveness探测。Kubernetes如果连续执行3次Liveness探测均失败，则会杀掉容器，重建并重启容器。
+`periodSeconds 5`表示每5秒执行一次Liveness探测。Kubernetes如果连续执行3次Liveness探测均失败，则会杀掉容器，重建并启动容器。
 
 详细使用方式，参见：https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
 
@@ -2681,6 +2687,9 @@ $ docker logs 容器ID
 $ kubectl logs kubia-manual
 # Kubernetes（Pod包含多个容器，由-c指定具体容器）
 $ kubectl logs kubia-manual -c kubia
+
+# 如果容器被重启，为了显示前一个容器的日志，可加--previous选项
+$ kubectl logs kubia-manual --previous
 ```
 
 
