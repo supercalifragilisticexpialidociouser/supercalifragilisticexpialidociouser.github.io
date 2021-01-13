@@ -574,10 +574,198 @@ $ kubectl explain pods.spec
 为了满足不同业务场景，Kubernetes提供了多种控制器：
 
 - Deployment：可管理Pod的多个副本，并确保Pod按照预期的状态运行。
-- ReplicaSet：实现了Pod的多副本管理。实际上，使用Deployment时会自动创建ReplicaSet，也就是说，Deployment是通过ReplicaSet来管理Pod的多个副本。我们通常不需要直接使用ReplicaSet。
+- ReplicaSet（用于替换ReplicationController）：实现了Pod的多副本管理，如正在运行的Pod副本太少，它会根据Pod模板创建新的副本；如正在运行的Pod副本太多，它将删除多余的副本。实际上，使用Deployment时会自动创建ReplicaSet，也就是说，Deployment是通过ReplicaSet来管理Pod的多个副本。我们通常不需要直接使用ReplicaSet。
 - DaemonSet：用于每个Node最多运行一个Pod副本的场景。
 - StatefuleSet：能够保证Pod的每个副本在整个生命周期中名称是不变的，并且保证副本按照固定的顺序启动、更新或删除。
-- Job：用到运行结束就删除的应用，常用于一次性的任务。其他控制中的Pod通常是长期持续运行，除非手动删除。
+- Job：用于完成任务就停止的应用，常用于一次性的任务。其他控制中的Pod通常是长期持续运行，除非手动删除。
+
+控制器是通过标签选择器来对匹配的Pod进行管理的。在定义控制器时，标签选择器是可选的，如果缺省，则表示与Pod模板中定义的标签相同。
+
+更改控制器的标签选择器和Pod模板对现有Pod本身没有影响，但它会使现有Pod脱离控制器的作用范围。同理，通过更改Pod的标签，也可以将它从控制器的作用域中添加或删除，甚至可以从一个控制器转换到另一个控制器下。
+
+> 尽管一个Pod没有绑定到一个控制器，但该Pod在`metadata.ownerReferences`字段中引用它，可以轻松使用它来找到一个Pod属于哪个控制器。
+
+如果你想修改Pod，只需要先修改控制器的Pod模板，然后删除旧的Pod，控制器会自动根据新的Pod模板创建新的Pod。
+
+### ReplicaSet
+
+```bash
+# 水平缩放Pod
+$ kubectl scale rs kubia --replicas=10
+
+# 删除ReplicaSet，并同时删除它管理的Pod
+$ kubectl delete rs kubia
+
+# 只删除ReplicaSet，不删除它原来管理的Pod。这样，这些Pod变成未托管，可在将来使用新的控制器来托管它们
+$ kubectl delete rs kubia --cascade=false
+
+# 直接修改ReplicaSet的YAML配置并生效（不影响现有Pod本身）
+$ kubectl edit rs kubia
+```
+
+> 可以通过配置`KUBE_EDITOR`环境变量来告诉kubectl使用你期望的文本编辑器。
+>
+> ```bash
+> export KUBE_EDITOR="/usr/bin/nano"
+> ```
+>
+> 如果未设置`KUBE_EDITOR`环境变量，则使用默认编辑器。
+
+ReplicaSet与ReplicationController不同之处就是拥有更强大的标签选择器。
+
+简单的标签选择器：
+
+```yaml
+selector:
+  matchLabels:
+    app: kubia
+```
+
+更富表达力的标签选择器：
+
+```yaml
+selector:
+  matchExpressions:
+    - key: app
+      operator: In
+      values:
+        - kubia
+    - …
+```
+
+有四个有效的操作符：
+
+- `In`：Pod标签的值必须与`values`指定的其中一个值匹配；
+- `NotIn`：Pod标签的值不与`values`指定的任何值匹配；
+- `Exists`：Pod必须包含`key`指定键的标签，而不管它的值。因此，使用该操作符，不应指定`values`字段；
+- `DoesNotExists`：Pod不得包含`key`指定键的标签，`values`字段不得指定。
+
+如果你指定了多个标签选择表达式，则所有这些表达式都必须为`true`才能使选择器与Pod匹配。可以同时指定`matchLabels`和`matchExpressiions`，则这些选择器都必须匹配。
+
+### DaemonSet
+
+要确保在集群的每个节点上正好只运行一个指定Pod实例，需要使用DaemonSet。
+
+如果节点下线，DaemonSet不会在其他地方重新创建Pod。但是，当将一个新节点添加到集群中时，它会立刻部署一个新的Pod实例。
+
+应用场景：在每个节点上运行日志收集器和资源监控器。
+
+在DaemonSet的Pod模板中，通过`nodeSelector`字段，可以指定将Pod只部署到部分节点上运行。
+
+> 节点可被设置为不可调度，以防止Pod被部署到该节点上。但是DaemonSet管理的Pod会绕过这调度器，部署到这些节点上。
+
+```bash
+# 列出当前命名空间中的DaemonSet
+$ kubectl get ds
+```
+
+### Job
+
+Job表示一次性任务。
+
+Job管理的Pod，在该Pod的内部进程成功结束后，就被认为是处于完成状态，不重启容器。
+
+在任务完成前，如果节点发生故障时，该节点上由Job管理的Pod将会一直被重新安排到其他节点，直到它们成功完成任务。如果进程本身异常退出，可以将Job配置为重新启动容器。
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch-job
+spec:
+  template:
+    metadata:
+      labels:  #没有指定标签选择器，因此与这里的Pod标签相同
+        app: batch-job
+    spec:
+      restartPolicy: OnFailure  #Job不能使用默认的Always策略，因为它们不是为了无限期地运行。因此，要显式地将重启策略设置为OnFailure或Never
+      containers:
+        - name: main
+          image: luksa/batch-job
+```
+
+任务完成后，Pod不被删除，允许你继续查阅其日志。如果不需要，可以直接删除该Pod，或者在删除创建它的Job时被删除。
+
+要列出已完成的Pod，需要使用`--show-all`或`-a`选项：
+
+```bash
+$ kubectl get po -a
+```
+
+#### 顺序运行Job
+
+如果需要一个Job顺序**成功**运行多次，可以将`completions`设为你希望作业的成功运行次数：
+
+```yaml
+spec:
+  completions: 5
+```
+
+发生故障的Pod，会被重新创建一个新的。
+
+#### 并发运行Job
+
+`parallelism`属性可以指定允许多少个Pod并发运行：
+
+```yaml
+spec:
+  completions: 5
+  parallelism: 2
+```
+
+#### Job的缩放
+
+```bash
+$ kubectl scale job myjob --replicas 3
+```
+
+上面的命令，将Job的`parallelism`从2增加到3。
+
+#### 限制Job完成任务的时间
+
+通过在Pod配置中设置`activeDeadlineSeconds`属性，可以限制Pod的时间。如果Pod运行时间超过此时间，系统将尝试终止Pod，并将Job标记为失败。
+
+另外，通过设置Job的`spec.backoffLimit`字段，可以指定Job在被标记为失败之前可以重试的次数，默认为6。
+
+### CronJob
+
+CronJob表示需要在特定时间运行或者在指定的时间间隔内重复运行的任务。
+
+CronJob会为计划中配置的每个任务创建Job资源，然后Job再创建Pod来真正执行任务。
+
+例如：每15分钟运行一次任务：
+
+```yaml
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: myjob
+spec:
+  schedule: "0,15,30,45 * * * *"  #cron格式
+  jobTemplate:  #Job模板
+    spec:
+      template:  #Pod模板
+        metadata:
+          labels:
+            app: periodic-batch-job
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: main
+              image: luksa/batch-job
+```
+
+由创建Job和Pod需要一定时间，如果这项任务有很高的要求。则可以通过设定CronJob中的`startingDeadlineSeconds`字段来指定截止时间，即Pod最迟必须在预定时间后多少秒开始运行，否则任务失败。
+
+```yaml
+spec:
+  schedule: "0,15,30,45 * * * *"
+  startingDeadlineSeconds: 15
+```
+
+假设任务预定的执行时间是 10:30:00，如果因为任何原因 10:30:15 不启动，任务将不会运行，并将显示为Failed。
+
+CronJob正常总是为计划中配置的每个任务创建一个Job，但也可能会同时创建两个Job，或者根本没有创建。这就要求任务必须是幂等的，而且，下一个任务会完成本应该由上一个任务（错过的）完成任何工作。
 
 ## 服务——发现Pod
 
