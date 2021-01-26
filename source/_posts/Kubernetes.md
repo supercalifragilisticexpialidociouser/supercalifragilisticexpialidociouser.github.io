@@ -10,6 +10,188 @@ Kubernetes是一个容器编排引擎，它是Google Omega（之前叫Borg）的
 
 <!--more-->
 
+# 安装
+
+## Kind
+
+[Kind](https://kind.sigs.k8s.io)是在本地计算机部署Kubernetes的工具，通常用于本地开发和CI。
+
+## Minikube
+
+Minikube是一种轻量级Kubernetes实现，可在本地计算机上创建VM并部署仅包含一个节点的简单集群，它适用于开发和测试。 
+
+首先，安装Kubernetes命令行客户端[kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)：（通常安装在开发本地机器上，而不是安装在集群上）
+
+```bash
+$ curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+$ chmod +x ./kubectl
+$ sudo mv ./kubectl /usr/local/bin/kubectl
+$ kubectl version --client
+```
+
+> kubectl可以不需要独立安装。例如下面的两种用法是等价的：
+>
+> ```bash
+> # 独立安装kubectl
+> $ kubectl get po -A
+> 
+> # 由Minikube自动下载合适的kubectl，并执行命令
+> $ minikube kubectl -- get po -A
+> ```
+>
+> 
+
+然后，安装VirtualBox、KVM2或Docker。（Minikube需要在VM中运行Kubernetes）
+
+现在，可以安装[Minikube](https://minikube.sigs.k8s.io/docs/start/)：
+
+```bash
+$ curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+$ sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+# 国内如果下载不了，使用阿里云构建的版本
+$ curl -Lo minikube https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/releases/v1.16.0/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+```
+
+显示Minikube版本号：
+
+```bash
+$ minikube version
+```
+
+最后，启动集群：
+
+```bash
+$ minikube start
+
+# 可以用下面参数指定使用阿里云镜像
+$ minikube start --image-mirror-country cn \
+    --iso-url=https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/iso/minikube-v1.16.0.iso \
+    --registry-mirror=https://huo5y7st.mirror.aliyuncs.com \
+    --vm-driver=virtualbox
+```
+
+`--image-mirror-country cn`会将`k8s.gcr.io`换成`registry.cn-hangzhou.aliyuncs.com/google_containers`作为安装Kubernetes的容器镜像仓库。
+
+集群启动成功后，可以使用下列命令，打开一个Kubernetes仪表盘：
+
+```bash
+$ minikube dashboard
+```
+
+
+
+## kubeadm
+
+参见：[Creating Highly Available Clusters with kubeadm](https://kubernetes.io/docs/setup/independent/high-availability/)
+
+## 定制安装
+
+参见：[follow-me-install-kubernetes-cluster](https://github.com/opsnull/follow-me-install-kubernetes-cluster)
+
+## 使用Photon OS
+
+Photon OS是一个专注于容器的精简Linux操作系统。它的完全安装中已经包含Kubernetes和Mesos。
+
+## 使用kubekit搭建k8s集群
+
+[Kubekit](https://github.com/Orientsoft/kubekit)是一个部署工具包，它为kubernetes提供离线安装解决方案。您可以使用它将Kubernetes部署到OFFLINE生产环境。
+
+Kubekit将安装
+
+- Docker（1.12.6）
+- Kubernetes及其所有组件
+- Kubernetes仪表板，默认节点端口：31234
+
+### 安装操作系统
+
+首先官方支持下面两个操作系统，而且都要是最小化安装支持的
+
+- CentOS release 7.3.1611
+- CentOS release 7.4.1708
+
+安装完成之后关闭防火墙：
+
+```
+systemctl stop firewalld
+systemctl disable firewalld
+```
+
+关闭selinux：
+
+```
+setenforce 0
+vim /etc/selinux/config
+```
+
+修改为：
+
+```
+SELINUX=disabled
+```
+
+最好还可以同步一下时间什么的：
+
+```
+yum install ntpdate
+ntpdate 0.cn.pool.ntp.org
+```
+
+### 下载kubekit
+
+```
+yum install wget
+wget https://kubekit.orientsoft.cn/kubekit-linux64-0.3.tar.gz
+```
+
+解压
+
+```bash
+tar -zxvf kubekit-linux64-0.3.tar.gz
+mv kubekit-release/ kubekit
+```
+
+下载离线包：
+
+```
+wget https://kubekit.orientsoft.cn/package-1.9.2.tar.gz
+tar -zxvf package-1.9.2.tar.gz
+mv package kubekit
+```
+
+给脚本赋予可执行权限
+
+```
+cd kubekit/package/
+chmod +x ./*.sh
+```
+
+### 安装并初始化master节点
+
+```bash
+./kubekit init 192.168.38.166
+```
+
+接着ctrl+c退出来，然后重新启动kubekit的dashboard并且放在后台
+
+```
+./kubekit server &
+```
+
+### 添加一个node
+
+浏览器访问 ip:9000。
+
+创建一个同样安装着centos 1708最小化安装的机器，之后打开修改主机名：
+
+```
+hostnamectl set-hostname kubekit-node1
+```
+
+接着点击web界面上的add node，输入ssh账号密码等信息，最后选中点击start deploy就可以了。
+
+之后你就会在kubernetes的dashboard看到这个节点的详细信息了。
+
 # 起步
 
 [Kubernetes.io](https://kubernetes.io) 上有一个基于Minikube的 [在线交互式教程](https://kubernetes.io/docs/tutorials/kubernetes-basics/) ，可以快速体验Kubernetes的功能和应用场景。
@@ -293,11 +475,29 @@ Node可以包含多个pod，Kubernetes master会自动处理在群集中的节�
 
 节点组件在每个Node上运行，维护运行的 Pod 并提供 Kubernetes 运行时环境。
 
+<<<<<<< HEAD
 **Kubelet**：一个在集群中每个节点上运行的代理。它保证容器都运行在 Pod 中。
 
 **kube-proxy**：是集群中每个节点上运行的网络代理,实现 Kubernetes [Service](https://kubernetes.io/zh/docs/concepts/services-networking/service/) 概念的一部分。
 
 **容器运行环境**：是负责运行容器的软件。Kubernetes 支持多个容器运行环境: [docker](https://kubernetes.io/zh/docs/reference/kubectl/docker-cli-to-kubectl/)、 [containerd](https://containerd.io/docs/)、[CRI-O](https://cri-o.io/docs/) 以及任何实现 [Kubernetes CRI (容器运行环境接口)](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-node/container-runtime-interface.md)。
+=======
+## 资源
+
+Kubernetes的Pod、控制器、服务、命名空间等都是资源。
+
+```bash
+# 获取所有命名空间下的所有资源
+$ kubectl get all -A
+
+# 删除当前命名空间下的所有资源
+$ kubectl delete all --all
+```
+
+第一个`all`指定正在删除所有资源类型，而`--all`选项指定将删除所有资源实例。
+
+> 注意：使用`all`关键字删除所有内容并不是真的完全删除所有内容。一些资源，比如Secret，会被保留下来，并且需要被明确指定删除。
+>>>>>>> cb6fcb19eaae48be700abc27fe2bd81917c91742
 
 ## Pods
 
@@ -327,6 +527,16 @@ $ export POD_NAME=$(kubectl get pods -o go-template --template '{{range .items}}
 
 Kubernetes集群中的所有Pods都在同一个共享网络地址空间中，这意味着每个Pod都可以通过其他Pod的IP地址来实现相互访问，它们之间没有NAT网关，同时不管实际节点间的网络拓扑结构如何。
 
+在集群外，可以通过创建一个服务来访问Pod。另外，还可以通过将本地网络端口转发到Pod中的端口（这种方式通常用于测试Pod是否有效），这样就可以通过本地端口连接到Pod。
+
+```bash
+# 将本地商品8888转发到Pod的8080
+$ kubectl port-forward kubia-manual 8888:8080
+$ curl localhost:8888
+```
+
+
+
 容器应该如何分组到Pod中：当决定是将两个容器放入一个Pod还是两个单独的Pod时，我们需要问自己以下问题：
 
 - 它们需要在相同主机上一起运行还是可以在不同的主机上运行？
@@ -335,19 +545,237 @@ Kubernetes集群中的所有Pods都在同一个共享网络地址空间中，这
 
 ![Pod不应该包含多个并不需要运行在同一主机上的容器](E:\supercalifragilisticexpialidociouser.github.io\source\_posts\Kubernetes\Pod不应该包含多个并不需要运行在同一主机上的容器)
 
-可以通过`kubectl run`命令直接创建Pod。
+Pod常用命令：
+
+```bash
+# 创建Pod
+$ kubectl run kubia --image=luksa/kubia --port=8080
+# 从YAML创建Pod。（注：kubectl create -f 可用于创建任意资源）
+$ kubectl create -f kubia-manual.yaml
+# 按名称删除Pod
+$ kubectl delete po pod1 pod2
+# 使用标签选择器删除Pod
+$ kubectl delete po -l rel=canary
+# 通过删除整个命名空间来删除Pod
+$ kubectl delete ns custom-namespace
+# 删除命名空间中的所有Pod，但保留命名空间
+$ kubectl delete po --all
+# 注意：如果Pod是通过ReplicationController创建的，通过上面命令是无法删除的，因此控制器会不断重新创建Pod。这时，只要将该ReplicationController删除，就是自动删除它创建的Pod。
+
+# 查看Pod的YAML描述文件
+$ kubectl get po kubia-zxzij -o yaml
+```
+
+要想获得YAML上每个资源的字段说明，除了可以查看官网API外，还可以使用如下命令：
+
+```bash
+$ kubectl explain pods
+$ kubectl explain pods.spec
+```
+
+注意：如果容器被强行终止，则会创建一个全新的容器，而不是重启原来的容器。
 
 ## 控制器——运行Pod
 
-Kubernetes通常不会直接创建Pods，而是通过控制器（Controller）来管理Pod。
+通常不会直接创建Pods，而是通过控制器（Controller）来管理Pod。
+
+创建未托管的Pods时，Kubernetes会选择一个集群节点来运行Pod，然后监控该Pod的容器，并在它们失败时自动重启它们。但是如果整个节点失败，那么节点上的未托管Pods会丢失，并且不会被新节点替换，而如果使用控制器来管理Pod，则会将失败节点上的Pod自动调度到新节点上运行。
 
 为了满足不同业务场景，Kubernetes提供了多种控制器：
 
 - Deployment：可管理Pod的多个副本，并确保Pod按照预期的状态运行。
-- ReplicaSet：实现了Pod的多副本管理。实际上，使用Deployment时会自动创建ReplicaSet，也就是说，Deployment是通过ReplicaSet来管理Pod的多个副本。我们通常不需要直接使用ReplicaSet。
+- ReplicaSet（用于替换ReplicationController）：实现了Pod的多副本管理，如正在运行的Pod副本太少，它会根据Pod模板创建新的副本；如正在运行的Pod副本太多，它将删除多余的副本。实际上，使用Deployment时会自动创建ReplicaSet，也就是说，Deployment是通过ReplicaSet来管理Pod的多个副本。我们通常不需要直接使用ReplicaSet。
 - DaemonSet：用于每个Node最多运行一个Pod副本的场景。
 - StatefuleSet：能够保证Pod的每个副本在整个生命周期中名称是不变的，并且保证副本按照固定的顺序启动、更新或删除。
-- Job：用到运行结束就删除的应用，常用于一次性的任务。其他控制中的Pod通常是长期持续运行，除非手动删除。
+- Job：用于完成任务就停止的应用，常用于一次性的任务。其他控制中的Pod通常是长期持续运行，除非手动删除。
+
+控制器是通过标签选择器来对匹配的Pod进行管理的。在定义控制器时，标签选择器是可选的，如果缺省，则表示与Pod模板中定义的标签相同。
+
+更改控制器的标签选择器和Pod模板对现有Pod本身没有影响，但它会使现有Pod脱离控制器的作用范围。同理，通过更改Pod的标签，也可以将它从控制器的作用域中添加或删除，甚至可以从一个控制器转换到另一个控制器下。
+
+> 尽管一个Pod没有绑定到一个控制器，但该Pod在`metadata.ownerReferences`字段中引用它，可以轻松使用它来找到一个Pod属于哪个控制器。
+
+如果你想修改Pod，只需要先修改控制器的Pod模板，然后删除旧的Pod，控制器会自动根据新的Pod模板创建新的Pod。
+
+### ReplicaSet
+
+```bash
+# 水平缩放Pod
+$ kubectl scale rs kubia --replicas=10
+
+# 删除ReplicaSet，并同时删除它管理的Pod
+$ kubectl delete rs kubia
+
+# 只删除ReplicaSet，不删除它原来管理的Pod。这样，这些Pod变成未托管，可在将来使用新的控制器来托管它们
+$ kubectl delete rs kubia --cascade=false
+
+# 直接修改ReplicaSet的YAML配置并生效（不影响现有Pod本身）
+$ kubectl edit rs kubia
+```
+
+> 可以通过配置`KUBE_EDITOR`环境变量来告诉kubectl使用你期望的文本编辑器。
+>
+> ```bash
+> export KUBE_EDITOR="/usr/bin/nano"
+> ```
+>
+> 如果未设置`KUBE_EDITOR`环境变量，则使用默认编辑器。
+
+ReplicaSet与ReplicationController不同之处就是拥有更强大的标签选择器。
+
+简单的标签选择器：
+
+```yaml
+selector:
+  matchLabels:
+    app: kubia
+```
+
+更富表达力的标签选择器：
+
+```yaml
+selector:
+  matchExpressions:
+    - key: app
+      operator: In
+      values:
+        - kubia
+    - …
+```
+
+有四个有效的操作符：
+
+- `In`：Pod标签的值必须与`values`指定的其中一个值匹配；
+- `NotIn`：Pod标签的值不与`values`指定的任何值匹配；
+- `Exists`：Pod必须包含`key`指定键的标签，而不管它的值。因此，使用该操作符，不应指定`values`字段；
+- `DoesNotExists`：Pod不得包含`key`指定键的标签，`values`字段不得指定。
+
+如果你指定了多个标签选择表达式，则所有这些表达式都必须为`true`才能使选择器与Pod匹配。可以同时指定`matchLabels`和`matchExpressiions`，则这些选择器都必须匹配。
+
+### DaemonSet
+
+要确保在集群的每个节点上正好只运行一个指定Pod实例，需要使用DaemonSet。
+
+如果节点下线，DaemonSet不会在其他地方重新创建Pod。但是，当将一个新节点添加到集群中时，它会立刻部署一个新的Pod实例。
+
+应用场景：在每个节点上运行日志收集器和资源监控器。
+
+在DaemonSet的Pod模板中，通过`nodeSelector`字段，可以指定将Pod只部署到部分节点上运行。
+
+> 节点可被设置为不可调度，以防止Pod被部署到该节点上。但是DaemonSet管理的Pod会绕过这调度器，部署到这些节点上。
+
+```bash
+# 列出当前命名空间中的DaemonSet
+$ kubectl get ds
+```
+
+### Job
+
+Job表示一次性任务。
+
+Job管理的Pod，在该Pod的内部进程成功结束后，就被认为是处于完成状态，不重启容器。
+
+在任务完成前，如果节点发生故障时，该节点上由Job管理的Pod将会一直被重新安排到其他节点，直到它们成功完成任务。如果进程本身异常退出，可以将Job配置为重新启动容器。
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch-job
+spec:
+  template:
+    metadata:
+      labels:  #没有指定标签选择器，因此与这里的Pod标签相同
+        app: batch-job
+    spec:
+      restartPolicy: OnFailure  #Job不能使用默认的Always策略，因为它们不是为了无限期地运行。因此，要显式地将重启策略设置为OnFailure或Never
+      containers:
+        - name: main
+          image: luksa/batch-job
+```
+
+任务完成后，Pod不被删除，允许你继续查阅其日志。如果不需要，可以直接删除该Pod，或者在删除创建它的Job时被删除。
+
+要列出已完成的Pod，需要使用`--show-all`或`-a`选项：
+
+```bash
+$ kubectl get po -a
+```
+
+#### 顺序运行Job
+
+如果需要一个Job顺序**成功**运行多次，可以将`completions`设为你希望作业的成功运行次数：
+
+```yaml
+spec:
+  completions: 5
+```
+
+发生故障的Pod，会被重新创建一个新的。
+
+#### 并发运行Job
+
+`parallelism`属性可以指定允许多少个Pod并发运行：
+
+```yaml
+spec:
+  completions: 5
+  parallelism: 2
+```
+
+#### Job的缩放
+
+```bash
+$ kubectl scale job myjob --replicas 3
+```
+
+上面的命令，将Job的`parallelism`从2增加到3。
+
+#### 限制Job完成任务的时间
+
+通过在Pod配置中设置`activeDeadlineSeconds`属性，可以限制Pod的时间。如果Pod运行时间超过此时间，系统将尝试终止Pod，并将Job标记为失败。
+
+另外，通过设置Job的`spec.backoffLimit`字段，可以指定Job在被标记为失败之前可以重试的次数，默认为6。
+
+### CronJob
+
+CronJob表示需要在特定时间运行或者在指定的时间间隔内重复运行的任务。
+
+CronJob会为计划中配置的每个任务创建Job资源，然后Job再创建Pod来真正执行任务。
+
+例如：每15分钟运行一次任务：
+
+```yaml
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: myjob
+spec:
+  schedule: "0,15,30,45 * * * *"  #cron格式
+  jobTemplate:  #Job模板
+    spec:
+      template:  #Pod模板
+        metadata:
+          labels:
+            app: periodic-batch-job
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: main
+              image: luksa/batch-job
+```
+
+由创建Job和Pod需要一定时间，如果这项任务有很高的要求。则可以通过设定CronJob中的`startingDeadlineSeconds`字段来指定截止时间，即Pod最迟必须在预定时间后多少秒开始运行，否则任务失败。
+
+```yaml
+spec:
+  schedule: "0,15,30,45 * * * *"
+  startingDeadlineSeconds: 15
+```
+
+假设任务预定的执行时间是 10:30:00，如果因为任何原因 10:30:15 不启动，任务将不会运行，并将显示为Failed。
+
+CronJob正常总是为计划中配置的每个任务创建一个Job，但也可能会同时创建两个Job，或者根本没有创建。这就要求任务必须是幂等的，而且，下一个任务会完成本应该由上一个任务（错过的）完成任何工作。
 
 ## 服务——发现Pod
 
@@ -370,11 +798,65 @@ Kubernetes通常不会直接创建Pods，而是通过控制器（Controller）�
 
 ## 标签
 
-标签是附加到对象的键/值对，它是一个允许对Kubernetes中的对象进行逻辑操作的分组原语。 
+标签是附加到对象的键/值对，它用于组织Kubernetes资源，用以选择具有指定标签的资源（通过标签选择器完成）。 
 
 ![labels](Kubernetes/labels.svg)
 
 标签可以在创建时或稍后附加到对象。它们可以随时修改。 
+
+```bash
+# 查看标签
+$ kubectl get po --show-labels
+# 在单独列中显示指定标签，不会过滤Pod。没有指定标签的Pod显示为<none>
+$ kubectl get po -L app,env
+# 为Pod添加新标签
+$ kubectl label po kubia-manual creation_method=manual
+# 修改Pod的标签值
+$ kubectl label po kubia-manual env=debug --overwrite
+# 列出包含标签键为env的所有Pod
+$ kubectl get po -l env
+# 列出不包含标签键不为env的Pod
+$ kubectl get po -l '!env'
+# 列出标签为env=debug的Pod
+$ kubectl get po -l env=debug
+# 列出标签键为env，但值不为debug的Pod
+$ kubectl get po -l 'env!=debug'
+# 列出标签键为env，且值为prod或dev的Pod
+$ kubectl get po -l 'env in (prod,dev)'
+# 列出标签键为env，且值不是prod或dev的Pod
+$ kubectl get po -l 'env notin (prod,dev)'
+# 可以带多个条件，例如：列出标签为app=pc且rel=beta的Pod
+$ kubectl get po -l app=pc,rel=beta
+```
+
+### 约束Pod调度
+
+可通过yaml中的`nodeSelector`属性来指定将Pod调度到哪类节点。例如，将Pod调度到包含标签`gpu=true`的节点：
+
+```yaml
+…
+spec:
+  nodeSelector:
+    gpu: "true"
+…
+```
+
+由于每个节点都有一个唯一标签，其中键为`kubernetes.io/hostname`，值为该节点的实际主机名，因此我们也可以将Pod调度到某个具体节点。
+
+## 注解
+
+注解也是键值对，但它不是用于对资源分组的，不存在注解选择器这样的东西。另一方面，注解可以容纳更多的信息。
+
+向Kubernetes引入新特性时，通常会在新特性的alpha和beta版本中先使用注解，而不会向API对象引入任何新字段。只有到了正式版本时，才会引入新字段并废弃相关注解。
+
+```bash
+# 添加注解
+$ kubectl annotate pod kubia-manual mycompany.com/someannotation="foo bar"
+# 查看注解
+$ kubectl describe pod kubia-manual
+```
+
+
 
 ## 命名空间
 
@@ -382,194 +864,40 @@ Kubernetes通常不会直接创建Pods，而是通过控制器（Controller）�
 
 Kubernetes默认创建了两个命名空间：
 
-- default：默认命名空间。创建资源时如果不指定命名空间，将被放到default命名空间。
+- default：默认命名空间。创建资源时如果不指定命名空间，将被放到default命名空间。可以通过下列命令设置默认命名空间：
+
+  ```bash
+  $ kubectl config set-context $(kubectl config current-context) --namespace some-namespace
+  ```
+
 - kube-system：Kubernetes自己创建的系统资源将放到这个命名空间。
 
-在使用`kubectl`工具管理kubernetes资源时，可用`-n 命名空间`选项来指定资源的命名空间。没有为资源显式指定命名空间，则属于`default`命名空间。
-
-可用`--all-namespaces`选项表示所有命名空间。
-
-# 安装
-
-## Kind
-
-[Kind](https://kind.sigs.k8s.io)是在本地计算机部署Kubernetes的工具，通常用于本地开发和CI。
-
-## Minikube
-
-Minikube是一种轻量级Kubernetes实现，可在本地计算机上创建VM并部署仅包含一个节点的简单集群，它适用于开发和测试。 
-
-首先，安装Kubernetes命令行客户端[kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)：（通常安装在开发本地机器上，而不是安装在集群上）
-
 ```bash
-$ curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
-$ chmod +x ./kubectl
-$ sudo mv ./kubectl /usr/local/bin/kubectl
-$ kubectl version --client
+# 列出所有命名空间
+$ kubectl get ns
+
+# 创建命名空间
+$ kubectl create namespace custom-namespace
+或者
+$ kubectl create -f custom-namespace.yaml
+
+# 获取指定命名空间的资源，使用-n或--namespace选项。如果没有显式指定命名空间，则默认是default命名空间
+$ kubectl get po -n kube-system
+# 获取所有命名空间资源，使用-A或--all-namespaces
+$ kubectl get po -A
 ```
 
-> kubectl可以不需要独立安装。例如下面的两种用法是等价的：
->
-> ```bash
-> # 独立安装kubectl
-> $ kubectl get po -A
-> 
-> # 由Minikube自动下载合适的kubectl，并执行命令
-> $ minikube kubectl -- get po -A
-> ```
->
-> 
+如果想在指定命名空间下创建资源，有两种方式：
 
-然后，安装VirtualBox、KVM2或Docker。（Minikube需要在VM中运行Kubernetes）
+- 在资源的YAML文件中的`metadata`字段中添加`namespace: custom-namespace`属性。
 
-现在，可以安装[Minikube](https://minikube.sigs.k8s.io/docs/start/)：
+- 在命令行中，通过`-n`选项指定：
 
-```bash
-$ curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-$ sudo install minikube-linux-amd64 /usr/local/bin/minikube
+  ```bash
+  $ kubectl create -f kubia-manual.yaml -n custom-namespace
+  ```
 
-# 国内如果下载不了，使用阿里云构建的版本
-$ curl -Lo minikube https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/releases/v1.16.0/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
-```
-
-显示Minikube版本号：
-
-```bash
-$ minikube version
-```
-
-最后，启动集群：
-
-```bash
-$ minikube start
-
-# 可以用下面参数指定使用阿里云镜像
-$ minikube start --image-mirror-country cn \
-    --iso-url=https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/iso/minikube-v1.16.0.iso \
-    --registry-mirror=https://huo5y7st.mirror.aliyuncs.com \
-    --vm-driver=virtualbox
-```
-
-`--image-mirror-country cn`会将`k8s.gcr.io`换成`registry.cn-hangzhou.aliyuncs.com/google_containers`作为安装Kubernetes的容器镜像仓库。
-
-集群启动成功后，可以使用下列命令，打开一个Kubernetes仪表盘：
-
-```bash
-$ minikube dashboard
-```
-
-
-
-## kubeadm
-
-参见：[Creating Highly Available Clusters with kubeadm](https://kubernetes.io/docs/setup/independent/high-availability/)
-
-## 定制安装
-
-参见：[follow-me-install-kubernetes-cluster](https://github.com/opsnull/follow-me-install-kubernetes-cluster)
-
-## 使用Photon OS
-
-Photon OS是一个专注于容器的精简Linux操作系统。它的完全安装中已经包含Kubernetes和Mesos。
-
-## 使用kubekit搭建k8s集群
-
-[Kubekit](https://github.com/Orientsoft/kubekit)是一个部署工具包，它为kubernetes提供离线安装解决方案。您可以使用它将Kubernetes部署到OFFLINE生产环境。
-
-Kubekit将安装
-
-- Docker（1.12.6）
-- Kubernetes及其所有组件
-- Kubernetes仪表板，默认节点端口：31234
-
-### 安装操作系统
-
-首先官方支持下面两个操作系统，而且都要是最小化安装支持的
-
-- CentOS release 7.3.1611
-- CentOS release 7.4.1708
-
-安装完成之后关闭防火墙：
-
-```
-systemctl stop firewalld
-systemctl disable firewalld
-```
-
-关闭selinux：
-
-```
-setenforce 0
-vim /etc/selinux/config
-```
-
-修改为：
-
-```
-SELINUX=disabled
-```
-
-最好还可以同步一下时间什么的：
-
-```
-yum install ntpdate
-ntpdate 0.cn.pool.ntp.org
-```
-
-### 下载kubekit
-
-```
-yum install wget
-wget https://kubekit.orientsoft.cn/kubekit-linux64-0.3.tar.gz
-```
-
-解压
-
-```bash
-tar -zxvf kubekit-linux64-0.3.tar.gz
-mv kubekit-release/ kubekit
-```
-
-下载离线包：
-
-```
-wget https://kubekit.orientsoft.cn/package-1.9.2.tar.gz
-tar -zxvf package-1.9.2.tar.gz
-mv package kubekit
-```
-
-给脚本赋予可执行权限
-
-```
-cd kubekit/package/
-chmod +x ./*.sh
-```
-
-### 安装并初始化master节点
-
-```bash
-./kubekit init 192.168.38.166
-```
-
-接着ctrl+c退出来，然后重新启动kubekit的dashboard并且放在后台
-
-```
-./kubekit server &
-```
-
-### 添加一个node
-
-浏览器访问 ip:9000。
-
-创建一个同样安装着centos 1708最小化安装的机器，之后打开修改主机名：
-
-```
-hostnamectl set-hostname kubekit-node1
-```
-
-接着点击web界面上的add node，输入ssh账号密码等信息，最后选中点击start deploy就可以了。
-
-之后你就会在kubernetes的dashboard看到这个节点的详细信息了。
+注意：命名空间之间是否提供网络隔离取决于Kubernetes所使用的网络解决方案。当该解决方案不提供命名空间间的网络隔离时，如果命名空间foo中的某个Pod知道命名空间bar中Pod的IP地址，那它就可以将流量发送到另一命名空间的Pod。
 
 # 网络管理
 
@@ -1653,7 +1981,19 @@ Kubernetes默认健康检查机制：当容器进程（由Dockerfile的CMD或ENT
 
 Liveness探测让用户可以自定义判断容器是否健康的条件。如果探测失败，Kubernetes就会根据`restartPolicy` 设置重启容器。
 
+可以为Pod中的每个容器单独设定存活探针。
+
 Liveness探测是在YAML定义文件中由`livenessProbe`设置的。
+
+存活探针的最佳实践：
+
+1. 存活探针只应该对容器内部运行的所有重要组件执行状态检查，并且要排除外部因素的影响。例如，当服务器无法连接到数据库服务器时，前端Web服务器的存活探针不应该返回失败。因为问题如果出在数据库，重启Web服务器容器是不会解决问题。
+2. 保持探针轻量。
+3. 无须在探针中实现重试循环，Kubernetes已经有这种机制。
+
+### 基于HTTP的存活探针
+
+HTTP GET探针对容器的IP地址（你指定的端口和路径）执行HTTP GET请求。如果探针收到响应，并且响应状态码不代表错误（即响应状态码为2xx或3xx），则认为探测成功。如果服务器返回错误响应状态码或者根本没有响应，则探测失败，容器将被重启。
 
 ```yaml
 apiVersion: v1
@@ -1676,17 +2016,25 @@ spec:
         httpHeaders:
         - name: X-Custom-Header
           value: Awesome
-      initialDelaySeconds: 3
-      periodSeconds: 3
+      initialDelaySeconds: 10
+      periodSeconds: 5
 ```
 
 为了执行探测，kubelet向Container中运行的服务器发送HTTP GET请求并侦听端口8080。如果服务器的`/healthz`路径的处理程序返回成功代码（任何大于或等于200且小于400的代码表示成功，任何其他代码表示失败），则kubelet认为Container是活动的并且健康。如果处理程序返回失败代码，则kubelet会终止Container并重新启动它。 
 
 `initialDelaySeconds 10`表示在开始执行第一次Liveness探测之前等待10秒，通常根据应用的启动时间来设置。
 
-`periodSeconds 5`表示第5秒执行一次Liveness探测。Kubernetes如果连续执行3次Liveness探测均失败，则会杀掉容器，重建并重启容器。
+`periodSeconds 5`表示每5秒执行一次Liveness探测。Kubernetes如果连续执行3次Liveness探测均失败，则会杀掉容器，重建并启动容器。
 
 详细使用方式，参见：https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+
+### 基于TCP套接字的存活探针
+
+TCP套接字探针尝试与容器指定端口建立TCP连接。如果连接成功建立，则探测成功。否则，容器重启。
+
+### Exec探针
+
+Exec探针在容器内执行任意命令，并检查命令的退出状态码。如果状态码是0，则探测成功。所有其他状态码都被 认为失败。
 
 ## Readiness探测
 
@@ -2525,6 +2873,24 @@ K8S从1.8版本开始，CPU、内存等资源的指标信息可以通过 Metrics
 ## Prometheus Operator
 
 # 日志管理
+
+容器化的应用程序通常将日志记录到标准输出和标准错误流，而不是将其写入文件。容器运行时（例如Docker）将这些流重定向到文件，并允许我们运行以下命令来获取容器的日志：
+
+```bash
+# Docker（必须与Docker在同一机器上）
+$ docker logs 容器ID
+
+# 由于kubectl可以安装在用户本地机器上，因此下列命令可以不在集群上运行
+# Kubernetes（Pod只包含单个容器）
+$ kubectl logs kubia-manual
+# Kubernetes（Pod包含多个容器，由-c指定具体容器）
+$ kubectl logs kubia-manual -c kubia
+
+# 如果容器被重启，为了显示前一个容器的日志，可加--previous选项
+$ kubectl logs kubia-manual --previous
+```
+
+
 
 # Istio
 
