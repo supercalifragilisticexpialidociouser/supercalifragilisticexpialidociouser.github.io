@@ -21,6 +21,16 @@ Maven是一个项目管理工具。
 3. 将环境变量`M2_HOME`设置为Maven的安装目录；
 4. 将`M2_HOME/bin`目录添加到`Path`环境变量中。
 
+### maven-wrapper
+
+如果你的项目没有mvnw文件，需要先下载maven，并把[mvn](https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.5.4/apache-maven-3.5.4-bin.zip)可执行文件路径需加入的PATH中。然后执行以下命令，就会自动生成mvnw相关一系列文件：
+
+```bash
+$ mvn -N io.takari:maven:wrapper
+```
+
+> 使用`https://start.spring.io/`生成Spring Boot初始项目已经包含了mvnw，不需要另外安装。因此，也不需要自己安装maven。
+
 ## 配置
 
 ### 全局配置
@@ -3043,7 +3053,9 @@ Windows下启动Nexus：
 
 如果要将工件发布到私有仓库，参见下一节：部署JARs到远程仓库。
 
-### 部署JARs到远程仓库
+### 发布到远程仓库
+
+#### 发布到远程私有仓库
 
 首先，在`pom.xml`中配置目标远程仓库的URL：
 
@@ -3129,6 +3141,12 @@ mvn deploy:deploy-file -DgroupId=<group-id> \
 另外，如果只是部署源代码，则`-Dpackaging=java-source`，并且`-DgeneratePom=false`。
 
 默认情况下，不允许重新发布同一版本的工件，需要登陆nexus将原来发布删除，再重新发布。但是，如果将仓库的`Deployment Policy`设置成`Allow Redeploy`，则重新发布会自动覆盖原发布。
+
+另外，pom.xml中version的版本如果带有`-SNAPSHOT`后缀的，将会发布到snapshots仓库中。
+
+#### 发布到中央仓库
+
+
 
 # 属性和插值
 
