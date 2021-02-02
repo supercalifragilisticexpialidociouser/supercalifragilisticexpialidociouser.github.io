@@ -151,7 +151,13 @@ $ ./gradlew -Pprod bootWar jibDockerBuild
 
 这会生成一个Docker镜像，镜像名在Linux上是应用名（例如`myapp`），而在Windows上是`jhipster`。
 
+## Profile
 
+在Maven构建项目时，使用`-p`选项可以指定Maven的profile。而Maven的profile中定义了`spring.profiles.active`属性，该属性值会通过Maven Filter功能重写`application.yml`中`spring.profiles.active`的值。
+
+> 注：JHipster已经将Maven Filter的插值表达式的定界符改成了`#`。
+
+另外，在Docker或Docker Compose的YAML文件中，还可以通过环境变量来覆盖`spring.profiles.active`的值，并且它的优先级比`application.yml`高。
 
 # 部署应用
 

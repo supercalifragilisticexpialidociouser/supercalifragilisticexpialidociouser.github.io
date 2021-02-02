@@ -564,7 +564,9 @@ app.name=MyApp
 app.description=${app.name} is a Spring Boot application
 ```
 
-> 由于`application.properties` 或 `application.yml`配置文件（也包括`application-xxx.properties`和`application-xxx.yml`）支持PlaceHolder方式的插值表达式（${…}），因此Maven filtering的插值表达式被改成使用`@…@`。可以通过`resource.delimiter`属性来自定义Maven插值表达式的定界符。
+> 由于`application.properties` 或 `application.yml`配置文件（也包括`application-xxx.properties`和`application-xxx.yml`）支持PlaceHolder方式的插值表达式（${…}），这会与Maven filtering的插值表达式相冲突，因此如果要在配置文件中应用Maven Filter，则需要将Maven Filter插值表达式的定界符改成其他字符，例如：改成`@…@`。这可以通过Maven插件`maven-resource-plugin`的`delimiters`属性来配置。
+>
+> 注：Spring Boot的`spring-boot-starter-parent `的POM中已经通过`resource.delimiter`属性来将Maven Filter的插值表达式的定界符设置为`@`了。
 
 ##### 自定义属性
 
