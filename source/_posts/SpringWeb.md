@@ -957,6 +957,17 @@ JSP作为视图技术是有很大缺点的：
 
 Thymeleaf模板是原生的，不依赖于标签库。它通过自定义的命名空间，为标准的HTML标签集合添加Thymeleaf属性，从而能在接受原始HTML的地方进行编辑和渲染。它也没有与Servlet规范耦合，因此可以进入JSP无法涉足的领域。
 
+使用Thymeleaf需要添加如下依赖：
+
+```xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+```
+
+
+
 ##### 配置
 
 为了在Spring中使用Thymeleaf，需要配置三个Bean：
