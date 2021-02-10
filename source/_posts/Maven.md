@@ -3584,7 +3584,7 @@ profile可以根据需要动态地启用特定配置，从而实现多环境构�
 
 ### 使用命令行启用Profile
 
-在Maven命令中，使用参数`-P profileID1,profileID2,…`可以启用指定Profiles：
+在Maven命令中，使用参数`-P profileID1,profileID2,…`（注意：在Windows的PowerShell要使用`-P profileID1 -P profileID2`）可以启用指定Profiles：
 
 ```bash
 $ mvn package -P profile-1,profile-2
@@ -3799,6 +3799,8 @@ Maven的项目之间可互相继承，子模块的`pom.xml`中没有的元素将
 + plugin executions with matching ids
 + plugin configuration
 + resources
+
+父模块的profiles元素虽然不会出现在子模块的Effective POM中的profiles中，但实际上还是有继承的，只要在`-P`选项中选中了父模块的profile，还是有效的。
 
 Maven的项目继承，各模块之间既可以是嵌套结构的，也可以彼此扁平的。
 
