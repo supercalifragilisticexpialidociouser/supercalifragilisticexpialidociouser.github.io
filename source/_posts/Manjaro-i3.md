@@ -89,7 +89,6 @@ $ google-chrome-stable --proxy-server="socks5://localhost:1080"
 ```bash
 $ sudo pacman -S fcitx-im #默认全部安装
 $ sudo pacman -S fcitx-configtool
-$ sudo pacman -S fcitx-sogoupinyin
 ```
 
 安装完成后，编辑`~/.xprofile`，添加如下配置：
@@ -333,6 +332,8 @@ font = 'WenQuanYi Micro Hei:size=8',
 或者
 font = 'WenQuanYi Zen Hei:size=8',
 ```
+
+在将系统语言设置成中文后，右侧的星期和月的中文显示不出来，这时可以修改conky_maia中的size=16和size=18的字体为WenQuanYi Micro Hei。
 
 # 安装JDK
 
