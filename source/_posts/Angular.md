@@ -48,6 +48,8 @@ $ rm -rf node_modules dist # use rmdir /S/Q node_modules dist in Windows Command
 $ ng update --all --force
 ```
 
+> 更好的升级方案参照“升级项目”。
+
 ## 安装Git
 
 ## 选择编辑器
@@ -119,7 +121,9 @@ $ npx -p @angular/cli ng new my-app
 $ npx -p @angular/cli@10.0.2 ng new my-app
 ```
 
+## 升级项目
 
+按照 https://update.angular.io/ 指导升级项目。
 
 ## 启动开发服务器
 
