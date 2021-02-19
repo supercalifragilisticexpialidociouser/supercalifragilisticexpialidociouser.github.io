@@ -42,3 +42,20 @@ Spring包含两个Web框架，它们可以混用，也可以单独使用：
 </dependency>
 ```
 
+## 处理错误
+
+### 服务端错误页
+
+> 前端的错误页在前端项目中定义，这里只讨论服务端的错误页。
+
+#### 静态错误页
+
+在Nginx等代理服务器上配置，用于服务端应用无法访问时显示的错误页面。
+
+#### 动态错误页
+
+使用[Thymeleaf](https://www.thymeleaf.org/)模板定义，位于`src/main/resources/templates/error.html`。用于直接访问服务端应用（即绕开前端）时，显示服务端错误。
+
+### API错误
+
+使用 [Zalando’s Problem Spring Web library](https://github.com/zalando/problem-spring-web)框架处理Spring MVC REST响应错误（基于JSON）。
