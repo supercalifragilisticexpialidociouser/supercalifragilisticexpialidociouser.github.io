@@ -2765,7 +2765,7 @@ I_wish_to_register_a_complaint
 x = input("x: ")  #提示并获取用户输入
 ```
 
-`input`函数的返回值是一个字符串
+`input`函数的返回值是一个字符串。
 
 ## 重定向
 
