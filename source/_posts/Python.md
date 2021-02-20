@@ -1931,7 +1931,7 @@ Year: 2005
 
 #### 切片
 
-切片（Slicing）可用来访问序列中特定范围内的元素。
+切片（Slicing）可用来访问序列中特定范围内的元素。修改切片不会修改原序列，切片返回的是全新序列。
 
 ```python
 >>> numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -1955,6 +1955,11 @@ Year: 2005
 [8, 9, 10]
 >>> numbers[-3:-1]
 [8, 9]
+```
+
+如果第二个索引给出一个第一个索引之前的位置，则返回空列表：
+
+```python
 >>> numbers[-3:0]
 []
 ```
@@ -1966,7 +1971,7 @@ Year: 2005
 [1, 2, 3]
 ```
 
-复制整个序列：
+**复制**整个序列：
 
 ```python
 >>> numbers[:]
@@ -2099,6 +2104,9 @@ if [username, pin] in db: print('Access granted')
 >>> del names[2]
 >>> names
 ['Alice', 'Kate', 'Mary', 'Rose']
+>>> del names[:2] #通常，del lst[n]相当于lst[n:n+1] = []，del lst[m:n]相当于lst[m:n] = []
+>>> names
+['Mary', 'Rose']
 
 #弹出元素并返回这个非None元素
 >>> a = [1, 2, 3]
@@ -2124,7 +2132,7 @@ if [username, pin] in db: print('Access granted')
 []
 ```
 
-##### 切片操作
+##### 替换切片
 
 ```python
 #给切片赋值
@@ -2142,6 +2150,9 @@ if [username, pin] in db: print('Access granted')
 >>> numbers[1:4] = []  #给切片赋空序列，相当于删除切片，即：del numbers[1:4]
 >>> numbers
 [1, 5]
+>>> numbers[len(numbers):] = [6, 7] #在列表末尾追加列表
+>>> numbers
+[1, 5, 6, 7]
 ```
 
 ##### 添加元素
@@ -2159,15 +2170,18 @@ if [username, pin] in db: print('Access granted')
 #扩展列表
 >>> a = [1, 2, 3]
 >>> b = [4, 5, 6]
->>> a.extend(b)   #也可以是：a[len(a):] = b
+>>> a.extend(b)   #相当于：a[len(a):] = b
 >>> a  #扩展会直接修改被扩展的列表，而拼接则是返回一个全新列表
 [1, 2, 3, 4, 5, 6]
 
-#在指定索引前插入元素
+#在指定索引的元素之前插入新元素
 >>> a = [1, 2, 3]
 >>> a.insert(2, 'four')  #相当于：a[2:2] = ['four']
 >>> a
 [1, 2, 'four', 3]
+>>> a.insert(-1, 'hello')
+>>> a
+[1, 2, 'four', 'hello', 3]
 ```
 
 ##### 复制列表
@@ -2210,7 +2224,7 @@ if [username, pin] in db: print('Access granted')
 
 ```python
 >>> a = [1, 7, 3]
->>> a.reverse()
+>>> a.reverse() #仅反转而不会重新排序
 >>> a
 [3, 7, 1]
 #如果希望按相反顺序迭代列表，则使用reversed函数。它返回一个迭代器，因此，不会修改原列表。
@@ -2223,6 +2237,8 @@ if [username, pin] in db: print('Access granted')
 另外，方法`reverse`只能用于列表，而函数`reversed`可用于任何可迭代对象。
 
 ##### 排序
+
+`sort`是原地排序，即会修改原列表。而`sorted`返回一个新的已排序列表，不会修改原列表。
 
 ```python
 >>> x = [4, 6, 2, 1, 7, 9]
