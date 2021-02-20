@@ -164,23 +164,23 @@ pom.xml：
 >
 > ```xml
 > <plugin>
-> <groupId>org.springframework.boot</groupId>
-> <artifactId>spring-boot-maven-plugin</artifactId>
-> <executions>
-> <execution>
-> <goals>
->   <goal>repackage</goal>
-> </goals>
-> </execution>
-> </executions>
-> <configuration>
-> <mainClass>${start-class}</mainClass>
-> <executable>true</executable>
-> <fork>true</fork>
-> <!-- Enable the line below to have remote debugging of your application on port 5005
+>     <groupId>org.springframework.boot</groupId>
+>     <artifactId>spring-boot-maven-plugin</artifactId>
+>     <executions>
+>         <execution>
+>             <goals>
+>                   <goal>repackage</goal>
+>             </goals>
+>         </execution>
+>     </executions>
+>     <configuration>
+>         <mainClass>${start-class}</mainClass>
+>         <executable>true</executable>
+>         <fork>true</fork>
+>         <!-- Enable the line below to have remote debugging of your application on port 5005
 > <jvmArguments>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</jvmArguments>
 > -->
-> </configuration>
+>     </configuration>
 > </plugin>
 > ```
 
