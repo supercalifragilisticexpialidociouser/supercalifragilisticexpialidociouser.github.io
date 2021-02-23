@@ -245,6 +245,8 @@ public class DemoApplication {
 > 建议将启动类放在项目的最高层次包中（例如本例中的`com.example.demo`），这样Spring Boot默认从启动类开始自动搜索所在包及其下所有层次包中的类。
 >
 > 不建议将启动类放在默认包（即没有显式使用`package`声明）中，这样会导致扫描所有jar的所有类。
+>
+> `@SpringBootApplication`和`@EnableAutoConfiguration`在整个项目中只应该被添加一次。
 
 ## 运行
 

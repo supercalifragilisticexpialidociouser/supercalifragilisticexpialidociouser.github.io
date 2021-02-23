@@ -148,6 +148,13 @@ public class DemoApplication {
 
 直接找到引导类的`main`方法，右键点击，选择“Debug”。
 
+如果需要远程调试，则可以以下面命令来运行应用：
+
+```bash
+$ java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=8000,suspend=n \
+       -jar target/demo-0.0.1-SNAPSHOT.jar
+```
+
 ## 打包
 
 如果使用Maven，则可以使用下列命令将项目打包：
@@ -172,6 +179,11 @@ Spring Initializr默认将应用打包成一个可执行的jar包，并且内嵌
 另外，这个war既可部署到支持Servlet 3.0的容器中，也可以直接使用`java -jar`命令来运行。
 
 # 配置
+
+Spring 中有两种不同（但相关）的配置：
+
+- bean 装配：声明在 Spring 应用上下文中创建哪些应用组件以及它们之间如何互相注入的配置。
+- 属性注入：设置 Spring 应用上下文中 bean 的值的配置。
 
 ## 手动配置
 
@@ -221,6 +233,81 @@ public class MyConfiguration {
 如果要禁止自动配置的类不在类路径上，则要使用`excludeName` 代替`exclude`。
 
 另外，也可以使用 `spring.autoconfigure.exclude`属性来配置禁止自动配置的组件。
+
+## 应用属性
+
+Spring 应用属性可以来自多个属性源：（顺序靠前的应用属性优先）
+
+1. Devtools全局配置的属性（位于`~/.spring-boot-devtools.properties`）。
+
+2. 在测试代码中，`@TestPropertySource`指定的应用属性。
+
+3. 在测试代码中，由`@SpringBootTest`标注的`properties`设定的属性。
+
+4. 通过命令行参数指定的应用属性。（例如：`java -jar app.jar --PROPERTY_NAME="PROPERTY_VALUE"`）
+
+5. 由`SPRING_APPLICATION_JSON`环境变量或`spring.application.json` 系统属性指定应用属性。
+   例如，可通过如下方式设置`spring.application.json` 系统属性：
+
+   ```bash
+   $ java -Dspring.application.json='{"acme":{"name":"test"}}' -jar myapp.jar
+   $ java -jar myapp.jar --spring.application.json='{"acme":{"name":"test"}}'
+   ```
+
+   这设置了应用属性`acme.name`的值为`test`。
+   在UN*X shell中，环境变量也可以通过命令行来指定：
+
+   ```bash
+   $ SPRING_APPLICATION_JSON='{"acme":{"name":"test"}}' java -jar myapp.jar
+   ```
+
+6. 通过`ServletConfig` 初始参数设定的应用属性。
+
+7. 通过`ServletContext` 初始参数设定的应用属性。
+
+8. 来自`java:comp/env`的JNDI属性设定的应用属性。（例如：`java:comp/env/spring.application.json`、`java:comp/env/acme.name`等）
+
+9. 通过Java系统属性（可以通过`System.getProperties()`获得）设定的应用属性。
+
+10. 通过操作系统环境变量设定的应用属性。
+
+11. 通过`random.*`配置的随机属性。（由`RandomValuePropertySource` 产生）
+    例如：
+
+    ```properties
+    my.secret=${random.value}  #随机字符串
+    my.number=${random.int}  #随机整数
+    my.bignumber=${random.long}  #随机长整数
+    my.uuid=${random.uuid}  #随机UUID
+    my.number.less.than.ten=${random.int(10)}  #10以内（包含）的随机整数
+    my.number.in.range=${random.int[1024,65536]}  #[1024..65536)之间的随机整数
+    ```
+
+    randon.int的语法格式：
+
+    ```
+    random.int OPEN VALUE [, MAX] CLOSE
+    ```
+
+    `OPEN`和`CLOSE`可以是任意字符，`VALUE`和`MAX`是整数。如果存在`MAX`，则`VALUE`是最小值（包含），`MAX`是最大值（不包含）。
+
+12. 位于当前应用Jar包之外，针对不同PROFILE环境的应用属性文件（application-PROFILE.properties或application-PROFILE.yml）中指定的应用属性。
+
+13. 位于当前应用Jar包之内，针对不同PROFILE环境的应用属性文件（application-PROFILE.properties或application-PROFILE.yml）中指定的应用属性。
+
+14. 位于当前应用Jar包之外的应用属性文件（application.properties或application.yml）。
+
+15. 位于当前应用Jar包之内的应用属性文件（application.properties或application.yml）。
+
+16. 在`@Configuration`标注的类中，通过`@PropertySource`加载的应用属性。
+
+17. 应用默认属性（通过`SpringApplication.setDefaultProperties`设定）。
+
+> 另外，properties属性文件优先级高于相应的YAML文件。
+
+Spring 的`Environment`负责从各个属性源拉取属性，并让 Spring 应用上下文中的 bean 可以使用它们。
+
+
 
 # Web
 
