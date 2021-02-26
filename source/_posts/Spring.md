@@ -307,6 +307,729 @@ Spring 应用属性可以来自多个属性源：（顺序靠前的应用属性�
 
 Spring 的`Environment`负责从各个属性源拉取属性，并让 Spring 应用上下文中的 bean 可以使用它们。
 
+### 应用属性文件
+
+`SpringApplication`默认从下列位置加载应用属性文件（按优先级从高到低）：
+
+1. 当前目录的`config`子目录（即`file:./config/`）；
+2. 当前目录（`file:./`）；
+3. 类路径中的`/config`包中（`classpath:/config`）；
+4. 类路径的根中（`classpath:/`）。
+
+> 当前目录是指执行`java -jar`命令时所在的目录。
+
+如果不喜欢应用属性文件名的`application`部分，可以通过环境变量`SPRING_CONFIG_NAME`或系统属性`spring.config.name`来自己指定一个名字：
+
+```bash
+$ java -jar myproject.jar --spring.config.name=myproject
+```
+
+还可以通过环境变量`SPRING_CONFIG_LOCATION`或系统属性`spring.config.location`来自己指定应用属性文件的位置，它的值是一个逗号分隔的目录（必须以`/`结尾）或文件列表（靠后的优先级高）。如果是目录，将与`spring.config.name`一起组成应用属性文件的完整路径（应用属性文件既可以是特定`PROFILE`环境的，也可以是不特定的）。而如果是文件，则只当作是不特定PROFILE环境的应用属性文件（这时，任何PROFILE特定的应用属性文件都不可用）。
+
+```bash
+$ java -jar myproject.jar --spring.config.location=classpath:/default.properties,classpath:/override.properties
+```
+
+使用`spring.config.location`配置应用属性文件位置后，将不会再从默认位置加载应用属性位置。如果既从自定义位置加载，又可以从默认位置加载。则要使用环境变量`SPRING_CONFIG_ADDITIONAL-LOCATION`或系统属性`spring.config.additional-location`：
+
+```bash
+$ … --spring.config.additional-location=classpath:/custom-config/,file:./custom-config/
+```
+
+这时，将从下列位置加载（注意：自定义位置优先于默认位置）：
+
+1. `file:./custom-config/`
+2. `classpath:custom-config/`
+3. `file:./config/`
+4. `file:./`
+5. `classpath:/config/`
+6. `classpath:/`
+
+#### @PropertySource
+
+`@PropertySource`标注可以从自己指定的`.properties`文件中加载的应用属性。
+
+foo/bar.properties：
+
+```properties
+demo.url = 1.2.3.4
+demo.db = helloTest
+```
+
+BarProperties.java：
+
+```java
+@Configuration  
+@PropertySource(value={"classpath:foo/bar.properties"}, ignoreResourceNotFound=false, encoding="UTF-8", name="bar.properties")
+public class BarProperties {}
+```
+
+`ignoreResourceNotFound`表示指定属性文件不存在时是否报错，默认为`false`，即报错。
+
+`value`值是需要加载的属性文件，可以一次性加载多个。
+
+`name`值在Spring Boot环境中必须是唯一。
+
+注意：`@PropertySource`标注只负责加载properties文件到Spring的`Environment`中，而将加载到的属性注入到Bean中仍需要使用`@Value`、`@ConfigurationProperties`标注 或`Environment`对象。两者可结合起来使用：
+
+使用`@Value`：
+
+```java
+@Configuration  
+@PropertySource("classpath:${my.placeholder:default/path}/bar.properties")
+public class BarProperties {
+  @Value("${demo.url}")  
+  private String mongodbUrl;
+  
+  @Value("${demo.db}")  
+  private String defaultDb;
+}
+```
+
+使用`@ConfigurationProperties`：
+
+```java
+@Configuration  
+@PropertySource({"classpath:foo/bar.properties", "file:/my/abc.properties"})
+@ConfigurationProperties(prefix = "demo")
+public class BarProperties {
+  private String url;
+  private String db;
+  …
+}
+```
+
+使用`Environment`：
+
+```java
+@Configuration  
+@PropertySources({
+  @PropertySource("classpath:foo/bar.properties"),
+  @PropertySource("file:/my/abc.properties")
+})
+public class BarProperties {
+  @Autowired
+  private Environment env;
+  
+  @Bean
+  public TestBean testBean() {
+    TestBean testBean = new TestBean();
+    testBean.setMongodbUrl(env.getProperty("demo.url"));
+    testBean.setDefaultDb(env.getProperty("demo.db"));
+    return testBean;
+  }
+}
+```
+
+#### 使用YAML格式的应用属性文件
+
+应用属性文件既可以是传统的Java属性文件（.properties），也可以是YAML文件（.yml或.yaml），只要类路径中包含[SnakeYAML](http://www.snakeyaml.org/) （已经默认包含在`spring-boot-starter`中）。
+
+Spring 两个方便的类来处理加载YAML文档，`YamlPropertiesFactoryBean` 将YAML加载为`Properties`，而`YamlMapFactoryBean` 将YAML加载为`Map`。
+
+下列形式的YAML应用属性文件：
+
+```yaml
+environments:
+	dev:
+		url: http://dev.example.com
+		name: Developer Setup
+	prod:
+		url: http://another.example.com
+		name: My Cool App
+```
+
+将转化为等价的properties文件：
+
+```
+environments.dev.url=http://dev.example.com
+environments.dev.name=Developer Setup
+environments.prod.url=http://another.example.com
+environments.prod.name=My Cool App
+```
+
+YAML的列表：
+
+```yaml
+my:
+  servers:
+    - dev.example.com
+    - another.example.com
+```
+
+将转化为带索引的properties：
+
+```
+my.servers[0]=dev.example.com
+my.servers[1]=another.example.com
+
+# 或者使用单个逗号分隔的值
+my.servers=dev.example.com,another.example.com
+```
+
+YAML应用属性文件的缺点是：不能使用`@PropertySource`标注加载。这种情况只能使用properties文件。
+
+#### 在应用属性中使用PlaceHolder
+
+```properties
+app.name=MyApp
+app.description=${app.name} is a Spring Boot application
+```
+
+> 由于`application.properties` 或 `application.yml`配置文件（也包括`application-xxx.properties`和`application-xxx.yml`）支持PlaceHolder方式的插值表达式（${…}），这会与Maven filtering的插值表达式相冲突，因此如果要在配置文件中应用Maven Filter，则需要将Maven Filter插值表达式的定界符改成其他字符，例如：改成`@…@`。这可以通过Maven插件`maven-resource-plugin`的`delimiters`属性来配置。
+>
+> 注：Spring Boot的`spring-boot-starter-parent `的POM中已经通过`resource.delimiter`属性来将Maven Filter的插值表达式的定界符设置为`@`了。
+
+#### 自定义属性
+
+除了可以设置Spring预定义的应用属性外，也可以定义一些我们的自定义属性：
+
+```properties
+book.name=SpringCloudInAction
+```
+
+自定义属性与预定义属性一样，也可以使用`@Value`和`@ConfigurationProperties`注入Bean。
+
+### 获取应用属性
+
+#### @Value
+
+可以通过`@Value`将单个应用属性注入你的Bean中。
+
+application.properties：
+
+```properties
+acme.name=test
+```
+
+MyBean.java：
+
+```java
+@Component
+public class MyBean {
+    @Value("${acme.name}")
+    private String name;
+
+    // ...
+}
+```
+
+> 使用`@Value`只能注入单个值，而不能注入复合值（例如集合、对象）。但是，当复合值的元素是简单类型时，可以注入这些元素：
+>
+> application.yml：
+>
+> ```yaml
+> my:
+> servers:
+>     - dev.example.com
+>     - another.example.com
+> ```
+>
+> MyBean.java：
+>
+> ```java
+> @Component
+> public class MyBean {
+>     @Value("${my.servers[1]}")
+>     private String secondServer;
+> 
+>     // ...
+> }
+> ```
+>
+> 使用`@Value`注入的Bean字段可以不需要定义getters和setters。
+
+#### @ConfigurationProperties
+
+可以通过`@ConfigurationProperties`将多个应用属性注入到Bean中。
+
+application.yml：
+
+```yml
+my:
+  enabled: true
+  remote-address: address.example.com
+  security:
+  	username: jo
+  	password: 123456
+    roles:
+      - admin
+      - user
+```
+
+Config.java：
+
+```java
+@ConfigurationProperties(prefix="my")
+public class Config {
+  private boolean enabled;
+  private InetAddress remoteAddress;
+  private final Security security = new Security(); //被显式初始化，可以不需要setter
+  
+  public boolean isEnabled() { ... }
+  public void setEnabled(boolean enabled) { ... }
+  
+  public InetAddress getRemoteAddress() { ... }
+	public void setRemoteAddress(InetAddress remoteAddress) { ... }
+
+  public Security getSecurity() { ... }
+  
+  public static class Security {
+		private String username;
+		private String password;
+		private List<String> roles = new ArrayList<>(Collections.singleton("USER")); //也可以使用“Set”集合类
+
+		public String getUsername() { ... }
+		public void setUsername(String username) { ... }
+    
+		public String getPassword() { ... }
+		public void setPassword(String password) { ... }
+
+		public List<String> getRoles() { ... }
+		public void setRoles(List<String> roles) { ... }
+	}
+}
+```
+
+> 通常getters和setters是必须的，但setters在下列情况下可以省略：
+>
+> - 已经显式初始化的Maps。
+>
+> - 通过索引方式访问的集合或数组：
+>
+>   ```yaml
+>   my:
+>     servers:
+>       - dev.example.com
+>       - another.example.com
+>   ```
+>
+>   或者：
+>
+>   ```properties
+>   my.servers[0]=dev.example.com
+>   my.servers[1]=another.example.com
+>   ```
+>
+>   但是，集合或数组配置成逗号分隔的单个属性时，必须要有setter：
+>
+>   ```properties
+>   my.servers=dev.example.com,another.example.com
+>   ```
+>
+>   可以使用`@ConfigurationProperties `以集合或数组方式注入：
+>
+>   ```java
+>   @ConfigurationProperties(prefix="my")
+>   public class MyProperties {
+>     private List<String> servers;
+>   
+>     public void setServers(List<String> ss) {
+>       this.servers = ss;
+>     }
+>   
+>     public List<String> getServers() {
+>       return this.servers;
+>     }
+>   }
+>   ```
+>
+>   如果使用`@Value`注入，只能将上述`my.servers`属性整个以`String`方式注入（可以不需要setter），而不能使用索引：
+>
+>   ```java
+>   @Value("${my.servers}")
+>   private String servers;
+>   
+>   //而不使用索引
+>   //@Value("${my.servers[0]}")
+>   //private String firstServers;
+>   ```
+>
+> - 如果内嵌的POJO字段被显式初始化（象`Config.java`中的`Security`  字段那样），则可以不需要setter。
+
+`@ConfigurationProperties`只是完成将应用属性注入到类中，但还不能将该类通过`@Autowired`注入给其他Bean。还需要在被`@Configuration`修饰的类上通过`@EnableConfigurationProperties`将该类注册为一个Bean：
+
+```java
+@Configuration
+@EnableConfigurationProperties(MyProperties.class) //可以罗列多个类
+public class MyConfiguration {
+}
+```
+
+通过上面方式注册的`@ConfigurationProperties `的Bean，有一个形如`PREFIX-FULLY_QUALIFIED_NAME_OF_THEN_BEAN`名称。其中PREFIX是`@ConfigurationProperties `中的`prefix`参数。
+
+例如：`my-jo.springboot.web.MyProperties`。如果`@ConfigurationProperties `没指定`prefix`，则为`jo.springboot.web.MyProperties`。
+
+也可以直接在`MyProperties`上使用`@Component`，将它注册为一个Bean，而不需要在`@Configuration`类上使用`@EnableConfigurationProperties`标注了：
+
+```java
+@Component
+@ConfigurationProperties(prefix="acme")
+public class MyProperties {
+	// ... 
+}
+```
+
+`@ConfigurationProperties `除了可以标注在类上外，也可以标注在`@Bean public`的方法上，这在将应用属性绑定到不受自己控制的第三方组件时特别有用：
+
+application.yml：
+
+```yaml
+server:  
+  port: 8080  
+  
+spring:   
+  redis:   
+    dbIndex: 0  
+    hostName: 192.168.58.133  
+    password: nmamtf  
+    port: 6379  
+    timeout: 0  
+    poolConfig:   
+      maxIdle: 8  
+      minIdle: 0  
+      maxActive: 8  
+      maxWait: -1  
+```
+
+RedisConfig.java：
+
+```java
+@Configuration    
+@EnableAutoConfiguration  
+public class RedisConfig {  
+  @Bean    
+  @ConfigurationProperties(prefix="spring.redis.poolConfig")    
+  public JedisPoolConfig getRedisConfig(){    
+    JedisPoolConfig config = new JedisPoolConfig();  
+    return config;    
+  }    
+
+  @Bean    
+  @ConfigurationProperties(prefix="spring.redis")    
+  public JedisConnectionFactory getConnectionFactory(){    
+    JedisConnectionFactory factory = new JedisConnectionFactory();    
+    factory.setUsePool(true);  
+    JedisPoolConfig config = getRedisConfig();    
+    factory.setPoolConfig(config);    
+    return factory;    
+  }    
+
+  @Bean    
+  public RedisTemplate<?, ?> getRedisTemplate(){    
+    RedisTemplate<?,?> template = new StringRedisTemplate(getConnectionFactory());    
+    return template;    
+  }       
+}  
+```
+
+> 注意：其中`JedisConnectionFactory`中包含`dbIndex`、`hostName`、`password`、`port`、`timeout`、`poolConfig`几个成员变量。`JedisPoolConfig`包含`maxIdle`、`minIdle`、`maxActive`、`maxWait`几个成员变量。 
+
+`@ConfigurationProperties`可以通过属性`ignoreInvalidFields`来决定是否忽略非法字段（默认为`false`，表示出现非法字段会报错），还可以通过属性`ignoreUnknownFields`来决定是否忽略未知字段（默认为`true`）。
+
+#### 应用属性名与Bean属性名的映射规则
+
+例如：
+
+```java
+@ConfigurationProperties(prefix="acme.my-project.person")
+public class OwnerProperties {
+	private String firstName;
+
+	public String getFirstName() {
+		return this.firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+}
+```
+
+则下面的应用属性名都可以被使用：
+
+```properties
+acme.my-project.person.first-name  #Kebab风格（推荐。小写，以“-”分隔）
+acme.myProject.person.firstName    #标准驼峰风格
+acme.my_project.person.first_name  #下划线风格
+ACME_MYPROJECT_PERSON_FIRSTNAME    #大写风格
+```
+
+> `prefix`参数值只能使用Kebab风格。
+
+不同属性源的映射规则：
+
+| Property Source       | Simple                                                       | List                                                         |
+| --------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Properties Files      | Camel case, kebab case, or underscore notation               | Standard list syntax using `[索引]` or comma-separated values |
+| YAML Files            | Camel case, kebab case, or underscore notation               | Standard YAML list syntax or comma-separated values          |
+| Environment Variables | Upper case format with underscore as the delimiter. `_` should not be used within a property name | Numeric values surrounded by underscores, such as `MY_ACME_1_OTHER 相当于 my.acme[1].other` |
+| System properties     | Camel case, kebab case, or underscore notation               | Standard list syntax using `[ ]` or comma-separated values   |
+
+#### 校验
+
+Spring Boot总是会去校验`@ConfigurationProperties`  类，而不管它是否有标注`@Validated`。
+
+```java
+@ConfigurationProperties(prefix="acme")
+@Validated
+public class AcmeProperties {
+	@NotNull
+	private InetAddress remoteAddress;
+
+	@Valid
+	private final Security security = new Security();
+
+	// ... getters and setters
+
+	public static class Security {
+		@NotEmpty
+		public String username;
+
+		// ... getters and setters
+
+	}
+}
+```
+
+>  `@Validated`也可以标注在`@Bean`方法上。
+
+还可以自己实现一个`Validator`，并将它注册为名叫`configurationPropertiesValidator`的Bean。注册它的`@Bean`方法应该要声明为`static`。例如，参见： [property validation sample](https://github.com/spring-projects/spring-boot/tree/v2.0.2.RELEASE/spring-boot-samples/spring-boot-sample-property-validation) 。
+
+#### @ConfigurationProperties 与 @Value 的比较
+
+| Feature                                                      | `@ConfigurationProperties` | `@Value` |
+| ------------------------------------------------------------ | -------------------------- | -------- |
+| [Relaxed binding](https://docs.spring.io/spring-boot/docs/2.0.2.RELEASE/reference/htmlsingle/#boot-features-external-config-relaxed-binding) | Yes                        | No       |
+| [Meta-data support](https://docs.spring.io/spring-boot/docs/2.0.2.RELEASE/reference/htmlsingle/#configuration-metadata) | Yes                        | No       |
+| `SpEL` evaluation                                            | No                         | Yes      |
+
+#### 通过`Environment`获取应用属性
+
+参见“@PropertySource”。
+
+### 属性转换
+
+在将应用属性绑定到Bean中时，Spring Boot会尝试进行合适的类型转换。如果需要，也可以自定义类型转换。
+
+#### 转换时间长度
+
+Spring Boot可以将下列形式的应用属性自动转换为Bean的`java.time.Duration`  属性：
+
+- 以`long`表示的时间长度（默认单位是毫秒，可以使用`@DurationUnit`来自己指定时间单位）。
+
+- 标准的ISO-8601格式的时间长度（参见[`java.util.Duration`](https://docs.oracle.com/javase/8/docs/api//java/time/Duration.html#parse-java.lang.CharSequence-)），例如：
+
+  ```
+  "PT20.345S" -- parses as "20.345 seconds"
+  "PT15M"     -- parses as "15 minutes" (where a minute is 60 seconds)
+  "PT10H"     -- parses as "10 hours" (where an hour is 3600 seconds)
+  "P2D"       -- parses as "2 days" (where a day is 24 hours or 86400 seconds)
+  "P2DT3H4M"  -- parses as "2 days, 3 hours and 4 minutes"
+  "P-6H3M"    -- parses as "-6 hours and +3 minutes"
+  "-P6H3M"    -- parses as "-6 hours and -3 minutes"
+  "-P-6H+3M"  -- parses as "+6 hours and -3 minutes"
+  ```
+
+- 带时间单位的格式（例如：`10s`表示10秒）。可以使用的时间单位有：
+
+  + `ns`纳秒。
+  + `ms`毫秒。
+  + `s`秒。
+  + `m`分钟。
+  + `h`小时。
+  + `d`天。
+
+例如：
+
+```java
+@ConfigurationProperties("app.system")
+public class AppSystemProperties {
+	@DurationUnit(ChronoUnit.SECONDS)
+	private Duration sessionTimeout = Duration.ofSeconds(30);
+	private Duration readTimeout = Duration.ofMillis(1000);
+
+	public Duration getSessionTimeout() {
+		return this.sessionTimeout;
+	}
+
+	public void setSessionTimeout(Duration sessionTimeout) {
+		this.sessionTimeout = sessionTimeout;
+	}
+
+	public Duration getReadTimeout() {
+		return this.readTimeout;
+	}
+
+	public void setReadTimeout(Duration readTimeout) {
+		this.readTimeout = readTimeout;
+	}
+}
+```
+
+#### 自定义转换
+
+自定义转换可以通过提供一个`ConversionService` Bean（Bean名为`conversionService`）或者提供一个自定义的属性编辑器（通过`CustomEditorConfigurer` Bean）或者提供一个自定义的`Converters`（标注上`@ConfigurationPropertiesBinding` ）。
+
+### Profiles
+
+Spring Profiles提供了一种方式去将你的应用属性分成多个部分，并且使得它们只在某些环境中可用。
+
+#### PROFILE特定的应用属性文件
+
+PROFILE特定的应用属性文件只在该PROFILE被激活时，才会生效。
+
+PROFILE特定的应用属性文件的命名规则：`application-PROFILE.properties`或`application-PROFILE.yml`。
+
+如果没有显式激活PROFILE，则默认激活`default` PROFILE，即加载`application-default.properties`或`application-default.yml`。
+
+PROFILE特定的应用属性文件与标准应用属性文件（application.properties或application.yml）加载自相同的位置。
+
+#### 单个多Profiles的YAML文档
+
+使用YAML作为应用属性文件时，除了可以像上面那样，为每个Profile分别创建一个独立的YAML文件外，也可以将多个Profiles创建在同一个YAML文件中。使用`---`来分割不同Profiles，并使用`spring.profiles`属性来标识每个Profiles：
+
+```
+server:
+	address: 192.168.1.100
+---
+spring:
+  profiles: default
+  security:
+    user:
+      password: weak
+---
+spring:
+	profiles: development
+server:
+	address: 127.0.0.1
+---
+spring:
+	profiles: production
+server:
+	address: 192.168.1.120
+```
+
+#### 未被显式声明的Proflie和默认Profile
+
+未被显式声明的Profile的优先级比显式声明的Profile低，并且不管激活哪个Profile，未被显式声明的Profile中的应用属性**总会**被设置。这也是未被显式声明Profile与默认Profile不同的地方。
+
+默认Profile（`default`）只在没有显式激活任何Profiles时，其中的应用属性才会被设置。
+
+Spring profiles designated by using the `spring.profiles` element may optionally be negated by using the `!` character. If both negated and non-negated profiles are specified for a single document, at least one non-negated profile must match, and no negated profiles may match.
+
+#### 激活Profiles
+
+可以通过`spring.profiles.active`应用属性来激活Profiles。
+
+例如，可以在`application.properties`中配置它们：
+
+```properties
+spring.profiles.active=dev,hsqldb  #可以一次激活多个Profiles
+```
+
+也可以使用命令行参数`--spring.profiles.active=dev,hsqldb`。
+
+用`java -jar`运行应用时，使用`java -Dspring.profiles.active=dev -jar foo.jar`。
+
+还可以使用`spring.profiles.include`应用属性（可者通过在`SpringApplication.run`运行之前，调用`SpringApplication.setAdditionalProfiles()`方法）来指定，当某个Profile激活时，也一起激活的Profiles。
+
+```yaml
+---
+my.property: fromyamlfile
+---
+spring.profiles: prod
+spring.profiles.include:
+  - proddb
+  - prodmq
+```
+
+这样，当设置`--spring.profiles.active=prod`激活`prod` profile时，也会一起激活`proddb`和`prodmy` profiles。
+
+#### 复杂类型属性的重写
+
+当复杂类型属性出现在多个profiles中时，重写是以整体替换方式进行。
+
+AcmeProperties.java：
+
+```java
+@ConfigurationProperties("acme")
+public class AcmeProperties {
+	private final List<MyPojo> list = new ArrayList<>();
+  private final Map<String, MyPojo> map = new HashMap<>();
+
+	public List<MyPojo> getList() {
+		return this.list;
+	}
+
+  public Map<String, MyPojo> getMap() {
+		return this.map;
+	}
+}
+```
+
+MyPojo.java：
+
+```java
+public class MyPojo {
+  private String name;
+  private String description;
+  
+  ... //getters和setters
+}
+```
+
+application.yml：
+
+```yaml
+acme:
+  list:
+    - name: my name
+      description: my description
+  map:
+    key1:
+      name: my name 1
+      description: my description 1
+---
+spring:
+  profiles: dev
+acme:
+  list:
+    - name: my another name
+  map:
+    key1:
+      name: dev name 1
+    key2:
+      name: dev name 2
+      description: dev description 2
+```
+
+如果`dev` profile没有被激活，这时`AcmeProperties.list`  只包含一个`name`为`my name`的`MyPojo`实例，`AcmeProperties.map`  包含一个键为`key1`、`name`为`my name 1`的`MyPojo`实例。如果`dev` profile被激活，这时`AcmeProperties.list`  仍只包含一个`name`为`my another name`的`MyPojo`实例，`AcmeProperties.map`  包含两个`MyPojo`实例，一个键为`key1`、`name`为`dev name 1`，另一个键为`key2`、`name`为`dev name 2`。
+
+#### @Profile
+
+上面的配置profile，要么是通过文件名（例如：`application-PROFILE.yml`），要么是通过属性`spring.profiles`。而`@Profile`提供了通过标注来配置profile的方法。
+
+任何`@Component`和`@Configuration`都可以被标注上`@Profile`，这样，它们就只能在该Profile被激活时，才会被加载。
+
+```java
+@Configuration
+@Profile("production")
+public class ProductionConfiguration {
+	// ...
+}
+```
+
+`@Profile`还可以标注在`@Bean`方法上：
+
+```java
+@Bean
+@Profile({"dev", "test"})
+public DataSource devDataSource() {…}
+```
+
+`@Profile`还可以通过`!`来表示取反。例如：`@Profile("!test") `。
+
 
 
 # Web
