@@ -1094,3 +1094,22 @@ Spring包含两个Web框架，它们可以混用，也可以单独使用：
 ### API错误
 
 使用 [Zalando’s Problem Spring Web library](https://github.com/zalando/problem-spring-web)框架处理Spring MVC REST响应错误（基于JSON）。
+
+# 安全
+
+Spring Security为[身份验证](https://docs.spring.io/spring-security/site/docs/5.4.5/reference/html5/#authentication)，授权和针对[常见漏洞的](https://docs.spring.io/spring-security/site/docs/5.4.5/reference/html5/#exploits)防护提供了全面的支持。
+
+## 安装
+
+pom.xml：
+
+```xml
+<dependencies>
+    <!-- ... other dependency elements ... -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+</dependencies>
+```
+
