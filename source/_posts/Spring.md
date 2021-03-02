@@ -490,6 +490,26 @@ book.name=SpringCloudInAction
 
 自定义属性与预定义属性一样，也可以使用`@Value`和`@ConfigurationProperties`注入Bean。
 
+##### 声明应用属性元数据
+
+在IDE中，对于自定义属性会出现警告信息，提示“Unknown property 'xxx'”。这是因为自定义属性缺少元数据。
+
+为了创建自定义属性的元数据，需要在`src/main/resources/META-INF`下创建一个名叫`additional-spring-configuration-metadata.json`文件。例如，为一个名叫“taco.orders.page-size”的属性添加元数据：
+
+```json
+{
+  "properties": [
+    {
+      "name": "taco.orders.page-size",
+      "type": "java.lang.String",
+      "description": "Sets the maximum number of orders to display in a list."
+    }
+  ]
+}
+```
+
+
+
 ### 获取应用属性
 
 #### @Value
@@ -562,7 +582,7 @@ Config.java：
 ```java
 @ConfigurationProperties(prefix="my")
 public class Config {
-  private boolean enabled;
+  private boolean enabled = false; //允许提供默认值。当应用属性没有配置值时，就使用默认值
   private InetAddress remoteAddress;
   private final Security security = new Security(); //被显式初始化，可以不需要setter
   
@@ -660,7 +680,7 @@ public class MyConfiguration {
 
 例如：`my-jo.springboot.web.MyProperties`。如果`@ConfigurationProperties `没指定`prefix`，则为`jo.springboot.web.MyProperties`。
 
-也可以直接在`MyProperties`上使用`@Component`，将它注册为一个Bean，而不需要在`@Configuration`类上使用`@EnableConfigurationProperties`标注了：
+也可以直接在`MyProperties`上使用`@Component`（`@Controller`、`@Service`等也是可以的），将它注册为一个Bean，而不需要在`@Configuration`类上使用`@EnableConfigurationProperties`标注了：
 
 ```java
 @Component
@@ -889,12 +909,12 @@ PROFILE特定的应用属性文件与标准应用属性文件（application.prop
 
 使用YAML作为应用属性文件时，除了可以像上面那样，为每个Profile分别创建一个独立的YAML文件外，也可以将多个Profiles创建在同一个YAML文件中。使用`---`来分割不同Profiles，并使用`spring.profiles`属性来标识每个Profiles：
 
-```
-server:
+```yaml
+server:  #第一部分的属性相当于是定义在`application.yml`中，它们是所有profile通用的，或者如果当前激活的profile没有设置这些属性，它们就会作为默认值
 	address: 192.168.1.100
 ---
 spring:
-  profiles: default
+  profiles: default  #使用spring.profiles来指定profile
   security:
     user:
       password: weak
@@ -920,7 +940,7 @@ Spring profiles designated by using the `spring.profiles` element may optional
 
 #### 激活Profiles
 
-可以通过`spring.profiles.active`应用属性来激活Profiles。
+可以通过`spring.profiles.active`应用属性来激活Profiles。（不推荐）
 
 例如，可以在`application.properties`中配置它们：
 
@@ -928,11 +948,11 @@ Spring profiles designated by using the `spring.profiles` element may optional
 spring.profiles.active=dev,hsqldb  #可以一次激活多个Profiles
 ```
 
-也可以使用命令行参数`--spring.profiles.active=dev,hsqldb`。
+也可以使用命令行参数`--spring.profiles.active=dev,hsqldb`，或者环境变量`export SPRING_PROFILES_ACTIVE=dev,hsqldb`。（推荐）
 
 用`java -jar`运行应用时，使用`java -Dspring.profiles.active=dev -jar foo.jar`。
 
-还可以使用`spring.profiles.include`应用属性（可者通过在`SpringApplication.run`运行之前，调用`SpringApplication.setAdditionalProfiles()`方法）来指定，当某个Profile激活时，也一起激活的Profiles。
+还可以使用`spring.profiles.include`应用属性（或者通过在`SpringApplication.run`运行之前，调用`SpringApplication.setAdditionalProfiles()`方法）来指定，当某个Profile激活时，也一起激活的Profiles。
 
 ```yaml
 ---
@@ -945,6 +965,8 @@ spring.profiles.include:
 ```
 
 这样，当设置`--spring.profiles.active=prod`激活`prod` profile时，也会一起激活`proddb`和`prodmy` profiles。
+
+另外，如果将Spring应用部署到Cloud Foundry中，将会自动激活一个名为`cloud`的profile。如果你的生产环境是Cloud Foundry，则可以将生产环境相关的属性放到`cloud`profile下。
 
 #### 复杂类型属性的重写
 
@@ -1008,7 +1030,7 @@ acme:
 
 #### @Profile
 
-上面的配置profile，要么是通过文件名（例如：`application-PROFILE.yml`），要么是通过属性`spring.profiles`。而`@Profile`提供了通过标注来配置profile的方法。
+上面的配置profile，要么是通过文件名（例如：`application-PROFILE.yml`），要么是通过属性`spring.profiles`。而`@Profile`提供了通过标注来配置profile的方法，这样我们就可以只在特定profile激活时创建某些bean。
 
 任何`@Component`和`@Configuration`都可以被标注上`@Profile`，这样，它们就只能在该Profile被激活时，才会被加载。
 
@@ -1029,8 +1051,6 @@ public DataSource devDataSource() {…}
 ```
 
 `@Profile`还可以通过`!`来表示取反。例如：`@Profile("!test") `。
-
-
 
 # Web
 
