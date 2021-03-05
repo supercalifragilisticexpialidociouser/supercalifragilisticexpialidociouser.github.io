@@ -2031,6 +2031,11 @@ Python中的序列有：列表、元组和字符串。
 >>> 'Hello'[0]
 'H'
 
+>>> 'Hello'[100]    #访问不存在的索引将报错
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+IndexError: string index out of range
+
 >>> fourth = input('Year: ')[3]
 Year: 2005
 >>> fourth
@@ -2553,6 +2558,8 @@ True
 
 字典是Python中唯一的内置映射类型，采用散列表（hash table）机制。
 
+Python 3.6 开始，`keys`方法返回的视图中的键将维持它创建时的顺序，而在3.6 之前则是无序的。
+
 字典类型是`dict`。
 
 #### 字典字面量
@@ -2565,7 +2572,7 @@ True
 {'age': 42, 'name': 'Gumby'}
 ```
 
-字典的键可以是数、字符串或元组，即任何不可变的类型，且键必须是独一无二的，而字典中的值无此限制。
+字典的键可以是数、字符串或元组，即任何**不可变的类型且是可散列的**，且键必须是独一无二的，而字典中的值无此限制。
 
 `{}`表示空字典。
 
@@ -2599,8 +2606,8 @@ True
 ##### 基本操作
 
 - `len(d)`返回字典d包含的项的数目。
-- `d[k]`返回与键k相关联的值。用这种方式试图访问字典中没有的项，将引发异常（`KeyError`）。
-- `d[k] = v`将值v关联到键k。如果给字典中没有的键赋值，则会创建一个新项。
+- `d[k]`返回与键k相关联的值。用这种方式试图访问字典中没有的项，将引发异常（`KeyError`）。如果不想引发异常可使用`get`方法。
+- `d[k] = v`将值v关联到键k。如果给字典中没有的键赋值，则会创建一个新项，这一点与列表不同。
 - `del d[k]`删除键为k的项。
 - `k in d`检查字典d中是否包含键k的项。
 
@@ -2634,7 +2641,7 @@ None
 {'username': 'admin', 'machines': ['foo', 'baz']}
 ```
 
-浅复制时，当替换副本中的值时，原件不受影响；而当修改副本中的值时，原件也将发生变化。
+浅复制时，当替换副本中的值时，原件不受影响；而当修改副本中的可修改值时，原件中对应的值也将发生变化。
 
 深复制：
 
@@ -2665,9 +2672,27 @@ None
 'N/A'
 ```
 
+统计每个单词在文件中出现的次数：
+
+```python
+>>> sample_string = "To be or not to be"
+>>> occurrences = {}
+>>> for word in sample_string.split():
+...     occurrences[word] = occurences.get(word, 0) + 1
+>>> for word in occurences:
+...     print("The word", word, "occurs", occurences[word], "times in the string")
+The word To occurs 1 times in the string
+The word be occurs 2 times in the string
+The word or occurs 1 times in the string
+The word not occurs 1 times in the string
+The word to occurs 1 times in the string
+```
+
+
+
 ##### setdefault方法
 
-`setdefault`方法类似于`get`方法，但`setdefault`方法会在指定键不存在时，会创建该键，关联的值默认为`None`，也可自己指定。
+`setdefault`方法类似于`get`方法，但`setdefault`方法会在指定键不存在时创建该键，关联的值默认为`None`，也可通过可选的第二参数自己指定。
 
 ```python
 >>> d = {}
@@ -2725,6 +2750,8 @@ False
 True
 ```
 
+> `items`、`keys`和`values`方法返回结果都不是列表，而是视图（view）。视图的表现与序列类似，但在字典内容变化时会动态更新。
+
 如果要将字典项复制到列表，则可以：
 
 ```python
@@ -2773,6 +2800,47 @@ dict_keys(['title', 'url', 'spam'])
 ```
 
 在列表推导中，for前面只有一个表达式，而在字典推导中，for前面有两个用冒号分隔的表达式，这两个表达式分别为键及其对应的值。
+
+#### 稀疏矩阵
+
+有些矩阵除少量元素之外，其他元素都是0。为了节省内存，往往会采用某种形式，实际只存储其中的非0元素。这种矩阵被称为稀疏矩阵。
+
+用字典和元组可以实现稀疏矩阵，其中，元组存储着非0元素的行号和列号。
+$$
+\begin{bmatrix}
+3 & 0 & -2 & 11 \\
+0 & 9 & 0 & 0 \\
+0 & 7 & 0 & 0 \\
+0 & 0 & 0 & -5 
+\end{bmatrix}
+$$
+上面的矩阵可以表示为如下稀疏矩阵：
+
+```python
+>>> matrix = {(0,0): 3, (0,2): -2, (0,3): 11, (1,1): 9, (2,1): 7, (3,3): -5}
+>>> element = matrix.get((1,3), 0)
+0
+```
+
+> 如果要完成大量的矩阵操作，可以使用`NumPy`数值计算包。
+
+#### 将字典用作缓存
+
+将耗时且经常被调用的函数的实参及其结果缓存起来。
+
+```python
+sole_cache = {}
+def sole(m, n, t):
+   if (m, n, t) in sole_cache:
+      return sole_cache[(m, n, t)]
+   else:
+      #执行较为耗时的计算任务
+      …
+      sole_cache[(m, n, t)] = result
+      return result
+```
+
+
 
 ## 集合
 
