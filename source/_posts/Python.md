@@ -253,7 +253,7 @@ Python没有专门用于表示字符的类型，一个字符就是只包含一�
 
 在Python中，下列值将被视为假：
 
-`False`、`None`、`0`、`""`、`()`、`[]`、`{}`
+`False`、`None`、`0`、`0.0`、`0+0j`、`""`、`()`、`[]`、`{}`
 
 除此之外的值都将被视为真。
 
@@ -426,8 +426,17 @@ b'Hello world!'
 ### 拼接
 
 ```python
-s1 = "Hello " + "world!"
-s2 = "Hello " 'world!'  #连接输入两个字符串字面量，将会自动拼接成一个字符串
+>>> s1 = "Hello " + "world!"
+>>> s1
+'Hello world!'
+```
+
+另外，任何由空白字符分隔的字符串字面量，都会自动拼接成一个字符串：
+
+```python
+>>> s2 = "Hello "     'world!'
+>>> s2
+'Hello world!'
 ```
 
 ### 格式化
@@ -999,18 +1008,18 @@ Python中整除采取**向下取整**的策略。
 
 ## 关系表达式
 
-| 表达式     | 描述             |
-| ---------- | ---------------- |
-| x == y     | x等于y           |
-| x < y      | x小于y           |
-| x > y      | x大于y           |
-| x <= y     | x小于或等于y     |
-| x >= y     | x大于或等于y     |
-| x != y     | x不等于y         |
-| x is y     | x和y是同一个对象 |
-| x is not y | x和y是不同的对象 |
-| x in y     | x是集合y的成员   |
-| x not in y | x不是集合y的成员 |
+| 表达式     | 描述                 |
+| ---------- | -------------------- |
+| x == y     | x等于y（值相等）     |
+| x < y      | x小于y               |
+| x > y      | x大于y               |
+| x <= y     | x小于或等于y         |
+| x >= y     | x大于或等于y         |
+| x != y     | x不等于y（值不相等） |
+| x is y     | x和y是同一个对象     |
+| x is not y | x和y是不同的对象     |
+| x in y     | x是集合y的成员       |
+| x not in y | x不是集合y的成员     |
 
 ### 字符串的比较
 
@@ -1064,12 +1073,6 @@ status = 'friend' if name.endswith('Gumby') else 'stranger'
 ```
 
 # 语句
-
-## 语句分隔符
-
-`;`在Python中只是语句分隔符，除了要将多条语句放在一行外，通常不需要语句分隔符。
-
-换行符也可以作为Python的语句分隔符。
 
 ## 赋值语句
 
@@ -1155,9 +1158,24 @@ y = somefunction()
 
 代码块是一组语句。
 
-Python的代码块是通过缩进的代码来创建的。可以使用空格或制表符缩进。
+Python的代码块是通过缩进（使用空格或制表符）的代码来创建的。使用换行符分隔语句。
 
-在同一个代码块中，各行代码的缩进量必须相同（即同一缩进级别）。
+> 在缩进时，尽量避免将空格和制表符混合使用。Python会将制表符映射为8个空格，混合使用可能会引起缩进不一致。
+
+在同一个代码块中，缩进多少没有限制，但各行代码的缩进量必须相同（即同一缩进级别）。
+
+如果要把多条语句放在同一行，则语句之间要用分号分隔：
+
+```python
+x = 1; y = 0; z = 0
+```
+
+只包含单行语句的代码块，可以紧挨着复合语句中的冒号，放在同一行中：
+
+```python
+if x > 0: y = 1; z = 10
+else: y = -1
+```
 
 ## 条件语句
 
@@ -1167,20 +1185,20 @@ Python的代码块是通过缩进的代码来创建的。可以使用空格或�
 if 条件: 语句  #当语句只有一条时，可以放在同一行
 
 if 条件:
-	语句
+	分支
 	
 if 条件:
-	语句1
+	分支1
 else:
-	语句2
+	分支2
 	
 if 条件1:
-	语句1
+	分支1
 elif 条件2
-	语句2
+	分支2
 …
 else:
-	语句
+	分支
 ```
 
 ## 循环语句
@@ -1191,8 +1209,16 @@ while循环的一般形式：
 
 ```
 while 条件:
-  语句
+	体1
+else:
+	体2
 ```
+
+当条件为`True`时，重复执行体1；当条件为`False`时，执行体2，然后停止执行。
+
+else部分是可选的。
+
+当体1中遇到`break`语句时，退出整个while循环（包括体2）。
 
 ### for-in循环
 
@@ -1200,8 +1226,12 @@ for-in循环的一般形式：
 
 ```python
 for 变量 in 可迭代对象:
-  语句
+	体1
+else:
+   体2
 ```
+
+else部分是可选的。
 
 例如：
 
@@ -1209,6 +1239,19 @@ for 变量 in 可迭代对象:
 words = ['this', 'is', 'an', 'ex', 'parrot']
 for word in words:
   print(word)
+```
+
+当体1中遇到`break`语句时，退出整个for循环（包括体2）。
+
+```python
+from math import sqrt
+for n in range(99, 81, -1):
+  root = sqrt(n)
+  if root == int(root):
+    print(n)
+    break
+else:
+  print("Didn't find it!')
 ```
 
 #### 范围
@@ -1230,7 +1273,7 @@ range(0, 10)
 range(0, 10)
 ```
 
-`range`函数还可以用第三个参数来指定步长，默认步长是1。（参见“else子句”的例子）
+`range`函数还可以用第三个参数来指定步长，默认步长是1。（参见前面for循环的例子）
 
 #### 迭代字典
 
@@ -1253,7 +1296,7 @@ z corresponds to 3
 
 #### 并行迭代
 
-内置函数`zip`将两个序列“缝合”起来，返回一个由元组组成的可迭代对象。这样，就可以在for-in循环同时迭代两个序列：
+内置函数`zip`将两个或以上的可迭代对象“缝合”起来，返回一个由元组组成的可迭代对象，直至长度最短的那个可迭代对象读取完毕。这样，就可以在for-in循环同时迭代两个序列：（实际上是元组拆包）
 
 ```python
 >>> names = ['anne', 'beth', 'george', 'damon']
@@ -1267,27 +1310,13 @@ z corresponds to 3
 #### 迭代时获取索引
 
 ```python
-for index, string in enumerate(strings):
-  if 'xxx' in string:
-    strings[index] = '[censored]'
+names = ['anne', 'beth', 'george', 'damon']
+for index, name in enumerate(names):
+  if 'beth' in name:
+    name[index] = 'tom'
 ```
 
-函数`enumerate`能让你在迭代时，自动获取当前对象的索引。
-
-### else子句
-
-else子句紧跟在for-in循环或while循环之后，它仅当前面的循环没有调用`break`时才会执行（即循环没有提前结束）。
-
-```python
-from math import sqrt
-for n in range(99, 81, -1):
-  root = sqrt(n)
-  if root == int(root):
-    print(n)
-    break
-else:
-  print("Didn't find it!')
-```
+函数`enumerate`返回的是`(索引, 数据项)`元组。
 
 ### 迭代器
 
@@ -1344,11 +1373,51 @@ while True:
 
 pass语句什么都不做，通常用作占位符。
 
+Python中没有空语句，使用pass语句代替。
+
 ## del语句
 
 del语句用于删除对象的引用或变量。在Python中，对象只能由垃圾回收器自动回收。
 
 如果在删除变量之后，设法访问该变量的内容，就会引发错误（`NameError`）。
+
+## 将语句拆成多行
+
+可以显式地用反斜杠将一行代码拆成多行：
+
+```python
+x = 100 + 200 \
++ 300  #可以任意缩进
+```
+
+在`()`、`[]`或`{}`之内，可以隐式地随意拆分成多行：
+
+```python
+v = [100, 200,
+300]
+
+y = (100 + 200
++ 300)
+
+max(1000, 300,
+800)
+```
+
+在字符串内部使用`\`拆分时，缩进的制表符或空格都将成为字符串的部分。
+
+```python
+>>> s1 = 'this string broken by a backslash will end up \
+			with the indentation tabs in it'
+>>> s1
+'this string broken by a backslash will end up \t\t\twith the indentation tabs in it'
+
+>>> s2 = 'this can be easily avoided by splitting the ' \
+			'string in this way'
+>>> s2
+'this can be easily avoided by splitting the string in this way'
+```
+
+
 
 # 子程序
 
@@ -1615,7 +1684,7 @@ Don't forget to clean up when 'close()' is called.
 
 ### 生成器推导
 
-生成器推导与列表推导类似，但不是立即创建一个列表，而是返回一个生成器。
+生成器推导与列表推导类似，但不是立即创建一个列表，而是返回一个生成器。并且，生成器推导使用圆括号，而不是花括号。
 
 ```python
 >>> g = ((i + 2) ** 2 for i in range(2, 27))
@@ -1626,7 +1695,7 @@ Don't forget to clean up when 'close()' is called.
 285
 ```
 
-
+使用生成器推导的优点是：不会在内存中生成整个列表，因此可生成任意大小的值序列，内存开销也很小。
 
 # 面向对象编程
 
