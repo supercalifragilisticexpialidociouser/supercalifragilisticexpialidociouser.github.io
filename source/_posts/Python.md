@@ -1443,18 +1443,25 @@ def fibs(num):
 
 ### 参数
 
-#### 关键字参数
+Python函数的实参传递的是对象的引用。
+
+#### 位置参数和关键字参数
 
 ```python
 >>> def hello(greeting, name):
 ...   print('{}, {}!'.format(greeting, name))
 ... 
->>> hello(greeting='Hello', name='world')  #关键字参数
+>>> hello(name='world', greeting='Hello')  #关键字参数，而且参数调用顺序可任意
 Hello, world!
 >>> hello('Hello', 'world')  #位置参数
 Hello, world!
->>> hello('Hello', name='Jo')  #混合使用，位置参数必须位于关键字参数之前
+>>> hello('Hello', name='Jo')  #混合使用：先按位置传递实参，然后才是关键字实参
 Hello, Jo!
+>>> hello('Jo', greeting='Hello')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: hello() got multiple values for argument 'greeting'
+
 ```
 
 #### 参数默认值
@@ -1472,6 +1479,8 @@ Hi, Jo!
 >>> hello(name='Jo')
 Hello, Jo!
 ```
+
+带默认值的形参必须位于形参列表的末尾。
 
 #### 可变数量参数
 
@@ -1551,6 +1560,10 @@ Well met, Sir Robin
 分配参数作用于参数列表的一部分，但是分配参数只能位于参数列表的末尾。
 
 可以将分配参数传递给可变数量参数，效果与将元组或字典传递给普通参数一样。
+
+#### 多种参数传递方式的混用
+
+先按位置传递实参，接着是关键字实参，然后是带单个`*`的数量不定的位置传递实参，最后是带`**`的数量不定的关键字传递实参。
 
 ### 函数嵌套
 
