@@ -127,7 +127,7 @@ $ npx -p generator-jhipster jhipster
 
 ## 使用JPA审计
 
-JHipster已经在`DatabaseConfiguration`中启用了JPA审计功能（`@EnableJpaAuditing`），并且提供了`AuditorAware`的一个实现`SpringSecurityAuditorAware`，它负责获取当前用户信息。
+JHipster已经在`DatabaseConfiguration`中启用了JPA审计功能（`@EnableJpaAuditing`），并且提供了`AuditorAware`的一个实现`SpringSecurityAuditorAware`，它负责获取当前用户信息，以用于下面自动填充`createdBy`、`lastModifiedBy`。
 
 另外，JHipster也提供了一个公共抽象实体类`AbstractAuditingEntity`，并配置由Spring的实体监听器`AuditingEntityListener`来自动填充`createdBy`、`createdDate`、`lastModifiedBy`、`lastModifiedDate`四个字段。
 

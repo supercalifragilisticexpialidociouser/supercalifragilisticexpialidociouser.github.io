@@ -1065,8 +1065,8 @@ Spring包含两个Web框架，它们可以混用，也可以单独使用：
 
 ```xml
 <dependency>
-	<groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-web</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
 </dependency>
 ```
 
