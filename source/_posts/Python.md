@@ -1201,6 +1201,8 @@ else:
 	分支
 ```
 
+> Python没有提供case或switch语句，大多数情况它用串联if语句应对。极少数情况可以使用函数字典来解决，参见“将函数赋给变量”一节的例子。
+
 ## 循环语句
 
 ### while循环
@@ -1484,7 +1486,11 @@ Hello, Jo!
 
 #### 可变数量参数
 
-可变数量参数可以接收任意多个（包括0个）参数，以星号开头的形参是可变数量参数。Python的可变数量参数实际上是一个元组。
+可变数量参数可以接收任意多个（包括0个）参数，以星号开头的形参是可变数量参数。
+
+##### 可变数量的位置参数
+
+当函数的最后一个形参名称带有一个`*`前缀时，在一个函数调用中所有多出来的非关键字实参将会合并为一个**元组**赋给该形参。
 
 > 注意：在“序列解包”中，赋值时带星号的变量也会收集多余的值，只不过是列表而不是元组。
 
@@ -1501,7 +1507,23 @@ Nothing:
 ()
 ```
 
-可变数量参数不能接收关键字参数，除非可变数量形参前面使用两个星号。这样得到的可变数量参数是一个字典，而不是一个元组：
+当可变数量位置参数不放在最末尾时，在它之后的参数只能接收关键字参数。
+
+```python
+>>> def in_the_middle(x, *y, z):
+...   print(x, y, z)
+... 
+>>> in_the_middle(1, 2, 3, 4, 5, 7)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: in_the_middle() missing 1 required keyword-only argument: 'z'
+>>> in_the_middle(1, 2, 3, 4, 5, z=7)
+1 (2, 3, 4, 5) 7
+```
+
+##### 可变数量的关键字参数
+
+如果函数的最后一个形参以两个`*`为前缀，则所有多余的关键字实参将会被收入一个字典对象中。字典的键为多余实参的关键字，字典的值为实参本身。
 
 ```python
 >>> print_params('Params:', foo=4)
@@ -1516,23 +1538,9 @@ TypeError: print_params() got an unexpected keyword argument 'foo'
 {'z': 3, 'x': 1, 'y': 2}
 ```
 
-当可变数量参数不放在最末尾时，在它之后的参数只能接收关键字参数。
-
-```python
->>> def in_the_middle(x, *y, z):
-...   print(x, y, z)
-... 
->>> in_the_middle(1, 2, 3, 4, 5, 7)
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-TypeError: in_the_middle() missing 1 required keyword-only argument: 'z'
->>> in_the_middle(1, 2, 3, 4, 5, z=7)
-1 (2, 3, 4, 5) 7
-```
-
 #### 分配参数
 
-分配参数是通过在调用函数（而不是定义函数）时使用运算符`*`和`**`实现的。
+分配参数是通过在**调用函数**（而不是定义函数）时使用运算符`*`和`**`实现的。
 
 ```python
 >>> def add(x, y):
@@ -1557,7 +1565,7 @@ Well met, Sir Robin
 ... 
 ```
 
-分配参数作用于参数列表的一部分，但是分配参数只能位于参数列表的末尾。
+分配参数作用于参数列表的一部分，并且分配参数只能位于参数列表的末尾。
 
 可以将分配参数传递给可变数量参数，效果与将元组或字典传递给普通参数一样。
 
@@ -1601,11 +1609,50 @@ def search(seq, number, lower, upper):
       return search(seq, number, lower, middle)
 ```
 
+### 将函数赋给变量
 
+```python
+>>> def c_to_kelvin(degrees_c):
+...     return 273.15 + degrees_c
+...
+>>> abs_temperature = c_to_kelvin
+>>> abs_temperature(0)
+273.15
+```
+
+引用函数的变量，用起来与函数完全相同。
+
+函数可以被放入列表、元组或字典中：
+
+```python
+>>> def f_to_kelvin(degrees_f):
+...     return 273.15 + (degrees_f - 32) * 5 / 9
+...
+>>> t = {'FtoK': f_to_kelvin, 'CtoK': c_to_kelvin}
+>>> t['FtoK'](32)
+273.15
+>>> t['CtoK'](0)
+273.15
+```
+
+这种用法经常用来代替C语言中的switch结构。
+
+### lambda表达式
+
+lambda表达式是匿名的小型函数，可以快速地在行内完成定义。
+
+```python
+>>> t = {'FtoK': lambda deg_f: 273.15 + (deg_f - 32) * 5 / 9,
+...      'CtoK': lambda deg_c: 273.15 + deg_c}
+>>> t['FtoK'](32)
+273.15
+```
+
+lambda表达式没有`return`语句，因为表达式的值将自动返回。
 
 ## 生成器
 
-生成器是包含`yield`语句的函数，但它被调用时**不会执行函数体内的代码**，而是返回一个迭代器。每次请求值时（例如调用`next`函数），都将执行生成器的代码，直到遇到`yield`或`return`。`yield`将生成一个值（即`yield`的参数）后，生成器都将被挂起，下次再调用时，从上次挂起处开始继续执行。而`return`语句停止执行生成器（即不再生成值）。
+生成器是包含`yield`语句的函数，但它被调用时**不会执行函数体内的代码**，而是返回一个迭代器。每次请求值时（例如调用`next`函数），都将执行生成器的代码，直到遇到`yield`或`return`。`yield`在生成一个值（即`yield`的参数）后，生成器都将被挂起，下次再调用时，从上次挂起处开始继续执行。而`return`语句停止执行生成器（即不再生成值）。
 
 由于生成器返回迭代器，因此可以像使用其他迭代器一样使用它。
 
