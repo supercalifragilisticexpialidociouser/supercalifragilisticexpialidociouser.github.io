@@ -1742,6 +1742,31 @@ TypeError('spam',)
 Don't forget to clean up when 'close()' is called.
 ```
 
+### yield from
+
+从Python 3.3开始，新增了`yield from`关键字。`yield from`的执行方式与`yield`相同，但是会将当前生成器委托给子生成器。
+
+```python
+>>> def subgen(x):
+...     for i in range(x)
+...         yield i
+...
+>>> def gen(y):
+...     yield from subgen(y)
+...
+>>> for q in gen(6):
+...     print(q)
+...
+0
+1
+2
+3
+4
+5
+```
+
+`yield from`使得将生成器函数串联在一起成为可能。
+
 ### 生成器推导
 
 生成器推导与列表推导类似，但不是立即创建一个列表，而是返回一个生成器。并且，生成器推导使用圆括号，而不是花括号。
@@ -1756,6 +1781,50 @@ Don't forget to clean up when 'close()' is called.
 ```
 
 使用生成器推导的优点是：不会在内存中生成整个列表，因此可生成任意大小的值序列，内存开销也很小。
+
+## 装饰器
+
+装饰器可将一个函数封装到另一个函数中。
+
+```python
+>>> def mydecorate(func):
+...     print('in decorate function, decorating', func.__name__)
+...     def wrapper_func(*args):
+...         print('Executing', func.__name__)
+...         return func(*args)
+...     return wrapper_func
+...
+>>> @mydecorate
+... def myfunction(parameter):
+...     print(parameter)
+...
+in decorate function, decorating myfunction
+>>> myfunction('hello')
+Executing myfunction
+hello
+```
+
+等价于：
+
+```python
+>>> def mydecorate(func):
+...     print('in decorate function, decorating', func.__name__)
+...     def wrapper_func(*args):
+...         print('Executing', func.__name__)
+...         return func(*args)
+...     return wrapper_func
+...
+>>> def myfunction(parameter):
+...     print(parameter)
+...
+>>> myfunction = mydecorate(myfunction)
+in decorate function, decorating myfunction
+>>> myfunction('hello')
+Executing myfunction
+hello
+```
+
+
 
 # 面向对象编程
 
