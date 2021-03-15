@@ -1,7 +1,7 @@
 ---
 title: Python
 date: 2018-09-15 12:15:06
-tags: [3.9.1]
+tags: [3.9.2]
 ---
 
 # 简介
@@ -69,12 +69,28 @@ $ python foo.py arg1 arg2
 
 ### shebang方式运行脚本
 
+适用于Linux或Unix操作系统。
+
 首先，要在`hello.py`的第一行添加`#!/usr/bin/env python`。
 
 然后，赋予脚本可执行的权限：`chmod a+x hello.py`。
 
 ```bash
 $ ./hello.py
+
+#同样可以给脚本传递参数
+$ ./hello.py arg1 arg2
+```
+
+在Windows中，可以编辑环境变量（`PATHEXT`），将`.py`添加为可直接运行的扩展名，这样脚本就可直接执行了。
+
+```
+PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.JS;.PY
+```
+
+```powershell
+PS E:\demo> .\hello.py
+Hello world!
 ```
 
 ### 直接运行代码
@@ -163,6 +179,8 @@ Calculates the square of the number x.
 ```
 
 ## 程序入口
+
+Python程序没有统一入口，而总是从脚本的第一行开始运行。
 
 ## 编码规范
 
@@ -3208,18 +3226,57 @@ class ArithmeticSequence:
 
 以字典类型返回当前位置的全部**全局变量**及其值。
 
+在交互式会话中创建的函数的全局命名空间中会包含交互式会话中创建的全局变量：
+
 ```python
->>> def combine(parameter):
-...   print(parameter + globals()['parameter']) 
+>>> def f(x):
+...   print('Global: ', globals()) 
 ...
->>> parameter = 'berry'
->>> combine('Shrub')
-Shrubberry
+>>> z = 2
+>>> globals()
+{…, 'f': <function f at …>, 'z': 2}
+>>> f(z)
+Global: {…, 'f': <function f at …>, 'z': 2}
+```
+
+在模块文件中定义的函数的全局命名空间中不包含交互式会话中创建的全局变量。
+
+scopetest.py：
+
+```python
+v = 6
+def f(x):
+    print('Global: ', globals())
+```
+
+交互式会话：
+
+```python
+>>> import scopetest
+>>> z = 2
+>>> globals()
+{…, 'f': <function f at …>, 'v': 6, 'z': 2}
+>>> scopetest.f(z)
+Global: {…, 'f': <function f at …>, 'v': 6}  #包含v，但不包含z
 ```
 
 ### locals函数
 
 以字典类型返回当前位置的全部**局部变量**及其值。
+
+```python
+>>> def f(x):
+...   print('Entry local: ', locals()) 
+...   y = x
+...   print('Exit local: ', locals())
+...
+>>> z = 2
+>>> locals()
+{…, 'f': <function f at …>, 'z': 2}
+>>> f(z)
+Entry local: {'x': 2}
+Exit local: {'x': 2, 'y': 2}
+```
 
 ### vars函数
 
@@ -3241,7 +3298,7 @@ Python有三个命名空间：
 
 - 局部
 - 全局
-- 内置（即`__builtins__`模块的命名空间）
+- 内置（即`{…, 'f': <function f at …>, 'z': 2}`模块的命名空间）
 
 在运行时遇到标识符时，Python会**依次**在局部、全局和内置命名空间中查找。如果没找到，则会引发`NameError`异常。
 
@@ -3294,12 +3351,22 @@ x = input("x: ")  #提示并获取用户输入
 
 ## 重定向
 
+foo.py：
+
+```python
+import sys
+def main():
+    contents = sys.stdin.read()
+    sys.stdout.write(contents.replace(sys.argv[1], sys.argv[2]))
+main()
+```
+
 ```bash
 $ python foo.py arg1 arg2 < infile > outfile
 $ python foo.py arg1 arg2 < infile >> outfile
 ```
 
-上例中，将foo.py中所有`input`或`sys.stdin`的操作都 定向为`infile`，将所有`print`或`sys.stdout`的操作都 定向为`outfile`。
+上例中，将foo.py中所有`input`或`sys.stdin`的操作都定向为来自`infile`，将所有`print`或`sys.stdout`的操作都定向到`outfile`。
 
 `>`表示覆盖，`>>`表示追加到末尾。
 
@@ -3835,6 +3902,8 @@ $ python -m SimpleHTTPServer 8080
 - 直接执行脚本时，要指定脚本的具体路径和扩展名。例如：`python ~/python/foo.py`。而把模块当作脚本执行，不需要指定脚本具体路径，只需要将模块放到指定的模块搜索位置中，而且模块也是没有扩展名的。
 - 把模块当作脚本执行时，可以在任意位置执行。
 
+### `__name__`变量
+
 一个模块用于导入时，它的`__name__`变量值是该模块名，而用于当作脚本执行时，`__name__`变量值是`'__main__'`。
 
 例如，有一模块test：
@@ -3857,6 +3926,19 @@ $ python -c "import test" arg1
 Args is ['-c', 'arg1']
 __name__ is test
 ```
+
+下面是一种常用的代码风格：当作为脚本调用时，会调用主控函数；而当作为模块被其他代码导入时，不调用主控函数：
+
+```python
+if __name__ == '__main__':
+    main()
+else:
+    #本模块的初始化代码
+```
+
+## `__builtins__`模块
+
+`__builtins__`模块定义了内置命名空间。
 
 ## `__future__`模块
 
