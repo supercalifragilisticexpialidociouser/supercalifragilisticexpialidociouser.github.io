@@ -3380,6 +3380,18 @@ $ python replace.py 0 zero < infile | python replace.py 1 one > outfile
 
 # 文件处理
 
+## 路径
+
+### 当前工作目录
+
+```python
+>>> import os
+>>> os.getcwd()    #获取当前工作目录
+'/home/jo'
+>>> os.curdir      #系统用来表示当前目录的字符串
+'.'
+```
+
 
 
 # 系统环境
@@ -4006,4 +4018,30 @@ from drawing import shapes    #导入模块shapes
 
 `sys`模块的`modules`变量是一个已加载模块的字典。
 
-# 构建
+# 发布
+
+## wheel包
+
+目前，打包和发布Python模块和应用程序的标准方法是使用wheel包。
+
+## 可执行的zip
+
+如果应用程序分散在多个模块中，则还可以发布为可执行的zip文件（即zipapp）：
+
+1. 创建一个包含`__main__.py`的zip文件；
+2. 将shebang行添加到zip文件开头；
+3. 设置zip文件为可执行权限。
+
+从Python 3.5开始，标准库中包含了一个`zipapp`模块，可以从命令行或用库API创建zipapp。
+
+另外，还可以使用一个更强大的工具pex来创建zipapp。pex不在标准库中，但可以通过pip安装。
+
+## py2exe或py2app
+
+如果目标机器没有安装Python，则可以使用py2exe（Windows）和py2app（macOS）来制作可独立运行的单个可执行文件。
+
+独立可执行文件会比原生Python应用程序体积更大。
+
+## freeze
+
+freeze也可以创建独立的可执行文件。freeze会生成C程序文件，并用C编译器对其进行编译和链接，因此需要在系统中安装有C编译器。
