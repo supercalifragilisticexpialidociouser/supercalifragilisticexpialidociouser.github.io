@@ -3380,6 +3380,8 @@ $ python replace.py 0 zero < infile | python replace.py 1 one > outfile
 
 # 文件处理
 
+Python传统
+
 ## 路径
 
 ### 当前工作目录
@@ -3390,6 +3392,20 @@ $ python replace.py 0 zero < infile | python replace.py 1 one > outfile
 '/home/jo'
 >>> os.curdir      #系统用来表示当前目录的字符串
 '.'
+```
+
+查看目录内容：
+
+```python
+>>> import os
+>>> os.listdir()  #查看当前目录下的文件或文件夹，相当于os.listdir(os.curdir)
+>>> os.listdir('/')  #查看根目录下的文件或文件夹
+```
+
+改变当前目录：
+
+```python
+>>> os.chdir('/my') #切换到/my目录
 ```
 
 
