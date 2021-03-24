@@ -3380,18 +3380,27 @@ $ python replace.py 0 zero < infile | python replace.py 1 one > outfile
 
 # 文件处理
 
-Python传统
+Python传统是通过`os`和`os.path`模块中的函数来处理文件。自Python 3.5开始，引入了新的`pathlib`库，可以用更加面向对象、更统一的方式来完成文件操作。
 
 ## 路径
 
-### 当前工作目录
+获取当前工作目录：
 
 ```python
+#使用os模块
 >>> import os
 >>> os.getcwd()    #获取当前工作目录
 '/home/jo'
 >>> os.curdir      #系统用来表示当前目录的字符串
 '.'
+
+#使用pathlib模块
+>>> import pathlib
+>>> cur_path = pathlib.Path()
+>>> cur_path
+PosixPath('.')
+>>> cur_path.cwd()
+PosixPath('/home/jo')
 ```
 
 查看目录内容：
@@ -3406,6 +3415,43 @@ Python传统
 
 ```python
 >>> os.chdir('/my') #切换到/my目录
+```
+
+拼接路径：
+
+```python
+#使用os模块
+>>> import os
+>>> path1 = os.path.join('mydir', 'bin')
+>>> path2 = os.path.join('utils', 'disktools', 'chkdisk')
+#os.path.join函数返回的是相对路径，并且它不会对生成的路径进行完整性检查。
+>>> os.path.join(path1, path2)
+'mydir/bin/utils/disktools/chkdisk'
+
+#使用pathlib模块
+>>> from pathlib import Path
+>>> cur_path = Path()
+>>> cur_path.joinpath('bin', 'utils', 'disktools')
+PosixPath('bin/utils/disktools')
+```
+
+拆分路径：
+
+```python
+>>> import os
+>>> path1 = os.path.join('some', 'directory', 'path')
+>>> os.path.split(path)
+('some/directory', 'path')
+
+>>> os.path.basename(path)
+'path'
+>>> os.path.dirname(path)
+'some/directory'
+
+#以句点标识来拆分文件扩展名
+>>> path2 = os.path.join('some', 'directory', 'path.jpg')
+>>> os.path.splitext(path2)
+('some/directory/path', '.jpg')
 ```
 
 
@@ -3914,6 +3960,8 @@ $ export PYTHONPATH=$PYTHONPATH:~/mypython
 ```
 
 重新加载模块，并不会重新创建原有对象，变量引用的对象仍然是重新加载前的对象，除非重新创建它们。
+
+注意：导入一个模块时，也可自动导入它的子模块。例如，导入`os`模块，也就导入了`os.path`子模块，不需要使用`import os.path`语句显式导入一次。
 
 ## 把模块当作脚本执行
 
