@@ -3393,6 +3393,8 @@ Python传统是通过`os`和`os.path`模块中的函数来处理文件。自Pyth
 '/home/jo'
 >>> os.curdir      #系统用来表示当前目录的字符串
 '.'
+>>> os.pardir      #系统用来表示上一级目录的字符串
+'..'
 
 #使用pathlib模块
 >>> import pathlib
@@ -3403,12 +3405,21 @@ PosixPath('.')
 PosixPath('/home/jo')
 ```
 
-查看目录内容：
+查看目录中的文件列表：
 
 ```python
 >>> import os
 >>> os.listdir()  #查看当前目录下的文件或文件夹，相当于os.listdir(os.curdir)
 >>> os.listdir('/')  #查看根目录下的文件或文件夹
+
+#glob.glob函数支持“*”和“?”通配符，以及“[h,H]”或“[0-9]”这样的字符序列
+>>> import glob
+>>> glob.glob('*bkp')
+['registry.bkp']
+>>> glob.glob('?.tmp')
+['a.tmp', '1.tmp', '7.tmp']
+>>> glob.glob('[0-9].tmp')
+['1.tmp', '7.tmp']
 ```
 
 改变当前目录：
@@ -3433,11 +3444,15 @@ PosixPath('/home/jo')
 >>> cur_path = Path()
 >>> cur_path.joinpath('bin', 'utils', 'disktools')
 PosixPath('bin/utils/disktools')
+#还可以直接使用“/”操作符来拼接路径
+>>> Path() / 'bin' / 'utils' / 'disktools'
+PosixPath('bin/utils/disktools')
 ```
 
 拆分路径：
 
 ```python
+#使用os模块
 >>> import os
 >>> path1 = os.path.join('some', 'directory', 'path')
 >>> os.path.split(path)
@@ -3452,7 +3467,58 @@ PosixPath('bin/utils/disktools')
 >>> path2 = os.path.join('some', 'directory', 'path.jpg')
 >>> os.path.splitext(path2)
 ('some/directory/path', '.jpg')
+
+#使用pathlib模块
+>>> from pathlib import Path
+>>> path3 = Path('some', 'directory', 'path.jpg')
+>>> path3.parts  #parts属性返回一个由路径的各个组成部分组成的元组
+('some', 'directory', 'path')
+>>> path3.name  #返回basename部分
+'path.jpg'
+>>> path3.parent  #返回dirname部分
+PosixPath('some/directory')
+>>> path3.suffix  #返回扩展名，如果没有则返回空串
+'.jpg'
 ```
+
+获取文件信息：
+
+`os.path.exists('foo/bar')`：如果文件系统中存在`foo/bar`路径，则返回`True`。
+
+`os.path.isdir('foo/bar')`：如果参数表示的是目录时返回`True`。
+
+`os.path.isabs('foo/bar')`：如果参数表示的是绝对路径时返回`True`。
+
+`os.path.isfile('foo/bar')`：如果参数表示的是文件时返回`True`。
+
+`os.path.islink('foo/bar')`：如果参数表示的是文件链接时返回`True`。
+
+`os.path.ismount('foo/bar')`：如果参数表示的是挂载点时返回`True`。
+
+`os.path.samefile('foo', 'bar')`：如果参数中的两个路径指向同一个文件时返回`True`。
+
+`os.path.getsize('foo/bar')`：获得文件的大小。
+
+`os.path.getmtime('foo/bar')`：获得文件的最后修改时间。
+
+`os.path.getatime('foo/bar')`：获得文件的最后访问时间。
+
+除了`os.path`外，还可以用`os.scandir`获取某个目录下文件的更为完整的信息。`os.scandir`将返回`os.DirEntry`迭代器对象，它能展示目录中每一条目的文件属性。而且，`os.scandir`还支持由`with`提供的上下文管理器。下面示例将遍历目录中的所有条目，并打印出条目的名称及是否为文件：
+
+```python
+>>> with os.scandir('.') as my_dir:
+...      for entry in my_dir:
+...          print(entry.name, entry.is_file())
+...
+```
+
+重命名（移动）文件或目录：
+
+```python
+>>> os.rename('src', 'dst')
+```
+
+
 
 
 
@@ -3475,6 +3541,8 @@ Python中，可以通过`sys`模块的`argv`变量来获取命令行参数。
 ## 平台标识符
 
 `sys`模块的`platform`变量是一个字符串，它是运行解释器的平台名称，可能是操作系统名称，也可能是其他平台类型（如Java虚拟机）名称。
+
+另外，`os.name`将返回被导入的处理操作系统特定细节的Python模块名称，也可用来判断当前是什么平台。
 
 ## 环境变量
 
