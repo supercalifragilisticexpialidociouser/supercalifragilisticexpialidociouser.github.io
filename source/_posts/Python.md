@@ -3399,7 +3399,7 @@ Python传统是通过`os`和`os.path`模块中的函数来处理文件。自Pyth
 #使用pathlib模块
 >>> import pathlib
 >>> cur_path = pathlib.Path()
->>> cur_path
+>>> cur_path  #在Linux或Unix中返回的是PosixPath，在Windows中返回的是WindowsPath
 PosixPath('.')
 >>> cur_path.cwd()
 PosixPath('/home/jo')
@@ -3408,9 +3408,10 @@ PosixPath('/home/jo')
 查看目录中的文件列表：
 
 ```python
+#使用os模块
 >>> import os
 >>> os.listdir()  #查看当前目录下的文件或文件夹，相当于os.listdir(os.curdir)
->>> os.listdir('/')  #查看根目录下的文件或文件夹
+>>> os.listdir('/')  #查看根目录下的文件或文件夹。返回路径字符串列表
 
 #glob.glob函数支持“*”和“?”通配符，以及“[h,H]”或“[0-9]”这样的字符序列
 >>> import glob
@@ -3420,6 +3421,16 @@ PosixPath('/home/jo')
 ['a.tmp', '1.tmp', '7.tmp']
 >>> glob.glob('[0-9].tmp')
 ['1.tmp', '7.tmp']
+
+#使用pathlib模块
+>>> import pathlib
+>>> cur_path = pathlib.Path()
+>>> new_path = cur_path.joinpath('bin', 'utils', 'disktools')
+>>> new_path.iterdir()  #返回路径迭代器
+<generator object Path.iterdir at 0x7f032420f2e0>
+>>> new_path.glob('*bkp')
+>>> new_path.glob('?.tmp')
+>>> new_path.glob('[0-9].tmp')
 ```
 
 改变当前目录：
@@ -3516,11 +3527,41 @@ PosixPath('some/directory')
 
 ```python
 >>> os.rename('src', 'dst')
+
+>>> Path('src').rename('dst')
 ```
 
+删除文件：
 
+```python
+>>> os.remove('foo.tmp')
 
+>>> Path('foo.tmp').unlink()
+```
 
+不能用`os.remove`删除目录，删除目录使用`os.rmdir`（或使用`pathlib`模块的`rmdir`方法），它只删除空目录，试图删除非空目录会引发异常。如果要删除非空目录，要使用`shutil.rmtree`函数，它能以递归方式删除目录树中的所有文件。
+
+在Python中，通过写操作来创建文件。而使用`os.makedirs`（会连同必要的中间目录一起创建）或`os.mkdir`来创建目录。
+
+```python
+>>> os.makedirs('foo/bar')
+
+>>> Path('mydir').mkdir(parents=True)  #参数parents=True表示会连同必要的中间目录一起创建
+```
+
+遍历目录树：
+
+```python
+import os
+for root, dirs, files in os.walk(os.curdir):
+    print('{0} has {1} files'.format(root, len(files)))
+    if '.git' in dirs:
+        dirs.remove('.git')
+```
+
+`shutil`模块的`copytree`函数能够递归地复制目录及其子目录下的所有文件。
+
+## 文件读写
 
 # 系统环境
 
