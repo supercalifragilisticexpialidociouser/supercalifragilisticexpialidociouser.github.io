@@ -3341,15 +3341,52 @@ Age: 42
 I_wish_to_register_a_complaint
 ```
 
+通过`file`参数，`print`函数可以直接将数据写入文件中：
+
+```python
+>>> f = open('outfile.txt', 'w')
+>>> print('A first line.\n', 'A second line.\n', file=f)
+>>> f.close()
+
+```
+
+
+
+`print`函数本质上是将信息输出到标准输出`sys.stdout`或`sys.stderr`对象中，也可以直接使用这些标准输出对象的`write`或`writelines`方法来输出：
+
+```python
+>>> import sys
+>>> sys.stdout.write('Write to the standard output.\n')
+Write to the standard output.
+30
+```
+
 ## 标准输入
 
 ```python
-x = input("x: ")  #提示并获取用户输入
+>>> x = input("请输入文件名：")  #提示并获取用户输入
+请输入文件名：myfile
+>>> x
+'myfile'
 ```
 
-`input`函数的返回值是一个字符串。
+`input`函数的返回值是输入的字符串。
+
+`input`函数本质上是从标准输入`sys.stdin`对象中读取数据，也可以直接使用这些标准输入对象的`read`、`readline`或`readlines`方法来读取输入：
+
+```python
+>>> import sys
+>>> s = sys.stdin.readline()
+An input line
+>>> s
+'An input line\n'
+```
+
+
 
 ## 重定向
+
+可将标准输入输出重定向为从文件读写数据。
 
 foo.py：
 
@@ -3369,6 +3406,19 @@ $ python foo.py arg1 arg2 < infile >> outfile
 上例中，将foo.py中所有`input`或`sys.stdin`的操作都定向为来自`infile`，将所有`print`或`sys.stdout`的操作都定向到`outfile`。
 
 `>`表示覆盖，`>>`表示追加到末尾。
+
+另一种重定向方法：
+
+```python
+>>> import sys
+>>> f = open('outfile.txt', 'w')
+>>> sys.stdout = f   #将标准输出重定向到一个文件
+>>> sys.stdout.writelines(['A first line.\n', 'A second line.\n'])
+>>> sys.stdout = sys.__stdout__     #用sys.__stdout__将标准输出恢复为初始值
+>>> f.close()
+```
+
+
 
 ## 管道
 
@@ -3562,6 +3612,180 @@ for root, dirs, files in os.walk(os.curdir):
 `shutil`模块的`copytree`函数能够递归地复制目录及其子目录下的所有文件。
 
 ## 文件读写
+
+### 打开文件
+
+```python
+open('myfile', 'r')  #以只读模式打开myfile文件
+open('myfile', 'w')  #以覆盖写入模式打开myfile文件，并且myfile不存在时，会创建该文件
+open('myfile', 'a')  #以追加写入模式打开myfile文件，并且myfile不存在时，会创建该文件
+```
+
+内置函数`open`的第三个可选参数定义了文件读写缓冲模式。
+
+`open`函数返回一个`file`对象，用于访问被打开的文件。
+
+### 关闭文件
+
+对`file`对象读写完毕后，应该将其关闭，以释放系统资源。
+
+```python
+file_object = open('myfile', 'r')
+…
+file_object.close()
+```
+
+更好的关闭文件方法是利用`with`和上下文管理器来自动关闭文件：
+
+```python
+with open('myfile', 'r') as file_object:
+     … #对file_object执行读写操作
+```
+
+### 读写文本
+
+`readline`方法从`file`对象中读取并返回一行数据，包括行尾的换行符。如果没有数据可读，则返回空字符串。
+
+```python
+file_object = open('myfile', 'r')
+count = 0
+while file_object.readline() != '':
+      count = count + 1
+print(count)
+file_object.close()
+```
+
+`readlines`方法将一次性读取文件中的所有行，并作为字符串列表返回。列表中每个字符串就是一行数据，包括行尾的换行符。
+
+```python
+file_object = open('myfile', 'r')
+print(len(file_object.readlines()))
+file_object.close()
+```
+
+当对大型文件进行读取时，`readlines`方法会导致内存不足。同样，当一个大型文件中不含换行符时，`readline`方法也可能导致内存溢出。为了应对这种情况，这两个方法都可带一个可选参数，用以控制每次读取的数据量。
+
+另一种遍历文件的方法是将`file`对象视为`for`循环中的迭代器：
+
+```python
+file_object = open('myfile', 'r')
+count = 0
+for line in file_object:
+      count = count + 1
+print(count)
+file_object.close()
+```
+
+迭代器的优点是：每行数据都是按需读入内存的，不用担心内存不足问题。
+
+`write`方法写入一个字符串。如果字符串中包含换行符，则可以一次写入多行。
+
+```python
+myfile.write('Hello world!')
+```
+
+`write`不会自动在字符串尾部加换行符，而字符串中的换行符将写入文件中。
+
+`writelines`方法将字符串列表中的每个字符串逐个写入文件。
+
+#### 换行符处理
+
+以文本模式读取文件时，默认Mac系统会将`\r`全部转换为`\n`，Windows系统会将`\r\n`全部转换为`\n`。也可以在打开文件时，用`newline`参数来指定换行符的处理方式（可以取`None`，`''`，'`\n'`，`'\r'`和`'\r\n'`）。
+
+```python
+input_file = open('myfile', newline='\n') #强制将 \n 用作换行符
+```
+
+> 如果文件是以二进制模式打开的，就不需要用到`newline`参数了，因为在二进制模式下所有字符都将原样返回。
+
+以文本模式写入文件时，默认情况所有`\n`换行符会被转换为当前平台的行结束符（Mac为`\r`，Windows为`\r\n`）。同样也可以在打开文件时通过`newline`参数指定换行符的处理方式。
+
+### 二进制模式
+
+在文件打开模式上加上一个`b`，则会将文件中的数据读作`bytes`对象，即将文件中的数据当作字节来处理，而不是字符串。
+
+```python
+input_file = open('myfile', 'rb')
+header = input_file.read(4)  #读取前4个字节
+data = input_file.read()  #不带参数，则从当前位置开始读取文件剩余的所有数据
+input_file.close()
+```
+
+注意：要把二进制数据当作字符串来使用，必须将`bytes`对象转换为`string`对象。
+
+### 用pathlib读写文件
+
+```python
+>>> from pathlib import Path
+>>> p_text = Path('my_text_file')  #my_text_file可以不存在
+>>> p_text.write_text('写入文本内容')
+6
+>>> p_text.read_text()
+'写入文本内容'
+
+>>> p_binary = Path('my_binary_file')
+>>> p_binary.write_bytes(b'Binary file contests')    #二进制数据只能包含ASCII字符
+20
+>>> p_binary.read_bytes()
+b'Binary file contests'
+```
+
+注意：无法用`Path`的方法追加数据，其写入方法都是采用覆写方式。
+
+### 用`struct`模块处理结构化的二进制数据
+
+`struct`模块能够根据格式串来解析二进制数据：
+
+```python
+import struct
+record_format = 'hd4s'  #定义格式串。h表示一个C语言的short整数，d表示一个C语言的double浮点数，4s表示4个字符组成的字符串
+record_size = struct.calcsize(record_format)  #计算出格式串所表示的数据的大小
+result_list = []
+input = open('data', 'rb')
+while 1:
+      record = input.read(record_size)
+      if record == '':
+         input.close()
+         break
+      result_list.append(struct.unpack(record_format, record))
+      #struct.unpack函数根据格式串来解析读取的记录，并返回数据元组
+```
+
+`struct.pack`函数将Python值打包为字节序列：
+
+```python
+>>> import struct
+>>> record_format = 'hd4s'
+>>> struct.pack(record_format, 7, 3.14, b'gbye')
+b'\x07\x00\x00\x00\x00\x00\x00\x00\x1f\x85\xebQ\xb8\x1e\t@gbye'
+```
+
+### 用`pickle`将对象存入文件
+
+`pickle`能把任何数据结构写入文件，再从文件中读回并重建该数据结构。
+
+```python
+import pickle
+a = …
+b = …
+file = open('state', 'wb')
+pickle.dump(a, file)
+pickle.dump(b, file)
+file.close()
+…
+file = open('state', 'rb')
+#按写入的顺序读回
+a = pickle.load(file)
+b = pickle.load(file)
+file.close()
+
+```
+
+
+
+### 用`shelve`保存对象
+
+### 用`fileinput`模块处理多个文件输入
 
 # 系统环境
 
