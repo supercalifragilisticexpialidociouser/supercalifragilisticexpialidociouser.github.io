@@ -3781,11 +3781,52 @@ file.close()
 
 ```
 
-
-
 ### 用`shelve`保存对象
 
+`shelve`模块可以将数据以类似字典的方式保存到文件中，而不是内存中，这样数据量将不再受内存大小的限制。并且仍可以方便通过键来访问大文件中的小块数据，而无须读写整个文件。
+
+```python
+>>> import shelve
+>>> book = shelve.open('addresses')    #如果文件不存在，则会自动创建一个
+#添加条目
+>>> book['flintstone'] = ('fred', '555-1234', '1233 Bedrock Place')
+>>> book['rubble'] = ('barney', '555-4321', '1235 Bedrock Place')
+>>> book['flintstone']
+('fred', '555-1234', '1233 Bedrock Place')
+>>> book.close()
+```
+
+`shelve.open`返回的是一个`shelf`对象，可以对它进行基本的字典操作。它与字典不同在于：`shelf`对象把数据保存在磁盘上，而不是保存于内存中。另外，`shelf`只能用字符串作为键。
+
+此外，`shelve`对象不适合用作多用户数据库，因为未提供对并发访问的控制。
+
 ### 用`fileinput`模块处理多个文件输入
+
+`fileinput`模块会读取命令行参数，并将其视为输入文件的列表，然后按顺序读取这些文件中的数据行。
+
+script.py：
+
+```python
+import fileinput
+def main():
+    for line in fileinput.input():
+        if fileinput.isfirstline():
+           print('<start of file {0}>'.format(fileinput.filename()))
+        print(line, end='')
+main()
+```
+
+在命令行上如下调用：
+
+```bash
+$ python script.py file1 file2
+```
+
+如果未给出命令行参数，所有数据都会从标准输入读取。如果有参数为`-`，则此参数处的数据会从标准输入读取。
+
+如果调用`fileinput.input`时带了一个文件名或文件名列表作为参数，则这些文件就会被用作输入文件，而不再采用命令行参数中的文件列表。
+
+`fileinput.input`还有一个可选参数`inplace`，可将输出结果存回输入文件中，同时将原始文件保留为备份文件。
 
 # 系统环境
 
