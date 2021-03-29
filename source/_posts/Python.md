@@ -3884,7 +3884,8 @@ os.system('/usr/bin/firefox')
 
 | 类名              | 描述                                                       |
 | ----------------- | ---------------------------------------------------------- |
-| Exception         | 异常类的基类。                                             |
+| BaseException     | 异常类的基类。                                             |
+| Exception         | 大部分异常类的基类。自定义异常建议继承该类                 |
 | AttributeError    | 引用属性或给它赋值失败时引发。                             |
 | OSError           | 操作系统不能执行指定任务时引发。                           |
 | IndexError        | 使用序列中不存在的索引时引发。                             |
@@ -3912,8 +3913,6 @@ Traceback (most recent call last):
 Exception: hyperdrive overload
 ```
 
-
-
 ## 捕获异常
 
 ```python
@@ -3927,7 +3926,7 @@ except TypeError:
   print("That wasn't a number, was it?")
 ```
 
-`except`子句可以是一个或任意多个。
+`except`子句可以是一个或任意多个。在异常发生时，总是将异常交给第一个匹配的`except`子句处理。因此，越通用的异常的`except`子句应该越放在后面。
 
 也可以使用一条`except`子句处理多个异常：
 
@@ -3940,7 +3939,7 @@ except (ZeroDivisionError, TypeError, NameError):
   print('Your numbers were bogus ...')
 ```
 
-还可以使用一条`except`子句捕获所有异常，只需在`except`子句中不指定任何异常类。
+还可以使用一条`except`子句捕获所有异常，只需在`except`子句中不指定任何异常类。（应该放在其他所有`except`子句之后）
 
 ```python
 try:
@@ -4074,9 +4073,17 @@ finally:
    f.close()
 ```
 
-
-
 # 断言
+
+`assert`语句是`raise`语句的特殊形式：
+
+```python
+assert 表达式, 参数
+```
+
+如果“表达式”的结果为`False`，并且系统变量`__debug__`为`True`，则会引发`AssertionError`异常，并将“参数”传递给`AssertionError`异常。如果`__debug__`为`False`，则代码生成器不会为`assert`语句创建代码，这样就不存在运行开销。
+
+带`-O`或`-OO`参数启动Python解释器，或将环境变量`PYTHONOPTIMIZE`设置为`True`，则可以将`__debug__`置为`False`。
 
 ```python
 >>> age = 10
