@@ -1981,7 +1981,7 @@ Squaawk!
 
 #### 静态方法和类方法
 
-静态方法没有参数`self`，可直接通过类来调用。类方法有`cls`参数，它指向类对象本身，类方法可通过类或实例来调用。
+静态方法没有参数`self`，可直接通过类来调用。类方法隐式地将所属类（`self.__class__`）作为第一个参数（通常命名为`cls`参数），类方法可通过类或实例来调用。
 
 有两种方式来定义静态方法和类方法：
 
@@ -2063,7 +2063,7 @@ Python类只能包含一个`__init__`和`__new__`。
 
 Python的析构函数是`__del__`，它将在对象被销毁（作为垃圾被回收）前被自动调用。
 
-### property
+### 属性
 
 `property`类允许为字段提供获取方法（getter）和设置方法（setter），而且使用起来仍像个字段。
 
@@ -2105,7 +2105,7 @@ class Rectangle:
 
 Python没有为可访问性提供直接支持，然而，通过玩点小花招，可以获得类似于私有成员的效果。
 
-要让方法和字段成为私有的，只需要让其名称以两个下划线开头即可。
+要让方法和字段成为私有的，只需要让其名称以两个下划线开头，并且不以双下划线结尾。
 
 ```python
 class Secretive:
@@ -2128,7 +2128,7 @@ AttributeError: Secretive instance has no attribute '__inaccessible'
 Bet you can't see me ...
 ```
 
-只知道这种幕后处理手法，就能从类外部访问私有方法，然而不应该这样做。
+知道这种底层处理手法，就能从类外部访问私有方法，然而不应该这样做。
 
 另外，`from ... import *`语句不会导入以一个下划线开头的名称，而且Python也不会对以一个下划线开头的名称进行转换。也就是说，以一个下划线开头的名称可以在类外部访问，但不能通过`from ... import *`语句导入到其他模块。从某种程序上说，以一个或两个下划线开头相当于两种不同的私有程度。
 
@@ -2136,7 +2136,67 @@ Bet you can't see me ...
 
 Python 3中所有类都隐式地继承`object`类。
 
-### 多重继承
+```python
+class Shape:
+      def __init__(self, x, y):
+          self.x = x
+          self.y = y
+class Square(Shape):
+      def __init__(self, side=1, x=0, y=0):
+          super().__init__(x, y)
+          self.side = side
+class Circle(Shape):
+      def __init__(self, r=1, x=0, y=0):
+          super().__init__(x, y)
+          self.radius = r
+```
+
+子类的初始器中，必须显式调用父类的初始器来初始化从父类中继承下来的字段，否则这些字段不会自动得到初始化。
+
+实例字段和类字段都可以继承。
+
+```python
+>>> class P:
+...    z = 'Hello'
+...    def set_p(self):
+...        self.x = 'Class P'
+...    def print_p(self):
+...        print(self.x)
+...
+>>> class C(P):
+...    def set_c(self):
+...        self.x = 'Class C'
+...    def print_c(self):
+...        print(self.x)
+...
+>>> c = C()
+>>> c.set_p()
+>>> c.print_p()
+Class P
+>>> c.print_c()
+Class P
+>>> c.set_c()
+>>> c.print_p()
+Class C
+>>> c.print_c()
+Class C
+>>> c.z; C.z; P.z
+'Hello'
+'Hello'
+'Hello'
+>>> C.z = 'Bonjour'
+>>> c.z; C.z; P.z
+'Bonjour'
+'Bonjour'
+'Hello'
+>>> c.z = 'Ciao'
+>>> c.z; C.z; P.z
+'Ciao'
+'Bonjour'
+'Hello'
+```
+
+Python支持多重继承：
 
 ```python
 class Calculator:
