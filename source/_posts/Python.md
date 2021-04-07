@@ -2101,6 +2101,42 @@ class Rectangle:
 - `__setattr__(self, name, value)`：试图给property赋值时自动调用；
 - `__delattr__(self, name)`：试图删除property时自动调用。
 
+也可以通过给方法加上`@property`装饰符，就能创建属性，方法名称就是属性名：
+
+```python
+class Temperature:
+   def __init__(self):
+      self._temp_fahr = 0
+   @property
+   def temp(self):
+      return (self._temp_fahr - 32) * 5 / 9
+```
+
+该属性是只读的，如果要能修改属性，还需要通过`@属性名.setter`装饰器来添加setter方法：
+
+```python
+@temp.setter
+def temp(self, new_temp):
+   self._temp_fahr = new_temp * 9 / 5 + 32
+```
+
+然后，就可以想字段一样使用属性了：
+
+```python
+>>> t = Temperature()
+>>> t._temp_fahr
+0
+>>> t.temp
+-17.77777777777778
+>>> t.temp = 34
+>>> t._temp_fahr
+93.2
+>>> t.temp
+34.0
+```
+
+
+
 ## 封装
 
 Python没有为可访问性提供直接支持，然而，通过玩点小花招，可以获得类似于私有成员的效果。
