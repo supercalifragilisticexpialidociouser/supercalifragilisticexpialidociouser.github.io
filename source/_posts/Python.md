@@ -392,7 +392,7 @@ she said"""
 
 ### 原始字符串
 
-原始字符串以`r`为前缀，它不处理转义序列：
+原始字符串以`r`或`R`为前缀，它不处理转义序列：
 
 ```python
 r'C:\nowhere\foo\bar'
@@ -449,7 +449,7 @@ b'Hello world!'
 'Hello world!'
 ```
 
-另外，任何由空白字符分隔的字符串字面量，都会自动拼接成一个字符串：
+另外，任何由空白字符分隔的字符串字面量，都会自动拼接成一个字符串：（适用所有类型的字符串字面量）
 
 ```python
 >>> s2 = "Hello "     'world!'
@@ -4224,6 +4224,63 @@ AssertionError: The age must be realistic!
 # 正则表达式
 
 `re`模块提供了正则表达式的处理功能。
+
+```python
+import re
+regexp = re.compile('[hH]ello')  #将字符串编译为正则表达式
+count = 0
+file = open('textfile', 'r')
+for line in file.readlines():
+   if regexp.search(line):    #模式匹配
+      count = count + 1
+file.close()
+print(count)
+```
+
+将字符串编译为正则表达式这一步不是必须的，但编译后的正则表达式可以显著提高程序的运行速度。
+
+## 特殊字符处理
+
+```python
+regexp = re.compile('\\ten')
+```
+
+上面的正则表达式是匹配一个水平制表符加上两个字符`en`，而不是匹配一个反斜杠加上三个字符`ten`。这是因为，在调用`re.compile`之前，Python会将字符串解释为`\ten`（字符串中两个反斜杠将转换成一个反斜杠），然后正则表达式会将`\t`解释为一个水平制表符。
+
+在正则表达式中要表示单个反斜杠，有两种方法：
+
+- 用四个反斜杠表示一个反斜杠：`re.compile('\\\\ten')`。
+- 使用原始字符串：`re.compile(r'\\ten')`。（`r'\\ten`等价于`'\\\\ten'`）
+
+## 提取匹配的文本
+
+正则表达式不仅可以用来查看模式是否存在，还可以从模式中提取数据。首先，使用圆括号对要提取数据对应的子模式进行分组；然后，用`?P<名称>`格式给每个分组一个唯一名称；之后，就可以使用`group`方法提取各子模式的匹配结果了。
+
+```python
+import re
+regexp = re.compile(r'(?P<last>[-a-zA-Z]+),'
+                    r' (?P<first>[-a-zA-Z]+)'
+                    r'( (?P<middle>([-a-zA-Z]+)))?'
+                    r': (?P<phone>(\d{3}-)?\d{3}-\d{4})')
+file = open('textfile', 'r')
+for line in file.readlines():
+   result = regexp.search(line)
+   if result == None:
+      print("Oops, I don't think this is a record")
+   else:
+      lastname = result.group('last')
+      firstname = result.group('first')
+      middlename = result.group('middle')  #middle是可选的
+      if middlename == None:
+         middlename = ''
+      phonenumber = result.group('phone')
+   print('Name:', firstname, middlename, lastname, ' Number:', phonenumber)
+file.close()
+```
+
+## 替换文本
+
+
 
 # 图形用户界面
 
