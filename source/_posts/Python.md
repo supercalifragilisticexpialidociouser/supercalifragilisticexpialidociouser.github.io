@@ -288,12 +288,59 @@ Python没有专门用于表示字符的类型，一个字符就是只包含一�
 
 整个Python系统中，只有1个`None`实例，所有对`None`的引用都是指向同一个对象。
 
-## 获取类型信息
+## 获取类型信息（类型对象）
 
 ```python
 >>> type(3.14)
 <class 'float'>
+>>> 3.14.__class__
+<class 'float'>
+>>> type(type(3.14))
+<class 'type'>
 ```
+
+`type`函数返回的是一个类型对象（type object），它与通过实例的特殊属性`__class__`或类型本身得到的信息是完全一样的。
+
+可以用`==`操作符比较两个类型对象是否相同：
+
+```python
+>>> type('Hello') == type('Goodbye')
+True
+>>> type('Hello') == str
+True
+>>> type('Hello') == type(5)
+False
+```
+
+获取类型的名称：
+
+```python
+>>> type(5).__name__
+'int'
+```
+
+返回类型的所有基类：
+
+```python
+>>> type('Hello').__bases__
+(<class 'object'>,)
+```
+
+判断一个对象是否是某个类的实例：
+
+```python
+>>> isinstance(5, int)
+True
+```
+
+判断一个类是否是另一个类的子类：
+
+```python
+>>> issubclass(int, str)
+False
+```
+
+
 
 ## 类型转换
 
@@ -4279,6 +4326,31 @@ file.close()
 ```
 
 ## 替换文本
+
+`sub`方法可以将所有匹配的文本替换成指定字符串。下面例子用一个`"the"`替换`"the the"`：
+
+```python
+>>> import re
+>>> string = 'If the the problem is textual, use the the re module'
+>>> pattern = r'the the'
+>>> regexp = re.compile(pattern)
+>>> regexp.sub('the', string)
+'If the problem is textual, use the re module'
+```
+
+`sub`方法的第一个参数也可以是一个函数，这时会将当前匹配的文本传给该函数，并用该函数的返回值替换匹配的文本：
+
+```python
+>>> import re
+>>> int_string = '1 2 3 4 5'
+>>> def int_match_to_float(match_obj):
+...     return (match_obj.group('num') + '.0')
+...
+>>> pattern = r'(?P<num>[0-9]+)'
+>>> regexp = re.compile(pattern)
+>>> regexp.sub(int_match_to_float, int_string)
+'1.0 2.0 3.0 4.0 5.0'
+```
 
 
 
