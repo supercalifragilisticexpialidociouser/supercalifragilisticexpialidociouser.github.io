@@ -340,8 +340,6 @@ True
 False
 ```
 
-
-
 ## 类型转换
 
 `int()`：将参数转换为整数。采取**向零取整**策略（即截断小数部分）。
@@ -357,6 +355,8 @@ Traceback (innermost last):
 ```
 
 `float()`：将参数转换为浮点数。
+
+## 鸭子类型
 
 # 变量和常量
 
@@ -2065,7 +2065,11 @@ This is a static method
 This is a class method of <class '__main__.MyClass'>
 ```
 
-#### `__str__`方法
+#### 特殊方法
+
+特殊方法（special method attribute）是Python类的一种具备特殊含义的属性。它虽然被定义为方法，但其实并不是打算直接当作方法使用的，而是由Python自动调用，以便对属于该类的对象的某种行为做出响应。
+
+##### `__str__`方法
 
 `__str__`方法类似于Java中的`toString`方法。当用`print`函数打印对象时，实际上打印的是`__str__`方法的返回值。
 
