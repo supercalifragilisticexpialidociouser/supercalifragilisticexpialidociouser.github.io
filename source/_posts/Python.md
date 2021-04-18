@@ -4767,6 +4767,8 @@ pip在安装模块时，会在Python Package Index（官方库，简称PyPI）�
 ```
 #安装foo库
 $ python -m pip install foo
+#或者直接使用pip命令
+$ pip install foo
 #更新foo库
 $ python -m pip install --upgrad foo
 #安装指定版本的库
@@ -4774,7 +4776,24 @@ $ python -m pip install foo==3.14
 $ python -m pip install foo>=3.14
 ```
 
-默认Python库是安装到
+Python库默认安装到Python的主系统实例中，可以通过`--user`选项，将库安装到用户主目录中。这对于当前系统没有足够的管理员权限来安装软件，或者要安装不同版本的模块特别有用：
+
+```bash
+$ python -m pip install --user foo
+```
+
+如果希望使用不同版本的python，并且每个python使用不同版本的库，则可以创建不同的虚拟环境（viutualenv）。
+
+```bash
+#首先，创建虚拟环境。它会在该虚拟环境中安装好python和pip
+$ python -m venv test-env
+#然后，激活（即切换）环境（Windows下使用命令：test-env\Scripts\activate.bat）
+$ source test-env/bin/activate
+#激活后，就可直接使用pip安装库了
+$ pip install foo
+```
+
+因为，在虚拟环境中只会有一个版本的python，所以只能使用`python`命令，而不能使用`python3`等。
 
 # 发布
 
