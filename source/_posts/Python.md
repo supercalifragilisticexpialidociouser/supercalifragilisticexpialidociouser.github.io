@@ -3347,7 +3347,7 @@ Python中实际上没有堆类型，而只有一个包含一些堆操作函数�
 
 ## 实现自己的集合类型
 
-要实现自己的自己的集合类型，最简单的作法是继承`list`、`dict`、`str`等类，或者继承`collections`模块提供的类。
+要实现自己的自己的集合类型，最简单的作法是继承`list`、`dict`、`str`等类，或者继承`collections`模块提供的类（例如`UserList`）。
 
 另外，由于鸭子类型的缘故，也可以不继承任何集合类型，而是在自己的集合类中定义如下4个魔法方法：
 
@@ -3355,6 +3355,12 @@ Python中实际上没有堆类型，而只有一个包含一些堆操作函数�
 - `__getitem__(self, key)`：这个方法应返回与指定键相关联的值，它在使用语法`集合对象[key]`访问集合元素时被调用。对序列来说，键应该是`-n`到`n-1`之间的整数，其中`n`为序列的长度。对映射来说，键可以是任何类型。
 - `__setitem__(self, key, value)`：这个方法应以与键相关联的方式存储值。仅当对象可变时才需要实现这个方法。
 - `__delitem__(self, key)`：这个方法在对对象的组成部分使用`del`语句时被调用。仅当对象可变时才需要实现这个方法。
+
+除了上面4个魔法方法外，还可以定义：
+
+- `__add__`方法：列表拼接操作。
+- `__mul__`方法：列表乘法。
+- `append`：通过标准的列表风格`append`、`insert`和`extend`方法附加数据项。
 
 对于这些方法，还有一些额外的要求：
 
@@ -4665,7 +4671,7 @@ Python使用包（Package）来组织模块。
 
 包是一个目录，并且目录中必须包含文件`__init__.py`。
 
-除了组织模块外，包也可以当作普通模块使用。这时，导入包实际上就是导入`__init__.py`文件的内容。
+除了组织模块外，包也可以当作普通模块使用。这时，导入包实际上就是导入`__init__.py`文件的内容。每当包**首次**导入时，都会执行其`__init__.py`文件。
 
 要将模块加入包中，只需要将模块文件放在包目录中即可。你还可以在包中嵌套其他包。
 
@@ -4687,9 +4693,30 @@ import drawing.colors         #导入drawing包中的模块colors
 from drawing import shapes    #导入模块shapes
 ```
 
-`import drawing`只会导入模块`drawing`，而不会自动导入`drawing`包下的`drawing.colors`和`drawing.shapes`。同理，`import drawing.colors`也不会自动导入`drawing`包。即模块导入是互相独立的。
+`import drawing`只会导入包`drawing`，而不会自动导入`drawing`包下的`drawing.colors`和`drawing.shapes`。同理，`import drawing.colors`也不会自动导入`drawing`包。即模块导入是互相独立的。另外，导入一个包通常也不会自动导入它的子包。
 
 通过`import drawing.colors`语句导入了`colors`模块后，必须使用全限定名`drawing.colors`来访问`colors`模块的成员。而使用`from drawing import colors`语句导入，则可以使用简单名`colors`来访问`colors`模块的成员。
+
+### 相对导入
+
+假设`n1.py`模块与`n2.py`模块位于同一个包`a.b.c`中，则在`n1`模块中导入`n2`可以使用相对位置来导入：
+
+```python
+from .n2 import *  #相当于 from a.b.c.n2 import *
+
+from .. import *   #相当于 from a.b import *
+from ... import *  #相当于 from a import *
+```
+
+相对导入与模块的`__name__`属性相关，任何可执行主模块和`__name__`属性为`__main__`的模块，都不能采用相对导入方式。
+
+### `__all__`属性
+
+形如`from … import *`的通配符式导入，它实际上是导入包或模块的`__all__`属性值给出的名称列表。如果未提供`__all__`，则`from … import *`不会导入任何东西。
+
+如果在父包的`__all__`中包含子包名称，则可以实现在导入父包时自动也导入子包。但是注意，`from … import *`语句不会递归导入。也就是说，`a`包`__all__`中包含子包`b`，而子包`b`的`__all__`中包含子包或模块`C`，则导入`a`时，也会自动导入`b`，但不会递归导入`C`。
+
+> `__all__`最初的目的是为了解决各操作系统对文件名的定义规则不一致，而Python的包名或模块名都是来自目录或文件名。
 
 ## 探索模块
 
