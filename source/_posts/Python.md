@@ -4499,6 +4499,8 @@ True
 
 要让模块可用，还需要告诉解释器到哪里查找模块。
 
+> `a.b.c`是一系列嵌套的包，在`c`包下有一模块`d`，则只需要将`a`加入搜索位置，Python 就可以找到`b`、`c`和`d`。
+
 ### 模块默认搜索位置
 
 模块的默认搜索位置保存在模块`sys`的`path`变量中，它是一个目录（表示为字符串）列表，可通过如下代码查看：
@@ -4747,6 +4749,32 @@ from ... import *  #相当于 from a import *
 另外，也可以使用`help`函数来获取模块的帮助信息，`copy.__doc__`可以查看`copy`模块的文档字符串。
 
 `sys`模块的`modules`变量是一个已加载模块的字典。
+
+## 安装模块
+
+Python的标准库在安装Python时自动安装上，其它的Python库则需要另外安装。
+
+安装Python库有多种方式：
+
+- 可执行安装程序的形式
+- 源代码安装形式
+- 通过包管理器（如pip）来安装
+
+### pip
+
+pip在安装模块时，会在Python Package Index（官方库，简称PyPI）中（不久会有更多源）查找模块，然后下载模块及其全部依赖，并负责安装。
+
+```
+#安装foo库
+$ python -m pip install foo
+#更新foo库
+$ python -m pip install --upgrad foo
+#安装指定版本的库
+$ python -m pip install foo==3.14
+$ python -m pip install foo>=3.14
+```
+
+默认Python库是安装到
 
 # 发布
 
