@@ -288,11 +288,56 @@ Python没有专门用于表示字符的类型，一个字符就是只包含一�
 
 整个Python系统中，只有1个`None`实例，所有对`None`的引用都是指向同一个对象。
 
-## 获取类型信息
+## 获取类型信息（类型对象）
 
 ```python
 >>> type(3.14)
 <class 'float'>
+>>> 3.14.__class__
+<class 'float'>
+>>> type(type(3.14))
+<class 'type'>
+```
+
+`type`函数返回的是一个类型对象（type object），它与通过实例的特殊属性`__class__`或类型本身得到的信息是完全一样的。
+
+可以用`==`操作符比较两个类型对象是否相同：
+
+```python
+>>> type('Hello') == type('Goodbye')
+True
+>>> type('Hello') == str
+True
+>>> type('Hello') == type(5)
+False
+```
+
+获取类型的名称：
+
+```python
+>>> type(5).__name__
+'int'
+```
+
+返回类型的所有基类：
+
+```python
+>>> type('Hello').__bases__
+(<class 'object'>,)
+```
+
+判断一个对象是否是某个类的实例：
+
+```python
+>>> isinstance(5, int)
+True
+```
+
+判断一个类是否是另一个类的子类：
+
+```python
+>>> issubclass(int, str)
+False
 ```
 
 ## 类型转换
@@ -310,6 +355,8 @@ Traceback (innermost last):
 ```
 
 `float()`：将参数转换为浮点数。
+
+## 鸭子类型
 
 # 变量和常量
 
@@ -392,7 +439,7 @@ she said"""
 
 ### 原始字符串
 
-原始字符串以`r`为前缀，它不处理转义序列：
+原始字符串以`r`或`R`为前缀，它不处理转义序列：
 
 ```python
 r'C:\nowhere\foo\bar'
@@ -449,7 +496,7 @@ b'Hello world!'
 'Hello world!'
 ```
 
-另外，任何由空白字符分隔的字符串字面量，都会自动拼接成一个字符串：
+另外，任何由空白字符分隔的字符串字面量，都会自动拼接成一个字符串：（适用所有类型的字符串字面量）
 
 ```python
 >>> s2 = "Hello "     'world!'
@@ -1981,7 +2028,7 @@ Squaawk!
 
 #### 静态方法和类方法
 
-静态方法没有参数`self`，可直接通过类来调用。类方法有`cls`参数，它指向类对象本身，类方法可通过类或实例来调用。
+静态方法没有参数`self`，可直接通过类来调用。类方法隐式地将所属类（`self.__class__`）作为第一个参数（通常命名为`cls`参数），类方法可通过类或实例来调用。
 
 有两种方式来定义静态方法和类方法：
 
@@ -2018,7 +2065,11 @@ This is a static method
 This is a class method of <class '__main__.MyClass'>
 ```
 
-#### `__str__`方法
+#### 特殊方法
+
+特殊方法（special method attribute）是Python类的一种具备特殊含义的属性。它虽然被定义为方法，但其实并不是打算直接当作方法使用的，而是由Python自动调用，以便对属于该类的对象的某种行为做出响应。
+
+##### `__str__`方法
 
 `__str__`方法类似于Java中的`toString`方法。当用`print`函数打印对象时，实际上打印的是`__str__`方法的返回值。
 
@@ -2063,7 +2114,9 @@ Python类只能包含一个`__init__`和`__new__`。
 
 Python的析构函数是`__del__`，它将在对象被销毁（作为垃圾被回收）前被自动调用。
 
-### property
+在Python中，析构函数不是必须的。Python通过引用计数机制，提供了自动内存管理，实例占用的内存最终都会被自动回收。
+
+### 属性
 
 `property`类允许为字段提供获取方法（getter）和设置方法（setter），而且使用起来仍像个字段。
 
@@ -2101,11 +2154,47 @@ class Rectangle:
 - `__setattr__(self, name, value)`：试图给property赋值时自动调用；
 - `__delattr__(self, name)`：试图删除property时自动调用。
 
+也可以通过给方法加上`@property`装饰符，就能创建属性，方法名称就是属性名：
+
+```python
+class Temperature:
+   def __init__(self):
+      self._temp_fahr = 0
+   @property
+   def temp(self):
+      return (self._temp_fahr - 32) * 5 / 9
+```
+
+该属性是只读的，如果要能修改属性，还需要通过`@属性名.setter`装饰器来添加setter方法：
+
+```python
+@temp.setter
+def temp(self, new_temp):
+   self._temp_fahr = new_temp * 9 / 5 + 32
+```
+
+然后，就可以想字段一样使用属性了：
+
+```python
+>>> t = Temperature()
+>>> t._temp_fahr
+0
+>>> t.temp
+-17.77777777777778
+>>> t.temp = 34
+>>> t._temp_fahr
+93.2
+>>> t.temp
+34.0
+```
+
+
+
 ## 封装
 
 Python没有为可访问性提供直接支持，然而，通过玩点小花招，可以获得类似于私有成员的效果。
 
-要让方法和字段成为私有的，只需要让其名称以两个下划线开头即可。
+要让方法和字段成为私有的，只需要让其名称以两个下划线开头，并且不以双下划线结尾。
 
 ```python
 class Secretive:
@@ -2128,7 +2217,7 @@ AttributeError: Secretive instance has no attribute '__inaccessible'
 Bet you can't see me ...
 ```
 
-只知道这种幕后处理手法，就能从类外部访问私有方法，然而不应该这样做。
+知道这种底层处理手法，就能从类外部访问私有方法，然而不应该这样做。
 
 另外，`from ... import *`语句不会导入以一个下划线开头的名称，而且Python也不会对以一个下划线开头的名称进行转换。也就是说，以一个下划线开头的名称可以在类外部访问，但不能通过`from ... import *`语句导入到其他模块。从某种程序上说，以一个或两个下划线开头相当于两种不同的私有程度。
 
@@ -2136,7 +2225,67 @@ Bet you can't see me ...
 
 Python 3中所有类都隐式地继承`object`类。
 
-### 多重继承
+```python
+class Shape:
+      def __init__(self, x, y):
+          self.x = x
+          self.y = y
+class Square(Shape):
+      def __init__(self, side=1, x=0, y=0):
+          super().__init__(x, y)
+          self.side = side
+class Circle(Shape):
+      def __init__(self, r=1, x=0, y=0):
+          super().__init__(x, y)
+          self.radius = r
+```
+
+子类的初始器中，必须显式调用父类的初始器来初始化从父类中继承下来的字段，否则这些字段不会自动得到初始化。
+
+实例字段和类字段都可以继承。
+
+```python
+>>> class P:
+...    z = 'Hello'
+...    def set_p(self):
+...        self.x = 'Class P'
+...    def print_p(self):
+...        print(self.x)
+...
+>>> class C(P):
+...    def set_c(self):
+...        self.x = 'Class C'
+...    def print_c(self):
+...        print(self.x)
+...
+>>> c = C()
+>>> c.set_p()
+>>> c.print_p()
+Class P
+>>> c.print_c()
+Class P
+>>> c.set_c()
+>>> c.print_p()
+Class C
+>>> c.print_c()
+Class C
+>>> c.z; C.z; P.z
+'Hello'
+'Hello'
+'Hello'
+>>> C.z = 'Bonjour'
+>>> c.z; C.z; P.z
+'Bonjour'
+'Bonjour'
+'Hello'
+>>> c.z = 'Ciao'
+>>> c.z; C.z; P.z
+'Ciao'
+'Bonjour'
+'Hello'
+```
+
+Python支持多重继承：
 
 ```python
 class Calculator:
@@ -2151,7 +2300,7 @@ class TalkingCalculator(Calculator, Talker):
   pass
 ```
 
-如果多个超类以不同方式实现了同一个方法，必须在`class`语句中小心排列这些超类。因为位于前面的类的方法将覆盖位于后面的类的方法。
+如果多个超类以不同方式实现了同一个方法，必须在`class`语句中小心排列这些超类。因为位于前面的超类的方法将覆盖位于后面的超类的方法。并且，在进入下一个超类之前，总是会先查看当前超类的所有祖先类。
 
 ## 重写
 
@@ -3198,7 +3347,7 @@ Python中实际上没有堆类型，而只有一个包含一些堆操作函数�
 
 ## 实现自己的集合类型
 
-要实现自己的自己的集合类型，最简单的作法是继承`list`、`dict`、`str`等类，或者继承`collections`模块提供的类。
+要实现自己的自己的集合类型，最简单的作法是继承`list`、`dict`、`str`等类，或者继承`collections`模块提供的类（例如`UserList`）。
 
 另外，由于鸭子类型的缘故，也可以不继承任何集合类型，而是在自己的集合类中定义如下4个魔法方法：
 
@@ -3206,6 +3355,12 @@ Python中实际上没有堆类型，而只有一个包含一些堆操作函数�
 - `__getitem__(self, key)`：这个方法应返回与指定键相关联的值，它在使用语法`集合对象[key]`访问集合元素时被调用。对序列来说，键应该是`-n`到`n-1`之间的整数，其中`n`为序列的长度。对映射来说，键可以是任何类型。
 - `__setitem__(self, key, value)`：这个方法应以与键相关联的方式存储值。仅当对象可变时才需要实现这个方法。
 - `__delitem__(self, key)`：这个方法在对对象的组成部分使用`del`语句时被调用。仅当对象可变时才需要实现这个方法。
+
+除了上面4个魔法方法外，还可以定义：
+
+- `__add__`方法：列表拼接操作。
+- `__mul__`方法：列表乘法。
+- `append`：通过标准的列表风格`append`、`insert`和`extend`方法附加数据项。
 
 对于这些方法，还有一些额外的要求：
 
@@ -4127,6 +4282,88 @@ AssertionError: The age must be realistic!
 
 `re`模块提供了正则表达式的处理功能。
 
+```python
+import re
+regexp = re.compile('[hH]ello')  #将字符串编译为正则表达式
+count = 0
+file = open('textfile', 'r')
+for line in file.readlines():
+   if regexp.search(line):    #模式匹配
+      count = count + 1
+file.close()
+print(count)
+```
+
+将字符串编译为正则表达式这一步不是必须的，但编译后的正则表达式可以显著提高程序的运行速度。
+
+## 特殊字符处理
+
+```python
+regexp = re.compile('\\ten')
+```
+
+上面的正则表达式是匹配一个水平制表符加上两个字符`en`，而不是匹配一个反斜杠加上三个字符`ten`。这是因为，在调用`re.compile`之前，Python会将字符串解释为`\ten`（字符串中两个反斜杠将转换成一个反斜杠），然后正则表达式会将`\t`解释为一个水平制表符。
+
+在正则表达式中要表示单个反斜杠，有两种方法：
+
+- 用四个反斜杠表示一个反斜杠：`re.compile('\\\\ten')`。
+- 使用原始字符串：`re.compile(r'\\ten')`。（`r'\\ten`等价于`'\\\\ten'`）
+
+## 提取匹配的文本
+
+正则表达式不仅可以用来查看模式是否存在，还可以从模式中提取数据。首先，使用圆括号对要提取数据对应的子模式进行分组；然后，用`?P<名称>`格式给每个分组一个唯一名称；之后，就可以使用`group`方法提取各子模式的匹配结果了。
+
+```python
+import re
+regexp = re.compile(r'(?P<last>[-a-zA-Z]+),'
+                    r' (?P<first>[-a-zA-Z]+)'
+                    r'( (?P<middle>([-a-zA-Z]+)))?'
+                    r': (?P<phone>(\d{3}-)?\d{3}-\d{4})')
+file = open('textfile', 'r')
+for line in file.readlines():
+   result = regexp.search(line)
+   if result == None:
+      print("Oops, I don't think this is a record")
+   else:
+      lastname = result.group('last')
+      firstname = result.group('first')
+      middlename = result.group('middle')  #middle是可选的
+      if middlename == None:
+         middlename = ''
+      phonenumber = result.group('phone')
+   print('Name:', firstname, middlename, lastname, ' Number:', phonenumber)
+file.close()
+```
+
+## 替换文本
+
+`sub`方法可以将所有匹配的文本替换成指定字符串。下面例子用一个`"the"`替换`"the the"`：
+
+```python
+>>> import re
+>>> string = 'If the the problem is textual, use the the re module'
+>>> pattern = r'the the'
+>>> regexp = re.compile(pattern)
+>>> regexp.sub('the', string)
+'If the problem is textual, use the re module'
+```
+
+`sub`方法的第一个参数也可以是一个函数，这时会将当前匹配的文本传给该函数，并用该函数的返回值替换匹配的文本：
+
+```python
+>>> import re
+>>> int_string = '1 2 3 4 5'
+>>> def int_match_to_float(match_obj):
+...     return (match_obj.group('num') + '.0')
+...
+>>> pattern = r'(?P<num>[0-9]+)'
+>>> regexp = re.compile(pattern)
+>>> regexp.sub(int_match_to_float, int_string)
+'1.0 2.0 3.0 4.0 5.0'
+```
+
+
+
 # 图形用户界面
 
 # 数据库支持
@@ -4261,6 +4498,8 @@ True
 ## 让模块可用
 
 要让模块可用，还需要告诉解释器到哪里查找模块。
+
+> `a.b.c`是一系列嵌套的包，在`c`包下有一模块`d`，则只需要将`a`加入搜索位置，Python 就可以找到`b`、`c`和`d`。
 
 ### 模块默认搜索位置
 
@@ -4434,7 +4673,7 @@ Python使用包（Package）来组织模块。
 
 包是一个目录，并且目录中必须包含文件`__init__.py`。
 
-除了组织模块外，包也可以当作普通模块使用。这时，导入包实际上就是导入`__init__.py`文件的内容。
+除了组织模块外，包也可以当作普通模块使用。这时，导入包实际上就是导入`__init__.py`文件的内容。每当包**首次**导入时，都会执行其`__init__.py`文件。
 
 要将模块加入包中，只需要将模块文件放在包目录中即可。你还可以在包中嵌套其他包。
 
@@ -4456,9 +4695,30 @@ import drawing.colors         #导入drawing包中的模块colors
 from drawing import shapes    #导入模块shapes
 ```
 
-`import drawing`只会导入模块`drawing`，而不会自动导入`drawing`包下的`drawing.colors`和`drawing.shapes`。同理，`import drawing.colors`也不会自动导入`drawing`包。即模块导入是互相独立的。
+`import drawing`只会导入包`drawing`，而不会自动导入`drawing`包下的`drawing.colors`和`drawing.shapes`。同理，`import drawing.colors`也不会自动导入`drawing`包。即模块导入是互相独立的。另外，导入一个包通常也不会自动导入它的子包。
 
 通过`import drawing.colors`语句导入了`colors`模块后，必须使用全限定名`drawing.colors`来访问`colors`模块的成员。而使用`from drawing import colors`语句导入，则可以使用简单名`colors`来访问`colors`模块的成员。
+
+### 相对导入
+
+假设`n1.py`模块与`n2.py`模块位于同一个包`a.b.c`中，则在`n1`模块中导入`n2`可以使用相对位置来导入：
+
+```python
+from .n2 import *  #相当于 from a.b.c.n2 import *
+
+from .. import *   #相当于 from a.b import *
+from ... import *  #相当于 from a import *
+```
+
+相对导入与模块的`__name__`属性相关，任何可执行主模块和`__name__`属性为`__main__`的模块，都不能采用相对导入方式。
+
+### `__all__`属性
+
+形如`from … import *`的通配符式导入，它实际上是导入包或模块的`__all__`属性值给出的名称列表。如果未提供`__all__`，则`from … import *`不会导入任何东西。
+
+如果在父包的`__all__`中包含子包名称，则可以实现在导入父包时自动也导入子包。但是注意，`from … import *`语句不会递归导入。也就是说，`a`包`__all__`中包含子包`b`，而子包`b`的`__all__`中包含子包或模块`C`，则导入`a`时，也会自动导入`b`，但不会递归导入`C`。
+
+> `__all__`最初的目的是为了解决各操作系统对文件名的定义规则不一致，而Python的包名或模块名都是来自目录或文件名。
 
 ## 探索模块
 
@@ -4489,6 +4749,51 @@ from drawing import shapes    #导入模块shapes
 另外，也可以使用`help`函数来获取模块的帮助信息，`copy.__doc__`可以查看`copy`模块的文档字符串。
 
 `sys`模块的`modules`变量是一个已加载模块的字典。
+
+## 安装模块
+
+Python的标准库在安装Python时自动安装上，其它的Python库则需要另外安装。
+
+安装Python库有多种方式：
+
+- 可执行安装程序的形式
+- 源代码安装形式
+- 通过包管理器（如pip）来安装
+
+### pip
+
+pip在安装模块时，会在Python Package Index（官方库，简称PyPI）中（不久会有更多源）查找模块，然后下载模块及其全部依赖，并负责安装。
+
+```
+#安装foo库
+$ python -m pip install foo
+#或者直接使用pip命令
+$ pip install foo
+#更新foo库
+$ python -m pip install --upgrad foo
+#安装指定版本的库
+$ python -m pip install foo==3.14
+$ python -m pip install foo>=3.14
+```
+
+Python库默认安装到Python的主系统实例中，可以通过`--user`选项，将库安装到用户主目录中。这对于当前系统没有足够的管理员权限来安装软件，或者要安装不同版本的模块特别有用：
+
+```bash
+$ python -m pip install --user foo
+```
+
+如果希望使用不同版本的python，并且每个python使用不同版本的库，则可以创建不同的虚拟环境（viutualenv）。
+
+```bash
+#首先，创建虚拟环境。它会在该虚拟环境中安装好python和pip
+$ python -m venv test-env
+#然后，激活（即切换）环境（Windows下使用命令：test-env\Scripts\activate.bat）
+$ source test-env/bin/activate
+#激活后，就可直接使用pip安装库了
+$ pip install foo
+```
+
+因为，在虚拟环境中只会有一个版本的python，所以只能使用`python`命令，而不能使用`python3`等。
 
 # 发布
 
