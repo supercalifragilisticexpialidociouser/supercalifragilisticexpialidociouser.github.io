@@ -3718,7 +3718,7 @@ mvn install -Ddebug=false
 
 从Maven 3.0开始，在`settings.xml`中，通过`<activation>`启用的Profiles，它的`<properties>`配置的属性，也可以用来作为 激活其他Profile的条件。
 
-#### 基于环境变量
+#### 基于环境变量或系统属性
 
 ```xml
 <profiles>
@@ -3735,6 +3735,21 @@ mvn install -Ddebug=false
 ```
 
 环境变量`FOO`在配置中，要写成`env.FOO`。并且，在Windows中，环境变量名的所有字母要使用大写形式。
+
+系统属性在命令行中通过`-D`来指定，例如：`mvn clean install -DprofileProperty=dev`。
+
+还可以指定只要属性存在，而不管它的具体值：
+
+```xml
+<profile>
+    ...
+    <activation>
+        <property>
+            <name>profileProperty</name>
+        </property>
+    </activation>
+</profile>
+```
 
 #### 基于某个文件是否存在
 
