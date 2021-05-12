@@ -135,6 +135,20 @@ JHipster已经在`DatabaseConfiguration`中启用了JPA审计功能（`@EnableJp
 
 > 注意：不管前端是否显式传递了上述四个字段的值，Spring总是使用自动填充的值覆盖实体原来的属性值。
 
+## 保护应用
+
+### 后端
+
+在`SecurityConfiguration.java`的`configure`方法中配置对URL的保护。（粗粒度）
+
+在端点上使用`@PreAuthorize`等注解，保护到端点的访问。（细粒度）
+
+### 前端
+
+在路由层，通过`authorities`指定可路由的权限。
+
+在UI层，通过`jhiHasAnyAuthority`指令来指定哪些权限可以显示该UI元素。
+
 # 构建应用
 
 可通过如下命令打包应用，并使用[Jib](https://github.com/GoogleContainerTools/jib)生成一个Docker镜像：

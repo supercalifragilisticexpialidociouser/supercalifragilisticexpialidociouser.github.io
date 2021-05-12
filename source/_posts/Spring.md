@@ -197,7 +197,7 @@ Spring Boot偏爱基于Java的配置，而不是基于XML的配置。
 
 ## 自动配置
 
-不管是使用Java还是使用XML的显式配置，只有当Spring不能进行自动配置的时候才是必要的。
+不管是使用Java还是使用XML的显式配置，只有当Spring不能进行自动配置或需要覆盖默认配置的时候才是必要的。
 
 将`@EnableAutoConfiguration`标注在配置类上，允许Spring Boot根据依赖关系，自动配置Spring应用。例如，如果hsqldb的JAR在你的类路径上，则Spring Boot会自动配置这个JAR与Spring集成。
 
@@ -311,8 +311,8 @@ Spring 的`Environment`负责从各个属性源拉取属性，并让 Spring 应�
 
 `SpringApplication`默认从下列位置加载应用属性文件（按优先级从高到低）：
 
-1. 当前目录的`config`子目录（即`file:./config/`）；
-2. 当前目录（`file:./`）；
+1. 当前目录的`config`子目录（即`file:./config/`）；（外部属性文件）
+2. 当前目录（`file:./`）；（外部属性文件）
 3. 类路径中的`/config`包中（`classpath:/config`）；
 4. 类路径的根中（`classpath:/`）。
 
