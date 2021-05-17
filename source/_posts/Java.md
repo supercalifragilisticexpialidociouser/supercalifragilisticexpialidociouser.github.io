@@ -1570,7 +1570,7 @@ EventHandler<ActionEvent> listener = event ->
 
 ### 函数式接口
 
-对于只包含一个*抽象方法*的接口（在java8中，接口可以声明非抽象方法），你可以通过lambda表达式来创建该接口的对象，这种接口也称为**函数式接口**。例如：`Arrays.sort`方法的第二个参数要求是一个`Comparator`接口（该接口只有一个方法）的实例，可以直接给它提供一个lambda表达式：
+对于只包含一个*抽象方法*的接口（在java8中，接口可以声明非抽象方法，例如：静态方法、默认方法），你可以通过lambda表达式来创建该接口的对象，这种接口也称为**函数式接口**。例如：`Arrays.sort`方法的第二个参数要求是一个`Comparator`接口（该接口只有一个抽象方法）的实例，可以直接给它提供一个lambda表达式：
 
 ```java
 Arrays.sort( words,
@@ -5691,7 +5691,7 @@ CLASSPATH包括：
   ```bash
   $ javac -cp .:/mylib /home/i/ws/foo/bar/Hello.java  （可在任何位置执行）
   $ javac /home/i/ws/foo/bar/Hello.java  （如果Hello.java不依赖其他包，甚至可以不用指定CLASSPATH）
-
+  
   $ cd /home/i
   $ javac Hello.java  （甚至Hello.java可以不放在包对应的foo/bar目录中）
   ```
