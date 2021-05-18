@@ -1568,46 +1568,6 @@ EventHandler<ActionEvent> listener = event ->
 
 另外，可以像对待方法参数一样，可以向lambda表达式参数添加注解或final修饰符。
 
-### 函数式接口
-
-对于只包含一个*抽象方法*的接口（该接口中可以包含任意非抽象方法，例如：静态方法、默认方法），你可以通过lambda表达式或方法引用来创建该接口的对象，这种接口也称为**函数式接口**。例如：`Arrays.sort`方法的第二个参数要求是一个`Comparator`接口（该接口只有一个抽象方法）的实例，可以直接给它提供一个lambda表达式：
-
-```java
-Arrays.sort( words,
-            (first, second) -> Integer.compare(first.length(), second.length()));
-```
-
-函数式编程语言中有函数类型，但在Java中仍然不能使用函数类型，只能使用函数式接口。因此，在Java中，你只能将lambda表达式赋值给（或传递给）类型为函数式接口的变量（或参数）。
-
-注意：不能将lambda表达式赋给一个Object类型的变量，因为Object是类，不是函数式接口。
-
-#### 标准函数式接口
-
-JDK中提供了许多通用的函数式接口，应该尽量重用这些标准函数式接口。（详见：`java.util.function`包）
-
-例如：
-
-```java
-Predicate.isEqual(a).or(Predicate.isEqual(b))
-等价于：
-x -> a.equals(x) || b.equals(x)
-```
-
-注：`Predicate.isEqual(a)`与`a::equals`相同，但是前者在`a`为`null`时仍能工作。
-
-#### 创建自己的函数式接口
-
-当标准函数式接口不能满足自己的需求时，就需要创建自己的函数式接口。
-
-```java
-@FunctionalInterface
-public interface PixelFunction {
-  Color apply(int x, int y);
-}
-```
-
-在函数式接口上可以标注`@FunctionalInterface`注解，虽然不是强制的（所有只包含一个抽象方法的接口都是函数式接口），但标注这样的注解编译器会提供一些函数式接口的合法性检查，并且javadoc上也会说明这个接口是函数式接口。
-
 ### 实现延迟执行
 
 使用lambda表达式就在于延迟执行。毕竟，如果你想立即执行一段代码，则无须将代码封装进lambda，你可以直接调用。
@@ -2935,6 +2895,17 @@ class Employee {
   Arrays.sort(strings, String::compareToIgnoreCase);
   ```
 
+  这种方式特别适用于要迭代多个实例时：
+
+  ```java
+  List<Person> people = Arrays.asList(new Person("wyf", Gender.MALE, 100),
+                                     new Person("www", Gender.FEMALE, 80),
+                                     new Person("foo", Gender.FEMALE, 90));
+  people.forEach(Person::sayName); //sayName是一个实例方法。等价于：people.forEach(p -> p.sayName())
+  ```
+
+  
+
 - `对象::实例方法`：
 
   ```java
@@ -3912,7 +3883,55 @@ class NestedIFDemo {
 
 Java不支持多重继承，而接口可以提供多重继承的大多数好处，同时还能避免多重继承的复杂性和低效性。
 
+## 函数接口
 
+对于只包含一个*抽象方法*的接口（该接口中可以包含任意非抽象方法，例如：静态方法、默认方法），称为**函数接口**。
+
+lambda表达式或方法引用可作为函数接口的实现，赋值给函数接口变量。
+
+例如：`Arrays.sort`方法的第二个参数要求是一个`Comparator`接口（该接口只有一个抽象方法）的实例，可以直接给它提供一个lambda表达式：
+
+```java
+Arrays.sort( words,
+            (first, second) -> Integer.compare(first.length(), second.length()));
+```
+
+函数式编程语言中有函数类型，但在Java中仍然不能使用函数类型，只能使用函数式接口。因此，在Java中，你只能将lambda表达式赋值给（或传递给）类型为函数式接口的变量（或参数）。
+
+注意：不能将lambda表达式赋给一个Object类型的变量，因为Object是类，不是函数式接口。
+
+### 标准函数接口
+
+JDK中提供了许多通用的函数接口，应该尽量重用这些标准函数接口，可分成下面几类：（详见：`java.util.function`包）
+
+- `Predicate`：有输入且只输出布尔值
+- `Function`：有输入有输出
+- `Consumer`：有输入无输出
+- `Supplier`：无输入有输出
+- `Operator`：输入和输出为相同类型
+
+例如：
+
+```java
+Predicate.isEqual(a).or(Predicate.isEqual(b))
+等价于：
+x -> a.equals(x) || b.equals(x)
+```
+
+注：`Predicate.isEqual(a)`与`a::equals`相同，但是前者在`a`为`null`时仍能工作。
+
+### 创建自己的函数接口
+
+当标准函数接口不能满足自己的需求时，就需要创建自己的函数接口。
+
+```java
+@FunctionalInterface
+public interface PixelFunction {
+  Color apply(int x, int y);
+}
+```
+
+在函数接口上可以标注`@FunctionalInterface`注解，虽然不是强制的（所有只包含一个抽象方法的接口都是函数接口），但标注这样的注解编译器会提供一些函数接口的合法性检查，并且javadoc上也会说明这个接口是函数接口。
 
 # 泛型
 
@@ -4622,12 +4641,20 @@ List<String> lowCaloricDishesName =
 
 ### 由值构建流
 
-可以使用静态方法`Stream.of`，通过显式值创建一个流。它可以接受任意数量的参数。
+可以使用静态方法`Stream.of`，通过显式值创建一个流。它可以接受任意数量的非空参数。
 
 ```java
 Stream<String> stream = Stream.of("Java 8 ", "Lambdas ", "In ", "Action");
 stream.map(String::toUpperCase).forEach(System.out::println);
 ```
+
+静态方法`Stream.ofNullable`的参数为`null`时返回一个空流，否则返回仅有一个元素的流。
+
+```java
+Stream<String> stream = Stream.ofNullable(null); //等同于：Stream.empty()或Stream.of()
+```
+
+
 
 ### 构建空流
 
@@ -4715,6 +4742,12 @@ IntSupplier fib = new IntSupplier(){
 IntStream.generate(fib).limit(10).forEach(System.out::println);
 ```
 
+### 使用建造者模式构建流
+
+```java
+Stream<String> stream = Stream.<String>builder().add("www").add("foo").build();
+```
+
 ### 其他构建方法
 
 Java API中拥有多个可生成`Stream`的方法。例如，`Pattern`类有一个方法`splitAsStream`，能够按照正则表达式对charSequence进行分隔。
@@ -4731,16 +4764,18 @@ Stream<String> words = new Scanner(contents).tokens();
 
 ## 处理流
 
+这些中间操作不会得到最终结果，只返回一个新的`Stream`对象。
+
 ### 筛选
 
-`Streams`接口提供了`filter`方法，该操作会接受一个谓词（一个返回`boolean`的函数）作为参数，并返回一个包括所有符合谓词的元素的新流。
+`Streams`接口提供了`filter`方法，该操作会接受一个`Predicate`函数接口作为参数，并返回一个包括所有符合条件的元素的新流。
 
 ```java
 List<String> words = …;
 Stream<String> longWords = words.stream().filter(w -> w.length() > 12);
 ```
 
-`distinct`方法会根据源流中的元素返回一个具有相同顺序、剔除了重复元素的新流。
+`distinct`方法会根据源流中的元素返回一个具有相同顺序、剔除了重复元素的新流。（需要重写原始的`equals`和`hashCode`方法）
 
 ```java
 Stream<String> uniqueWords = Stream.of("merrily", "merrily", "gently").distinct(); //只获取了一个"merrily"
@@ -4772,7 +4807,7 @@ Stream<String> withoutInitialWhiteSpace = codePoints(str).dropWhile(
 	s -> s.trim().length() == 0);
 ```
 
-### 映射
+### 转换
 
 `map`方法接受一个函数作为参数。这个函数会被应用到源流中的每个元素上，并将其映射成一个新的元素。最后返回这些新元素组成的新流。
 
@@ -4780,16 +4815,20 @@ Stream<String> withoutInitialWhiteSpace = codePoints(str).dropWhile(
 Stream<String> lowercaseWords = words.stream().map(String::toLowerCase);
 ```
 
-`flatmap`方法把一个流中的每个值都转换成另一个流，然后把所有的流连接起来成为一个流（即扁平化）。
+`flatmap`方法把一个流中的每个值（通常是一个集合）分别转换成另一个流，然后把所有生成的流连接起来成为一个流（即扁平化）。
 
 ```java
 List<String> uniqueCharacters =
   words.stream()
-       .map(w -> w.split(""))    //将每个单词转换为由其字母构成的流
-       .flatMap(Arrays::stream)  //将各个生成流扁平化为单个流
+       .map(w -> w.split(""))    //将每个单词转换为由其字母构成（数组）的流
+       .flatMap(Arrays::stream)  //为每个数组生成一个流，然后将各个生成流扁平化为单个流（字母流）
        .distinct()
        .collect(Collectors.toList());
 ```
+
+通常，需要使用嵌套的流解决的问题，最好使用`flatmap`。
+
+Stream中有很多针对原始数据类型的转换处理方法：`mapToInt`、`mapToLong`、`mapToDouble`、`flatMapToInt`、`flatMapToLong`和`flatMapToDouble`等。
 
 ### 拼接
 
@@ -4809,6 +4848,12 @@ Java提供了多个`sorted`方法来对流进行排序。
 Stream<String> longestFirst 
   = words.stream().sorted(Comparator.comparing(String::length).reversed());
 ```
+
+### 其他
+
+`skip`：忽略前N条数据。
+
+`limit`：限制只需要前N条数据。
 
 ## 终结流
 
@@ -4895,6 +4940,14 @@ int result = words.reduce(0,
                           (total, word) -> total + word.length(), //累加器
                           (total1, total2) -> total1 + total2);   //组合器
 ```
+
+`max`方法获取流中最大值：
+
+```java
+peopleStream.max(Comparator.comparing(Person::getWeight)) // 获取体重最大的人
+```
+
+`min`方法获取流中最小值。
 
 ### 收集
 
@@ -5376,7 +5429,7 @@ public class PrimeNumbersCollector
 
 ### 迭代
 
-`forEach`方法将函数作用于流中的每个元素：
+`forEach`方法将函数作用于流中的每个元素，不返回结果：
 
 ```java
 stream.forEach(System.out::println);
