@@ -1052,6 +1052,58 @@ public DataSource devDataSource() {…}
 
 `@Profile`还可以通过`!`来表示取反。例如：`@Profile("!test") `。
 
+# Spring基础
+
+## Bean配置
+
+Spring 提供了三种配置Bean的方式：
+
+- 通过XML配置
+- 在Java配置类（带`@Configuration`注解的类）中配置
+- 通过注解（例如：`@Component`、`@Service`、`@Repository`和`@Controller`等）配置
+
+三种配置方式可以任意混合使用。通常建议尽可能地使用注解配置，当必须要显式装配Bean的时候（比如，有些源码不是由你来维护的，而当你需要为这些代码装配Bean时），推荐使用类型安全并且比XML更加强大的基于Java配置类的配置。最后，只有当你想要使用便利的XML命名空间，并且在基于Java配置类的配置中没有同样的实现时，才应该使用XML的配置。
+
+### 通过注解配置
+
+当类被标注了`@Component`（通用组件）、`@Service`（服务）、`@Repository`（数据仓库）或`@Controller`（控制器）注解时，Spring容器会自动扫描（通过`@ComponentScan`注解实现），并将它们注册成受容器管理的Bean。
+
+```java
+@Component
+public class SomeBean { … }
+```
+
+这种方式配置的Bean的默认名称是类名的首字母小写形式，即`someBean`。也可通过注解显式给Bean命名，例如：`@Component("myBean")`。
+
+#### 启用组件扫描
+
+通过注解配置Bean，需要通过`@ComponentScan`注解来启用组件扫描（默认是不启用的）。
+
+```java
+@ComponentScan
+public class Foo { … }
+```
+
+`@ComponentScan`默认扫描所标注的类（`Foo`）所在的包，以及其下的任意层次的子包，将所有带有`@Component`、`@Service`、`@Repository`或`@Controller`等注解的类注册成受容器管理的Bean。
+
+可以通过`@ComponentScan`的`value`属性来显式指定要扫描的包（不扫描它们的子包）：
+
+```java
+@ComponentScan("foo.bar")
+可以指定多个包：
+@ComponentScan({"pkg1", "pkg2"})
+```
+
+另外，还可以使用`basePackages`或`basePackageClasses`属性来指定基础包（这种方式会扫描该基础包，以及其下的任意层次的子包）。前者以字符串形式指定基础包，后者通过类或接口的class对象来指定，class对象所在的包即为基础包。而且，两者都可指定多个基础包：
+
+```java
+@ComponentScan(basePackages={"pkg1", "pkg2"})
+
+@ComponentScan(basePackageClasses={Foo.class, Bar.class})
+```
+
+
+
 # Web
 
 Spring包含两个Web框架，它们可以混用，也可以单独使用：

@@ -4807,15 +4807,15 @@ Stream<String> withoutInitialWhiteSpace = codePoints(str).dropWhile(
 	s -> s.trim().length() == 0);
 ```
 
-### 转换
+### 变换
 
-`map`方法接受一个函数作为参数。这个函数会被应用到源流中的每个元素上，并将其映射成一个新的元素。最后返回这些新元素组成的新流。
+`map`方法接受一个函数作为参数。这个函数会被应用到源流中的每个元素上，并将其变换成一个新的元素。最后返回这些新元素组成的新流。
 
 ```java
 Stream<String> lowercaseWords = words.stream().map(String::toLowerCase);
 ```
 
-`flatmap`方法把一个流中的每个值（通常是一个集合）分别转换成另一个流，然后把所有生成的流连接起来成为一个流（即扁平化）。
+`flatmap`方法把一个流中的每个值（通常是一个集合）分别变换成另一个流，然后把所有生成的流连接起来成为一个流（即扁平化）。
 
 ```java
 List<String> uniqueCharacters =
@@ -4828,7 +4828,7 @@ List<String> uniqueCharacters =
 
 通常，需要使用嵌套的流解决的问题，最好使用`flatmap`。
 
-Stream中有很多针对原始数据类型的转换处理方法：`mapToInt`、`mapToLong`、`mapToDouble`、`flatMapToInt`、`flatMapToLong`和`flatMapToDouble`等。
+Stream中有很多针对原始数据类型的变换处理方法：`mapToInt`、`mapToLong`、`mapToDouble`、`flatMapToInt`、`flatMapToLong`和`flatMapToDouble`等。
 
 ### 拼接
 
@@ -4941,17 +4941,7 @@ int result = words.reduce(0,
                           (total1, total2) -> total1 + total2);   //组合器
 ```
 
-`max`方法获取流中最大值：
-
-```java
-peopleStream.max(Comparator.comparing(Person::getWeight)) // 获取体重最大的人
-```
-
-`min`方法获取流中最小值。
-
-### 收集
-
-#### 收集到另一容器
+### 转换为数组
 
 `toArray`方法将流转换为一个数组。
 
@@ -4961,13 +4951,19 @@ String[] result = stream.toArray(String[]::new);
 
 > 无参的`toArray`方法将返回`Object[]`。
 
-`toList`方法将流转换为一个列表：
+### 汇集
+
+`collect`方法接收一个`java.util.stream.Collector`参数，该参数指定了将`Stream`转换成值的方式。
+
+#### 汇集到另一容器
+
+`Collectors.toList`方法将流转换为一个列表：
 
 ```java
 List<String> result = stream.collect(Collectors.toList());
 ```
 
-`toSet`方法将流转换为一个集：
+`Collectors.toSet`方法将流转换为一个集：
 
 ```java
 Set<String> result = stream.collect(Collectors.toSet());
@@ -4979,7 +4975,7 @@ Set<String> result = stream.collect(Collectors.toSet());
 TreeSet<String> result = stream.collect(Collectors.toCollection(TreeSet::new));
 ```
 
-`toMap`方法将流转换为一个映射：
+`Collectors.toMap`方法将流转换为一个映射：
 
 ```java
 Map<Integer, String> idToName = people.collect(
@@ -5018,52 +5014,6 @@ Map<Integer, Person> idToPerson = people.collect(
 
 如果需要使用并发的映射收集器，则应使用`toConcurrentMap`方法。
 
-#### 统计数量
-
-`Collectors.counting`工厂方法返回的收集器可以统计流中的元素数量：
-
-```java
-long howManyDishes = menu.stream().collect(Collectors.counting());
-//还可以写得更为直接：long howManyDishes = menu.stream().count();
-```
-
-#### 获取最值
-
-`Collectors.maxBy`和`Collectors.minBy`收集器用来计算流中的最大或最小值。这两个收集器接收一个`Comparator`参数来比较流中的元素。
-
-```java
-Comparator<Dish> dishCaloriesComparator = Comparator.comparingInt(Dish::getCalories);
-Optional<Dish> mostCalorieDish = 
-  menu.stream().collect(Collectors.maxBy(dishCaloriesComparator));
-```
-
-#### 求和
-
-`Collectors.summingInt`、`Collectors.summingLong`和`Collectors.summingDouble`收集器可以计算流中元素的总和。
-
-```java
-int totalCalories = menu.stream()
-  .collect(Collectors.summingInt(Dish::getCalories));
-```
-
-#### 求平均值
-
-`Collectors.averagingInt`、`averagingLong`和`averagingDouble`可以计算流中元素的平均数：
-
-```java
-double avgCalories = 
-  menu.stream().collect(Collectors.averagingInt(Dish::getCalories));
-```
-
-`summarizingInt`、`summarizingLong`和`summarizingDouble`收集器可以一次性得到总和、平均值、最大值和最小值：
-
-```java
-IntSummaryStatistics summary = 
-  stream.collect(Collectors.summarizingInt(String::length));
-double averageWordLength = summary.getAverage();
-double maxWordLength = summary.getMax();
-```
-
 #### 拼接成字符串
 
 `Collectors.joining`收集器会把对流中每一个对象应用`toString`方法得到的所有字符串连接成一个字符串。
@@ -5078,15 +5028,60 @@ String result = stream.collect(Collectors.joining());
 String shortMenu = menu.stream().map(Dish::getName).collect(joining());
 ```
 
-如果你想在拼接字符中时，在元素之间插入分隔符，则可将分隔符传入`joining`方法：
+如果你想在拼接字符串时，在元素之间插入分隔符，则可将分隔符传入`joining`方法：
 
 ```java
 String result = stream.collect(Collectors.joining(", "));
 ```
 
+还可以指定前缀（第二个参数）和后缀（第三个参数）：
+
+```java
+String result = Stream.of("www", "foo", "bar")
+                      .collect(Collectors.joining(",", "[", "]"));
+```
+
 #### 归集
 
-`Collectors.reducing`是一个通用的收集器。实际上，前面讨论过的所有收集器，都是它的特殊情况。例如，可以用`reducing`方法创建的收集器来计算菜单的总热量：
+统计数量：`Collectors.counting`工厂方法返回的收集器可以统计流中的元素数量：
+
+```java
+long howManyDishes = menu.stream().collect(Collectors.counting());
+//还可以写得更为直接：long howManyDishes = menu.stream().count();
+```
+
+获取最值：`Collectors.maxBy`和`Collectors.minBy`收集器用来计算流中的最大或最小值。这两个收集器接收一个`Comparator`参数来比较流中的元素。
+
+```java
+Comparator<Dish> dishCaloriesComparator = Comparator.comparingInt(Dish::getCalories);
+Optional<Dish> mostCalorieDish = 
+  menu.stream().collect(Collectors.maxBy(dishCaloriesComparator));
+```
+
+求和：`Collectors.summingInt`、`Collectors.summingLong`和`Collectors.summingDouble`收集器可以计算流中元素的总和。
+
+```java
+int totalCalories = menu.stream()
+  .collect(Collectors.summingInt(Dish::getCalories));
+```
+
+求平均值：`Collectors.averagingInt`、`averagingLong`和`averagingDouble`可以计算流中元素的平均数：
+
+```java
+double avgCalories = 
+  menu.stream().collect(Collectors.averagingInt(Dish::getCalories));
+```
+
+摘要：`summarizingInt`、`summarizingLong`和`summarizingDouble`汇集器可以一次性得到总和、平均值、最大值和最小值：
+
+```java
+IntSummaryStatistics summary = 
+  stream.collect(Collectors.summarizingInt(String::length));
+double averageWordLength = summary.getAverage();
+double maxWordLength = summary.getMax();
+```
+
+通用归集：`Collectors.reducing`是一个通用的汇集器。实际上，前面讨论过的所有汇集器，都是它的特殊情况。例如，可以用`reducing`方法创建的汇集器来计算菜单的总热量：
 
 ```java
 int totalCalories = menu.stream().collect(Collectors.reducing(
@@ -5268,9 +5263,7 @@ Map<Boolean, Map<Dish.Type, List<Dish>>> vegetarianDishesByType =
 }
 ```
 
-
-
-#### 把收集器的结果转换为另一种类型
+#### 转换为另一种类型
 
 下面的例子将菜单中热量最高的菜肴，按照菜的类型分类：
 
@@ -5285,22 +5278,22 @@ Map<Dish.Type, Optional<Dish>> mostCaloricByType =
 
 这个`Map`中的值是`Optional`，因为这是`maxBy`工厂方法生成的收集器的类型，但实际上，如果菜单中没有某一类型的`Dish`，这个类型就不会对应一个`Optional. empty()`值，而且根本不会出现在`Map`的键中。`groupingBy`收集器只有在应用分组条件后，第一次在流中找到某个键对应的元素时才会把键加入分组`Map`中。这意味着`Optional`包装器在这里不是很有用，因为它不会仅仅因为它是归约收集器的返回类型而表达一个最终可能不存在却意外存在的值。
 
-因为分组操作的`Map`结果中的每个值上包装的`Optional`没什么用，所以你可能想要把它们去掉。要做到这一点，或者更一般地来说，把收集器返回的结果转换为另一种类型，你可以使用`Collectors.collectingAndThen`工厂方法返回的收集器，如下所示。
+因为分组操作的`Map`结果中的每个值上包装的`Optional`没什么用，所以你可能想要把它们去掉。要做到这一点，或者更一般地来说，把收集器返回的结果转换为另一种类型，你可以使用`Collectors.collectingAndThen`工厂方法返回的汇集器，如下所示。
 
 ```java
 Map<Dish.Type, Dish> mostCaloricByType =
   menu.stream()
     .collect(groupingBy(Dish::getType,  //分类函数
                         collectingAndThen(
-                          maxBy(comparingInt(Dish::getCalories)), //要转换的收集器
+                          maxBy(comparingInt(Dish::getCalories)), //要转换的汇集器
                           Optional::get)));  //转换函数
 ```
 
 结果：`{FISH=salmon, OTHER=pizza, MEAT=pork}`。
 
-`Collectors.collectingAndThen`工厂方法接受两个参数——要转换的收集器以及转换函数，并返回另一个收集器。这个收集器相当于对要转换的收集器的一个包装，`collect`操作的最后一步就是将返回值用转换函数做一个映射。
+`Collectors.collectingAndThen`工厂方法接受两个参数——要转换的汇集器以及转换函数，并返回另一个汇集器。这个汇集器相当于对要转换的汇集器的一个包装，`collect`操作的最后一步就是将返回值用转换函数做一个映射。
 
-#### 映射
+#### 变换
 
 常常和`groupingBy`或`partitioningBy`联合使用的收集器是`mapping`方法生成的。这个方法接受两个参数：一个函数对流中的元素做变换，另一个则将变换的结果对象收集起来。其目的是在累加之前对每个输入元素应用一个映射函数，这样就可以让接受特定类型元素的收集器适应不同类型的对象。例如，对于每种类型的`Dish`，找出菜单中都有哪些`CaloricLevel`：
 
