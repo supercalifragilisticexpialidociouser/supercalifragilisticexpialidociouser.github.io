@@ -117,18 +117,7 @@ public class DemoApplication {
 
 - `@EnableAutoConfiguration`：会将`spring-boot-autoconfigure.jar/META-INF/spring.factories`中`org.springframework.boot.autoconfigure.EnableAutoConfiguration`键对应的值里的所有配置类加载到IoC容器中。这些配置类都带有条件注解，从而达到自动装配目的；
 
-- `@ComponentScan`：告诉Spring去哪里自动扫描其他组件、配置和服务，并将它们自动注册为Spring Beans。在默认情况下，这个标注将会扫描当前包以及其下任意深度的子包。如果没有使用这个标注，则必须使用`@Import`标注显式列出要扫描的组件：
-
-  ```java
-  @Configuration
-  @EnableAutoConfiguration
-  @Import({ MyConfig.class, MyAnotherConfig.class })
-  public class Application {
-  	public static void main(String[] args) {
-      SpringApplication.run(Application.class, args);
-  	}
-  }
-  ```
+- `@ComponentScan`：告诉Spring去哪里自动扫描其他组件、配置和服务，并将它们自动注册为Spring Beans。在默认情况下，这个标注将会扫描当前包以及其下任意深度的子包。
 
 > 建议将启动类放在项目的最高层次包中（例如本例中的`com.example.demo`），这样Spring Boot默认从启动类开始自动搜索所在包及其下所有层次包中的类。
 >
@@ -1054,7 +1043,7 @@ public DataSource devDataSource() {…}
 
 # Spring基础
 
-## Bean配置
+## 配置Bean
 
 Spring 提供了三种配置Bean的方式：
 
@@ -1066,25 +1055,63 @@ Spring 提供了三种配置Bean的方式：
 
 ### 通过注解配置
 
-当类被标注了`@Component`（通用组件）、`@Service`（服务）、`@Repository`（数据仓库）或`@Controller`（控制器）注解时，Spring容器会自动扫描（通过`@ComponentScan`注解实现），并将它们注册成受容器管理的Bean。
+当类被标注了`@Component`（通用组件）、`@Service`（服务）、`@Repository`（数据仓库）、`@Controller`（控制器）、`@Configuration`（配置）注解时，Spring容器会自动扫描（通过`@ComponentScan`注解实现），并将它们注册成受容器管理的Bean。
 
 ```java
 @Component
 public class SomeBean { … }
 ```
 
-这种方式配置的Bean的默认名称是类名的首字母小写形式，即`someBean`。也可通过注解显式给Bean命名，例如：`@Component("myBean")`。
+这种方式配置的Bean的默认名称是类名的首字母小写形式，即`someBean`。也可通过注解显式给Bean命名，例如：`@Component("myBean")`。（上面那些注解只能给Bean命名一个名字）
 
-#### 启用组件扫描
+### 通过Java配置类配置
 
-通过注解配置Bean，需要通过`@ComponentScan`注解来启用组件扫描（默认是不启用的）。
+这种方式是在Java配置类中，`@Bean`注解标注在方法上，则这些方法返回值就是一个Bean实例。
+
+```java
+package soundsystem;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class CDPlayerConfig {  
+  @Bean
+  public CompactDisc randomBeatlesCD() {
+    int choice = (int) Math.floor(Math.random() * 4);
+    if (choice == 0) {
+      return new SgtPeppers();
+    } else if (choice == 1) {
+      return new WhiteAlbum();
+    } else if (choice == 2) {
+      return new HardDaysNight();
+    } else {
+      return new Revolver();
+    }
+  }
+}
+```
+
+这种方式配置的Bean的默认名称是方法名，即`randomBeatlesCD`。也可通过注解显式给Bean命名，例如：`@Bean(name="myBean")`。每个Bean可以有一个或多个名字，这些名字在托管bean的容器中必须是唯一的。使用`@Bean`注解可以为Bean命名多个名字，例如：`@Bean({"b1", "b2"})`。
+
+标注`@Bean`的方法只会在首次请求时执行一次，以后每次请求都将被Spring拦截，并从应用上下文中返回相同的Bean。也就是说，默认情况下，Spring中的Bean都是**单例的**。
+
+## 装载Bean
+
+配置好Bean后，还需要将这些Bean装载到Spring容器中。有两种方式装载Bean：
+
+- 启用组件扫描
+- 显式导入配置
+
+### 启用组件扫描
+
+通过注释或配置类配置Bean，需要通过`@ComponentScan`注解来启用组件扫描（默认是不启用的）。
 
 ```java
 @ComponentScan
 public class Foo { … }
 ```
 
-`@ComponentScan`默认扫描所标注的类（`Foo`）所在的包，以及其下的任意层次的子包，将所有带有`@Component`、`@Service`、`@Repository`或`@Controller`等注解的类注册成受容器管理的Bean。
+`@ComponentScan`默认扫描所标注的类（`Foo`）所在的包，以及其下的任意层次的子包，将所有带有`@Component`、`@Service`、`@Repository`、`@Controller`、`@Configuration`等注解的类注册成受容器管理的Bean。
 
 可以通过`@ComponentScan`的`value`属性来显式指定要扫描的包（不扫描它们的子包）：
 
@@ -1102,7 +1129,155 @@ public class Foo { … }
 @ComponentScan(basePackageClasses={Foo.class, Bar.class})
 ```
 
+### 导入配置
 
+如果没有使用`@ComponentScan`注解启用自动扫描组件，则必须使用`@Import`标注显式列出要装载的组件：
+
+```java
+@Configuration
+@EnableAutoConfiguration
+@Import({ MyConfig.class, MyAnotherConfig.class })
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+```
+
+还可以使用`@ImportResource`标注将XML配置文件导入配置类：
+
+```java
+@Configuration
+@Import(abc.FooConfig.class)
+@ImportResource("classpath:bar-config.xml")
+public class MyConfig {
+	…  
+}
+```
+
+导入一个配置类或XML配置，也会导入该配置类或XML配置导入的配置类或XML配置。因此，建议创建一个根配置类或根XML配置来导入其他顶级配置类或XML配置。这样在实例化应用上下文时，只需要传入根配置类或XML配置文件即可。例如：
+
+```java
+ApplicationContext context = new ClassPathXmlApplicationContext("app.xml");
+```
+
+否则，就需要列出所有的顶级配置类或XML配置文件：
+
+```java
+ApplicationContext context = new AnnotationConfigApplicationContext(abc.FooConfig.class, xyz.BarConfig.class);
+```
+
+## 依赖注入
+
+### 注解注入
+
+在基于注解配置的Bean类中，要注入其他Bean，需要借助`@Autowired`或`@Inject`（Java依赖注入规范）注解。
+
+#### 构造器注入
+
+```java
+package soundsystem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+public class CDPlayer implements MediaPlayer {
+  private CompactDisc cd;
+
+  @Autowired
+  public CDPlayer(CompactDisc cd) {
+    this.cd = cd;
+  }
+
+  public void play() {
+    cd.play();
+  }
+}
+```
+
+> 从Spring Framework 4.3开始，如果目标bean只定义了一个构造函数，则不再需要在该构造函数上使用`@Autowired`标注。但是，如果有几个构造函数可用，则必须标注至少一个构造函数，以便指导容器使用哪一个。
+
+被标注的构造器不必是`public`的。
+
+#### 属性注入
+
+```java
+public class MovieRecommender {
+  private final CustomerPreferenceDao customerPreferenceDao;
+
+  @Autowired
+  private MovieCatalog movieCatalog;
+
+  @Autowired
+  public MovieRecommender(CustomerPreferenceDao customerPreferenceDao) {
+    this.customerPreferenceDao = customerPreferenceDao;
+  }
+
+  // ...
+}
+```
+
+您还可以通过将`@Autowired`应用于指定类型数组或集合（Collections）的字段或方法，则从`ApplicationContext`中将所有匹配指定类型的bean都装配到这个数组或集合中：
+
+```java
+@Autowired
+private MovieCatalog[] movieCatalogs;
+
+@Autowired
+public void setMovieCatalogs(Set<MovieCatalog> movieCatalogs) {
+  this.movieCatalogs = movieCatalogs;
+}
+
+@Autowired
+public void setMovieCatalogs(Map<String, MovieCatalog> movieCatalogs) {
+  this.movieCatalogs = movieCatalogs;
+}
+```
+
+`Map`的键类型必须是`String`，它保存Bean的名称。
+
+另外，在setter方法上标注`@Autowired`，与在属性上标注`@Autowired`效果是一样的。（setter注入实际上是一个方法注入）
+
+```java
+public class MovieRecommender {
+   private final CustomerPreferenceDao customerPreferenceDao;
+   private MovieCatalog movieCatalog;
+
+   @Autowired
+	public void setMovieCatalog(MovieCatalog movieCatalog) {
+      this.movieCatalog = movieCatalog;
+   }
+
+   // ...
+}
+```
+
+#### 方法注入
+
+```java
+@Autowired
+public void setCompactDisc(CompactDisc cd) {
+  this.cd = cd;
+}
+
+@Autowired
+public void insertDisc(CompactDisc cd) {
+  this.cd = cd;
+}
+
+@Autowired
+public void prepare(MovieCatalog movieCatalog,
+                    CustomerPreferenceDao customerPreferenceDao) {
+  this.movieCatalog = movieCatalog;
+  this.customerPreferenceDao = customerPreferenceDao;
+}
+```
+
+方法的每个参数都将被注入。
+
+### 配置注入
+
+### 注入规则
 
 # Web
 
