@@ -115,7 +115,7 @@ public class DemoApplication {
 
 - `@Configuration`：应用程序配置类，用于替代传统基于XML的配置；
 
-- `@EnableAutoConfiguration`：基于依赖关系，自动配置Spring；
+- `@EnableAutoConfiguration`：会将`spring-boot-autoconfigure.jar/META-INF/spring.factories`中`org.springframework.boot.autoconfigure.EnableAutoConfiguration`键对应的值里的所有配置类加载到IoC容器中。这些配置类都带有条件注解，从而达到自动装配目的；
 
 - `@ComponentScan`：告诉Spring去哪里自动扫描其他组件、配置和服务，并将它们自动注册为Spring Beans。在默认情况下，这个标注将会扫描当前包以及其下任意深度的子包。如果没有使用这个标注，则必须使用`@Import`标注显式列出要扫描的组件：
 
