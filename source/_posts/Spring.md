@@ -1171,9 +1171,9 @@ ApplicationContext context = new AnnotationConfigApplicationContext(abc.FooConfi
 
 ### 注解注入
 
-在基于注解配置的Bean类中，要注入其他Bean，需要借助`@Autowired`或`@Inject`（Java依赖注入规范）注解。
+在基于注解配置的Bean类中，要注入其他Bean，需要借助`@Autowired`注解。
 
-#### 构造器注入
+#### 构造器注入（推荐）
 
 ```java
 package soundsystem;
@@ -1195,7 +1195,7 @@ public class CDPlayer implements MediaPlayer {
 }
 ```
 
-> 从Spring Framework 4.3开始，如果目标bean只定义了一个构造函数，则不再需要在该构造函数上使用`@Autowired`标注。但是，如果有几个构造函数可用，则必须标注至少一个构造函数，以便指导容器使用哪一个。
+> 从Spring Framework 4.3开始，如果目标bean只定义了一个构造函数，则不再需要在该构造函数上使用`@Autowired`标注。但是，如果有几个构造函数可用，则必须标注一个构造函数，以便指导容器使用哪一个。
 
 被标注的构造器不必是`public`的。
 
@@ -1273,9 +1273,13 @@ public void prepare(MovieCatalog movieCatalog,
 }
 ```
 
-方法的每个参数都将被注入。
+方法的每个参数都将被注入（即每个参数都应该是已配置的Bean）。
 
 ### 配置注入
+
+标注`@Bean`注解的方法的每个参数都将被注入。
+
+
 
 ### 注入规则
 
