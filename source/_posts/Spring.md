@@ -1043,7 +1043,9 @@ public DataSource devDataSource() {…}
 
 # Spring基础
 
-## 配置Bean
+## IoC
+
+### 配置Bean
 
 Spring 提供了三种配置Bean的方式：
 
@@ -1053,7 +1055,7 @@ Spring 提供了三种配置Bean的方式：
 
 三种配置方式可以任意混合使用。通常建议尽可能地使用注解配置，当必须要显式装配Bean的时候（比如，有些源码不是由你来维护的，而当你需要为这些代码装配Bean时），推荐使用类型安全并且比XML更加强大的基于Java配置类的配置。最后，只有当你想要使用便利的XML命名空间，并且在基于Java配置类的配置中没有同样的实现时，才应该使用XML的配置。
 
-### 通过注解配置
+#### 通过注解配置
 
 当类被标注了`@Component`（通用组件）、`@Service`（服务）、`@Repository`（数据仓库）、`@Controller`（控制器）、`@Configuration`（配置）注解时，Spring容器会自动扫描（通过`@ComponentScan`注解实现），并将它们注册成受容器管理的Bean。
 
@@ -1064,7 +1066,7 @@ public class SomeBean { … }
 
 这种方式配置的Bean的默认名称是类名的首字母小写形式，即`someBean`。也可通过注解显式给Bean命名，例如：`@Component("myBean")`。（上面那些注解只能给Bean命名一个名字）
 
-### 通过Java配置类配置
+#### 通过Java配置类配置
 
 这种方式是在Java配置类中，`@Bean`注解标注在方法上，则这些方法返回值就是一个Bean实例。
 
@@ -1095,14 +1097,14 @@ public class CDPlayerConfig {
 
 标注`@Bean`的方法只会在首次请求时执行一次，以后每次请求都将被Spring拦截，并从应用上下文中返回相同的Bean。也就是说，默认情况下，Spring中的Bean都是**单例的**。
 
-## 装载Bean
+### 装载Bean
 
 配置好Bean后，还需要将这些Bean装载到Spring容器中。有两种方式装载Bean：
 
 - 启用组件扫描
 - 显式导入配置
 
-### 启用组件扫描
+#### 启用组件扫描
 
 通过注释或配置类配置Bean，需要通过`@ComponentScan`注解来启用组件扫描（默认是不启用的）。
 
@@ -1129,7 +1131,7 @@ public class Foo { … }
 @ComponentScan(basePackageClasses={Foo.class, Bar.class})
 ```
 
-### 导入配置
+#### 导入配置
 
 如果没有使用`@ComponentScan`注解启用自动扫描组件，则必须使用`@Import`标注显式列出要装载的组件：
 
@@ -1167,13 +1169,13 @@ ApplicationContext context = new ClassPathXmlApplicationContext("app.xml");
 ApplicationContext context = new AnnotationConfigApplicationContext(abc.FooConfig.class, xyz.BarConfig.class);
 ```
 
-## 依赖注入
+### 依赖注入
 
-### 注解注入
+#### 注解注入
 
 在基于注解配置的Bean类中，要注入其他Bean，需要借助`@Autowired`注解。
 
-#### 构造器注入（推荐）
+##### 构造器注入（推荐）
 
 ```java
 package soundsystem;
@@ -1199,7 +1201,7 @@ public class CDPlayer implements MediaPlayer {
 
 被标注的构造器不必是`public`的。
 
-#### 属性注入
+##### 属性注入
 
 ```java
 public class MovieRecommender {
@@ -1252,7 +1254,7 @@ public class MovieRecommender {
 }
 ```
 
-#### 方法注入
+##### 方法注入
 
 ```java
 @Autowired
@@ -1275,13 +1277,139 @@ public void prepare(MovieCatalog movieCatalog,
 
 方法的每个参数都将被注入（即每个参数都应该是已配置的Bean）。
 
-### 配置注入
+#### 配置注入
 
-标注`@Bean`注解的方法的每个参数都将被注入。
+标注`@Bean`注解的方法（简称`@Bean`方法）的每个参数都将被注入。
+
+```java
+@Configuration
+public class JavaConfig {
+	@Bean
+   public AnotherService anotherService() { … }
+   
+   @Bean
+   public JavaConfigInjectService javaConfigInjectService(AnotherService anotherService) { … }
+}
+```
+
+在同一个配置类里，对`@Bean`方法的调用都被视为该Bean的注入：（实际上每次调用`@Bean`方法都将被Spring拦截，只在首次调用时真正执行方法，后面将从IoC容器中直接返回相同的Bean）
+
+```java
+@Configuration
+public class JavaConfig {
+	@Bean
+   public AnotherService anotherService() { … }
+   
+   @Bean
+   public JavaConfigInjectService javaConfigInjectService() {
+      return new JavaConfigInjectService(anotherService());
+   }
+}
+```
+
+另外，注解配置的Bean可以直接注入给使用Java配置的Bean，反之亦然。
+
+#### 注入规则
+
+##### 默认注入规则
+
+首先，通过 Bean 的名称来自动注入。当 Bean 名称不满足条件时，容器会根据 Bean 的类型进行自动注入。
+
+##### `@Primary`
+
+当全局有多个同类型的Bean时，容器将无法自动注入。这时，可通过`@Primary`注解来标记需要优先使用的Bean。
+
+例如有两个同类型的Bean：
+
+```java
+@Bean
+public AnotherService anotherService() { … }
+
+@Bean
+@Primary
+public AnotherService primaryAnotherService() { … }
+```
+
+此时这两个Bean名称分别为 `anotherService` 和 `primaryAnotherService` 。如果在注入的地方不使用这两个名称，那么就会按照 Bean 的类型自动注入。因为 `primaryAnotherService` 注解了 `@Primary` ，所以使用 `primaryAnotherService` 这个 Bean 注入：
+
+```java
+@Component
+public class UsePrimaryService {
+   private AnotherService service;
+   
+   public UsePrimaryService(AnotherService service) { … }
+   
+   …
+}
+```
+
+##### `@Qualifier`
+
+可以使用 `@Qualifier` 注解直接指定需要使用哪个 Bean：
+
+```java
+@Component
+public class UseQualifierService {
+   private AnotherService service;
+   
+   public UseQualifierService(@Qualifier("anotherService") AnotherService service) { … }
+   
+   …
+}
+```
+
+ `@Qualifier` 注解也可以标注在属性上：
+
+```java
+@Component
+public class UseQualifierService {
+   @Autowired
+   @Qualifier("anotherService")
+   private AnotherService service;
+   
+   …
+}
+```
+
+### Bean的作用域
+
+Spring Bean有多种作用域：
+
+- 单例（`singleton`）：在整个应用中，只创建Bean的一个实例。
+- 原型（`prototype`）：每次注入或者通过Spring应用上下文获取的时候，都会创建一个新的Bean实例。
+- 会话（`session`）：在Web应用中，为每个会话创建一个Bean实例。
+- 全局会话（`globalSession`）：类似于会话作用域，但仅在Portlet的Web应用中使用。
+- 请求（`request`）：在Web应用中，为每个请求创建一个Bean实例。
+
+在默认情况下，Spring应用上下文中所有Bean都是单例的。可以通过`@Scope`标注为Bean显式选择其他的作用域：
+
+```java
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class Notepad {…}
+```
+
+或者
+
+```java
+@Bean
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public Notepad notepad() {
+  return new Notepad();
+}
+```
+
+会话和请求作用域只能在Web应用中使用，并且要在web.xml中做如下设置：
+
+```xml
+<listener>
+	<listener-class>
+  	org.springframework.web.context.request.RequestContextListener
+  </listener-class>
+</listener>
+```
 
 
-
-### 注入规则
 
 # Web
 
