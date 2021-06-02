@@ -18,3 +18,9 @@ Flowable既可以在普通的Java SE项目中使用，也可以在Spring Boot项
 采用内嵌式的，需要在项目中导入相应依赖，并在配置文件中做相应配置。而采用独立应用式的，则不需要导入任何Flowable依赖，直接通过HTTP访问Flowable REST API。
 
 ## 流程定义和部署
+
+# 设计模式
+
+## 门面模式
+
+ProcessEngine
