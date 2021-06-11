@@ -17,7 +17,7 @@ Flowable既可以在普通的Java SE项目中使用，也可以在Spring项目�
 
 采用内嵌式的，需要在项目中导入相应依赖，并在配置文件中做相应配置。而采用独立应用式的，则不需要导入任何Flowable依赖，直接通过HTTP访问Flowable REST API。
 
-在不集成Spring Boot下，需要添加如下依赖：
+在内嵌式不集成Spring Boot下，需要添加如下依赖：
 
 ```xml
 <dependency>
@@ -44,7 +44,7 @@ Flowable既可以在普通的Java SE项目中使用，也可以在Spring项目�
 
 并添加一个Log4j配置文件*log4j.properties*到类路径。
 
-在集成Spring Boot下，需要添加如下依赖：
+在内嵌式集成Spring Boot下，需要添加如下依赖：
 
 ```xml
 <dependency>
@@ -64,7 +64,7 @@ Flowable既可以在普通的Java SE项目中使用，也可以在Spring项目�
 </dependency>
 ```
 
-
+> 如果您不需要所有引擎，请参阅其他 [Flowable starters](https://flowable.com/open-source/docs/bpmn/ch05a-Spring-Boot#flowable-starters)。
 
 ## 创建流程引擎
 
@@ -211,8 +211,8 @@ holiday-request.bpmn20.xml：
 
 *部署*流程定义意味着：
 
-- 流程引擎会将 XML 文件存储在数据库中，以便在需要时随时检索；
-- 流程定义被解析为一个内部的、可执行的对象模型，以便*流程实例*可以从它启动。
+- 流程引擎会将 XML 文件持久化到数据库中，以便在需要时随时检索；
+- 流程定义被解析为一个可通过Flowable API操作的对象模型。
 
 内嵌式：
 
