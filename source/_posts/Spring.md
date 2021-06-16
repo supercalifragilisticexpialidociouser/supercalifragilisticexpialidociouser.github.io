@@ -140,8 +140,25 @@ public class DemoApplication {
 如果需要远程调试，则可以以下面命令来运行应用：
 
 ```bash
+#JVM 1.5之前
 $ java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=8000,suspend=n \
        -jar target/demo-0.0.1-SNAPSHOT.jar
+       
+#JVM 1.5以后
+$ java -agentlib:jdwp=server=y,transport=dt_socket,address=8000,suspend=n \
+       -jar target/demo-0.0.1-SNAPSHOT.jar
+```
+
+Spring Boot 项目需要远程调试，可以在*spring-boot-maven-plugin*中配置：
+
+```xml
+<plugin>
+	<groupId>org.springframework.boot</groupId>
+   <artifactId>spring-boot-maven-plugin</artifactId>
+   <configuration>
+   	<jvmArguments>-Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=8000,suspend=n</jvmArguments>
+   </configuration>
+</plugin>
 ```
 
 ## 打包
