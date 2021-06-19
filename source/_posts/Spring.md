@@ -186,10 +186,10 @@ Spring Initializr默认将应用打包成一个可执行的jar包，并且内嵌
 
 # 配置
 
-Spring 中有两种不同（但相关）的配置：
+Spring 提供了一个接口`Environment`来代表当前运行的应用环境，它包含两个部分：
 
-- bean 装配：声明在 Spring 应用上下文中创建哪些应用组件以及它们之间如何互相注入的配置。
-- 属性注入：设置 Spring 应用上下文中 bean 的值的配置。
+- Profile：一组命名的、定义在一起有Bean。仅当给定的Profile处于活动状态时才向容器注册。
+- 应用属性：设置 Spring 应用上下文中 bean 的值的配置。可能来自各种来源：属性文件、JVM 系统属性、系统环境变量、JNDI、servlet 上下文参数、临时`Properties`对象、`Map`对象等。
 
 ## 手动配置
 
@@ -1060,7 +1060,7 @@ public DataSource devDataSource() {…}
 
 # Spring基础
 
-## IoC
+## Bean
 
 ### 配置Bean
 
@@ -1085,7 +1085,7 @@ public class SomeBean { … }
 
 #### 通过Java配置类配置
 
-这种方式是在Java配置类中，`@Bean`注解标注在方法上，则这些方法返回值就是一个Bean实例。
+这种方式是在Java配置类（标注有`@Configuration`的类）中，`@Bean`注解标注在方法上，则这些方法返回值就是一个Bean实例。
 
 ```java
 package soundsystem;
@@ -1425,6 +1425,72 @@ public Notepad notepad() {
   </listener-class>
 </listener>
 ```
+
+### Bean的生命周期
+
+#### 初始化
+
+Bean将按如下顺序调用初始化方法：
+
+1. 带有注释的方法 `@PostConstruct`
+
+   ```java
+   public class CachingMovieLister {
+      @PostConstruct
+      public void populateMovieCache() {
+         // populates the movie cache upon initialization...
+      }
+   
+      @PreDestroy
+      public void clearMovieCache() {
+         // clears the movie cache upon destruction...
+      }
+   }
+   ```
+
+2. 由`InitializingBean`回调接口定义的`afterPropertiesSet()`（Bean如果实现了该接口）
+
+3. 自定义配置`init()`方法
+
+   ```java
+   @Bean(initMethod = "init")
+   public BeanOne beanOne() {
+      return new BeanOne();
+   }
+   ```
+
+##### 延迟初始化
+
+在Bean上注解了`@Lazy`，则Bean 只会在被调用时才会初始化。否则，Bean在容器启动时初始化。
+
+##### 依赖顺序
+
+设置Bean `foo`依赖于`bar`，让`bar`先初始化，可以用`@DependsOn`注解：
+
+```java
+@Bean
+@DependsOn("bar")
+public Foo foo() {…}
+```
+
+
+
+#### 销毁
+
+Bean按如下顺序调用销毁方法：
+
+1. 带有注释的方法 `@PreDestroy`
+
+2. 由`DisposableBean`回调接口定义的`destroy()`（Bean如果实现了该接口）
+
+3. 自定义配置`destroy()`方法
+
+   ```java
+   @Bean(destroyMethod = "cleanup")
+   public BeanTwo beanTwo() {
+      return new BeanTwo();
+   }
+   ```
 
 
 
