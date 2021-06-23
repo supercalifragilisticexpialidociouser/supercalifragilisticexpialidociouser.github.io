@@ -20,7 +20,7 @@ Kubernetes是一个容器编排引擎，它是Google Omega（之前叫Borg）的
 
 Minikube是一种轻量级Kubernetes实现，可在本地计算机上创建VM并部署仅包含一个节点的简单集群，它适用于开发和测试。 
 
-首先，安装Kubernetes命令行客户端[kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)：（通常安装在开发本地机器上，而不是安装在集群上）
+首先，安装Kubernetes命令行客户端[kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)：（可选。通常安装在开发本地机器上，而不是安装在集群上）
 
 ```bash
 $ curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -49,7 +49,7 @@ $ kubectl version --client
 $ curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 $ sudo install minikube-linux-amd64 /usr/local/bin/minikube
 
-# 国内如果下载不了，使用阿里云构建的版本
+# 国内如果下载不了（通常上面可以下载），使用阿里云预构建的版本
 $ curl -Lo minikube https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/releases/v1.16.0/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
 ```
 
@@ -64,19 +64,38 @@ $ minikube version
 ```bash
 $ minikube start
 
-# 可以用下面参数指定使用阿里云镜像
+# 可以用下面参数指定使用阿里云镜像（这些国内镜像的值可在minikube start --help中找到）
 $ minikube start --image-mirror-country cn \
-    --iso-url=https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/iso/minikube-v1.16.0.iso \
+    --iso-url=https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/iso/minikube-v1.21.0.iso \
     --registry-mirror=https://huo5y7st.mirror.aliyuncs.com \
-    --vm-driver=virtualbox
+    --driver=virtualbox
+    --memory=2048mb
 ```
 
 `--image-mirror-country cn`会将`k8s.gcr.io`换成`registry.cn-hangzhou.aliyuncs.com/google_containers`作为安装Kubernetes的容器镜像仓库。
+
+`--driver`可取值`virtualbox`、`vmwarefusion`、`kvm2`、`vmware`、`none`、`docker`、`podman`、`ssh`。缺省，则自动检测
+
+`--registry-mirror`为Docker daemon配置的镜像加速，可访问[阿里云镜像服务](https://cr.console.aliyun.com/cn-hangzhou/instances/mirrors)获得。
+
+`--memory`分配给镜像的内存。
 
 集群启动成功后，可以使用下列命令，打开一个Kubernetes仪表盘：
 
 ```bash
 $ minikube dashboard
+```
+
+### 卸载minikube
+
+```bash
+#停止运行
+$ minikube stop
+#从virtualbox中删除minikube，并卸载minikube
+$ minikube delete
+$ rm -r ~/.kube ~/.minikube
+$ sudo rm /usr/local/bin/minikube
+$ systemctl stop '*kubelet*.mount'
 ```
 
 
@@ -481,7 +500,7 @@ Node可以包含多个pod，Kubernetes master会自动处理在群集中的节�
 **kube-proxy**：是集群中每个节点上运行的网络代理,实现 Kubernetes [Service](https://kubernetes.io/zh/docs/concepts/services-networking/service/) 概念的一部分。
 
 **容器运行环境**：是负责运行容器的软件。Kubernetes 支持多个容器运行环境: [docker](https://kubernetes.io/zh/docs/reference/kubectl/docker-cli-to-kubectl/)、 [containerd](https://containerd.io/docs/)、[CRI-O](https://cri-o.io/docs/) 以及任何实现 [Kubernetes CRI (容器运行环境接口)](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-node/container-runtime-interface.md)。
-=======
+
 ## 资源
 
 Kubernetes的Pod、控制器、服务、命名空间等都是资源。
@@ -497,7 +516,8 @@ $ kubectl delete all --all
 第一个`all`指定正在删除所有资源类型，而`--all`选项指定将删除所有资源实例。
 
 > 注意：使用`all`关键字删除所有内容并不是真的完全删除所有内容。一些资源，比如Secret，会被保留下来，并且需要被明确指定删除。
->>>>>>> cb6fcb19eaae48be700abc27fe2bd81917c91742
+>
+> >>>>>> cb6fcb19eaae48be700abc27fe2bd81917c91742
 
 ## Pods
 
