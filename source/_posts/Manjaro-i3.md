@@ -132,7 +132,7 @@ $ sudo mhwd -a pci nonfree 0300
 推荐安装Nerd Font，另外，再安装如下字体：
 
 ```bash
-$ pacman -S adobe-source-code-pro-fonts wqy-bitmapfont wqy-microhei wqy-zenhei wjy-microhei-lite
+$ pacman -S adobe-source-code-pro-fonts wqy-bitmapfont wqy-microhei wqy-zenhei wqy-microhei-lite
 ```
 
 可以使用`fc-list`显示系统已安字体的位置及字体名：
