@@ -76,6 +76,12 @@ bindsym $mod+F2 exec --no-startup-id chromium（通过GUI安装器安装的，�
 bindsym $mod+F2 exec --no-startup-id google-chrome-stable
 ```
 
+修改`~/.profile`：将`export BROWSER=/usr/bin/palemoon`改成`export BROWSER=/usr/bin/chromium`。
+
+
+
+需要重启才能生效。
+
 代理：
 
 ```bash
@@ -91,7 +97,7 @@ $ sudo pacman -S fcitx-im #默认全部安装
 $ sudo pacman -S fcitx-configtool
 ```
 
-安装完成后，编辑`~/.xprofile`，添加如下配置：
+安装完成后，编辑`~/.profile`或`~/.xprofile`，添加如下配置：
 
 ```
 export GTK_IM_MODULE=fcitx
@@ -123,6 +129,8 @@ $ sudo mhwd -a pci nonfree 0300
 
 # 安装字体
 
+推荐安装Nerd Font，另外，再安装如下字体：
+
 ```bash
 $ pacman -S adobe-source-code-pro-fonts wqy-bitmapfont wqy-microhei wqy-zenhei wjy-microhei-lite
 ```
@@ -146,6 +154,14 @@ xft.dpi:125  #设置dpi，对4k高分屏需要设置，设置成默认值的2倍
 URxvt.font: xft:Source Code Pro:style=Regular:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:antialias=True:pixelsize=18
 URxvt.boldfont: xft:Source Code Pro:style=Bold:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:antialias=True:pixelsize=18
 ```
+
+如果使用Nerd Font，则
+
+```
+URxvt.font: xft:MesloLGS NF:size=11
+```
+
+
 
 ## 使用Chromium打开链接
 
@@ -210,6 +226,8 @@ ZSH_THEME="agnoster"
 ### Powerlevel10k主题
 
 它是Powerlevel9k的升级版，速度更快。参见：https://github.com/romkatv/powerlevel10k
+
+安装ttf-meslo-nerd-font-powerlevel10k字体
 
 ### Pure主题
 
