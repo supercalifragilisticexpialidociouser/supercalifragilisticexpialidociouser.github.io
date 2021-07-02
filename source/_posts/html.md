@@ -4,13 +4,13 @@ date: 2020-07-25 17:40:49
 tags: [5]
 ---
 
-# 入门
-
-HTML 指的是超文本标记语言 (**H**yper **T**ext **M**arkup **L**anguage)。
+[HTML](https://developer.mozilla.org/en-US/docs/Learn/HTML) 指的是超文本标记语言 (**H**yper **T**ext **M**arkup **L**anguage)，是用于构造网页及其内容的代码。
 
 # HTML文档
 
-HTML 文档*描述网页*，它由*包含 HTML 标签*和纯文本组成，它的扩展名是`.html`。
+HTML 文档*描述网页内容的结构*，它由一系列HTML元素组成，它的扩展名是`.html`。
+
+> 最佳实践：完全以小写字母命名文件夹和文件，不要有空格，并用连字符分隔单词。
 
 Web 浏览器的作用是读取 HTML 文档，并以网页的形式显示出它们。
 
@@ -32,7 +32,7 @@ Web 浏览器的作用是读取 HTML 文档，并以网页的形式显示出它�
 </html>
 ```
 
-## `<!DOCTYPE>` 声明
+# 文档类型
 
 `<!DOCTYPE>`是一个文档类型标记，用于告诉标准通用标记语言（SGML）解析器，它应该使用什么样的文档类型定义（DTD）来解析文档，并且它的根元素是什么。
 
@@ -60,19 +60,23 @@ XHTML 1.0：
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 ```
 
-## 元数据
+# 文档语言
 
-元数据可以向浏览器提供文档的一些信息，它包含在head元素内部。
+```html
+<html lang="en-US">
+```
 
-### 字符编码
+这在很多方面都很有用。如果设置了语言，搜索引擎将更有效地为您的 HTML 文档编制索引，并且对于使用屏幕阅读器的人更有帮助。
 
-目前在大部分浏览器中，直接输出中文会出现中文乱码的情况，这时候我们就需要在头部将字符声明为 UTF-8 或 GBK。
+您还可以将文档的子部分设置为被识别为不同的语言。例如：
 
-## 内容
+```html
+<p>Japanese example: <span lang="ja">ご飯が熱い。</span>.</p>
+```
 
-文档内容包含在body元素之中。
+语言代码由[ISO 639-1](https://en.wikipedia.org/wiki/ISO_639-1)标准定义。您可以[在 HTML 和 XML](https://www.w3.org/International/articles/language-tags/)中的[语言标签中](https://www.w3.org/International/articles/language-tags/)找到有关它们的更多信息。
 
-## 注释
+# HTML注释
 
 注释以标签`<!--`开头，以`-->`结尾。浏览器会忽略这两个标签之间的一切内容。
 
@@ -82,34 +86,37 @@ HTML元素是一种用来向浏览器说明文档内容的**结构和含义**的
 
 HTML 元素指的是从开始标签（start tag）到结束标签（end tag）的所有代码。
 
-**元素的内容**是开始标签与结束标签之间的内容，某些 HTML 元素可以具有空内容（empty content），例如`<div/>`，相当于`<div></div>`的简写。
-
-有一类称为虚元素（void element）的，可以有两种表示法：
-
-1. 只使用开始标签，例如`<hr>`；
-2. 类似空元素，例如`<hr/>`。
-
-大多数 HTML 元素可以互相嵌套。
-
 HTML 标签是由*尖括号*包围的关键词，不区分大小写，比如 `<html>`。HTML 标签通常是*成对出现*的，标签对中的第一个标签是开始标签，第二个标签是结束标签。
+
+开始标签与结束标签之间的内容是**元素的内容**。
 
 ![HTML元素](html/HTML元素.png)
 
-## 元素之间的关系
+## 元素嵌套
 
-父元素、子元素、后代元素、祖先元素、兄弟元素。
+大多数 HTML 元素可以互相嵌套，形成父元素、子元素、后代元素、祖先元素、兄弟元素关系。
 
-一个元素能以什么样的元素为父元素或子元素是有限制的，这些限制通过元素类型表现出来。
+一个元素能以什么样的元素为父元素或子元素是有限制的，这些限制通过元素类别表现出来。
 
-## 元素类型
+## 元素类别
 
-元数据元素（metadata element）：用来构建HTML文档的基本结构，以及就如何处理文档向浏览器提供信息和指示。
+在 HTML 中有两个重要的元素类别需要了解：块级元素和内联元素。
 
-流元素（flow element）
+- 块级元素在页面上形成一个可见的块。块级元素出现在它前面的内容之后的新行上。块级元素之后的任何内容也会出现在新行上。块级元素通常是页面上的结构元素。块级元素不会嵌套在行内元素内，但它可能嵌套在另一个块级元素内。
+- 内联元素包含在块级元素中，并且仅围绕文档内容的一小部分（而不是整个段落或内容分组）。内联元素不会导致文档中出现新行。它通常与文本一起使用。
 
-短语元素（phrasing element）
+> **注意**：HTML5 重新定义了元素类别：请参阅[元素内容类别](https://html.spec.whatwg.org/multipage/indices.html#element-content-categories)。虽然这些定义比它们的前辈更准确、更明确，但新定义比*块*和*内联*更难理解*。*本文将保留这两个术语。
 
-所有短语元素都是流元素，但并非所有流元素都是短语元素。
+## 空元素
+
+某些 HTML 元素没有内容，称为空元素（empty content 或 void element）。
+
+空元素有两种表示法：
+
+1. 只使用开始标签（HTML），例如`<hr>`；
+2. `<…/>`（XHTML），例如`<hr/>`。
+
+空元素有：`<area>`、`<base>`、`<br>`、`<col>`、`<colgroup>`、`<command>`、`<embed>`、`<hr>`、`<img>`、`<input>`、`<keygen>`、`<link>`、`<meta>`、`<param>`、`<source>`、`<track>`、`<wbr>`。
 
 ## 元素属性
 
@@ -120,6 +127,8 @@ HTML 标签是由*尖括号*包围的关键词，不区分大小写，比如 `<h
 ![元素属性](html/元素属性.png)
 
 属性值既可以使用双引号界定，也可以用单引号界定。
+
+> 不包含 ASCII 空格或任何`"` `'` ``` `=` `<` `>`等字符的简单属性值可以保持不加引号，但建议对任何属性值都加引号
 
 ### 布尔属性
 
@@ -204,6 +213,84 @@ HTML 标签是由*尖括号*包围的关键词，不区分大小写，比如 `<h
 > 实体名称对大小写敏感！
 >
 > 完整的实体符号参考，请访问 [HTML 实体符号参考手册](https://www.w3school.com.cn/tags/html_ref_entities.html)。
+
+# HTML头部
+
+HTML 头部是`<head>`元素的内容——与元素的内容`<body>`（在浏览器中加载时显示在页面上）不同，头部的内容不显示在页面上。相反，头部的工作是包含有关文档的元数据。
+
+## 文档标题
+
+[`<title>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/title)元素是表示整个 HTML 文档（而不是文档正文）标题的元数据。
+
+## 元数据
+
+元数据（`<meta>`元素）可以向浏览器提供文档的一些信息。
+
+### 指定文档的字符编码
+
+目前在大部分浏览器中，直接输出中文会出现中文乱码的情况，这时候我们就需要在头部将字符声明为 UTF-8 或 GBK。
+
+```html
+<meta charset="utf-8">
+```
+
+### 添加作者和描述
+
+许多`<meta>`元素包括`name`和`content`属性：
+
+- `name`指定元元素的类型；它包含什么类型的信息。
+- `content` 指定实际的元内容。
+
+```html
+<meta name="author" content="Chris Mills">
+<meta name="description" content="The MDN Web Docs Learning Area aims to provide
+complete beginners to the Web with all they need to know to get
+started with developing web sites and applications.">
+```
+
+> **注意**：许多`<meta>`功能不再使用。例如，`<meta name="keywords" content="fill, in, your, keywords, here">`。
+
+## 网站图标
+
+```html
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+```
+
+网站图标的格式可以是：`.ico`、`.gif`或`.png`，但使用 ICO 格式将确保它可以在 Internet Explorer 6 中使用。
+
+> **注意：**如果您的站点使用内容安全策略 (CSP) 来增强其安全性，则该策略适用于网站图标。如果您遇到网站图标未加载的问题，请确认[`Content-Security-Policy`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)标头的[`img-src`指令](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/img-src)没有阻止对其进行访问。
+
+## 应用CSS
+
+```html
+<link rel="stylesheet" href="my-css-file.css">
+```
+
+## 应用JavaScript
+
+```html
+<script src="my-js-file.js" defer></script>
+```
+
+`defer`指示浏览器在页面完成解析 HTML 后运行 JavaScript。这很有用，因为它可以确保在 JavaScript 运行之前加载所有 HTML（脚本和 HTML 仍是同时加载。脚本将按照它们出现在页面上的顺序加载（确保了脚本之间的依赖顺序），它们在页面内容全部加载后才会运行），这样您就不会因为 JavaScript 尝试访问页面上尚不存在的 HTML 元素而导致错误。
+
+> 这个问题的一个老式解决方案曾经是将您的脚本元素放在正文的底部（例如，就在`</body>`标签之前），这样它就会在所有 HTML 被解析后加载。此解决方案的问题在于，在加载 HTML DOM 之前完全阻塞脚本的加载/解析。在包含大量 JavaScript 的大型网站上，这可能会导致严重的性能问题，从而降低网站速度。
+
+除了延迟运行脚本外，还有一个异步运行脚本——`async`属性。它将在遇到`<script>`时下载脚本而不会阻塞页面。但是，一旦下载完成，脚本就会执行，从而阻塞页面呈现。您无法保证脚本将以任何特定顺序运行。在页面中的脚本彼此独立运行且不依赖于页面上的其他脚本时才适合使用`async`。
+
+以下是不同脚本加载方法的直观表示以及这对您的页面的意义：
+
+![异步与延迟](html/async-defer.jpg)
+
+> **注意**：该`<script>`元素可能看起来像一个空元素，但它不是，因此需要一个结束标记。除了指向外部脚本文件之外，您还可以选择将脚本放在`<script>`元素中。
+
+# HTML正文
+
+文档正文包含在`<body>`元素之中。
+
+## HTML中的空格
+
+无论您在 HTML 元素内容中使用多少空格（包括换行符），HTML 解析器在呈现代码时会将每个空格序列缩减为一个空格。
 
 # HTML表单
 
