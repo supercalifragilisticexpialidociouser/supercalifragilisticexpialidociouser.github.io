@@ -219,7 +219,7 @@ HTML 标签是由*尖括号*包围的关键词，不区分大小写，比如 `<h
 
 # HTML头部
 
-HTML 头部是`<head>`元素的内容——与元素的内容`<body>`（在浏览器中加载时显示在页面上）不同，头部的内容不显示在页面上。相反，头部的工作是包含有关文档的元数据。
+HTML 头部是[`<head>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head)元素的内容——与元素的内容`<body>`（在浏览器中加载时显示在页面上）不同，头部的内容不显示在页面上。相反，头部的工作是包含有关文档的元数据。
 
 ## 文档标题
 
@@ -227,7 +227,7 @@ HTML 头部是`<head>`元素的内容——与元素的内容`<body>`（在浏�
 
 ## 元数据
 
-元数据（`<meta>`元素）可以向浏览器提供文档的一些信息。
+元数据（[`<meta>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta)元素）可以向浏览器提供文档的一些信息。
 
 ### 指定文档的字符编码
 
@@ -265,11 +265,15 @@ started with developing web sites and applications.">
 
 ## 应用CSS
 
+[`<link>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link)
+
 ```html
 <link rel="stylesheet" href="my-css-file.css">
 ```
 
 ## 应用JavaScript
+
+[`<script>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script)
 
 ```html
 <script src="my-js-file.js" defer></script>
@@ -291,7 +295,7 @@ started with developing web sites and applications.">
 
 ```html
 <script>
-document.getElementById('demo').innerHTML = '我的第一段JavaScript';
+    document.getElementById('demo').innerHTML = '我的第一段JavaScript';
 </script>
 ```
 
@@ -299,21 +303,133 @@ document.getElementById('demo').innerHTML = '我的第一段JavaScript';
 
 # HTML正文
 
-文档正文包含在`<body>`元素之中。
+文档正文包含在[`<body>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/body)元素之中。
 
 ## HTML中的空格
 
 无论您在 HTML 元素内容中使用多少空格（包括换行符），HTML 解析器在呈现代码时会将每个空格序列缩减为一个空格。
 
-# HTML文本
+# 文本
 
 ## 标题
 
+有六个标题元素：[`<h1>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements)（最好每页使用一个——这是顶级标题）、[`<h2>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements)、[`<h3>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements)、[`<h4>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements)、[`<h5>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements)和[`<h6>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements)。每个元素代表文档中不同级别的内容；`<h1>`表示主标题、`<h2>`表示副标题、`<h3>`表示副副标题等。
+
+```html
+<h1>I am the title of the story.</h1>
+```
+
 ## 段落
 
-# HTML表单
+[`<p>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/p)
 
-# HTML图形
+```html
+<p>I am a paragraph, oh yes I am.</p>
+```
+
+## 列表
+
+### 无序列表
+
+无序列表用于标记与条目顺序无关的项目列表。[`<ul>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul)  [`<li>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/li)
+
+```html
+<ul>
+    <li>milk</li>
+    <li>eggs</li>
+    <li>bread</li>
+    <li>hummus</li>
+</ul>
+```
+
+### 有序列表
+
+[`<ol>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol)
+
+```html
+<ol>
+    <li>Drive to the end of the road</li>
+    <li>Turn right</li>
+    <li>Go straight across the first two roundabouts</li>
+    <li>Turn left at the third roundabout</li>
+    <li>The school is on your right, 300 meters up the road</li>
+</ol>
+```
+
+### 列表嵌套
+
+```html
+<ol>
+    <li>Remove the skin from the garlic, and chop coarsely.</li>
+    <li>Remove all the seeds and stalk from the pepper, and chop coarsely.</li>
+    <li>Add all the ingredients into a food processor.</li>
+    <li>Process all the ingredients into a paste.
+        <ul>
+            <li>If you want a coarse "chunky" hummus, process it for a short time.</li>
+            <li>If you want a smooth hummus, process it for a longer time.</li>
+        </ul>
+    </li>
+</ol>
+```
+
+## 强调
+
+在 HTML 中，我们使用[`<em>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/em)元素来表示强调，使用[`<strong>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/strong)元素来表示更强的强调。
+
+```html
+<p>This liquid is <strong>highly toxic</strong> —
+if you drink it, <strong>you may <em>die</em></strong>.</p>
+```
+
+默认情况下，浏览器将`<em>`样式设置为斜体，将`<strong>`样式设置为粗体文本，但您不应纯粹使用这些标签来获得斜体或粗体样式。
+
+## 斜体、粗体、下划线
+
+像这样[`<b>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/b)（粗体）、[`<i>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/i)（斜体）和[`<u>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/u)（下划线）只影响表现而不影响语义的元素被称为**表现元素**，不应再使用。因为正如我们之前看到的，语义对可访问性、搜索引擎优化等非常重要。
+
+最佳实践：
+
+- [`<i>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/i) ：外来词、分类名称、技术术语、思想...
+- [`<b>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/b) ：关键词、产品名称、引导句......
+- [`<u>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/u) ：专有名称、拼写错误......
+
+由于超链接经常使用下划线，因此最好使用 CSS 将`<u>`的默认下划线样式更改为更适合内容的样式。
+
+```html
+<!-- scientific names -->
+<p>
+    The Ruby-throated Hummingbird (<i>Archilochus colubris</i>)
+    is the most common hummingbird in Eastern North America.
+</p>
+
+<!-- foreign words -->
+<p>
+    The menu was a sea of exotic words like <i lang="uk-latn">vatrushka</i>,
+    <i lang="id">nasi goreng</i> and <i lang="fr">soupe à l'oignon</i>.
+</p>
+
+<!-- a known misspelling -->
+<p>
+    Someday I'll learn how to <u style="text-decoration-line: underline; text-decoration-style: wavy;">spel</u> better.
+</p>
+
+<!-- Highlight keywords in a set of instructions -->
+<ol>
+    <li>
+        <b>Slice</b> two pieces of bread off the loaf.
+    </li>
+    <li>
+        <b>Insert</b> a tomato slice and a leaf of
+        lettuce between the slices of bread.
+    </li>
+</ol>
+```
+
+# 超链接
+
+# 表单
+
+# 图形
 
 ## 画布
 
