@@ -64,6 +64,7 @@ XHTML 1.0：
 
 ```html
 <html lang="en-US">
+<html lang="zh-Hans"> （简体中文）
 ```
 
 这在很多方面都很有用。如果设置了语言，搜索引擎将更有效地为您的 HTML 文档编制索引，并且对于使用屏幕阅读器的人更有帮助。
@@ -74,7 +75,9 @@ XHTML 1.0：
 <p>Japanese example: <span lang="ja">ご飯が熱い。</span>.</p>
 ```
 
-语言代码由[ISO 639-1](https://en.wikipedia.org/wiki/ISO_639-1)标准定义。您可以[在 HTML 和 XML](https://www.w3.org/International/articles/language-tags/)中的[语言标签中](https://www.w3.org/International/articles/language-tags/)找到有关它们的更多信息。
+语言代码由[ISO 639-1](https://en.wikipedia.org/wiki/ISO_639-1)标准定义。您可以在 HTML 和 XML中的[语言标签中](https://www.w3.org/International/articles/language-tags/)找到有关它们的更多信息。
+
+在父层元素声明的语言信息，将被子层元素所继承，除非这些元素显式声明了不同的语言。
 
 # HTML注释
 
@@ -282,7 +285,17 @@ started with developing web sites and applications.">
 
 ![异步与延迟](html/async-defer.jpg)
 
-> **注意**：该`<script>`元素可能看起来像一个空元素，但它不是，因此需要一个结束标记。除了指向外部脚本文件之外，您还可以选择将脚本放在`<script>`元素中。
+> **注意**：该`<script>`元素可能看起来像一个空元素，但它不是，因此需要一个结束标记。
+
+除了指向外部脚本文件之外，您还可以选择将脚本放在`<script>`元素中。
+
+```html
+<script>
+document.getElementById('demo').innerHTML = '我的第一段JavaScript';
+</script>
+```
+
+> 旧的JavaScript例子也许会使用`type`属性，例如`<script type='text/javascript'>`。现在已经不需要了，JavaScript已经是HTML中的默认脚本语言了。
 
 # HTML正文
 
@@ -291,6 +304,12 @@ started with developing web sites and applications.">
 ## HTML中的空格
 
 无论您在 HTML 元素内容中使用多少空格（包括换行符），HTML 解析器在呈现代码时会将每个空格序列缩减为一个空格。
+
+# HTML文本
+
+## 标题
+
+## 段落
 
 # HTML表单
 
