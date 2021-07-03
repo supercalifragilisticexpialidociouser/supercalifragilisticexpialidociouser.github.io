@@ -356,6 +356,33 @@ started with developing web sites and applications.">
 </ol>
 ```
 
+### 描述列表
+
+列表的目的是标记一组条目及其相关描述，例如术语和定义、问题和答案等。[`<dl>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dl) [`<dt>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dt) [`<dd>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dd)
+
+```html
+<dl>
+    <dt>soliloquy</dt>
+    <dd>In drama, where a character speaks to themselves, representing their inner thoughts or feelings and in the process relaying them to the audience (but not to other characters.)</dd>
+    <dt>monologue</dt>
+    <dd>In drama, where a character speaks their thoughts out loud to share them with the audience and any other characters present.</dd>
+    <dt>aside</dt>
+    <dd>In drama, where a character shares a comment only with the audience for humorous or dramatic effect. This is usually a feeling, thought, or piece of additional background information.</dd>
+</dl>
+```
+
+请注意，允许一个术语具有多个描述，例如：
+
+```html
+<dl>
+    <dt>aside</dt>
+    <dd>In drama, where a character shares a comment only with the audience for humorous or dramatic effect. This is usually a feeling, thought, or piece of additional background information.</dd>
+    <dd>In writing, a section of content that is related to the current topic, but doesn't fit directly into the main flow of content so is presented nearby (often in a box off to the side.)</dd>
+</dl>
+```
+
+
+
 ### 列表嵌套
 
 ```html
@@ -371,6 +398,44 @@ started with developing web sites and applications.">
     </li>
 </ol>
 ```
+
+## 引文（quotations）
+
+### 块引文
+
+如果块级内容的一部分（无论是一个段落、多个段落、一个列表等）是从其他地方引用的，您应该将其包装在一个[`<blockquote>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/blockquote)元素中以表示这一点，并将指向引文来源的 URL作为[`cite`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/blockquote#attr-cite)属性的值。
+
+```html
+<blockquote cite="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/blockquote">
+    <p>The <strong>HTML <code>&lt;blockquote&gt;</code> Element</strong> (or <em>HTML Block Quotation Element</em>) indicates that the enclosed text is an extended quotation.</p>
+</blockquote>
+```
+
+### 内联引文
+
+内联引用的工作方式完全相同，只是它们使用了[`<q>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/q)元素。
+
+```html
+<p>The quote element — <code>&lt;q&gt;</code> — is <q cite="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/q">intended for short quotations that don't require paragraph breaks.</q></p>
+```
+
+### 参考
+
+[`<cite>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/cite)元素用来引用参考的资料，例如：书、论文、文章、博客、电影、帖子等。
+
+```html
+<p>According to the <a href="/en-US/docs/Web/HTML/Element/blockquote">
+    <cite>MDN blockquote page</cite></a>:
+</p>
+
+<blockquote cite="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/blockquote">
+    <p>The <strong>HTML <code>&lt;blockquote&gt;</code> Element</strong> (or <em>HTML Block Quotation Element</em>) indicates that the enclosed text is an extended quotation.</p>
+</blockquote>
+
+<p>The quote element — <code>&lt;q&gt;</code> — is <q cite="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/q">intended for short quotations that don't require paragraph breaks.</q> -- <a href="/en-US/docs/Web/HTML/Element/q"><cite>MDN q page</cite></a>.</p>
+```
+
+
 
 ## 强调
 
@@ -425,7 +490,459 @@ if you drink it, <strong>you may <em>die</em></strong>.</p>
 </ol>
 ```
 
+## 缩写
+
+元素[`<abbr>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/abbr) 的内容是缩略词，它的`title`属性提供了该缩略词的完整形式。当鼠标悬停在缩略词上时，将出现工具提示，显示`title`属性的值。
+
+```html
+<p>We use <abbr title="Hypertext Markup Language">HTML</abbr> to structure our web documents.</p>
+```
+
+## 联系信息
+
+ [`address`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/address)
+
+```html
+<address>
+  <p>
+    Chris Mills<br>
+    Manchester<br>
+    The Grim North<br>
+    UK
+  </p>
+
+  <ul>
+    <li>Tel: 01234 567 890</li>
+    <li>Email: me@grim-north.co.uk</li>
+  </ul>
+</address>
+
+<address>
+  <p>Page written by <a href="../authors/chris-mills/">Chris Mills</a>.</p>
+</address>
+```
+
+## 上下标
+
+[`<sup>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/sup)（上标）[`<sub>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/sub)（下标）
+
+```html
+<p>My birthday is on the 25<sup>th</sup> of May 2001.</p>
+<p>Caffeine's chemical formula is C<sub>8</sub>H<sub>10</sub>N<sub>4</sub>O<sub>2</sub>.</p>
+```
+
+## 代码
+
+有许多元素可用于使用 HTML 标记计算机代码：
+
+- [`<code>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/code)：用于标记通用的计算机代码片段。
+- [`<pre>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/pre)：用于保留空格（通常是代码块）——如果您在文本中使用缩进或多余的空格，浏览器将忽略它并且您将不会在呈现的页面上看到它。`<pre></pre>`但是，如果您将文本包装在标签中，您的空白将与您在文本编辑器中看到的相同。
+- [`<var>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/var): 用于专门标记变量名称。
+- [`<kdb>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/kbd)：用于标记输入到计算机的键盘（和其他类型）输入。
+- [`<samp>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/samp)：用于标记计算机程序的输出。
+
+```html
+<pre><code>var para = document.querySelector('p');
+
+para.onclick = function() {
+  alert('Owww, stop poking me!');
+}</code></pre>
+
+<p>You shouldn't use presentational elements like <code>&lt;font&gt;</code> and <code>&lt;center&gt;</code>.</p>
+
+<p>In the above JavaScript example, <var>para</var> represents a paragraph element.</p>
+
+<p>Select all the text with <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>A</kbd>.</p>
+
+<pre>$ <kbd>ping mozilla.org</kbd>
+<samp>PING mozilla.org (63.245.215.20): 56 data bytes
+64 bytes from 63.245.215.20: icmp_seq=0 ttl=40 time=158.233 ms</samp></pre>
+```
+
+## 时间和日期
+
+[`<time>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time)元素以机器可读格式标记时间和日期。
+
+```html
+<!-- Standard simple date -->
+<time datetime="2016-01-20">20 January 2016</time>
+<!-- Just year and month -->
+<time datetime="2016-01">January 2016</time>
+<!-- Just month and day -->
+<time datetime="01-20">20 January</time>
+<!-- Just time, hours and minutes -->
+<time datetime="19:30">19:30</time>
+<!-- You can do seconds and milliseconds too! -->
+<time datetime="19:30:01.856">19:30:01.856</time>
+<!-- Date and time -->
+<time datetime="2016-01-20T19:30">7.30pm, 20 January 2016</time>
+<!-- Date and time with timezone offset -->
+<time datetime="2016-01-20T19:30+01:00">7.30pm, 20 January 2016 is 8.30pm in France</time>
+<!-- Calling out a specific week number -->
+<time datetime="2016-W04">The fourth week of 2016</time>
+```
+
+## 内联非语义元素
+
+[`<span>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/span)是一个内联非语义元素，只有当您想不出更好的语义文本元素来包装您的内容，或者不想添加任何特定含义时，才应该使用它。
+
+```html
+<p>The King walked drunkenly back to his room at 01:00, the beer doing nothing to aid him as he staggered through the door <span class="editor-note">[Editor's note: At this point in the play, the lights should be down low]</span>.</p>
+```
+
+## 换行
+
+[`<br>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/br)在段落中换行。
+
+```html
+<p>There once was a man named O'Dell<br>
+Who loved to write HTML<br>
+But his structure was bad, his semantics were sad<br>
+and his markup didn't read very well.</p>
+```
+
+## 水平线
+
+[`<hr>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/hr)元素在文档中创建一条水平线，表示文本中的主题更改（例如主题或场景的更改）。
+
+```html
+<p>Ron was backed into a corner by the marauding netherbeasts. Scared, but determined to protect his friends, he raised his wand and prepared to do battle, hoping that his distress call had made it through.</p>
+<hr>
+<p>Meanwhile, Harry was sitting at home, staring at his royalty statement and pondering when the next spin off series would come out, when an enchanted distress letter flew through his window and landed in his lap. He read it hazily and sighed; "better get back to work then", he mused.</p>
+```
+
+
+
 # 超链接
+
+超链接允许我们将文档链接到其他文档或资源，链接到文档的特定部分，或在某个网址上提供应用程序。
+
+> **注意**：超链接的URL 可以指向 HTML 文件、文本文件、图像、文本文档、视频和音频文件，或任何存在于 Web 上的内容。如果网络浏览器不知道如何显示或处理文件，它会询问您是否要打开文件（在这种情况下，打开或处理文件的职责会传递给设备上合适的本机应用程序）或下载文件（在这种情况下，您可以稍后尝试处理）。
+>
+> 最佳实践：
+>
+> - 在链接到*同一网站*内的其他位置时，您应该尽可能使用相对链接。当您链接到另一个网站时，您需要使用绝对链接。当您使用绝对 URL 时，浏览器首先在域名系统 ( [DNS](https://developer.mozilla.org/en-US/docs/Glossary/DNS) )上查找服务器的真实位置。然后它转到该服务器并找到正在请求的文件。使用相对 URL，浏览器只查找在同一服务器上请求的文件。如果您在可以使用相对 URL 的地方使用绝对 URL，您会不断地使您的浏览器做额外的工作，这意味着它的执行效率会降低。
+>
+> - 不要在链接文本中重复 URL。
+>
+> - 不要在链接文本中说“链接”或“链接到”——这只是噪音。
+>
+> - 尽量减少同一文本的多个副本链接到不同位置的情况。
+>
+> - 对需要在新页签或窗口中打开的链接，使用图标或样式显式标记出来。例如：
+>
+>    ```html
+>    <a href="https://firefox.com" class="external" rel=" noopener">下载 Firefox</a>
+>    
+>    <style>
+>        a.external:after {
+>            background: transparent url(/static/media/external.e091ac5d.svg) 0 0 no-repeat;
+>            background-size: 16px;
+>            content: "";
+>            display: inline-block;
+>            height: 16px;
+>            margin-left: 3px;
+>            width: 16px;
+>            box-sizing: border-box;
+>        }
+>    </style>
+>    ```
+>
+>    
+
+```html
+<a href="https://www.mozilla.org/en-US/">the Mozilla homepage</a>
+```
+
+## 使用 title 属性添加支持信息
+
+将鼠标悬停在链接上，就会以工具提示方式显示`title`属性的值。
+
+```html
+<a href="https://www.mozilla.org/en-US/"
+   title="The best place to find more information about Mozilla's
+          mission and how to contribute">the Mozilla homepage</a>
+```
+
+> **注意**：链接标题仅在鼠标悬停时显示，这意味着依赖键盘控制或触摸屏浏览网页的人将难以访问标题信息。如果标题的信息对于页面的可用性确实很重要，那么您应该以所有用户都可以访问的方式呈现它，例如将其放入常规文本中。
+
+## 块级链接
+
+几乎任何内容都可以做成链接，甚至是[块级元素](https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML/Getting_started#block_versus_inline_elements)。
+
+```html
+<a href="https://www.mozilla.org/en-US/">
+    <img src="mozilla-image.png" alt="mozilla logo that links to the mozilla homepage">
+</a>
+```
+
+## 文档片段
+
+可以链接到 HTML 文档的特定部分（称为**文档片段）**，而不仅仅是链接到文档的顶部。为此，您首先必须为要链接到的元素分配一个[`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id)属性。
+
+```html
+<h2 id="Mailing_address">Mailing address</h2>
+```
+
+然后在URL的末尾跟上一个`#`号，并在它后面跟上将要链接的`id`：
+
+```html
+<p>Want to write us a letter? Use our <a href="contacts.html#Mailing_address">mailing address</a>.</p>
+```
+
+甚至可以使用文档片段来链接到*当前文档的另一部分*：
+
+```html
+<p>The <a href="#Mailing_address">company mailing address</a> can be found at the bottom of this page.</p>
+```
+
+## 链接到下载
+
+当您链接到要下载而不是在浏览器中打开的资源时，您可以使用该`download`属性提供默认保存文件名。
+
+```html
+<a href="https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US"
+   download="firefox-latest-64bit-installer.exe">
+    Download Latest Firefox for Windows (64-bit) (English, US)
+</a>
+```
+
+## 电子邮件链接
+
+```html
+<a href="mailto:nowhere@mozilla.org">Send email to nowhere</a>
+```
+
+事实上，电子邮件地址是可选的。如果您省略它并且[`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href)是“mailto:”，则用户的电子邮件客户端将打开一个没有目标地址的新外发电子邮件窗口。这通常用作“分享”链接，用户可以单击这些链接将电子邮件发送到他们选择的地址。
+
+这是一个包含抄送、密送、主题和正文的示例：
+
+```html
+<a href="mailto:nowhere@mozilla.org?      
+         cc=name2@rapidtables.com&
+         bcc=name3@rapidtables.com&
+         subject=The%20subject%20of%20the%20email&body=The%20body%20of%20the%20email">
+    Send mail with cc, bcc, subject and body
+</a>
+```
+
+注意：每个字段的值必须是 URL 编码的，即包含非打印字符（不可见字符，如制表符、回车符和分页符）和空格百分比转义。
+
+## 在目标中打开链接
+
+`<a>` 标签的 target 属性规定在何处打开链接文档。
+
+如果在一个 `<a>` 标签内包含一个 `target` 属性，浏览器将会载入和显示用这个标签的 `href` 属性命名的、名称与这个目标吻合的框架或者窗口中的文档。如果这个指定名称或 `id` 的框架或者窗口不存在，浏览器将打开一个新的窗口，给这个窗口一个指定的标记，然后将新的文档载入那个窗口。从此以后，超链接文档就可以指向这个新的窗口。
+
+### 在新窗口中打开链接
+
+```html
+<h3>Table of Contents</h3>
+<ul>
+    <li><a href="pref.html" target="view_window">Preface</a></li>
+    <li><a href="chap1.html" target="view_window">Chapter 1</a></li>
+    <li><a href="chap2.html" target="view_window">Chapter 2</a></li>
+    <li><a href="chap3.html" target="view_window">Chapter 3</a></li>
+</ul>
+```
+
+当用户第一次选择内容列表中的某个链接时，浏览器将打开一个新的窗口，将它标记为 "view_window"，然后在其中显示希望显示的文档内容。如果用户从这个内容列表中选择另一个链接，且这个 "view_window" 仍处于打开状态，浏览器就会再次将选定的文档载入那个窗口，取代刚才的那些文档。
+
+### 在框架中打开链接
+
+框架：
+
+```html
+<frameset cols="100,*">
+    <frame src="toc.html">
+    <frame src="pref.html" name="view_frame">
+</frameset>
+```
+
+toc.html：
+
+```html
+<h3>Table of Contents</h3>
+<ul>
+    <li><a href="pref.html" target="view_frame">Preface</a></li>
+    <li><a href="chap1.html" target="view_frame">Chapter 1</a></li>
+    <li><a href="chap2.html" target="view_frame">Chapter 2</a></li>
+    <li><a href="chap3.html" target="view_frame">Chapter 3</a></li>
+</ul>
+```
+
+当用户从左边框架中的目录中选择一个链接时，浏览器会将这个关联的文档载入并显示在右边这个 "view_frame" 框架中。当其他链接被选中时，右边这个框架中的内容也会发生变化，而左边这个框架始终保持不变。
+
+### 特殊目标
+
+有 4 个保留的目标名称用作特殊的文档重定向操作：
+
+| 值          | 描述                                                         |
+| :---------- | :----------------------------------------------------------- |
+| _blank      | 总在一个新打开、未命名的窗口中打开被链接文档。               |
+| _self       | 默认。在相同的框架或窗口中打开被链接文档。                   |
+| _parent     | 在父窗口或者包含来超链接引用的框架的框架集中打开被链接文档。如果这个链接是在顶级窗口或者在顶级框架中，那么它与目标 `_self` 等效。 |
+| _top        | 在整个窗口中打开被链接文档。                                 |
+| *framename* | 在指定的框架中打开被链接文档。注意：除了4个保留的目标名以下划线开头，任何其他用一个下划线作为开头的窗口或者目标都会被浏览器忽略，因此，不要将下划线作为文档中定义的任何框架 `name` 或 `id` 的第一个字符。 |
+
+## `<base>`元素
+
+`<base>` 元素为页面上的所有相对URL规定基准地址或默认目标。默认情况下，页面中的相对URL的基准地址就是当前页面的地址。
+
+```html
+<head>
+    <base href="https://www.example.com/">
+    <base target="_blank">
+    <!-- <base target="_top" href="https://example.com/"> -->
+</head>
+```
+
+注意：[Open Graph](https://ogp.me/)标签不理`<base>`标签，应始终使用绝对 URL。例如：
+
+```html
+<meta property="og:image" content="https://example.com/thumbnail.jpg">
+```
+
+# 网站布局
+
+HTML 提供了可以用来表示网站结构的专用标签，例如：
+
+- **页眉：**[`<header>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header)，通常作为`<body>`、`<article>`和`<section>`的子项。
+- **导航栏：**[`<nav>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/nav)。
+- **主要内容是：**[`<main>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/main)与由代表的各种内容的小节[`<article>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/article)（例如：论坛帖子、杂志或报纸文章、博客条目、产品卡、用户提交的评论、交互式小部件或小工具，或任何其他独立的内容项）、[`<section>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/section)（节，例如：迷你地图、一组文章标题和摘要）和[`<div>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/div)（块级非语义元素，只有在您想不出更好的语义块元素来使用，或者不想添加任何特定含义时才应该使用它）元件。
+- **侧边栏：**[`<aside>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/aside) ，经常放在`<main>`里面。
+- **页脚：**[`<footer>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/footer)。
+
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+
+        <title>My page title</title>
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300|Sonsie+One" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="style.css">
+
+        <!-- the below three lines are a fix to get HTML5 semantic elements working in old versions of Internet Explorer-->
+        <!--[if lt IE 9]>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script>
+        <![endif]-->
+    </head>
+
+    <body>
+        <!-- Here is our main header that is used across all the pages of our website -->
+
+        <header>
+            <h1>Header</h1>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Our team</a></li>
+                <li><a href="#">Projects</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+
+            <!-- A Search form is another common non-linear way to navigate through a website. -->
+
+            <form>
+                <input type="search" name="q" placeholder="Search query">
+                <input type="submit" value="Go!">
+            </form>
+        </nav>
+
+        <!-- Here is our page's main content -->
+        <main>
+
+            <!-- It contains an article -->
+            <article>
+                <h2>Article heading</h2>
+
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Donec a diam lectus. Set sit amet ipsum mauris. Maecenas congue ligula as quam viverra nec consectetur ant hendrerit. Donec et mollis dolor. Praesent et diam eget libero egestas mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur.</p>
+
+                <h3>Subsection</h3>
+
+                <p>Donec ut librero sed accu vehicula ultricies a non tortor. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aenean ut gravida lorem. Ut turpis felis, pulvinar a semper sed, adipiscing id dolor.</p>
+
+                <p>Pelientesque auctor nisi id magna consequat sagittis. Curabitur dapibus, enim sit amet elit pharetra tincidunt feugiat nist imperdiet. Ut convallis libero in urna ultrices accumsan. Donec sed odio eros.</p>
+
+                <h3>Another subsection</h3>
+
+                <p>Donec viverra mi quis quam pulvinar at malesuada arcu rhoncus. Cum soclis natoque penatibus et manis dis parturient montes, nascetur ridiculus mus. In rutrum accumsan ultricies. Mauris vitae nisi at sem facilisis semper ac in est.</p>
+
+                <p>Vivamus fermentum semper porta. Nunc diam velit, adipscing ut tristique vitae sagittis vel odio. Maecenas convallis ullamcorper ultricied. Curabitur ornare, ligula semper consectetur sagittis, nisi diam iaculis velit, is fringille sem nunc vet mi.</p>
+            </article>
+
+            <!-- the aside content can also be nested within the main content -->
+            <aside>
+                <h2>Related</h2>
+
+                <ul>
+                    <li><a href="#">Oh I do like to be beside the seaside</a></li>
+                    <li><a href="#">Oh I do like to be beside the sea</a></li>
+                    <li><a href="#">Although in the North of England</a></li>
+                    <li><a href="#">It never stops raining</a></li>
+                    <li><a href="#">Oh well...</a></li>
+                </ul>
+            </aside>
+
+        </main>
+
+        <!-- And here is our main footer that is used across all the pages of our website -->
+
+        <footer>
+            <p>©Copyright 2050 by nobody. All rights reversed.</p>
+        </footer>
+
+    </body>
+</html>
+```
+
+## 折叠面板
+
+```html
+<details>
+    <summary>System Requirements</summary>
+    <p>Requires a computer running an operating system. The computer
+    must have some memory and ideally some kind of long-term storage.
+    An input device as well as some form of output device is
+    recommended.</p>
+</details>
+
+<style>
+    details {
+        font: 16px "Open Sans", Calibri, sans-serif;
+        width: 620px;
+    }
+
+    details > summary {
+        padding: 2px 6px;
+        width: 15em;
+        background-color: #ddd;
+        border: none;
+        box-shadow: 3px 3px 4px black;
+        cursor: pointer;
+        list-style: none;  /*去掉折叠的小部件*/
+    }
+
+    details > summary::-webkit-details-marker {  /*Chrome去掉折叠的小部件*/
+        display: none;
+    }
+
+    details > p {
+        border-radius: 0 0 10px 10px;
+        background-color: #ddd;
+        padding: 2px 6px;
+        margin: 0;
+        box-shadow: 3px 3px 4px black;
+    }
+</style>
+```
+
+
+
+# 表格
 
 # 表单
 
@@ -437,14 +954,31 @@ if you drink it, <strong>you may <em>die</em></strong>.</p>
 
 # HTML媒体
 
-# 地理定位
+## 图像
 
-# 拖放
+## 视频
 
-# Web存储
+## 音频
 
-# 应用缓存
+## 嵌入内容
 
-# Web Worker
 
-# Server-Sent 事件
+
+# HTML API
+
+## 地理定位
+
+## 拖放
+
+## Web存储
+
+## 应用缓存
+
+## Web Worker
+
+## Server-Sent 事件
+
+# HTML验证
+
+通过[标记验证服务](https://validator.w3.org/)运行您的 HTML 页面- 由 W3C 创建和维护。这个网页将一个 HTML 文档作为输入，然后给你一个报告，告诉你你的 HTML 有什么问题。
+
