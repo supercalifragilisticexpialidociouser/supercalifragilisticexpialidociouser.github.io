@@ -1,26 +1,24 @@
 ---
 title: Manjaro-i3
 date: 2019-02-28 13:53:25
-tags:
+tags: [21.0.7]
 ---
 
 # 配置源
+
+打开GUI安装器（mod-Z，选中“System”->“Add/remove software”） -> 首选项 ->官方软件仓库 -> “使用镜像”改成“China”，然后点击“刷新镜像列表”按钮。。
+
+或者执行下列命令：
 
 ```bash
 $ sudo pacman-mirrors -c China
 ```
 
-# 添加archlinuxcn源
-
-编辑`/etc/pacman.conf`，添加
-
-```
-[archlinuxcn]
-SigLevel = Optional TrustedOnly
-Server = https://mirrors.ustc.edu.cn/archlinuxcn/$arch
-```
-
 # 更新系统
+
+使用GUI安装器更新系统。
+
+或者：
 
 ```bash
 $ sudo pacman -Syyu
@@ -28,148 +26,7 @@ $ sudo pacman -Syyu
 
 > 如果有大量软件包要更新，建议使用命令行。GUI更新工具比较慢，而且容易崩溃。
 
-# 导入GPG Key
-
-```bash
-$ sudo pacman -S archlinuxcn-keyring
-```
-
-重启系统。
-
-<!--more-->
-
-# 设置时钟
-
-方法一：通过GUI配置界面
-
-方法二：命令行
-
-```bash
-$ sudo hwclock --systohc
-同步时间：
-$ ntpdate -u ntp.api.bz
-```
-
-让Windows和Linux时间显示一致：
-
-```bash
-$ timedatectl set-local-rtc 1 --adjust-system-clock
-```
-
-上面命令让Linux将本机的存储时间解释为当地时间，Linux将不再将时区调整应用于存储在主板上的时间，从而与Windows保持一致。 
-
-# 更换浏览器
-
-首先，卸载原装的Pale Moon浏览器。
-
-然后，安装Chromium浏览器：
-
-```bash
-$ sudo pacman -S google-chrome
-```
-
-将`Mod-F2`快捷键配置成打开Chromium，这通过修改`~/.i3/config`：
-
-```
-bindsym $mod+F2 exec --no-startup-id chromium（通过GUI安装器安装的，选择这个）
-或
-bindsym $mod+F2 exec --no-startup-id google-chrome-stable
-```
-
-修改`~/.profile`：将`export BROWSER=/usr/bin/palemoon`改成`export BROWSER=/usr/bin/chromium`。
-
-
-
-需要重启才能生效。
-
-代理：
-
-```bash
-$ google-chrome-stable --proxy-server="socks5://localhost:1080"
-```
-
-登录`chrome.google.com`下载`SwitchyOmega`，导入配置。
-
-# 安装搜狗输入法
-
-```bash
-$ sudo pacman -S fcitx-im #默认全部安装
-$ sudo pacman -S fcitx-configtool
-```
-
-安装完成后，编辑`~/.profile`或`~/.xprofile`，添加如下配置：
-
-```
-export GTK_IM_MODULE=fcitx
-export QT_IM_MODULE=fcitx
-export XMODIFIERS="@im=fcitx"
-```
-
-然后，可以通过GUI工具`fcitx-configtool`调节输入法设置。
-
-重启系统后，按mod-D，然后输入`fcitx`回车，状态栏上就会出现输入法。右击“Configure”进入配置界面，点击添加输入法。在出现的对话框中，去掉“Only Show Current Language”勾选项，选择 WubiPinyin。
-
-# 配置显卡驱动
-
-## 测试显卡性能
-
-```bash
-$ glxgears
-```
-
-## 安装显卡驱动
-
-```bash
-$ sudo mhwd -a pci nonfree 0300
-```
-
-## 多显示器配置
-
-使用xrandr配置
-
-# 安装字体
-
-推荐安装Nerd Font，另外，再安装如下字体：
-
-```bash
-$ pacman -S adobe-source-code-pro-fonts wqy-bitmapfont wqy-microhei wqy-zenhei wqy-microhei-lite
-```
-
-可以使用`fc-list`显示系统已安字体的位置及字体名：
-
-```bash
-$ fc-list | grep Source
-```
-
-# 配置URxvt
-
-Manjaro默认终端是URxvt。
-
-## 更改URxvt的字体
-
-编辑`~/.Xresources`：
-
-```
-xft.dpi:125  #设置dpi，对4k高分屏需要设置，设置成默认值的2倍试试。
-URxvt.font: xft:Source Code Pro:style=Regular:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:antialias=True:pixelsize=18
-URxvt.boldfont: xft:Source Code Pro:style=Bold:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:antialias=True:pixelsize=18
-```
-
-如果使用Nerd Font，则
-
-```
-URxvt.font: xft:MesloLGS NF:size=11
-```
-
-
-
-## 使用Chromium打开链接
-
-编辑`~/.Xresources`：
-
-```
-URxvt*url-launcher:     chromium
-```
+更新完成后，重启系统。
 
 # 配置Shell
 
@@ -203,25 +60,7 @@ $ chsh -s /bin/zsh
 
 也可以直接修改`/etc/passwd`中某个用户默认的Shell。
 
-## 安装oh-my-zsh
-
-安装：
-
-```bash
-$ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-```
-
-> 不要加`sudo`，否则会安装到`root`用户下，而不是当前用户。
-
-安装完成后，重启系统。
-
-修改主题（默认是`robbyrussell`）：编辑`~/.zshrc`
-
-```
-ZSH_THEME="agnoster"
-```
-
-官方主题位于：`.oh-my-zsh/themes/`下，第三方主题位于：`.oh-my-zsh/custom/themes/`下。
+## 安装Powerlevel10k或Pure（可选）
 
 ### Powerlevel10k主题
 
@@ -231,89 +70,94 @@ ZSH_THEME="agnoster"
 
 ### Pure主题
 
-可独立于oh-my-zsh。
-
 参见：https://github.com/sindresorhus/pure
 
-### Powerlevel9k主题
+# 安装字体
 
-安装步骤：
-
-1. 下载主题到指定目录：
-
-   ```bash
-   $ git clone https://github.com/Powerlevel9k/powerlevel9k.git ~/.oh-my-zsh/custom/themes/powerlevel9k
-   ```
-
-2. 在 `~/.zshrc` 首行添加：
-
-   ```
-   export TERM="xterm-256color"
-   ```
-
-3. 编辑 `~/.zshrc` 来启用主题：
-
-   ```
-   ZSH_THEME="powerlevel9k/powerlevel9k"
-   ```
-
-4. 安装[Nerd Fonts](https://github.com/ryanoasis/nerd-fonts)字体：
-
-   安装nerd-fonts-complete包。
-
-   然后，在`~/.zshrc`的指定powerlevel9k主题（即`ZSH_THEME="powerlevel9k/powerlevel9k"`）之前，添加：`POWERLEVEL9K_MODE='nerdfont-complete'`。
-
-   最后，修改`~/.Xresources`为：
-
-   ```
-   URxvt.font: xft:SauceCodePro Nerd Font Mono:style=Regular:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:antialias=True:pixelsize=18
-   URxvt.boldfont: xft:SauceCodePro Nerd Font Mono:style=Bold:antialias=True:pixelsize=18,xft:WenQuanYi Zen Hei:antialias=True:pixelsize=18
-   ```
-
-   > 注意：这里一定要用等宽字体（即这里的带“Mono”后缀），否则，有些双宽度图标字符显示不出来。
-
-5. 常用Powerlevel9k配置（Linux终端上粘贴快捷键是：Shift-Ctrl-V）
-
-   ```
-   # 左侧栏目显示的要素
-   POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon context dir vcs)
-   # 新起一行显示命令
-   POWERLEVEL9K_PROMPT_ON_NEWLINE=true
-   # 默认的上下行连线不好看，下面是比较美观的设置
-   # POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX="↱"
-   # POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="↳ "
-   # POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX=""
-   # POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="▶ "
-   POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX="%{%F{249}%}\u250f"
-   POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="%{%F{249}%}\u2517%{%F{default}%}▶ "
-   # 新的命令与上面的命令隔开一行
-   POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
-   # 设置分隔符
-   # POWERLEVEL9K_LEFT_SEGMENT_SEPARATOR='\UE0BC'
-   POWERLEVEL9K_RIGHT_SEGMENT_SEPARATOR='\UE0BA'
-   ```
-
-6. 重启一下系统。
-
-## 更新oh-my-zsh
+用GUI安装器或下列命令安装ttf-meslo-nerd-font-powerlevel10k、wqy-microhei字体：（新版本Manjaro已经默认安装了adobe-source-code-pro-fonts）
 
 ```bash
-$ upgrade_oh_my_zsh
+$ pacman -S ttf-meslo-nerd-font-powerlevel10k wqy-microhei
 ```
 
-## 卸载oh-my-zsh
+# 配置conky
+
+桌面右侧的状态栏：`/usr/share/conky/conky_maia`。
+
+桌面左侧的快捷键显示栏：`/usr/share/conky/conky1.10_shortcuts_maia`。
+
+修改conky_maia支持中文：（修改conky_maia中的size=16和size=18的字体为WenQuanYi Micro Hei。）
+
+```
+font = 'WenQuanYi Micro Hei:size=8',
+```
+
+# 配置URxvt
+
+Manjaro默认终端是URxvt。
+
+## 更改URxvt的字体
+
+编辑`~/.Xresources`：
+
+```
+xft.dpi:125  #设置dpi，对4k高分屏需要设置，设置成默认值的2倍试试。
+……
+URxvt.font: xft:MesloLGS NF:size=11  #使用Nerd Font
+```
+
+重启系统。
+
+## 使用Chromium打开链接
+
+编辑`~/.Xresources`：
+
+```
+URxvt*url-launcher:     chromium
+```
+
+# 更换浏览器
+
+首先，安装Chromium浏览器：
+
+使用GUI安装器安装，或者：
 
 ```bash
-$ uninstall_oh_my_zsh
+$ sudo pacman -S google-chrome
 ```
 
-# 配置dmenu
+将`Mod-F2`快捷键配置成打开Chromium，这通过修改`~/.i3/config`：
 
-编辑文件`~/.dmenurc`。
+```
+bindsym $mod+F2 exec chromium（通过GUI安装器安装的，选择这个）
+或
+bindsym $mod+F2 exec google-chrome-stable
+```
 
-# 配置i3
+修改`~/.profile`：将`export BROWSER=/usr/bin/palemoon`改成`export BROWSER=/usr/bin/chromium`。
 
-编辑文件`~/.i3/config`。
+然后，卸载原装的Pale Moon浏览器。
+
+重启系统。
+
+# 安装输入法
+
+通过GUI安装器安装*fcitx*和*fcitx-configtool*，或者通过命令安装：
+
+```bash
+$ sudo pacman -S fcitx-im #默认全部安装
+$ sudo pacman -S fcitx-configtool
+```
+
+安装完成后，编辑`~/.profile`或`~/.xprofile`，添加如下配置：
+
+```
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS="@im=fcitx"
+```
+
+重启系统后，按mod-D，然后输入`fcitx`回车，状态栏上就会出现输入法。右击状态栏中的输入法图标，选中“配置”菜单进入配置界面，点击添加输入法。只	留下“五笔拼音”输入法。
 
 # 配置状态栏
 
@@ -337,25 +181,9 @@ tztime local {
 $ man i3status
 ```
 
-# 配置conky
-
-桌面右侧的状态栏：`/usr/share/conky/conky_maia`。
-
-桌面左侧的快捷键显示栏：`/usr/share/conky/conky1.10_shortcuts_maia`。
-
-修改conky_maia支持中文：
-
-```
-font = 'WenQuanYi Micro Hei:size=8',
-或者
-font = 'WenQuanYi Zen Hei:size=8',
-```
-
-在将系统语言设置成中文后，右侧的星期和月的中文显示不出来，这时可以修改conky_maia中的size=16和size=18的字体为WenQuanYi Micro Hei。
-
 # 安装JDK
 
-安装最新版Open JDK：
+安装最新版Open JDK，使用GU安装器安装或者使用命令安装：
 
 ```bash
 $ sudo pacman -S jdk-openjdk
@@ -385,5 +213,52 @@ $ archlinux-java status
 $ sudo archlinux-java set java-11-openjdk
 ```
 
+# 安装VS Code
 
+使用GUI安装器安装。
 
+设置自带终端的字体：打开*File → Preferences → Settings*，找到*terminal.integrated.fontFamily*，将它的值设置为 `MesloLGS NF`。
+
+安装如下扩展：
+
+- Language Support for Java(TM) by Red Hat
+- Maven for Java
+- Project Manager for Java
+- Debugger for Java
+- Java Test Runner
+- Spring Initializr Java Support
+- EditorConfig for VS Code
+- Angular Language Service
+- Angular Snippets (Version 12)
+
+# 安装Typora
+
+```bash
+$ yay -S typora
+```
+
+# 安装NVM
+
+使用GUI安装器安装。
+
+然后，执行：
+
+```bash
+$ echo 'source /usr/share/nvm/init-nvm.sh' >> ~/.zshrc
+```
+
+重新打开终端。
+
+安装指定版本的Node.js：
+
+```bash
+$ nvm install 14.17.2
+```
+
+查找可用的LTS Node.js：
+
+```bash
+$ nvm ls-remote --lts
+```
+
+设置国内源：
