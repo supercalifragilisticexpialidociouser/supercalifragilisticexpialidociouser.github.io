@@ -633,7 +633,7 @@ and his markup didn't read very well.</p>
 >
 >    ```html
 >    <a href="https://firefox.com" class="external" rel=" noopener">下载 Firefox</a>
->    
+>       
 >    <style>
 >        a.external:after {
 >            background: transparent url(/static/media/external.e091ac5d.svg) 0 0 no-repeat;
@@ -946,17 +946,152 @@ HTML 提供了可以用来表示网站结构的专用标签，例如：
 
 # 表单
 
-# 图形
-
-## 画布
-
-## SVG
-
-# HTML媒体
+# 多媒体
 
 ## 图像
 
+为了在网页上放置一个简单的图像，我们使用[`<img>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img)元素。
+
+```html
+<img src="dinosaur.jpg">
+```
+
+> **注意**：搜索引擎也会读取图像文件名并将它们计入 SEO。因此，你应该给你的图像一个描述性的文件名。
+>
+> **注意**：注意：元素`<img>`和 `<video>`有时被称为[替换元素](https://developer.mozilla.org/en-US/docs/Web/CSS/Replaced_element)。这是因为元素的内容和大小是由外部资源（如图像或视频文件）定义的，而不是由元素本身的内容定义的。
+
+### 替代文字
+
+属性`alt`是图像的文本描述，用于在图像无法看到/显示或由于互联网连接缓慢而需要很长时间渲染时显示替代文本。
+
+```html
+<img src="images/dinosaur.jpg"
+     alt="The head and torso of a dinosaur skeleton;
+          it has a large head with long sharp teeth">
+```
+
+### 宽度和高度
+
+您可以使用`width`和`height`属性来指定图像的宽度和高度。
+
+```html
+<img src="images/dinosaur.jpg"
+     alt="The head and torso of a dinosaur skeleton;
+          it has a large head with long sharp teeth"
+     width="400"
+     height="341">
+```
+
+通常不应使用 HTML 属性更改图像的大小，它有可能会实图像失真。如果确实需要更改图像的大小，也应改用[CSS](https://developer.mozilla.org/en-US/docs/Learn/CSS)。
+
+### 图像标题
+
+`title`属性提供了鼠标悬停的工具提示：
+
+```html
+<img src="images/dinosaur.jpg"
+     alt="The head and torso of a dinosaur skeleton;
+          it has a large head with long sharp teeth"
+     width="400"
+     height="341"
+     title="A T-Rex on display in the Manchester University Museum">
+```
+
+### 图像说明
+
+HTML5[`<figure>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figure)和[`<figcaption>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figcaption)元素为图形提供语义容器，并将图形清晰地链接到它的说明文字。
+
+```html
+<figure>
+  <img src="images/dinosaur.jpg"
+       alt="The head and torso of a dinosaur skeleton;
+            it has a large head with long sharp teeth"
+       width="400"
+       height="341">
+
+  <figcaption>A T-Rex on display in the Manchester University Museum.</figcaption>
+</figure>
+```
+
+> `<figure>`和`<figcaption>`不仅仅用于图像，也可用于代码片段、音频、视频、方程、表格或独立的内容单元。
+
+### 背景图像
+
+您还可以使用 CSS 将图像嵌入网页作为背景图像。
+
+CSS的`background-*`属性用于控制背景图像，比 HTML 图像更容易定位和控制：
+
+```css
+p {
+  background-image: url("images/dinosaur.jpg");
+}
+```
+
+CSS背景图像与HTML图像的选择：如果图像有意义，您应该使用 HTML 图像。如果图像纯粹是装饰，则应使用 CSS 背景图像。
+
+## 图形
+
+### 画布
+
+### SVG
+
 ## 视频
+
+[`<video>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video)元素允许您非常轻松地嵌入视频。
+
+```html
+<video src="rabbit320.webm" controls>
+  <p>Your browser doesn't support HTML5 video. Here is a <a href="rabbit320.webm">link to the video</a> instead.</p>
+</video>
+```
+
+[`controls`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#attr-controls)属性：如果存在此属性，浏览器将提供控件以允许用户控制视频播放，包括音量、搜索和暂停/恢复播放。
+
+`<video>`元素的内容：称为**回退内容**- 如果访问页面的浏览器不支持该`<video>`元素，则会显示该内容，从而允许我们为旧浏览器提供回退。这可以是你喜欢的任何东西,通常我们提供了视频文件的直接链接，让用户至少可以通过某种方式访问它，而不管他们使用的是什么浏览器。
+
+### 使用多种源格式提高兼容性
+
+由于不同的浏览器支持不同的视频（和音频）格式，为了最大限度地提高您的网站或应用程序在用户浏览器上运行的可能性，您可能需要以多种格式提供您使用的每个媒体文件。
+
+```html
+<video controls>
+  <source src="rabbit320.mp4" type="video/mp4">
+  <source src="rabbit320.webm" type="video/webm">
+  <p>Your browser doesn't support HTML5 video. Here is a <a href="rabbit320.mp4">link to the video</a> instead.</p>
+</video>
+```
+
+不使用`src`属性，而是使用[`<source>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/source)元素来为视频提供多种格式的媒体文件。浏览器将遍历`<source>`元素并播放它具有编解码器支持的第一个元素。
+
+每个`<source>`元素也有一个[`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/source#attr-type)属性。这是可选的，但建议您包括它。该`type`属性包含指定文件的MIME 类型，浏览器可以使用`type`来立即跳过他们不理解的视频。如果没有设置`type`属性，浏览器将加载并尝试播放每个文件，直到找到一个有效的文件，这显然需要时间并且是对资源的不必要使用。
+
+### 其他功能
+
+```html
+<video controls width="400" height="400"
+       autoplay loop muted preload="auto"
+       poster="poster.png">
+  <source src="rabbit320.mp4" type="video/mp4">
+  <source src="rabbit320.webm" type="video/webm">
+  <p>Your browser doesn't support HTML video. Here is a <a href="rabbit320.mp4">link to the video</a> instead.</p>
+</video>
+```
+
+[`width`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#attr-width) 和 [`height`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#attr-height)：控制视频大小，也可以使用CSS来控制视频大小。
+
+[`autoplay`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#attr-autoplay)：使音频或视频在页面加载时立即开始播放。
+
+[`loop`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#attr-loop)：循环播放。
+
+[`muted`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#attr-muted)：使媒体播放时默认关闭声音。
+
+[`poster`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#attr-poster)：在播放视频之前显示的图像的 URL。它旨在用于启动画面或广告屏幕。
+
+[`preload`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#attr-preload)：用于缓冲大文件；它可以采用以下三个值之一：
+
+- `"none"` 不缓冲文件
+- `"auto"` 缓冲媒体文件
+- `"metadata"` 仅缓冲文件的元数据
 
 ## 音频
 

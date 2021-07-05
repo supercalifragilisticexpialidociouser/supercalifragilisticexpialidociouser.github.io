@@ -60,7 +60,9 @@ $ chsh -s /bin/zsh
 
 也可以直接修改`/etc/passwd`中某个用户默认的Shell。
 
-## 安装Powerlevel10k或Pure（可选）
+## 安装主题（可选）
+
+Manjaro自带的主题是Powerlevel10k的改版，已经很好用了。
 
 ### Powerlevel10k主题
 
