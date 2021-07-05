@@ -633,7 +633,7 @@ and his markup didn't read very well.</p>
 >
 >    ```html
 >    <a href="https://firefox.com" class="external" rel=" noopener">下载 Firefox</a>
->       
+>          
 >    <style>
 >        a.external:after {
 >            background: transparent url(/static/media/external.e091ac5d.svg) 0 0 no-repeat;
@@ -1094,6 +1094,21 @@ CSS背景图像与HTML图像的选择：如果图像有意义，您应该使用 
 - `"metadata"` 仅缓冲文件的元数据
 
 ## 音频
+
+`<audio>`元素的工作方式与该`<video>`元素类似，但有一些小的差异：
+
+- 不支持`width`/`height`属性
+- 它也不支持该`poster`属性
+
+```html
+<audio controls>
+  <source src="viper.mp3" type="audio/mp3">
+  <source src="viper.ogg" type="audio/ogg">
+  <p>Your browser doesn't support HTML5 audio. Here is a <a href="viper.mp3">link to the audio</a> instead.</p>
+</audio>
+```
+
+
 
 ## 嵌入内容
 
