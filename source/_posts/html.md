@@ -633,7 +633,7 @@ and his markup didn't read very well.</p>
 >
 >    ```html
 >    <a href="https://firefox.com" class="external" rel=" noopener">下载 Firefox</a>
->             
+>                
 >    <style>
 >        a.external:after {
 >            background: transparent url(/static/media/external.e091ac5d.svg) 0 0 no-repeat;
@@ -1096,6 +1096,44 @@ CSS背景图像与HTML图像的选择：如果图像有意义，您应该使用 
 ### 字幕
 
 我们可以使用[WebVTT](https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API)文件格式和[`<track>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/track)元素给视频或音频加字幕。
+
+```html
+<video controls>
+    <source src="example.mp4" type="video/mp4">
+    <source src="example.webm" type="video/webm">
+    <track kind="subtitles" src="subtitles_es.vtt" srclang="es" label="Spanish">
+</video>
+```
+
+`<track>`应该放在`<audio>`或内`<video>`，但在所有`<source>`元素之后。
+
+[`kind`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/track#attr-kind)属性指示如何使用文本轨道。如果省略，则默认类型为`subtitles`；如果该属性包含无效值，它将使用`metadata`。允许使用以下关键字：
+
+- `subtitles`：翻译字幕。
+- `captions`：将视频或音频中的对话写成文本。
+- `descriptions`：音视频内容的文字说明。
+- `chapters`：章节标题。
+- `metadata`：脚本使用的轨道，对用户不可见。
+
+[`srclang`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/track#attr-srclang)属性告诉浏览器用什么语言编写字幕。它必须是有效的[BCP 47](https://r12a.github.io/app-subtags/)语言标签。
+
+subtitles_es.vtt：
+
+```
+WEBVTT
+
+1
+00:00:22.230 --> 00:00:24.606
+This is the first subtitle.
+
+2
+00:00:30.739 --> 00:00:34.074
+This is the second.
+
+  ...
+```
+
+
 
 ## 音频
 
