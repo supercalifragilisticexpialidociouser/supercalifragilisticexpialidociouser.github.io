@@ -633,7 +633,7 @@ and his markup didn't read very well.</p>
 >
 >    ```html
 >    <a href="https://firefox.com" class="external" rel=" noopener">下载 Firefox</a>
->          
+>             
 >    <style>
 >        a.external:after {
 >            background: transparent url(/static/media/external.e091ac5d.svg) 0 0 no-repeat;
@@ -1093,12 +1093,16 @@ CSS背景图像与HTML图像的选择：如果图像有意义，您应该使用 
 - `"auto"` 缓冲媒体文件
 - `"metadata"` 仅缓冲文件的元数据
 
+### 字幕
+
+我们可以使用[WebVTT](https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API)文件格式和[`<track>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/track)元素给视频或音频加字幕。
+
 ## 音频
 
 `<audio>`元素的工作方式与该`<video>`元素类似，但有一些小的差异：
 
 - 不支持`width`/`height`属性
-- 它也不支持该`poster`属性
+- 也不支持`poster`属性
 
 ```html
 <audio controls>
