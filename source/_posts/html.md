@@ -633,7 +633,7 @@ and his markup didn't read very well.</p>
 >
 >    ```html
 >    <a href="https://firefox.com" class="external" rel=" noopener">下载 Firefox</a>
->                
+>                      
 >    <style>
 >        a.external:after {
 >            background: transparent url(/static/media/external.e091ac5d.svg) 0 0 no-repeat;
@@ -950,6 +950,13 @@ HTML 提供了可以用来表示网站结构的专用标签，例如：
 
 ## 图像
 
+在 Web 上，使用两种类型的图像：
+
+- **光栅图像**是使用像素网格定义的——光栅图像文件包含的信息准确地显示了每个像素的放置位置以及它应该是什么颜色。流行的网络光栅格式包括位图（`.bmp`）、PNG（`.png`）、JPEG（`.jpg`）和 GIF（`.gif`）。
+- **矢量图像**是使用算法定义的——矢量图像文件包含形状和路径定义，计算机可以使用这些定义来确定图像在屏幕上呈现时的外观。[SVG](https://developer.mozilla.org/en-US/docs/Glossary/SVG)格式允许我们创建功能强大的矢量图形在Web上使用。
+
+### `<img>`元素
+
 为了在网页上放置一个简单的图像，我们使用[`<img>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img)元素。
 
 ```html
@@ -960,7 +967,7 @@ HTML 提供了可以用来表示网站结构的专用标签，例如：
 >
 > **注意**：注意：元素`<img>`和 `<video>`有时被称为[替换元素](https://developer.mozilla.org/en-US/docs/Web/CSS/Replaced_element)。这是因为元素的内容和大小是由外部资源（如图像或视频文件）定义的，而不是由元素本身的内容定义的。
 
-### 替代文字
+#### 替代文字
 
 属性`alt`是图像的文本描述，用于在图像无法看到/显示或由于互联网连接缓慢而需要很长时间渲染时显示替代文本。
 
@@ -970,7 +977,7 @@ HTML 提供了可以用来表示网站结构的专用标签，例如：
           it has a large head with long sharp teeth">
 ```
 
-### 宽度和高度
+#### 宽度和高度
 
 您可以使用`width`和`height`属性来指定图像的宽度和高度。
 
@@ -984,7 +991,7 @@ HTML 提供了可以用来表示网站结构的专用标签，例如：
 
 通常不应使用 HTML 属性更改图像的大小，它有可能会实图像失真。如果确实需要更改图像的大小，也应改用[CSS](https://developer.mozilla.org/en-US/docs/Learn/CSS)。
 
-### 图像标题
+#### 图像标题
 
 `title`属性提供了鼠标悬停的工具提示：
 
@@ -997,7 +1004,7 @@ HTML 提供了可以用来表示网站结构的专用标签，例如：
      title="A T-Rex on display in the Manchester University Museum">
 ```
 
-### 图像说明
+#### 图像说明
 
 HTML5[`<figure>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figure)和[`<figcaption>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figcaption)元素为图形提供语义容器，并将图形清晰地链接到它的说明文字。
 
@@ -1015,7 +1022,7 @@ HTML5[`<figure>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figu
 
 > `<figure>`和`<figcaption>`不仅仅用于图像，也可用于代码片段、音频、视频、方程、表格或独立的内容单元。
 
-### 背景图像
+#### 背景图像
 
 您还可以使用 CSS 将图像嵌入网页作为背景图像。
 
@@ -1029,11 +1036,143 @@ p {
 
 CSS背景图像与HTML图像的选择：如果图像有意义，您应该使用 HTML 图像。如果图像纯粹是装饰，则应使用 CSS 背景图像。
 
-## 图形
+### SVG（矢量图形）
+
+[**可缩放矢量图形 (SVG)**](https://developer.mozilla.org/en-US/docs/Web/SVG)是一种基于[XML](https://developer.mozilla.org/en-US/docs/Glossary/XML)的标记语言，用于描述基于二维的矢量图像。
+
+SVG优点：
+
+- 图形放大缩小不会失真。
+- 矢量图像中的文本仍然可以访问（这也有利于您的[SEO](https://developer.mozilla.org/en-US/docs/Glossary/SEO)）。
+- SVG 非常适合样式/脚本编写，因为图像的每个组件都是一个元素，可以通过 CSS 设置样式或通过 JavaScript 编写脚本。
+
+SVG缺点：
+
+- SVG 会很快变得复杂，这意味着文件大小会增加；复杂的 SVG 也会在浏览器中花费大量的处理时间。
+- SVG 可能比光栅图像更难创建，具体取决于您尝试创建的图像类型。
+- 旧浏览器不支持 SVG，因此如果您需要在您的网站上支持旧版本的 Internet Explorer，则可能不适合（从 IE9 开始支持 SVG。）
+
+由于上述原因，光栅图形可以说更适合复杂的精度图像，例如照片。
+
+下面的代码创建了一个圆和一个矩形：
+
+```svg
+<svg version="1.1"
+     baseProfile="full"
+     width="300" height="200"
+     xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="black" />
+  <circle cx="150" cy="100" r="90" fill="blue" />
+</svg>
+```
+
+> 为了创建 SVG 图像，大多数人使用矢量图形编辑器，如[Inkscape](https://inkscape.org/en/)或[Illustrator](https://en.wikipedia.org/wiki/Adobe_Illustrator)。
+
+#### 将 SVG 添加到您的页面
+
+##### 快捷方式：img元素
+
+```html
+<img
+    src="equilateral.svg"
+    alt="triangle with all three sides equal"
+    height="87"
+    width="100" />
+```
+
+> 如果您的 SVG 没有固有的纵横比，则需要一个`height`或一个`width`属性。
+
+优点：
+
+- 快速、熟悉的图像语法以及`alt`属性中可用的内置文本等效项。
+
+- 您可以通过`<img>`在`<a>`元素内部嵌套来轻松地将图像变成超链接。
+- SVG 文件可以由浏览器缓存，从而为使用将来加载的图像的任何页面提供更快的加载时间。
+
+缺点：
+
+- 您无法使用 JavaScript 操作图像。
+- 如果要使用 CSS 控制 SVG 内容，则必须在 SVG 代码中包含内联 CSS 样式。（从 SVG 文件调用的外部样式表无效。）
+- 您不能使用 CSS 伪类（如`:focus`）重新设置图像的样式。
+
+对于不支持 SVG 的浏览器（IE 8 及以下，Android 2.3 及以下），您可以从`src`属性中引用 PNG 或 JPG，并使用[`srcset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#attr-srcset)属性（只有最近的浏览器识别）来引用 SVG。在这种情况下，只有支持的浏览器才会加载 SVG——旧浏览器会加载 PNG：
+
+```html
+<img src="equilateral.png" alt="triangle with equal sides" srcset="equilateral.svg">
+```
+
+您还可以使用 SVG 作为 CSS 背景图像，如下所示。在下面的代码中，较旧的浏览器将坚持使用它们理解的 PNG，而较新的浏览器将加载 SVG：
+
+```css
+background: url("fallback.png") no-repeat center;
+background-image: url("image.svg");
+background-size: contain;
+```
+
+与上述`<img>`方法一样，使用 CSS 背景图像插入 SVG 意味着无法使用 JavaScript 操作 SVG，并且也受到相同的 CSS 限制。
+
+##### 在 HTML 中包含 SVG 代码
+
+**内联 SVG**使用`<svg>`元素：
+
+```html
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    div {
+      color: white;
+      font: 18px serif;
+      height: 100%;
+      overflow: auto;
+    }
+  </style>
+
+  <polygon points="5,5 195,10 185,185 10,195" />
+
+  <!-- Common use case: embed HTML text into SVG -->
+  <foreignObject x="20" y="20" width="160" height="160">
+    <!--
+      In the context of SVG embedded in an HTML document, the XHTML
+      namespace could be omitted, but it is mandatory in the
+      context of an SVG document
+    -->
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+      Sed mollis mollis mi ut ultricies. Nullam magna ipsum,
+      porta vel dui convallis, rutrum imperdiet eros. Aliquam
+      erat volutpat.
+    </div>
+  </foreignObject>
+</svg>
+```
+
+优点：
+
+- 将 SVG 内联可以节省 HTTP 请求，因此可以减少加载时间。
+- 您可以将`class` 和`id`分配给 SVG 元素并使用 CSS 设置它们的样式（无论是在 SVG 内还是在您为 HTML 文档放置 CSS 样式规则的任何位置）。事实上，您可以使用任何[SVG 表示属性](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute#presentation_attributes)作为 CSS 属性。
+- 内联 SVG 是唯一可以让您在 SVG 图像（甚至在常规样式表中）使用 CSS 交互（如`:focus`）和 CSS 动画的方法。
+- 您可以通过将 SVG 标记包装在一个[`<a>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a)元素中来将其制作为超链接。
+
+缺点：
+
+- 此方法仅适用于仅在一处使用 SVG 的情况。
+- 额外的 SVG 代码会增加 HTML 文件的大小。
+- 浏览器无法缓存内联 SVG，因此在加载包含图像的第一页后，其他包含该图像的页面不会加载得更快。
+- 您可以在[`<foreignObject>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject)元素中包含回退，但支持 SVG 的浏览器仍会下载任何回退图像。您需要权衡：只是为了支持过时的浏览器，额外的开销是否真的值得。
+
+##### 通过`<iframe>`嵌入SVG
+
+```html
+<iframe src="triangle.svg" width="500" height="500" sandbox>
+    <img src="triangle.png" alt="Triangle with three unequal sides" />
+</iframe>
+```
+
+缺点：
+
+- `iframe`如您所见确实具有回退机制，但浏览器仅在完全不支持`iframe`时才显示回退机制。
+- 此外，除非 SVG 与您当前的网页[同源](https://developer.mozilla.org/en-US/docs/Glossary/Origin)，否则您无法在主网页上使用 JavaScript 来操作 SVG。
 
 ### 画布
-
-### SVG
 
 ## 视频
 
@@ -1153,6 +1292,77 @@ This is the second.
 
 
 ## 嵌入内容
+
+### 嵌入网页
+
+[`<iframe>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe)元素旨在允许您将其他 Web 文档嵌入到当前文档中。这非常适合将第三方内容合并到您的网站中，您可能无法直接控制并且不想实现自己的版本——例如在线视频、评论系统、在线地图、广告横幅等。
+
+```html
+<head>
+  <style> iframe { border: none } </style>
+</head>
+<body>
+  <iframe src="https://developer.mozilla.org/en-US/docs/Glossary"
+          width="100%" height="500" allowfullscreen sandbox>
+    <p>
+      <a href="/en-US/docs/Glossary">
+         Fallback link for browsers that don't support iframes
+      </a>
+    </p>
+  </iframe>
+</body>
+```
+
+[`border: none`](https://developer.mozilla.org/en-US/docs/Web/CSS/border)：去掉`<iframe>`的边框。
+
+`allowfullscreen`：如果设置，`<iframe>`则可以使用[Fullscreen API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)将其置于全屏模式。
+
+`<iframe>`元素的内容是回退内容，如果浏览器不支持`<iframe>`，则会显示该回退内容。
+
+> **注意**：为了提高速度，最好在主要内容加载完成后用 JavaScript设置 `<iframe>` 的`src`属性。
+
+#### 安全问题
+
+[点击劫持](https://en.wikipedia.org/wiki/Clickjacking)是一种常见的 iframe 攻击，黑客在您的文档中嵌入一个不可见的 iframe（或将您的文档嵌入到他们自己的恶意网站中）并使用它来捕获用户的交互。这是误导用户或窃取敏感数据的常见方式。
+
+##### 使用HTTPS
+
+[HTTPS](https://developer.mozilla.org/en-US/docs/Glossary/https)是[HTTP](https://developer.mozilla.org/en-US/docs/Glossary/HTTP)的加密版本。您应该尽可能使用 HTTPS 为您的网站提供服务：
+
+1. HTTPS 减少了远程内容在传输过程中被篡改的可能性，
+2. HTTPS 可防止嵌入的内容访问您的父文档中的内容，反之亦然。
+
+要为自己的站点设置 HTTPS 支持，[Let's Encrypt](https://letsencrypt.org/)提供了可用于自动创建和安装必要证书的工具和说明。
+
+##### 应该始终使用`sandbox`属性
+
+[`sandbox`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#attr-sandbox)属性会对 *frame* 中的内容应用额外的限制。该属性的值可以为空（应用所有限制），也可以为空格分隔的标记以解除指定限制。一个重要的注意事项是，*永远不要同时*将`allow-scripts`和`allow-same-origin`都添加到您的`sandbox`属性中——这允许嵌入的内容可以绕过阻止站点执行脚本[的同源策略](https://developer.mozilla.org/en-US/docs/Glossary/Same-origin_policy)，并使用 JavaScript 完全关闭沙箱。
+
+##### 配置 CSP 指令
+
+[CSP](https://developer.mozilla.org/en-US/docs/Glossary/CSP)代表**[内容安全策略，](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)**并提供[一组 HTTP 标头](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)（当网页从 Web 服务器提供服务时与网页一起发送的元数据）旨在提高 HTML 文档的安全性。当涉及到保护`<iframe>`时，您可以*[配置您的服务器以发送适当的`X-Frame-Options` 标头。](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options)*这可以防止其他网站将您的内容嵌入到他们的网页中（这会导致[点击劫持](https://en.wikipedia.org/wiki/Clickjacking)和许多其他攻击）。
+
+### `<embed>` 和 `<object>` 元素
+
+[`<embed>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/embed)和[`<object>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object)元素是通用的、可嵌入多种类型外部内容（包括像Java Applet和Flash插件技术、PDF，以及视频、SVG 和图像等）的嵌入工具，通常需要浏览器插件的支持。
+
+它们是一项遗留技术。因为，Applet和Flash已经过时，PDF更偏向于使用链接，图像和视频有它们自己的元素。保留它主要是为了以防万一您在某些情况下（如 Intranet 或企业项目）需要它们。
+
+```html
+<embed src="whoosh.swf" quality="medium"
+       bgcolor="#ffffff" width="550" height="400"
+       name="whoosh" align="middle" allowScriptAccess="sameDomain"
+       allowFullScreen="false" type="application/x-shockwave-flash"
+       pluginspage="http://www.macromedia.com/go/getflashplayer">
+
+<object data="mypdf.pdf" type="application/pdf"
+        width="800" height="1200">
+  <p>You don't have a PDF plugin, but you can
+    <a href="mypdf.pdf">download the PDF file.
+    </a>
+  </p>
+</object>
+```
 
 
 
