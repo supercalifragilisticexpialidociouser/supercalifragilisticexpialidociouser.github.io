@@ -633,7 +633,7 @@ and his markup didn't read very well.</p>
 >
 >    ```html
 >    <a href="https://firefox.com" class="external" rel=" noopener">下载 Firefox</a>
->                      
+>                         
 >    <style>
 >        a.external:after {
 >            background: transparent url(/static/media/external.e091ac5d.svg) 0 0 no-repeat;
@@ -1171,6 +1171,8 @@ background-size: contain;
 
 - `iframe`如您所见确实具有回退机制，但浏览器仅在完全不支持`iframe`时才显示回退机制。
 - 此外，除非 SVG 与您当前的网页[同源](https://developer.mozilla.org/en-US/docs/Glossary/Origin)，否则您无法在主网页上使用 JavaScript 来操作 SVG。
+
+### 响应式图片
 
 ### 画布
 
