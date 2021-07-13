@@ -633,7 +633,7 @@ and his markup didn't read very well.</p>
 >
 >    ```html
 >    <a href="https://firefox.com" class="external" rel=" noopener">下载 Firefox</a>
->                         
+>                            
 >    <style>
 >        a.external:after {
 >            background: transparent url(/static/media/external.e091ac5d.svg) 0 0 no-repeat;
@@ -1173,6 +1173,61 @@ background-size: contain;
 - 此外，除非 SVG 与您当前的网页[同源](https://developer.mozilla.org/en-US/docs/Glossary/Origin)，否则您无法在主网页上使用 JavaScript 来操作 SVG。
 
 ### 响应式图片
+
+#### 分辨率切换
+
+##### 不同尺寸
+
+在不同的设备中，显示同一图片的不同尺寸版本。
+
+```html
+<img srcset="elva-fairy-480w.jpg 480w,
+             elva-fairy-800w.jpg 800w"
+     sizes="(max-width: 600px) 480px,
+            800px"
+     src="elva-fairy-800w.jpg"
+     alt="Elva dressed as a fairy">
+```
+
+**[`srcset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#attr-srcset)**定义我们将允许浏览器选择的图像集，以及每个图像尺寸（用**宽度描述符**表示，以`w`结尾）。
+
+**[`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#attr-sizes)**定义一组媒体条件（例如屏幕宽度）和插槽大小，以指示当某些媒体条件为真时最好选择的图像尺寸。
+
+有了这些属性，浏览器将：
+
+1. 看它的设备宽度。
+2. 找出`sizes`列表中的哪个媒体条件是第一个为真的。
+3. 查看提供给该媒体查询的插槽宽度。
+4. 加载`srcset`列表中引用的与插槽大小相同的图像，如果没有，则加载第一个大于所选插槽大小的图像。
+
+> **注意**：在[`<head>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head)上面链接的示例中，您会发现以下行 `<meta name="viewport" content="width=device-width">`：这会强制移动浏览器采用其实际视口宽度来加载网页（某些移动浏览器会谎报其视口宽度，而是以更大的视口宽度加载页面）然后缩小加载的页面，这对响应式图像或设计不是很有帮助）。
+
+槽宽度，可以提供绝对长度 ( `px`, `em`) 或相对于视口的长度 ( `vw`)，但不能提供百分比。
+
+##### 相同尺寸，不同分辨率
+
+```html
+<img srcset="elva-fairy-320w.jpg,
+             elva-fairy-480w.jpg 1.5x,
+             elva-fairy-640w.jpg 2x"
+     src="elva-fairy-640w.jpg"
+     alt="Elva dressed as a fairy">
+
+```
+
+这里不需要`sizes`属性。
+
+假设有如下CSS样式：
+
+```css
+img {
+  width: 320px;
+}
+```
+
+上面定义是**CSS像素**。
+
+`srcset`属性中形如`…x`的是**像素密度描述符**。例如，`elva-fairy-640w.jpg 2x`表示：如果每个 CSS 像素代表两个**设备像素**或更多的高分辨率，则`elva-fairy-640w.jpg`图像将被加载。当像素密度描述符为`1x`时，可以省略。
 
 ### 画布
 
