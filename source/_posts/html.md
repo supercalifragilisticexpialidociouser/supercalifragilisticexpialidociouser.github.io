@@ -633,7 +633,7 @@ and his markup didn't read very well.</p>
 >
 >    ```html
 >    <a href="https://firefox.com" class="external" rel=" noopener">下载 Firefox</a>
->                            
+>                               
 >    <style>
 >        a.external:after {
 >            background: transparent url(/static/media/external.e091ac5d.svg) 0 0 no-repeat;
@@ -944,6 +944,108 @@ HTML 提供了可以用来表示网站结构的专用标签，例如：
 
 # 表格
 
+表格应该用于展示数据，而不是用于布局。
+
+简单的表格：
+
+```html
+<table>
+  <tr>
+    <td>John</td>
+    <td>Doe</td>
+  </tr>
+  <tr>
+    <td>Jane</td>
+    <td>Doe</td>
+  </tr>
+</table>
+```
+
+带表头、表体和表尾的表格：
+
+```html
+<table>
+  <thead>
+    <tr>
+      <th>Header content 1</th>
+      <th>Header content 2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Body content 1</td>
+      <td>Body content 2</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td>Footer content 1</td>
+      <td>Footer content 2</td>
+    </tr>
+  </tfoot>
+</table>
+```
+
+## 行标题和列标题
+
+```html
+<table>
+   <tr>
+      <td>&nbsp;</td>
+      <th scope="col">Knocky</th>
+      <th scope="col">Flor</th>
+      <th scope="col">Ella</th>
+      <th scope="col">Juan</th>
+   </tr>
+   <tr>
+      <th scope="row">Breed</th>
+      <td>Jack Russell</td>
+      <td>Poodle</td>
+      <td>Streetdog</td>
+      <td>Cocker Spaniel</td>
+   </tr>
+   <tr>
+      <th scope="row">Age</th>
+      <td>16</td>
+      <td>9</td>
+      <td>10</td>
+      <td>5</td>
+   </tr>
+</table>
+```
+
+## 跨行跨列
+
+```html
+<table>
+   <tr>
+      <th colspan="2">Animals</th>
+   </tr>
+   <tr>
+      <th colspan="2">Hippopotamus</th>
+   </tr>
+   <tr>
+      <th rowspan="2">Horse</th>
+      <td>Mare</td>
+   </tr>
+   <tr>
+      <td>Stallion</td>
+   </tr>
+   <tr>
+      <th colspan="2">Crocodile</th>
+   </tr>
+   <tr>
+      <th rowspan="2">Chicken</th>
+      <td>Hen</td>
+   </tr>
+   <tr>
+      <td>Rooster</td>
+   </tr>
+</table>
+```
+
+
+
 # 表单
 
 # 多媒体
@@ -1178,7 +1280,7 @@ background-size: contain;
 
 ##### 不同尺寸
 
-在不同的设备中，显示同一图片的不同尺寸版本。
+在不同的设备（视口大小不同）中，显示同一图片的不同尺寸版本（保持图像的内容或纵横比不变）。
 
 ```html
 <img srcset="elva-fairy-480w.jpg 480w,
@@ -1206,6 +1308,8 @@ background-size: contain;
 
 ##### 相同尺寸，不同分辨率
 
+只是分辨率不同，但仍保持图像的内容或纵横比不变。这实际上是根据显示密度提供不同图像源的场景（即视网膜图像）。
+
 ```html
 <img srcset="elva-fairy-320w.jpg,
              elva-fairy-480w.jpg 1.5x,
@@ -1228,6 +1332,44 @@ img {
 上面定义是**CSS像素**。
 
 `srcset`属性中形如`…x`的是**像素密度描述符**。例如，`elva-fairy-640w.jpg 2x`表示：如果每个 CSS 像素代表两个**设备像素**或更多的高分辨率，则`elva-fairy-640w.jpg`图像将被加载。当像素密度描述符为`1x`时，可以省略。
+
+#### 艺术指导
+
+艺术指导问题是指根据屏幕设备显示图片的不同裁剪版本（需要更改图像的内容或纵横比）。[`<picture>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/picture)元素可以让我们实现只是这种解决方案。
+
+```html
+<picture>
+  <source media="(max-width: 799px)" srcset="elva-480w-close-portrait.jpg">
+  <source media="(min-width: 800px)" srcset="elva-800w.jpg">
+  <img src="elva-800w.jpg" alt="Chris standing up holding his daughter Elva">
+</picture>
+```
+
+浏览器会显示第一个`media`属性的媒体条件返回`true`的图像。当没有媒体条件返回 true 或者浏览器不支持`<picture>`元素时，显示`<img>`元素（必须在所有`<source>`之后）指定的图像。
+
+`srcset`属性仍然可以指定多个不同分辨率的图片。
+
+```html
+<picture>
+  <source srcset="logo-768.png 768w, logo-768-1.5x.png 1.5x">
+  <source srcset="logo-480.png, logo-480-2x.png 2x">
+  <img src="logo-320.png" alt="logo">
+</picture>
+```
+
+> **注意**：您应该只在艺术指导场景中使用该`media`属性；当您使用 时`media`，不要同时在`sizes`属性中提供媒体条件。
+
+还可以使用`type`属性提供 MIME 类型，以便浏览器可以立即拒绝不支持的文件类型：
+
+```html
+<picture>
+  <source type="image/svg+xml" srcset="pyramid.svg">
+  <source type="image/webp" srcset="pyramid.webp">
+  <img src="pyramid.png" alt="regular pyramid built from four equilateral triangles">
+</picture>
+```
+
+
 
 ### 画布
 
