@@ -309,7 +309,7 @@ started with developing web sites and applications.">
 
 无论您在 HTML 元素内容中使用多少空格（包括换行符），HTML 解析器在呈现代码时会将每个空格序列缩减为一个空格。
 
-# 文本
+# 排版
 
 ## 标题
 
@@ -633,7 +633,7 @@ and his markup didn't read very well.</p>
 >
 >    ```html
 >    <a href="https://firefox.com" class="external" rel=" noopener">下载 Firefox</a>
->                               
+>                                  
 >    <style>
 >        a.external:after {
 >            background: transparent url(/static/media/external.e091ac5d.svg) 0 0 no-repeat;
@@ -803,7 +803,7 @@ toc.html：
 <meta property="og:image" content="https://example.com/thumbnail.jpg">
 ```
 
-# 网站布局
+# 布局
 
 HTML 提供了可以用来表示网站结构的专用标签，例如：
 
@@ -986,33 +986,115 @@ HTML 提供了可以用来表示网站结构的专用标签，例如：
 </table>
 ```
 
+`<tbody>`是必须的。实际上，浏览器会自动给前面简单表格加上`<tbody>`。
+
+带表头、表体和表尾的表格的好处是可以更好地控制表格的布局和样式。例如，在一个长表格的情况下，你可以在每个打印的页面上重复表头和页脚；还可以让表格主体显示在一个页面上，并通过上下滚动来获得内容。
+
 ## 行标题和列标题
 
 ```html
 <table>
-   <tr>
-      <td>&nbsp;</td>
-      <th scope="col">Knocky</th>
-      <th scope="col">Flor</th>
-      <th scope="col">Ella</th>
-      <th scope="col">Juan</th>
-   </tr>
-   <tr>
-      <th scope="row">Breed</th>
-      <td>Jack Russell</td>
-      <td>Poodle</td>
-      <td>Streetdog</td>
-      <td>Cocker Spaniel</td>
-   </tr>
-   <tr>
-      <th scope="row">Age</th>
-      <td>16</td>
-      <td>9</td>
-      <td>10</td>
-      <td>5</td>
-   </tr>
+   <caption>2016 年 8 月售出的物品</caption>
+   <tbody>
+      <tr>
+         <td></td>
+         <td></td>
+         <th colspan="3" scope="colgroup">衣服</th>
+         <th colspan="2" scope="colgroup">配件</th>
+      </tr>
+      <tr>
+         <td></td>
+         <td></td>
+         <th scope="col">裤子</th>
+         <th scope="col">裙子</th>
+         <th scope="col">连衣裙</th>
+         <th scope="col">手链</th>
+         <th scope="col">戒指</th>
+      </tr>
+      <tr>
+         <th rowspan="3" scope="rowgroup">比利时</th>
+         <th scope="row">安特卫普</th>
+         <td>56</td>
+         <td>22</td>
+         <td>43</td>
+         <td>72</td>
+         <td>23</td>
+      </tr>
+      <tr>
+         <th scope="row">绅士</th>
+         <td>46</td>
+         <td>18</td>
+         <td>50</td>
+         <td>61</td>
+         <td>15</td>
+      </tr>
+      <tr>
+         <th scope="row">布鲁塞尔</th>
+         <td>51</td>
+         <td>27</td>
+         <td>38</td>
+         <td>69</td>
+         <td>28</td>
+      </tr>
+      <tr>
+         <th rowspan="2" scope="rowgroup">荷兰人</th>
+         <th scope="row">阿姆斯特丹</th>
+         <td>89</td>
+         <td>34</td>
+         <td>69</td>
+         <td>85</td>
+         <td>38</td>
+      </tr>
+      <tr>
+         <th scope="row">乌得勒支</th>
+         <td>80</td>
+         <td>12</td>
+         <td>43</td>
+         <td>36</td>
+         <td>19</td>
+      </tr>
+   </tbody>
 </table>
 ```
+
+### `scope`属性
+
+[`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope)属性可以添加到`<th>`元素中，以准确告诉屏幕阅读器标题是哪些单元格的标题（即是所在行的标题还是列的标题）。
+
+`scope`还有两个可能的值 ——`colgroup`和`rowgroup`，它们用于多个子标题的标题，表示标题适用多行或多列，而不是只适用单行或单列。
+
+### `id`和`header`属性
+
+`scope`属性的替代方法是使用[`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id)和[`headers`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/td#attr-headers)属性来创建标题和单元格之间的关联。它们的使用方式如下：
+
+1. 为每个`<th>`元素添加一个唯一的`id`。
+2. 为每个`<td>`元素添加一个`headers`属性。`headers`属性包含作为该单元格标题的所有`<th>`元素的`id`列表（包括行和列标题），`id`之间以空格分隔。
+
+```html
+<thead>
+   <tr>
+      <th id="purchase">Purchase</th>
+      <th id="location">Location</th>
+      <th id="date">Date</th>
+      <th id="evaluation">Evaluation</th>
+      <th id="cost">Cost (€)</th>
+   </tr>
+</thead>
+<tbody>
+   <tr>
+      <th id="haircut">Haircut</th>
+      <td headers="location haircut">Hairdresser</td>
+      <td headers="date haircut">12/09</td>
+      <td headers="evaluation haircut">Great idea</td>
+      <td headers="cost haircut">30</td>
+   </tr>
+
+   ...
+
+</tbody>
+```
+
+
 
 ## 跨行跨列
 
@@ -1041,6 +1123,133 @@ HTML 提供了可以用来表示网站结构的专用标签，例如：
    <tr>
       <td>Rooster</td>
    </tr>
+</table>
+```
+
+## 列和列组
+
+**[`<col>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/col)**和**[`<colgroup>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/colgroup)**元素可以在一个地方为一整列数据定义样式。
+
+不使用列和列组：（需要为列中的每个单元）
+
+```html
+<table>
+  <tr>
+    <th>Data 1</th>
+    <th style="background-color: yellow">Data 2</th>
+  </tr>
+  <tr>
+    <td>Calcutta</td>
+    <td style="background-color: yellow">Orange</td>
+  </tr>
+  <tr>
+    <td>Robots</td>
+    <td style="background-color: yellow">Jazz</td>
+  </tr>
+</table>
+```
+
+使用列和列组：
+
+```html
+<table>
+  <colgroup>
+    <col>
+    <col style="background-color: yellow">
+  </colgroup>
+  <tr>
+    <th>Data 1</th>
+    <th>Data 2</th>
+  </tr>
+  <tr>
+    <td>Calcutta</td>
+    <td>Orange</td>
+  </tr>
+  <tr>
+    <td>Robots</td>
+    <td>Jazz</td>
+  </tr>
+</table>
+```
+
+> 注意我们没有为第一列设置样式，但我们仍然必须包含一个空白`<col>`元素进行占位，否则样式将只应用于第一列。
+
+**在列（`<col>`）中设置的样式仅限于`border`，`background`，`width`，和`visibility`少数几个属性**。要设置其他属性，您仍然必须为每个`<td>`或`<th>`列设置样式，或者使用复杂的选择器，例如[`:nth-child`](https://developer.mozilla.org/en-US/docs/Web/CSS/:nth-child)。
+
+除了使用`style`定义样式外，也可以使用`class`：
+
+```html
+<table>
+    <caption>Superheros and sidekicks</caption>
+    <colgroup>
+        <col>
+        <col span="2" class="batman">
+        <col span="2" class="flash">
+    </colgroup>
+    <tr>
+        <td> </td>
+        <th scope="col">Batman</th>
+        <th scope="col">Robin</th>
+        <th scope="col">The Flash</th>
+        <th scope="col">Kid Flash</th>
+    </tr>
+    <tr>
+        <th scope="row">Skill</th>
+        <td>Smarts</td>
+        <td>Dex, acrobat</td>
+        <td>Super speed</td>
+        <td>Super speed</td>
+    </tr>
+</table>
+```
+
+如果我们想将样式信息应用于两列，我们可以只包含一个`<col>`带有 span 属性的元素，如下所示：
+
+```html
+<colgroup>
+  <col style="background-color: yellow" span="2">
+</colgroup>
+```
+
+## 表格标题
+
+```html
+<table>
+  <caption>Dinosaurs in the Jurassic period</caption>
+
+  ...
+</table>
+```
+
+`<caption>`元素应该紧跟`<table>`开始标签之后。
+
+## 嵌套表
+
+```html
+<table id="table1">
+  <tr>
+    <th>title1</th>
+    <th>title2</th>
+    <th>title3</th>
+  </tr>
+  <tr>
+    <td id="nested">
+      <table id="table2">
+        <tr>
+          <td>cell1</td>
+          <td>cell2</td>
+          <td>cell3</td>
+        </tr>
+      </table>
+    </td>
+    <td>cell2</td>
+    <td>cell3</td>
+  </tr>
+  <tr>
+    <td>cell4</td>
+    <td>cell5</td>
+    <td>cell6</td>
+  </tr>
 </table>
 ```
 
