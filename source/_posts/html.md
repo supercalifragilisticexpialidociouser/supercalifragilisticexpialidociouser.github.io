@@ -32,7 +32,7 @@ Web 浏览器的作用是读取 HTML 文档，并以网页的形式显示出它�
 </html>
 ```
 
-# 文档类型
+## 文档类型
 
 `<!DOCTYPE>`是一个文档类型标记，用于告诉标准通用标记语言（SGML）解析器，它应该使用什么样的文档类型定义（DTD）来解析文档，并且它的根元素是什么。
 
@@ -60,7 +60,7 @@ XHTML 1.0：
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 ```
 
-# 文档语言
+## 文档语言
 
 ```html
 <html lang="en-US">
@@ -79,11 +79,11 @@ XHTML 1.0：
 
 在父层元素声明的语言信息，将被子层元素所继承，除非这些元素显式声明了不同的语言。
 
-# HTML注释
+## HTML注释
 
 注释以标签`<!--`开头，以`-->`结尾。浏览器会忽略这两个标签之间的一切内容。
 
-# HTML元素
+## HTML元素
 
 HTML元素是一种用来向浏览器说明文档内容的**结构和含义**的工具。（而CSS则是用于控制内容的**显现形式**）
 
@@ -95,13 +95,13 @@ HTML 标签是由*尖括号*包围的关键词，不区分大小写，比如 `<h
 
 ![HTML元素](html/HTML元素.png)
 
-## 元素嵌套
+### 元素嵌套
 
 大多数 HTML 元素可以互相嵌套，形成父元素、子元素、后代元素、祖先元素、兄弟元素关系。
 
 一个元素能以什么样的元素为父元素或子元素是有限制的，这些限制通过元素类别表现出来。
 
-## 元素类别
+### 元素类别
 
 在 HTML 中有两个重要的元素类别需要了解：块级元素和内联元素。
 
@@ -110,7 +110,7 @@ HTML 标签是由*尖括号*包围的关键词，不区分大小写，比如 `<h
 
 > **注意**：HTML5 重新定义了元素类别：请参阅[元素内容类别](https://html.spec.whatwg.org/multipage/indices.html#element-content-categories)。虽然这些定义比它们的前辈更准确、更明确，但新定义比*块*和*内联*更难理解*。*本文将保留这两个术语。
 
-## 空元素
+### 空元素
 
 某些 HTML 元素没有内容，称为空元素（empty content 或 void element）。
 
@@ -121,7 +121,7 @@ HTML 标签是由*尖括号*包围的关键词，不区分大小写，比如 `<h
 
 空元素有：`<area>`、`<base>`、`<br>`、`<col>`、`<colgroup>`、`<command>`、`<embed>`、`<hr>`、`<img>`、`<input>`、`<keygen>`、`<link>`、`<meta>`、`<param>`、`<source>`、`<track>`、`<wbr>`。
 
-## 元素属性
+### 元素属性
 
 元素可以用属性（attribute）进行配置。一个元素可以应用多个属性，属性之间以一个或几个空格分隔。多个属性的顺序未作要求。
 
@@ -131,9 +131,9 @@ HTML 标签是由*尖括号*包围的关键词，不区分大小写，比如 `<h
 
 属性值既可以使用双引号界定，也可以用单引号界定。
 
-> 不包含 ASCII 空格或任何`"` `'` ``` `=` `<` `>`等字符的简单属性值可以保持不加引号，但建议对任何属性值都加引号
+> 不包含 ASCII 空格或任何``'"`=<>``等字符的简单属性值可以保持不加引号，但建议对任何属性值都加引号
 
-### 布尔属性
+#### 布尔属性
 
 布尔属性可以不需要设定一个值，只需将属性名添加到元素中即表示`true`。
 
@@ -145,7 +145,7 @@ HTML 标签是由*尖括号*包围的关键词，不区分大小写，比如 `<h
 <input disable="disable">
 ```
 
-### 自定义属性
+#### 自定义属性
 
 用户可以自定义属性，但自定义属性名必须以`data-`开头。
 
@@ -155,13 +155,13 @@ HTML 标签是由*尖括号*包围的关键词，不区分大小写，比如 `<h
 
 自定义属性与CSS和JavaScript结合起来很有用。
 
-### 公共属性
+#### 公共属性
 
 公共属性可用于任何 HTML 元素。
 
 | 属性                                                         | 描述                                                   |
 | :----------------------------------------------------------- | :----------------------------------------------------- |
-| [accesskey](https://www.w3school.com.cn/tags/att_standard_accesskey.asp) | 规定激活元素的快捷键。                                 |
+| [accesskey](https://www.w3school.com.cn/tags/att_standard_accesskey.asp) | 规定激活元素的快捷键。（Chrome采用Alt-accesskey触发）  |
 | [class](https://www.w3school.com.cn/tags/att_standard_class.asp) | 规定元素的一个或多个类名（引用样式表中的类）。         |
 | [contenteditable](https://www.w3school.com.cn/tags/att_global_contenteditable.asp) | 规定元素内容是否可编辑。                               |
 | [contextmenu](https://www.w3school.com.cn/tags/att_global_contextmenu.asp) | 规定元素的上下文菜单。上下文菜单在用户点击元素时显示。 |
@@ -178,7 +178,7 @@ HTML 标签是由*尖括号*包围的关键词，不区分大小写，比如 `<h
 | [title](https://www.w3school.com.cn/tags/att_standard_title.asp) | 规定有关元素的额外信息。                               |
 | [translate](https://www.w3school.com.cn/tags/att_global_translate.asp) | 规定是否应该翻译元素内容。                             |
 
-# HTML实体
+## HTML实体
 
 在 HTML 中，某些字符是预留的。如果希望正确地显示预留字符，我们必须在 HTML 源代码中使用字符实体（character entities）。
 
@@ -192,7 +192,7 @@ HTML 标签是由*尖括号*包围的关键词，不区分大小写，比如 `<h
 &#entity_number;
 ```
 
-## 常用的字符实体
+### 常用的字符实体
 
 | 显示结果 | 描述              | 实体名称            | 实体编号  |
 | :------- | :---------------- | :------------------ | :-------- |
@@ -217,19 +217,19 @@ HTML 标签是由*尖括号*包围的关键词，不区分大小写，比如 `<h
 >
 > 完整的实体符号参考，请访问 [HTML 实体符号参考手册](https://www.w3school.com.cn/tags/html_ref_entities.html)。
 
-# HTML头部
+## HTML头部
 
 HTML 头部是[`<head>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head)元素的内容——与元素的内容`<body>`（在浏览器中加载时显示在页面上）不同，头部的内容不显示在页面上。相反，头部的工作是包含有关文档的元数据。
 
-## 文档标题
+### 文档标题
 
 [`<title>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/title)元素是表示整个 HTML 文档（而不是文档正文）标题的元数据。
 
-## 元数据
+### 元数据
 
 元数据（[`<meta>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta)元素）可以向浏览器提供文档的一些信息。
 
-### 指定文档的字符编码
+#### 指定文档的字符编码
 
 目前在大部分浏览器中，直接输出中文会出现中文乱码的情况，这时候我们就需要在头部将字符声明为 UTF-8 或 GBK。
 
@@ -237,7 +237,7 @@ HTML 头部是[`<head>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Eleme
 <meta charset="utf-8">
 ```
 
-### 添加作者和描述
+#### 添加作者和描述
 
 许多`<meta>`元素包括`name`和`content`属性：
 
@@ -253,7 +253,7 @@ started with developing web sites and applications.">
 
 > **注意**：许多`<meta>`功能不再使用。例如，`<meta name="keywords" content="fill, in, your, keywords, here">`。
 
-## 网站图标
+### 网站图标
 
 ```html
 <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -263,7 +263,7 @@ started with developing web sites and applications.">
 
 > **注意：**如果您的站点使用内容安全策略 (CSP) 来增强其安全性，则该策略适用于网站图标。如果您遇到网站图标未加载的问题，请确认[`Content-Security-Policy`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)标头的[`img-src`指令](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/img-src)没有阻止对其进行访问。
 
-## 应用CSS
+### 应用CSS
 
 [`<link>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link)
 
@@ -271,7 +271,7 @@ started with developing web sites and applications.">
 <link rel="stylesheet" href="my-css-file.css">
 ```
 
-## 应用JavaScript
+### 应用JavaScript
 
 [`<script>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script)
 
@@ -301,11 +301,11 @@ started with developing web sites and applications.">
 
 > 旧的JavaScript例子也许会使用`type`属性，例如`<script type='text/javascript'>`。现在已经不需要了，JavaScript已经是HTML中的默认脚本语言了。
 
-# HTML正文
+## HTML正文
 
 文档正文包含在[`<body>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/body)元素之中。
 
-## HTML中的空格
+### HTML中的空格
 
 无论您在 HTML 元素内容中使用多少空格（包括换行符），HTML 解析器在呈现代码时会将每个空格序列缩减为一个空格。
 
@@ -342,6 +342,8 @@ started with developing web sites and applications.">
 </ul>
 ```
 
+> `<ul>`的 `type` 属性已经被弃用，请改用[CSS](https://developer.mozilla.org/en-US/docs/Web/CSS) [`list-style-type`](https://developer.mozilla.org/en-US/docs/Web/CSS/list-style-type)属性。
+
 ### 有序列表
 
 [`<ol>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol)
@@ -355,6 +357,8 @@ started with developing web sites and applications.">
     <li>The school is on your right, 300 meters up the road</li>
 </ol>
 ```
+
+> **注意：**除非列表编号的类型很重要（非装饰性的，例如通过编号/字母引用项目的法律或技术文档），请改用 CSS[`list-style-type`](https://developer.mozilla.org/en-US/docs/Web/CSS/list-style-type)属性。
 
 ### 描述列表
 
@@ -381,7 +385,48 @@ started with developing web sites and applications.">
 </dl>
 ```
 
+也允许多个术语有同一个描述：
 
+```html
+<dl>
+  <dt>Firefox</dt>
+  <dt>Mozilla Firefox</dt>
+  <dt>Fx</dt>
+  <dd>
+    A free, open source, cross-platform,
+    graphical web browser developed by the
+    Mozilla Corporation and hundreds of
+    volunteers.
+  </dd>
+
+  <!-- Other terms and descriptions -->
+</dl>
+```
+
+多个术语有相同的多个描述也是允许的。
+
+[WHATWG](https://developer.mozilla.org/en-US/docs/Glossary/WHATWG) HTML 允许将每个名称-值组包装在`<dl>`元素中的一个`<div>`元素中。这在使用[microdata](https://developer.mozilla.org/en-US/docs/Web/HTML/Microdata)或[全局属性](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes)应用于整个组时或用于样式目的时非常有用。
+
+```html
+<dl>
+  <div>
+    <dt>Name</dt>
+    <dd>Godzilla</dd>
+  </div>
+  <div>
+    <dt>Born</dt>
+    <dd>1952</dd>
+  </div>
+  <div>
+    <dt>Birthplace</dt>
+    <dd>Japan</dd>
+  </div>
+  <div>
+    <dt>Color</dt>
+    <dd>Green</dd>
+  </div>
+</dl>
+```
 
 ### 列表嵌套
 
@@ -633,7 +678,7 @@ and his markup didn't read very well.</p>
 >
 >    ```html
 >    <a href="https://firefox.com" class="external" rel=" noopener">下载 Firefox</a>
->                                  
+>                                        
 >    <style>
 >        a.external:after {
 >            background: transparent url(/static/media/external.e091ac5d.svg) 0 0 no-repeat;
