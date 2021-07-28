@@ -10,15 +10,25 @@ tags: [3.38.3]
 
 ## 创建项目
 
-在线方式：打开 [Svelte REPL](https://www.sveltejs.cn/repl) ，下载这个Hello world项目（svelte-app.zip，使用的是 Rollup构建工具），并解压。
+### 在线方式
 
-使用 [degit](https://github.com/Rich-Harris/degit) 脚手架方式：`npx degit sveltejs/template my-svelte-project`。
+打开 [Svelte REPL](https://www.sveltejs.cn/repl) ，下载这个Hello world项目（svelte-app.zip，使用的是 Rollup构建工具），并解压。
+
+### 使用 [degit](https://github.com/Rich-Harris/degit) 脚手架方式
+
+```bash
+$ npx degit sveltejs/template my-svelte-project
+```
 
 然后，运行`npm install`，安装依赖。
 
 > 项目默认使用的是 [Rollup](https://rollupjs.org/) 构建工具，也可以使用其他构建工具，例如： [webpack](https://webpack.js.org/) 、 [Vite](https://vitejs.dev)。
 >
 > 另外，官方还提供了VS Code [Svelte扩展](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode)。
+
+### 使用 [Svelte Kit](https://kit.svelte.dev/)
+
+
 
 ## 启动开发服务器
 
@@ -700,7 +710,7 @@ foo.bar = 'baz'; //不会触发对obj.foo.bar引用的更新，除非使用了ob
 <h1 on:click={e => name = name +'s'}>Hello {name}!</h1>
 ```
 
-上面`name`值的改变会引起`<input>`输入值的变化，但`<input>`输入值的变化不会引起`name`值的变化，它们是单向的。如果要实现双向绑定的效果，则需要使用`bind:value`指令：
+上面`name`值的改变会引起`<input>`输入值的变化，但`<input>`输入值的变化不会引起`name`值的变化，它们是单向的。如果要实现双向绑定的效果，则需要使用以`bind:`开头的指令：
 
 ```html
 <script>
