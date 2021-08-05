@@ -4,6 +4,20 @@ date: 2019-02-28 13:53:25
 tags: [21.0.7]
 ---
 
+# 制作安装盘
+
+sha1校验：
+
+```bash
+$ sha1sum manjaro-….iso
+```
+
+制作安装U盘：
+
+```bash
+$ sudo dd if=xxx.iso of=/dev/sdb
+```
+
 # 配置源
 
 打开GUI安装器（mod-Z，选中“System”->“Add/remove software”） -> 首选项 ->官方软件仓库 -> “使用镜像”改成“China”，然后点击“刷新镜像列表”按钮。。
@@ -13,6 +27,12 @@ tags: [21.0.7]
 ```bash
 $ sudo pacman-mirrors -c China
 ```
+
+# 配置系统时钟
+
+”Settings -> Manjaro settings manager -> 时间和日期“
+
+选中”自动设置时间和日期“。
 
 # 更新系统
 
@@ -82,6 +102,8 @@ Manjaro自带的主题是Powerlevel10k的改版，已经很好用了。
 $ pacman -S ttf-meslo-nerd-font-powerlevel10k wqy-microhei
 ```
 
+> 使用中文界面后，有几个使用Qt5的应用（例如：Manjaro settings manager、Fcitx 5 configuration、Qt5 settings）会出现乱码，可在”Settings -> Qt5 settings -> 字体页签“中，将字体改成”文泉驿微米黑“（最下面）即可。
+
 # 配置conky
 
 桌面右侧的状态栏：`/usr/share/conky/conky_maia`。
@@ -91,7 +113,7 @@ $ pacman -S ttf-meslo-nerd-font-powerlevel10k wqy-microhei
 修改conky_maia支持中文：（修改conky_maia中的size=16和size=18的字体为WenQuanYi Micro Hei。）
 
 ```
-font = 'WenQuanYi Micro Hei:size=8',
+{font WenQuanYi Micro Hei:size=16}
 ```
 
 # 配置URxvt
@@ -144,22 +166,29 @@ bindsym $mod+F2 exec google-chrome-stable
 
 # 安装输入法
 
-通过GUI安装器安装*fcitx*和*fcitx-configtool*，或者通过命令安装：
+通过GUI安装器安装*fcitx5*、*fcitx5-chinese-addons*、*fcitx5-qt*、*fcitx5-gtk*和*fcitx-configtool*（即kcm-fcitx5），或者通过命令安装：
 
 ```bash
-$ sudo pacman -S fcitx-im #默认全部安装
-$ sudo pacman -S fcitx-configtool
+sudo pacman -S fcitx5 fcitx5-chinese-addons fcitx5-qt fcitx5-gtk kcm-fcitx5
 ```
 
-安装完成后，编辑`~/.profile`或`~/.xprofile`，添加如下配置：
+安装完成后，新建`~/.pam_environment`文件，并添加如下配置：
 
 ```
-export GTK_IM_MODULE=fcitx
-export QT_IM_MODULE=fcitx
-export XMODIFIERS="@im=fcitx"
+GTK_IM_MODULE DEFAULT=fcitx
+QT_IM_MODULE  DEFAULT=fcitx
+XMODIFIERS    DEFAULT=@im=fcitx
+INPUT_METHOD  DEFAULT=fcitx
+SDL_IM_MODULE DEFAULT=fcitx
 ```
 
-重启系统后，按mod-D，然后输入`fcitx`回车，状态栏上就会出现输入法。右击状态栏中的输入法图标，选中“配置”菜单进入配置界面，点击添加输入法。只	留下“五笔拼音”输入法。
+重启系统后，按mod-D，然后输入`fcitx5`回车，状态栏上就会出现输入法。右击状态栏中的输入法图标，选中“配置”菜单进入配置界面，点击添加输入法。只留下“五笔拼音”输入法。
+
+开机启动：编辑i3配置文件`~/.i3/config`，在”# Autostart applications“下添加如下语句：
+
+```
+exec --no-startup-id fcitx5 -d
+```
 
 # 配置状态栏
 
