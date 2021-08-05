@@ -262,6 +262,8 @@ $ sudo archlinux-java set java-11-openjdk
 - Angular Language Service
 - Angular Snippets (Version 12)
 
+> 如果无法访问扩展商店，则需要安装 code-marketplace（在AUR）。
+
 # 安装Typora
 
 ```bash
@@ -293,3 +295,11 @@ $ nvm ls-remote --lts
 ```
 
 设置国内源：
+
+```bash
+$ npm config set registry https://registry.npm.taobao.org
+```
+
+# SSH
+
+私钥的权限必须是 400，公钥为 444，`config`和`known_hosts`文件为 644
