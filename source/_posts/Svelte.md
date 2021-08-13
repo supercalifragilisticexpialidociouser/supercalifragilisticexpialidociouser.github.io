@@ -26,11 +26,13 @@ $ npx degit sveltejs/template my-svelte-project
 >
 > 另外，官方还提供了VS Code [Svelte扩展](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode)。
 
-### 使用 [Svelte Kit](https://kit.svelte.dev/)
+### 使用 [Svelte Kit](https://kit.svelte.dev/)（推荐）
 
+```bash
+$ npm init svelte@next PROJECT_NAME
+```
 
-
-## 启动开发服务器
+## 开发运行
 
 ```bash
 $ npm run dev
@@ -38,7 +40,7 @@ $ npm run dev
 
 打开 http://localhost:5000。
 
-## 构建应用程序
+## 构建
 
 ```bash
 $ npm run build
@@ -56,6 +58,8 @@ $ npm start
 
 在 Svelte 中，应用程序由一个或多个 *组件（components）* 构成。组件是一个可重用的、自包含的代码块，它将 HTML、CSS 和 JavaScript 代码封装在一起并写入 `.svelte` 扩展名的文件中。
 
+## 组件定义
+
 ```html
 <script>
 	// logic goes here
@@ -68,21 +72,7 @@ $ npm start
 </style>
 ```
 
-## 样式
-
-可以使用`<style>` 标签向组件添加样式，这些 CSS 样式规则 *的作用域被限定在当前组件中*。
-
-```svelte
-<p>This is a paragraph.</p>
-
-<style>
-	p {
-		color: purple;
-		font-family: 'Comic Sans MS', cursive;
-		font-size: 2em;
-	}
-</style>
-```
+组件文件中默认导出的总是组件本身。
 
 ## 嵌套组件
 
@@ -139,7 +129,15 @@ export default app;
 
 然后，如果需要，你可以使用 [组件 API](https://svelte.dev/docs#Client-side_component_API) 与 `app` 进行交互。
 
-# 插值
+# 脚本
+
+## TypeScript支持
+
+需要安装象*svelte-preprocess*这样的前置处理器。
+
+# 模板
+
+## 插值
 
 插值（花括号表达式）中，可以引用`<script>`中定义的变量。插值即可以出现在元素内容中，也可以出现在元素属性中：
 
@@ -162,7 +160,289 @@ export default app;
 <p>{@html string}</p>
 ```
 
-# 事件处理
+# 指令
+
+## 控制块
+
+### 条件
+
+```svelte
+<script>
+	let user = { loggedIn: false };
+
+	function toggle() {
+		user.loggedIn = !user.loggedIn;
+	}
+</script>
+
+{#if user.loggedIn}
+	<button on:click={toggle}>
+		Log out
+	</button>
+{:else}
+	<button on:click={toggle}>
+		Log in
+	</button>
+{/if}
+```
+
+`#`字符表示*块打开*标签。`/`字符表示*块结束*标记。`:`字符（例如`{:else}`）表示*块继续*标记。
+
+多分支：
+
+```svelte
+<script>
+	let x = 7;
+</script>
+
+{#if x > 10}
+	<p>{x} is greater than 10</p>
+{:else if 5 > x}
+	<p>{x} is less than 5</p>
+{:else}
+	<p>{x} is between 5 and 10</p>
+{/if}
+```
+
+### 迭代
+
+```svelte
+<script>
+	let cats = [
+		{ id: 'J---aiyznGQ', name: 'Keyboard Cat' },
+		{ id: 'z_AbfPXTKms', name: 'Maru' },
+		{ id: 'OUtn3pvWmpg', name: 'Henri The Existential Cat' }
+	];
+</script>
+
+<h1>The Famous Cats of YouTube</h1>
+
+<ul>
+	{#each cats as { id, name }, i}
+		<li><a target="_blank" href="https://www.youtube.com/watch?v={id}">
+			{i + 1}: {name}
+		</a></li>
+	{/each}
+</ul>
+或者
+<ul>
+	{#each cats as cat, i}
+	<li><a target="_blank" href="https://www.youtube.com/watch?v={cat.id}">
+		{i + 1}: {cat.name}
+	</a></li>
+	{/each}
+</ul>
+```
+
+第二个参数是可选的，表示当前索引。
+
+`each`可以迭代任何数组或类似数组的对象（即它有一个`length`属性）。
+
+当需要对迭代的数组或对象做修改时，要指定一个键，来告诉Svelte在组件更新时如何确定要更改哪个DOM节点。否则，它总是删除最后一个DOM节点，然后依次更新剩余节点的`name`值，其他属性值保持不变。
+
+```html
+--- Thing.svelte ---
+<script>
+	const emojis = {
+        apple: "🍎",
+        banana: "🍌",
+        carrot: "🥕",
+        doughnut: "🍩",
+        egg: "🥚"
+	}
+
+	// the name is updated whenever the prop value changes...
+	export let name;
+
+	// ...but the "emoji" variable is fixed upon initialisation of the component
+	const emoji = emojis[name];
+</script>
+
+<p>
+	<span>The emoji for { name } is { emoji }</span>
+</p>
+
+<style>
+	p {
+		margin: 0.8em 0;
+	}
+	span {
+		display: inline-block;
+		padding: 0.2em 1em 0.3em;
+		text-align: center;
+		border-radius: 0.2em;
+		background-color: #FFDFD3;
+	}
+</style>
+
+
+-- App.svelte --
+<script>
+	import Thing from './Thing.svelte';
+
+	let things = [
+		{ id: 1, name: 'apple' },
+		{ id: 2, name: 'banana' },
+		{ id: 3, name: 'carrot' },
+		{ id: 4, name: 'doughnut' },
+		{ id: 5, name: 'egg' },
+	];
+
+	function handleClick() {
+		things = things.slice(1);
+	}
+</script>
+
+<button on:click={handleClick}>
+	Remove first thing
+</button>
+
+{#each things as thing (thing.id) }
+	<Thing name={thing.name}/>
+{/each}
+```
+
+### 等待块
+
+```html
+<script>
+	async function getRandomNumber() {
+		const res = await fetch(`tutorial/random-number`);
+		const text = await res.text();
+
+		if (res.ok) {
+			return text;
+		} else {
+			throw new Error(text);
+		}
+	}
+	
+	let promise = getRandomNumber();
+
+	function handleClick() {
+		promise = getRandomNumber();
+	}
+</script>
+
+<button on:click={handleClick}>
+	generate random number
+</button>
+
+{#await promise}  (等待异步数据)
+	<p>...waiting</p>
+{:then number}    （收到异步数据）
+	<p>The number is {number}</p>
+{:catch error}    （出现异常）
+	<p style="color: red">{error.message}</p>
+{/await}
+
+```
+
+`:catch`块是可选的，另外，第一块也可省略，但要写成：
+
+```svelte
+{#await promise then value}
+	<p>the value is {value}</p>
+{/await}
+```
+
+# 属性
+
+组件中声明的普通变量表示组件内部状态，只能在组件内部访问，而属性则可以接收外部的数据。Sveltte采用 `export` 来声明属性。
+
+```html
+--- Nested.svelte：---
+<script>
+	export let answer;
+</script>
+<p>The answer is {answer}</p>
+
+--- App.svelte: ---
+<script>
+	import Nested from './Nested.svelte';
+</script>
+<Nested answer={42}/>
+```
+
+属性如果有初始化，则将这个初始化值作为它的默认值：
+
+```html
+--- Nested.svelte：---
+<script>
+	export let answer = 'a mystery';
+</script>
+<p>The answer is {answer}</p>
+
+--- App.svelte: ---
+<script>
+	import Nested from './Nested.svelte';
+</script>
+<Nested answer={42}/>
+<Nested/>   （这里使用默认值）
+```
+
+可以使用`...obj`语法，将对象传递给组件的各个属性：
+
+```html
+--- Info.svelte ---
+<script>
+   export let name;
+   export let version;
+   export let speed;
+   export let website;
+</script>
+<p>
+   The <code>{name}</code> package is {speed} fast.
+   Download version {version} from <a href="https://www.npmjs.com/package/{name}">npm</a>
+   and <a href={website}>learn more here</a>
+</p>
+
+--- App.svelte ---
+<script>
+   import Info from './Info.svelte';
+   const pkg = {
+      name: 'svelte',
+      version: 3,
+      speed: 'blazing',
+      website: 'https://svelte.dev'
+   };
+</script>
+<Info {...pkg}/>
+```
+
+`<Info {...pkg}/>` 是 `<Info name={pkg.name} version={pkg.version} speed={pkg.speed} website={pkg.website}/>` 的快捷写法。
+
+在组件内，可以通过`$$props` 来访问所有属性和普通变量。
+
+## 速记法
+
+名称和值相同的属性，比如 `src={src}`。Svelte 为这种情况提供了一个方便的速记法：
+
+```svelte
+<img {src} alt="A man dances.">
+```
+
+注意：以`bind:`开头的绑定属性比较特殊，`bind:xxx={xxx}`应简写为`bind:xxx`。
+
+# 插槽
+
+# 样式
+
+可以使用`<style>` 标签向组件添加样式，这些 CSS 样式规则 *的作用域被限定在当前组件中*。
+
+```svelte
+<p>This is a paragraph.</p>
+
+<style>
+	p {
+		color: purple;
+		font-family: 'Comic Sans MS', cursive;
+		font-size: 2em;
+	}
+</style>
+```
+
+# 事件
 
 可以使用`on:`指令监听元素上的任何事件。
 
@@ -370,7 +650,7 @@ export default app;
 <CustomButton on:click={handleClick}/>
 ```
 
-# 反应式
+# 反应性
 
 当组件的状态发生变化时，Svelte会自动更新DOM。有时，组件状态的某些部分需要从其他部分进行计算，并在它们发生变化时重新计算。这可通过反应式声明做到。
 
@@ -432,268 +712,6 @@ function addNumber() {
 ```javascript
 const foo = obj.foo;
 foo.bar = 'baz'; //不会触发对obj.foo.bar引用的更新，除非使用了obj = obj
-```
-
-# 属性
-
-组件中声明的普通变量表示组件内部状态，只能在组件内部访问，而属性则可以接收外部的数据。Sveltte采用 `export` 来声明属性。
-
-```html
---- Nested.svelte：---
-<script>
-	export let answer;
-</script>
-<p>The answer is {answer}</p>
-
---- App.svelte: ---
-<script>
-	import Nested from './Nested.svelte';
-</script>
-<Nested answer={42}/>
-```
-
-属性如果有初始化，则将这个初始化值作为它的默认值：
-
-```html
---- Nested.svelte：---
-<script>
-	export let answer = 'a mystery';
-</script>
-<p>The answer is {answer}</p>
-
---- App.svelte: ---
-<script>
-	import Nested from './Nested.svelte';
-</script>
-<Nested answer={42}/>
-<Nested/>   （这里使用默认值）
-```
-
-可以使用`...obj`语法，将对象传递给组件的各个属性：
-
-```html
---- Info.svelte ---
-<script>
-   export let name;
-   export let version;
-   export let speed;
-   export let website;
-</script>
-<p>
-   The <code>{name}</code> package is {speed} fast.
-   Download version {version} from <a href="https://www.npmjs.com/package/{name}">npm</a>
-   and <a href={website}>learn more here</a>
-</p>
-
---- App.svelte ---
-<script>
-   import Info from './Info.svelte';
-   const pkg = {
-      name: 'svelte',
-      version: 3,
-      speed: 'blazing',
-      website: 'https://svelte.dev'
-   };
-</script>
-<Info {...pkg}/>
-```
-
-`<Info {...pkg}/>` 是 `<Info name={pkg.name} version={pkg.version} speed={pkg.speed} website={pkg.website}/>` 的快捷写法。
-
-在组件内，可以通过`$$props` 来访问所有属性和普通变量。
-
-## 速记法
-
-名称和值相同的属性，比如 `src={src}`。Svelte 为这种情况提供了一个方便的速记法：
-
-```svelte
-<img {src} alt="A man dances.">
-```
-
-注意：以`bind:`开头的绑定属性比较特殊，`bind:xxx={xxx}`应简写为`bind:xxx`。
-
-# 控制块
-
-## 条件
-
-```svelte
-<script>
-	let user = { loggedIn: false };
-
-	function toggle() {
-		user.loggedIn = !user.loggedIn;
-	}
-</script>
-
-{#if user.loggedIn}
-	<button on:click={toggle}>
-		Log out
-	</button>
-{:else}
-	<button on:click={toggle}>
-		Log in
-	</button>
-{/if}
-```
-
-`#`字符表示*块打开*标签。`/`字符表示*块结束*标记。`:`字符（例如`{:else}`）表示*块继续*标记。
-
-多分支：
-
-```svelte
-<script>
-	let x = 7;
-</script>
-
-{#if x > 10}
-	<p>{x} is greater than 10</p>
-{:else if 5 > x}
-	<p>{x} is less than 5</p>
-{:else}
-	<p>{x} is between 5 and 10</p>
-{/if}
-```
-
-## 迭代
-
-```svelte
-<script>
-	let cats = [
-		{ id: 'J---aiyznGQ', name: 'Keyboard Cat' },
-		{ id: 'z_AbfPXTKms', name: 'Maru' },
-		{ id: 'OUtn3pvWmpg', name: 'Henri The Existential Cat' }
-	];
-</script>
-
-<h1>The Famous Cats of YouTube</h1>
-
-<ul>
-	{#each cats as { id, name }, i}
-		<li><a target="_blank" href="https://www.youtube.com/watch?v={id}">
-			{i + 1}: {name}
-		</a></li>
-	{/each}
-</ul>
-或者
-<ul>
-	{#each cats as cat, i}
-	<li><a target="_blank" href="https://www.youtube.com/watch?v={cat.id}">
-		{i + 1}: {cat.name}
-	</a></li>
-	{/each}
-</ul>
-```
-
-第二个参数是可选的，表示当前索引。
-
-`each`可以迭代任何数组或类似数组的对象（即它有一个`length`属性）。
-
-当需要对迭代的数组或对象做修改时，要指定一个键，来告诉Svelte在组件更新时如何确定要更改哪个DOM节点。否则，它总是删除最后一个DOM节点，然后依次更新剩余节点的`name`值，其他属性值保持不变。
-
-```html
---- Thing.svelte ---
-<script>
-	const emojis = {
-        apple: "🍎",
-        banana: "🍌",
-        carrot: "🥕",
-        doughnut: "🍩",
-        egg: "🥚"
-	}
-
-	// the name is updated whenever the prop value changes...
-	export let name;
-
-	// ...but the "emoji" variable is fixed upon initialisation of the component
-	const emoji = emojis[name];
-</script>
-
-<p>
-	<span>The emoji for { name } is { emoji }</span>
-</p>
-
-<style>
-	p {
-		margin: 0.8em 0;
-	}
-	span {
-		display: inline-block;
-		padding: 0.2em 1em 0.3em;
-		text-align: center;
-		border-radius: 0.2em;
-		background-color: #FFDFD3;
-	}
-</style>
-
-
--- App.svelte --
-<script>
-	import Thing from './Thing.svelte';
-
-	let things = [
-		{ id: 1, name: 'apple' },
-		{ id: 2, name: 'banana' },
-		{ id: 3, name: 'carrot' },
-		{ id: 4, name: 'doughnut' },
-		{ id: 5, name: 'egg' },
-	];
-
-	function handleClick() {
-		things = things.slice(1);
-	}
-</script>
-
-<button on:click={handleClick}>
-	Remove first thing
-</button>
-
-{#each things as thing (thing.id) }
-	<Thing name={thing.name}/>
-{/each}
-```
-
-## 等待块
-
-```html
-<script>
-	async function getRandomNumber() {
-		const res = await fetch(`tutorial/random-number`);
-		const text = await res.text();
-
-		if (res.ok) {
-			return text;
-		} else {
-			throw new Error(text);
-		}
-	}
-	
-	let promise = getRandomNumber();
-
-	function handleClick() {
-		promise = getRandomNumber();
-	}
-</script>
-
-<button on:click={handleClick}>
-	generate random number
-</button>
-
-{#await promise}  (等待异步数据)
-	<p>...waiting</p>
-{:then number}    （收到异步数据）
-	<p>The number is {number}</p>
-{:catch error}    （出现异常）
-	<p style="color: red">{error.message}</p>
-{/await}
-
-```
-
-`:catch`块是可选的，另外，第一块也可省略，但要写成：
-
-```svelte
-{#await promise then value}
-	<p>the value is {value}</p>
-{/await}
 ```
 
 # 绑定
