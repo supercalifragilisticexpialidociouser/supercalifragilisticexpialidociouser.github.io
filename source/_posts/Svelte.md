@@ -554,6 +554,7 @@ export let format = n => n.toFixed(2);
 - `capture`— 在*捕获*阶段而不是*冒泡*阶段触发处理程序（[MDN 文档](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Building_blocks/Events#Event_bubbling_and_capture)）
 - `once` - 在第一次运行后删除处理程序
 - `self` — 仅当 event.target 是元素本身时才触发处理程序
+- `trusted`
 
 您可以将多个修饰符链接在一起，例如`on:click|once|capture={...}`.
 
