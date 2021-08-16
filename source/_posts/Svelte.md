@@ -238,6 +238,8 @@ export default app;
 
 `each`可以迭代任何数组或类似数组的对象（即它有一个`length`属性）。
 
+#### 跟踪条目
+
 当需要对迭代的数组或对象做修改时，要指定一个键，来告诉Svelte在组件更新时如何确定要更改哪个DOM节点。否则，它总是删除最后一个DOM节点，然后依次更新剩余节点的`name`值，其他属性值保持不变。
 
 ```html
@@ -383,6 +385,16 @@ export default app;
 
 在组件内，可以通过`$$props` 来访问组件的所有属性，包括那些没有用`export`声明的属性 。通常不建议这样做，因为 Svelte 很难优化，但它在极少数情况下很有用。
 
+可以导出常量、函数和类，它们可以通过`bind:this`在组件外**只读**访问。
+
+```javascript
+export const thisIs = 'readonly';
+
+export function greet(name) {
+	alert(`hello ${name}!`);
+}
+```
+
 ## 展开属性
 
 *展开属性*允许一次将多个属性传递给元素或组件。
@@ -429,6 +441,24 @@ export default app;
 ```
 
 注意：以`bind:`开头的绑定属性比较特殊，`bind:xxx={xxx}`应简写为`bind:xxx`。
+
+## 属性值
+
+属性值允许是函数表达式：
+
+```html
+export let format = n => n.toFixed(2);
+```
+
+布尔属性如果它的值是 [truthy](https://developer.mozilla.org/en-US/docs/Glossary/Truthy) 则包含在元素中，如果是 [falsy](https://developer.mozilla.org/en-US/docs/Glossary/Falsy)则不包含。
+
+其他属性如果值是 [nullish](https://developer.mozilla.org/en-US/docs/Glossary/Nullish) （`null` 或 `undefined`）则不包含在元素中；否则包含在元素中。
+
+如果属性值中包含一些特殊字符（例如空格等），必须使用引号包围。
+
+```html
+<button disabled="{number !== 42}">...</button>
+```
 
 # 插槽
 
