@@ -791,9 +791,9 @@ foo.bar = 'baz'; //不会触发对obj.foo.bar引用的更新，除非使用了ob
 <input type=checkbox bind:checked={yes}>
 ```
 
-## 输入组
+## 组输入框
 
-一组`name`相同的复选框或单选框，可以将`bind:group`指令与`value`属性一起使用：
+一组`name`相同的复选框或单选框（`name`也可以缺省），可以将`bind:group`指令与`value`属性一起使用：
 
 ```html
 <script>
@@ -852,7 +852,7 @@ foo.bar = 'baz'; //不会触发对obj.foo.bar引用的更新，除非使用了ob
 
 `bind:group`绑定的选中的值（单选框是单个值，复选框是选定值的数组）。
 
-## 文本区
+## 多行文本框
 
 `<textarea>`元素也使用`bind:value`指令进行双向绑定。
 
@@ -860,7 +860,7 @@ foo.bar = 'baz'; //不会触发对obj.foo.bar引用的更新，除非使用了ob
 <textarea bind:value={value}></textarea>
 ```
 
-## 下拉框
+## 选择框
 
 `<select>`元素使用`bind:value`指令来双向绑定选中的值：
 
@@ -914,7 +914,7 @@ foo.bar = 'baz'; //不会触发对obj.foo.bar引用的更新，除非使用了ob
 
 ### 多选下拉框
 
-`<select>`元素带`multiple`属性时允许选中多个项，这种它绑定的是一个选定值的数组：
+`<select>`元素带`multiple`属性时允许选中多个项，这时它绑定的是一个选定值的数组：
 
 ```html
 <script>
