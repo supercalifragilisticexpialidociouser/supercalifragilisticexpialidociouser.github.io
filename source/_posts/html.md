@@ -6,6 +6,8 @@ tags: [5]
 
 [HTML](https://developer.mozilla.org/en-US/docs/Learn/HTML) 指的是超文本标记语言 (**H**yper **T**ext **M**arkup **L**anguage)，是用于构造网页及其内容的代码。
 
+> HTML的语言规范参见：[英文版](https://html.spec.whatwg.org/)、[中文版](https://whatwg-cn.github.io/html/)。
+
 # HTML文档
 
 HTML 文档*描述网页内容的结构*，它由一系列HTML元素组成，它的扩展名是`.html`。
@@ -678,7 +680,7 @@ and his markup didn't read very well.</p>
 >
 >    ```html
 >    <a href="https://firefox.com" class="external" rel=" noopener">下载 Firefox</a>
->                                        
+>                                           
 >    <style>
 >        a.external:after {
 >            background: transparent url(/static/media/external.e091ac5d.svg) 0 0 no-repeat;
