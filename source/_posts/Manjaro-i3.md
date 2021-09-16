@@ -250,7 +250,7 @@ $ sudo archlinux-java set java-11-openjdk
 
 设置自带终端的字体：打开*File → Preferences → Settings*，找到*terminal.integrated.fontFamily*，将它的值设置为 `MesloLGS NF`。
 
-安装如下扩展：
+Java扩展：
 
 - Language Support for Java(TM) by Red Hat
 - Maven for Java
@@ -259,8 +259,6 @@ $ sudo archlinux-java set java-11-openjdk
 - Java Test Runner
 - Spring Initializr Java Support
 - EditorConfig for VS Code
-- Angular Language Service
-- Angular Snippets (Version 12)
 
 > 如果无法访问扩展商店，则需要安装 code-marketplace（在AUR）。
 
