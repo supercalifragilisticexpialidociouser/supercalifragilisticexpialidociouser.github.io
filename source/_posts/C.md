@@ -34,6 +34,10 @@ $ echo | gcc -v -x c -E -
 
 上面是查看C语言的includePath，如果要查看C++，则只需要将上面的“c”改成“c++”。
 
+> VsCode的 `Editor: Detect Indentation` 参数一定要取消勾选，否则，缩进参考线不会按配置的 `TabSize` 渲染。
+>
+> 另外，可在项目根目录生成 *.clang-format* 文件（YAML格式），来定制代码格式化风格。
+
 ## 交互模式
 
 无 
@@ -1861,6 +1865,81 @@ $(call 自定义函数名[, 参数1, …, 参数N])
 1. 编写 CMake 配置文件 `CMakeLists.txt` 。
 2. 执行命令 `cmake PATH` 或者 `ccmake PATH` 生成本地化的 `makefile`文件。其中， `PATH` 是 `CMakeLists.txt` 文件所在的目录。`ccmake` 和 `cmake` 的区别在于前者提供了一个交互式的界面。
 3. 使用 `make` 命令进行编译。
+
+## Meson
+
+生成项目：
+
+```bash
+$ meson init --name PROJECTNAME --build
+```
+
+Meson可以有多个构建目录，在生成项目时，已经自动创建了一个 *build* 的构建目录。如果要创建其它构建目录，使用下列命令：
+
+```bash
+#相当于：meson setup BUILDDIR
+$ meson BUILDDIR
+
+#创建基于clang的构建目录
+$ CC=clang CXX=clang++ meson setup BUILDDIR
+
+#优化构建
+$ meson --buildtype=release BUILDDIR
+```
+
+构建项目：
+
+```bash
+#方法一：先进入构建目录，然后执行
+$ meson compile
+
+#方法二：在项目根目录上执行
+$ meson compile -C BUILDDIR
+```
+
+测试：
+
+```bash
+$ meson test -C BUILDDIR
+```
+
+安装：
+
+首先，要在 *meson.build* 的构建目标中设置 `install: true`：
+
+```meson
+shared_library('mylib', 'libfile.c', install : true)
+```
+
+然后：
+
+```bash
+$ meson install -C BUILDDIR
+```
+
+默认的可执行程序的安装目录是：*/usr/local/bin*。如果要指定安装目录，则要配置：`--prefix`（默认值是 */usr/local/*）、`--bindir`（默认值是 *bin*）、`--datadir`（默认值是 *share*）、`--includedir`（默认值是 *include*）等参数。
+
+```bash
+$ meson --prefix=PREFIX BUILDDIR
+或者
+$ meson install -C BUILDDIR --destdir DESTDIR
+或者
+$ DESTDIR=DESTDIR meson install -C BUILDDIR
+```
+
+也可以在 *meson.build* 中通过 `install_dir` 属性配置安装目录。
+
+```meson
+executable('prog', 'prog.c', install : true, install_dir : 'my/special/dir')
+```
+
+Meson默认使用 ninja 后端，如果要使用其他后端，则：
+
+```bash
+$ meson setup BUILDDIR --backend=vs
+```
+
+
 
 # 程序剖析
 
