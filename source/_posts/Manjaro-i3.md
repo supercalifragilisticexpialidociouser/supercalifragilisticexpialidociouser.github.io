@@ -252,11 +252,7 @@ $ sudo archlinux-java set java-11-openjdk
 
 Java扩展：
 
-- Language Support for Java(TM) by Red Hat
-- Maven for Java
-- Project Manager for Java
-- Debugger for Java
-- Java Test Runner
+- Extension Pack for Java
 - Spring Initializr Java Support
 - EditorConfig for VS Code
 
@@ -290,6 +286,12 @@ $ nvm install 14.17.2
 
 ```bash
 $ nvm ls-remote --lts
+```
+
+将最新的版本设置为默认版本：
+
+```bash
+$ nvm alias default node
 ```
 
 设置国内源：
