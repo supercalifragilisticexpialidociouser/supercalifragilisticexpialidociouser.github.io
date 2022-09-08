@@ -1,12 +1,12 @@
 ---
 title: re2c
 date: 2019-08-21 22:38:52
-tags: [1.2.1]
+tags: [3.0]
 ---
 
 # 语法
 
-re2c程序由许多re2c块和指令组成，并混合着普通的C/C++代码。生成的词法分析器通过用户接口与外部世界通信。
+re2c程序由许多包含在特殊格式注释中的re2c块组成。这些块之外的文本被逐字复制到输出文件中。块的内容由 re2c 处理，re2c 将这些块翻译成目标语言的代码，并输出生成的代码来代替块。生成的词法分析器通过用户接口与外部通信。
 
 ```re2c
 /*!re2c re2c:flags:i = 1; */         // re2c block with configuration that turns off #line directives
