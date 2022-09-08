@@ -44,6 +44,22 @@ IoC容器是Spring框架的核心，它使用DI管理构成应用的组件。Spr
 11. 如果Bean实现了`DisposableBean`接口，Spring将调用它的`destroy`方法；
 12. 如果Bean使用`destroy-method`声明了自定义的销毁方法，该方法会被调用。
 
+总体分成四阶段：
+
+1.  实例化 bean
+2.  依赖注入：属性、各种Aware
+3.  初始化：
+    1.  `BeanPostProcessor` 接口的 `postProcessBeforeInitialization` 方法
+    2.  `@PostConstruct` 方法
+    3.  `InitializingBean` 接口的`afterPropertiesSet`方法
+    4.  `init-method`声明了自定义的初始化方法
+    5.  `BeanPostProcessor` 接口的 `postProcessAfterinitialization` 方法
+4.  销毁：
+    1.  `DestructionAwareBeanPostProcessor` 接口的 `postProcessBeforeDestruction` 方法
+    2.  `@PreDestroy` 方法
+    3.  `DisposableBean`接口的`destroy`方法
+    4.  `destroy-method`声明了自定义的销毁方法
+
 ## 装配Bean
 
 Spring 能过配置元数据（Configuration Metadata）来装配Bean。
